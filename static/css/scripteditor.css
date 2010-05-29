@@ -1,0 +1,121 @@
+/*---- Text Formating------
+this following block of css
+formats the text inside the textEditor div
+give the correct fonts and formats
+
+For each of the six posible line formats
+(slugline, character, action, dialouge, etc)
+it uses a different header element (h1, h2, etc)
+
+So, don't use Header Elements in the layout
+
+Don't Touch
+*/
+h1, h2, h3, h4, h5, h6{
+	font-weight:lighter !important
+}
+h1 {
+ /* slugline */
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ text-transform: uppercase;
+ margin: 18px 0;
+ background-color: #ccc;
+}
+h2 {
+ /* action */
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ margin-top: 18px;
+ margin-bottom:0;
+}
+h3 {
+ /* character */
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ text-transform: uppercase;
+ font-size: 12pt;
+ margin-left: 2.82in;
+ margin-bottom: 0;
+ margin-top: 18;
+}
+h3.more{
+	/*more*/
+	margin-top:0 !important;
+	}
+h4 {
+ /* dialogue */
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ margin-left: 1.58in;
+ margin-right: 1.07in;
+ border: 0;
+ margin-top: 0;
+ margin-bottom:0;
+}
+h5 {
+ /*transision*/
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ text-transform: uppercase;
+ font-size: 12pt;
+ margin-bottom: 0;
+ margin-top: 0;
+ text-align: right;
+}
+h6 {
+ /*wryly*/
+ font-weight: normal;
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ margin-bottom: 0;
+ margin-top: 0;
+ margin-left:2.32in;
+ margin-right:1.2in;
+	
+}
+
+.title {
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ text-align: center;
+ line-height: 200%;
+ margin: 2in 0;
+}
+.contactInfo {
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ text-align: left;
+ line-height: 100%;
+ margin-top: 2in;
+ margin-left: 3in;
+}
+.screenplay {
+ margin-right: 0.5in;
+ margin-left: 1.0in;
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+}
+/*------ End Screenplay Formatting -------
+
+---------Begin Page Layout--------------
+Edit all you like
+*/
+
+
+.character, .scene {
+ font-family: "Courier New",Courier,monospace;
+ font-size: 12pt;
+ text-transform: uppercase;
+ margin: 0;
+}
+}
+[contenteditable]:hover {
+  outline: 1px dotted #ccc;
+}
+hr {
+  border:1px dotted #999;
+}

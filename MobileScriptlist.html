@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Scriptlist</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+						   refreshList();
+						   $('#recipient').keyup(function(event){if(event.which==188)tokenize()});
+						   });
+function refreshList(){
+	$.post('/list', function(data){
+		document.getElementById('content').innerHTML = data;
+	
+							 });
+}
+
+function tokenize(){
+	var counter = 0;
+	var c = document.getElementsByTagName('div');
+		for(var i=0;i<c.length;i++){
+			if(c[i].className=='token'){
+				counter++;
+				}
+			}
+	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
+	var txtbox = document.getElementById('recipient');
+	var data = txtbox.value.replace(',','');
+	var whitespace = data.replace(/ /g, "");
+	if (whitespace==""){return;}
+	var arr = data.split(' ');
+	var email = arr.pop();
+	var name = "";
+	if(arr.length == 0){name = email;}
+	else{name = arr.join(' ').replace(/"/g, '');}
+	// Create Token div
+	var newToken = document.createElement('div');
+	var insertedToken = document.getElementById('recipients').appendChild(newToken);
+	insertedToken.className='token';
+	insertedToken.id = email;
+	// Create Name Area
+	var newSpan = document.createElement('span');
+	var nameSpan = insertedToken.appendChild(newSpan);
+	var nameText = document.createTextNode(name);
+	nameSpan.appendChild(nameText);
+	//Create Mailto area
+	var newSpan = document.createElement('span');
+	var emailSpan = insertedToken.appendChild(newSpan);
+	var emailText = document.createTextNode(email);
+	emailSpan.className = 'mailto';
+	emailSpan.appendChild(emailText);
+	// create X button
+	var newA = document.createElement('a');
+	var xA = insertedToken.appendChild(newA);
+	var xText = document.createTextNode(" | X");
+	xA.appendChild(xText);
+	var js = 'javascript:removeToken("'+email+'")'
+	xA.setAttribute('href', js);
+	txtbox.value='';
+	
+}
+function removeToken(v){
+	var token = document.getElementById(v);
+	token.parentNode.removeChild(token);	
+	}
+
+function script(v){
+url = '/editor?resource_id=' + v;
+window.open(url);
+}
+function renameScript(){
+	var resource_id = document.getElementById('resource_id').innerHTML;
+	var id = "name"+resource_id;
+	var nameCell = document.getElementById(id);
+	var rename = document.getElementById('rename').value;
+	if (rename!=""){
+		$.post("/rename", {resource_id : resource_id, rename : rename});
+		nameCell.innerHTML = rename;
+	}
+	document.getElementById('rename').value = "";
+	document.getElementById('resource_id').innerHTML = "";
+	document.getElementById('renamePrompt').style.display= 'block';
+	
+	}
+function deleteScript(v){
+	var script = document.getElementById(v);
+	script.style.backgroundColor = '#ccc';
+	script.style.opacity = '0.5';
+	$.post("/delete", {resource_id : v}, function(){script.parentNode.removeChild(script);});
+	}
+
+function exportScript(v){
+url = '/export?resource_id=' + v + '&export_format=pdf';
+window.open(url);
+}
+function countCommas(){
+	var rec = document.getElementById('recipient').value;
+	var data = rec.split(',');
+	for(var i=0;i<data.length;i++){
+		var whitespace = data[i].replace(/ /g, "");
+		if (whitespace!=""){
+			var arr = data[i].split(' ');
+			var email = arr.pop();
+			var name = email;
+			// Create Token div
+			var newToken = document.createElement('div');
+			var insertedToken = document.getElementById('recipients').appendChild(newToken);
+			insertedToken.className='token';
+			insertedToken.id = email;
+			// Create Name Area
+			var newSpan = document.createElement('span');
+			var nameSpan = insertedToken.appendChild(newSpan);
+			var nameText = document.createTextNode(name);
+			nameSpan.appendChild(nameText);
+			//Create Mailto area
+			var newSpan = document.createElement('span');
+			var emailSpan = insertedToken.appendChild(newSpan);
+			var emailText = document.createTextNode(email);
+			emailSpan.className = 'mailto';
+			emailSpan.appendChild(emailText);
+			// create X button
+			var newA = document.createElement('a');
+			var xA = insertedToken.appendChild(newA);
+			var xText = document.createTextNode(" | X");
+			xA.appendChild(xText);
+			var js = 'javascript:removeToken("'+email+'")'
+			xA.setAttribute('href', js);
+		}
+	}
+	document.getElementById('recipient').value='';
+	
+}
+function emailScript(){
+	countCommas();
+	tokenize();
+	var arr = new Array();
+	var c = document.getElementsByTagName('span');
+	for(var i=0;i<c.length; i++){
+		if (c[i].className=='mailto'){
+			arr.push(c[i].innerHTML);
+			}
+		}
+	var recipients = arr.join(',');
+	var subject = document.getElementById('subject').value;
+	var body_message = document.getElementById('message').value;
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message});
+	hideEmailDiv();
+}
+var resource_id="";
+function emailPrompt(v){
+	resource_id=v;
+	document.getElementById('emailPrompt').style.display = 'block';
+}
+function renamePrompt(v){
+	var nameId = "name"+v;
+	var name = document.getElementById(nameId).innerHTML;
+	document.getElementById('renamePrompt').style.display = 'block';
+	document.getElementById('resource_id').innerHTML = v;
+	document.getElementById('renameName').innerHTML = name;
+}
+function hideEmailDiv(){
+document.getElementById('emailPrompt').style.display = 'none';
+document.getElementById('recipient').value = "";
+document.getElementById('subject').value = "";
+document.getElementById('message').value = "";
+document.getElementById('recipients').innerHTML = "";
+}
+function hideRenameDiv(){
+document.getElementById('renamePrompt').style.display = 'none';
+document.getElementById('rename').value = "";
+}
+function showActions(v){
+	var a = document.getElementById(v).style.display;
+	var c = document.getElementsByTagName('div');
+	for(var i=0; i<c.length; i++){
+		if(c[i].className=='actions'){c[i].style.display = 'none';}
+		if(c[i].className!='popup_block'){c[i].parentNode.style.backgroundColor = 'white';}
+		}
+	
+	if(a == 'none'){
+		document.getElementById(v).style.display = 'block';
+		document.getElementById(v).parentNode.style.backgroundColor = '#90A6D8';
+		}
+	else {document.getElementById(v).style.display = 'none';}
+	
+	
+	}
+</script>
+<style>
+body{margin:0; padding:0;}
+.TEXT{
+	font-size:24px;
+  border-style:inset; 
+  border-width:2px; 
+}
+.token{
+	background-color:#ddd;
+	padding:3px;
+	margin:3px;
+	float:none;
+	font:Verdana, Geneva, sans-serif;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	float:left;
+	}
+.token a{
+	text-decoration:none;
+	color:#000;
+}
+.name{
+	font-size:30px;;
+}
+.mailto{
+	display:none;
+}
+.entry{
+	padding:6px;
+	border:ridge;
+}
+.title{
+	font-size:180%;
+}
+.btn{
+	padding-right:10px;
+	font-size:150%;
+}
+.user{
+}
+.popup{
+}
+</style>
+</head>
+
+<body>
+<b id="user">{{  user  }}</b>  |  <a href="{{ sign_out }}" class="user" style="font-size:100%">Sign Out</a>
+
+		<div style="border:ridge;">
+			<div style="border-bottom:3px #999999 solid; background-color:#ddd; padding:3px; font-size:100%">RawScripts</div>
+			<div id="content"></div>
+		</div>
+
+<div id="emailPrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100">
+	<div class="popup_block" style="width:90%; position:relative; margin:auto; top:10%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideEmailDiv()" style="color:#333">Close</a>
+			<br /><br />
+            Email Script
+            <br /><br />
+			Recipients (max 5, comma seperated)
+			<br />
+            <div id="recipients"></div>
+			<input class="TEXT" type='text' name='recipient' id='recipient' />
+			<br />
+			Subject
+			<br />
+			<input class="TEXT" type='text' name='subject' id='subject' />
+			<br />
+			Message (optional)
+			<br />
+			<textarea class="TEXT" name='message' id='message'></textarea>
+			<br />
+			<input type='button' class="btn" onClick='emailScript()' value='Send' />
+			<br />
+			<b>Note:</b> you will automatically get a copy yourself
+		</div>
+	</div>
+</div>
+<div id="renamePrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100">
+	<div class="popup_block" style="background:#7694D8; width:90%; position:relative; margin:auto; top:30%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideRenameDiv()" style="color:#333">Close</a>
+            <br /><br />
+			Rename <b id="renameName"></b>
+			<br /><br />
+			<input class="TEXT" type='text' name='rename' id='rename' />
+			<br />
+			<input type='button' class="btn" onClick='renameScript()' value='Save' />
+            <div id="resource_id" style="display:none"></div>
+			
+		</div>
+	</div>
+</div>
+</body>
+</html>

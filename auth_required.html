@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Authorization Required</title>
+  </head>
+  <body>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+    <div style="width:600px; margin-left:auto; margin-right:auto">
+    <h2>First Time? Need to Authorize.</h2>
+    <p>This webapp allows you to store your sceenplays in Google Docs. But before you can do that, you must allow this app to access your Docs data. When you click to authorize, you will be taken to a page at google.com where you can login and grant access.</p>
+
+    <p> Please <a href="{{ auth_url }}">click here to authorize</a> this application.</p>
+    <p>If you don't want to grant permission to this app, please <a href="{{ sign_out }}">sign out</a>.</p>
+  </div>
+  </body>
+</html>

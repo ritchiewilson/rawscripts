@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Loading...</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript">
+function load() {
+	var url = window.location.href;
+	var filename = url.split('=')[1];
+	$.post("/newscript", {filename : filename}, function(data){window.location = data });
+}
+</script>
+
+</head>
+
+<body onload="load()">
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+	<div style="width:600px; margin-left:auto; margin-right:auto">
+    	<h2>Loading...</h2>
+        <img src="images/loading.gif" />
+    	<p>Hey. Right now, we're running through a bunch of precesses to create your new script. Should only take a few seconds.</p>
+        <p>It'll be saved in your Google Docs in a folder called "Screenplay," so you can always grab it there.</p>
+        
+    </div>
+</body>
+</html>

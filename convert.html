@@ -1,0 +1,51 @@
+<html>
+<head>
+<script>
+function post(){
+	var win = window.parent;
+    win.postMessage('uploading', "http://www.rawscripts.com");
+}
+function titleChange(){
+	var filename = document.getElementById('file').value;
+	var arr = filename.split('.');
+	if (arr[arr.length-1]!='celtx'){
+		document.getElementById('warning').style.display = 'block';
+		document.getElementById('submit').disabled = true;
+		return;
+		}
+	document.getElementById('warning').style.display = 'none';
+	document.getElementById('submit').disabled = false;
+	var title = filename.replace('.celtx', '');
+	document.getElementById('hidden').value = title;
+	}
+
+</script>
+</head>
+<body style="padding:0; margin:0;">
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<p>Upload a .celtx file</p>
+<p id="warning" style='display:none'><b>We can only accept .celtx files at the moment</b></p>
+<form onSubmit="post()" id='target' method="post" enctype="multipart/form-data" action="/convertprocess">
+
+<input id="hidden" type="hidden" value="blank" name="filename">
+
+<input id="file" name="script" type="file" accept="text/html" onChange="titleChange()">
+
+<br>
+<input id='submit' disabled='true' type="submit" value="Upload">
+
+</form>
+</body>
+</html>

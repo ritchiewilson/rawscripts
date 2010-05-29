@@ -1,0 +1,41 @@
+<html> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Script Editor</title> 
+<link href="css/scripteditor.css" rel="stylesheet" type="text/css" /> 
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+						   refreshList();
+						   });
+function refreshList(){
+	var url = window.location.href;
+	var resource_id = url.split('=')[1];
+	$.post('/scriptcontent', {resource_id : resource_id}, function(data){
+		document.getElementById('textEditor').innerHTML = data;
+		document.getElementById('textEditor').removeChild(document.getElementById('ajaxTitle'));
+	
+							 });
+}
+</script>
+
+</head>
+<body> 
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<div id="textEditor" style="width:600px; min-height:100%; height:auto; margin-left:auto; margin-right:auto">
+</div> 
+</body> 
+</html>

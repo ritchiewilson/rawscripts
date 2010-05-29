@@ -1,0 +1,323 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>Script Editor</title> 
+ 
+<link href="css/scripteditor.css" rel="stylesheet" type="text/css" /> 
+<link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script> 
+<script type="text/javascript" src="js/jquery.scrollTo-min.js"></script> 
+<script type="text/javascript" src="js/jquery.scrollTo.js"></script> 
+<SCRIPT type="text/javascript" src="js/jquery.effects.core.js"></SCRIPT> 
+<SCRIPT type="text/javascript" src="js/jquery.effects.slide.js"></SCRIPT> 
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/editor-init.js"></script>
+<script type="text/javascript" src="js/editor.js"></script>
+<script>
+$(document).ready(function(){
+	var url = window.location.href;
+	var resource_id = url.split('=')[1];
+	$.post('/scriptcontent',
+		   {resource_id:resource_id},
+		   function(data){
+			   document.getElementById('textEditor').innerHTML=data;
+			   var titleDiv = document.getElementById('title');
+			   var i=0;
+			   while (i<titleDiv.childNodes.length){
+				   titleDiv.removeChild(titleDiv.firstChild);
+			   }
+			   titleDiv.appendChild(document.createTextNode(document.getElementById('ajaxTitle').firstChild.nodeValue));
+			   document.getElementById('textEditor').removeChild(document.getElementById('ajaxTitle'));
+			   
+			   editorinit(resource_id);
+			   
+			   })
+	});
+</script>
+<style>
+.postit{
+	background-color:#FF6;
+	border:1px #FC6 solid;
+	margin:15px;
+	padding:15px;
+	min-height:70px;
+}
+.tabs{
+	width:60px;
+	cursor:pointer;
+}
+.notes {
+	background-color:#EAA500;
+	font-family:Arial, Helvetica, sans-serif;
+	cursor:pointer;
+}
+#textEditor {
+  outline: 1px dotted #ccc;
+  -webkit-box-shadow: 0px 0px 10px rgba(0,0,0,0.4);
+  -moz-box-shadow: 0px 0px 10px rgba(0,0,0,0.4);
+}
+#suggest{
+	min-width:80px;
+	-webkit-box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+	-moz-box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+	
+}
+.charSuggest{
+	background-color:#eee;
+	padding-left:3px;
+	padding-right:15px;
+	
+}
+.charSuggest a{
+	text-decoration:none;
+	color:#333;
+	font-family:"Courier New", Courier, monospace;
+	font-size:12pt;
+}
+#optionMenu{
+	border-top:1px #666 solid;
+	}
+.menuItem{
+	font-size:12px;
+	font-family:Arial, Helvetica, sans-serif;
+	width:200px;
+	border:1px #666 solid;
+	border-top:none;
+	padding:4px;
+	background-color:#ddd;
+}
+.menuItem a{
+	text-decoration:none;
+	color:#111;
+	}
+table{
+	font-size:12px;
+	font-family:Arial, Helvetica, sans-serif;
+}
+#focus{
+	background-color:lightBlue;
+}
+#suggest{
+	border: 1px royalBlue solid;
+}
+.ui-menu-item{
+	font-size:65%
+	}
+.TEXT{  
+  font-size:10pt;  
+  background-color:white;
+  border-style:inset; 
+  border-width:2px; 
+  width:400px;
+  font-family:Verdana, Geneva, sans-serif;
+}
+.token{
+	background-color:#ddd;
+	padding:3px;
+	margin:3px;
+	float:none;
+	font:Verdana, Geneva, sans-serif;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	float:left;
+	}
+.mailto{
+	display:none;
+}
+.token a{
+	text-decoration:none;
+	color:#000;
+}
+</style>
+<body> 
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<div id='demo'></div>
+<div id="hidden" style="display:none"></div>
+<div id="intExt" style="display:none"><p class="scene">1) INT. </p><p class="scene">1) EXT. </p><p class="scene">1) INT./EXT. </p></div>
+
+<div id="loading" style="position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<p style="margin-left:40%; font-size:25px">Loading...</p>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="images/uploading.gif" />
+		</div>
+	</div>
+</div>
+
+<div id="hideshow" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideDiv()" style="color:#333">Close</a>
+			<br /><br />
+            Send Script
+            <br /><br />
+			
+			<label for="recipient">Recipients (max 5, comma seperated)</label>
+			<br />
+            <div id="recipients"></div>
+			<input class="TEXT" type='text' name='recipient' id='recipient' />
+			<br />
+			<label for="subject">Subject</label>
+			<br />
+			<input class="TEXT" type='text' name='subject' id='subject' />
+			<br />
+			<label for="message">Message (optional)</label>
+			<br />
+			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
+			<br />
+			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
+			
+            <br />
+			<b>Note:</b> you will automatically get a copy yourself
+		</div>
+	</div>
+</div>
+<div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
+			<br />
+            
+			<p id="renameTitle"></p>
+			<br />
+            <input type="hidden" value="blank" id="resource_id" />
+			<input class="TEXT" type='text' name='renameField' id='renameField' style="width:350px" />
+			<br />
+			<input type='button' onClick='renameScript()' value='Rename' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a>
+			<br />
+			<p>Export as...</p>
+			<input class='exportList' type="checkbox" checked='true' name="pdf" /> Adobe Pdf<br>
+			<input class='exportList' type="checkbox" name='txt' /> .txt for Celtx or FD
+			<br />
+			<input type='button' id="exportS" onClick='exportScripts()' value='Export' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Share Script
+            <br /><br />
+			
+			<label for="recipient">Recipients (max 5, comma seperated)</label>
+			<br />
+            <div id="collaborators"></div>
+			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
+			<br />
+			<input type='button' onClick='shareScript()' value='Send' />
+			
+		</div>
+	</div>
+</div>
+<div id="header" style="position:fixed; top:0; left:0; right:0; height:56pt;">
+<div id="title" style="float:left; font-size:18pt; margin:5px 0 0 10px;">{{ script_title }}</div> 
+<div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div>
+
+<div style="width:100%; clear:both; background-color:#7694D8; padding:3px 0; position:absolute; bottom:0; border-top:2px groove; border-bottom:2px ridge;"> 
+<input type="button" id="bold" value="B" onClick="fontEdit('bold')" style="margin-right:0" /> 
+<input type="button" id="italic" value="I" onClick="fontEdit('italic')" style="margin-right:0; margin-left:0" /> 
+<input type="button" id="underline" value="U" onClick="fontEdit('underline')" style="margin-left:0" /> 
+<select id="format" onChange="fontEdit('formatBlock',this[this.selectedIndex].value)"> 
+   <option value="h1">Slugline</option> 
+   <option value="h2">Action</option> 
+   <option value="h3">Character</option> 
+   <option value="h4">Dialouge</option> 
+   <option value="h5">Transition</option> 
+   <option value="h6">Parenthetical</option> 
+</select> 
+<input type="button" onMouseUp="insertNote()" value="Insert Note" /> 
+<input type="button" onMouseUp="save()" id="save" value="Save" /> 
+
+<div id="optionMenu" style="position:absolute; z-index:100; right:10px; top:2pt">
+	<div class="menuItem" style="cursor:pointer">Options</div>
+		<div id="hiddenMenu" style="display:none">
+			<div class="menuItem"><table style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="width:25px"></td><td><a href="javascript:save()">Save</a></td><td id="saveShortcut" align="right" style="width:35px"></td></tr></table></div>
+			<div class="menuItem"><table style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="width:25px"></td><td><a href="javascript:renamePrompt()">Rename</a></td><td align="right" style="width:35px"></td></tr></table></div>
+			<div class="menuItem"><table style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="width:25px"></td><td><a href="javascript:exportPrompt()">Export as...</a></td><td id="printShortcut" align="right" style="width:35px"></td></tr></table></div>
+			<div class="menuItem"><table style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="width:25px"></td><td><a href="javascript:emailPrompt()">Email</a></td><td align="right" style="width:35px"></td></tr></table></div>
+            <div class="menuItem"><table style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="width:25px"></td><td><a href="javascript:saveClose()">Save and Close</a></td><td align="right" style="width:35px"></td></tr></table></div>
+		</div>
+	</div>
+</div>
+</div> 
+<div id="container" style="position:absolute; top:59pt; left: 4px; right:13px; bottom:1px; overflow:auto;  border:4px #ccc ridge; "> 
+	<div contenteditable="true" id="textEditor" style="padding:5px 10px 100px 10px; margin-top:0px; width:600px; min-height:100%; height:auto; margin-left:auto; margin-right:auto" onPaste="pasteEdit()"> 
+		{{ content }}
+	</div> 
+    <div id="info" style="position:fixed;right:32px; bottom:1px; left:4px; background-color:#ccc; border:ridge; padding:2px; padding-right:20px;">
+    	<div id="onTabOrEnter" style="float:left; padding-left:20px;">tab : action --- enter : character</div>
+    	
+    	<div id="pages" style="float:right">
+        	Page: <b id="currentPage">1</b><b id="totalPages"></b>
+        </div> 
+    </div>
+</div>
+<div contenteditable="false" id="effect" style="position:fixed; top:59pt; right:-352px; bottom:5px; width:365px; overflow:hidden; z-index:0; background-color:#90A6D8;"> 
+	<div align="center" style="width:11px; position:absolute; top:0px; bottom:0px; border: 1px #bbb solid; background-Color: #ddd"> 
+		<div id="sidebarButton" onMouseOver="this.style.backgroundColor = '#888888'" onMouseOut="this.style.backgroundColor = '#aaaaaa'" style="margin-top:45%; background-Color:#aaa; cursor:pointer;"> 
+		<<br>>
+		</div> 
+	</div> 
+    <div id="tabbedInfo" style="position:absolute; top:0px; right: 0px; width:344px; height:100%;">
+    	<table>
+        	<tr>
+            	<td class="tabs" align="center">Scenes</td>
+                <td class="tabs" align="center">Notes</td>
+                <td class="tabs" align="center">Characters</td>
+            </tr>
+        </table>
+	<div align="right" id="scenebox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%;">
+		<div id="sceneindex" style="position:absolute; bottom:0px; top:0px; right:0px; border:4px #ccc ridge; width:100%; overflow:auto; background-color:white;" align="left"> 
+		</div> 
+	</div> 
+    <div align="right" id="notebox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%; display:none"> 
+		<div id="noteindex" style="border:4px #ccc ridge; width:100%; position:absolute; bottom:0px; top:0px; right:0px; overflow:auto; background-color:white;" align="left"> 
+		</div> 
+	</div> 
+	<div align="right" id="characterbox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%; display:none"> 
+		<div id="characterindex" style="border:4px #ccc ridge; width:100%; position:absolute; bottom:0px; top:0px; right:0px; overflow:auto; background-color:white;" align="left"> 
+		</div> 
+	</div> 
+    </div>
+</div> 
+  <script>
+   CFInstall.check({
+     mode: "overlay",
+     destination: "http://www.rawscripts.com/scriptlist"
+   });
+  </script>
+</body> 
+</html>

@@ -1,0 +1,59 @@
+application: ritchietestproj
+version: 2
+runtime: python
+api_version: 1
+
+handlers:
+- url: /
+  script: nologin.py
+
+- url: /convert
+  static_files: convert.html
+  upload: convert.html
+
+- url: /rawscripts.manifest
+  static_files: rawscripts.manifest
+  upload: rawscripts.manifest
+
+- url: /admin/.*
+  script: $PYTHON_LIB/google/appengine/ext/admin
+  login: admin
+
+- url: /loading.*
+  static_files: loading.html
+  upload: loading.html
+
+- url: /images
+  static_dir: static/images
+
+- url: /css
+  static_dir: static/css
+
+- url: /js
+  static_dir: static/js
+
+- url: /text
+  static_dir: static/text
+
+- url: /editor.*
+  script: nologin.py
+
+- url: /scriptcontent.*
+  script: nologin.py
+
+- url: /bugs.*
+  script: nologin.py
+
+- url: /submitbug.*
+  script: nologin.py
+
+- url: /editor.*
+  script: nologin.py
+
+- url: /test.*
+  script: nologin.py
+
+- url: /.*
+  login: required
+  script: scripteditor.py
+

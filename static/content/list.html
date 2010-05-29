@@ -1,0 +1,16 @@
+<div id="list" style="right:0; left:300px;">
+{% for entry in feed.entry %}
+	<div id="{{ entry.resource_id.text }}" style="display:block; border-bottom:1px #999999 solid">
+		<table width="100%">
+			<tr>
+				<td style='width:15px;'><input type='checkbox' name='listItems' value='{{ entry.resource_id.text }}' /></td>
+				<td><a id="name{{ entry.resource_id.text }}" href="javascript:script('{{entry.resource_id.text}}')">{{ entry.title.text }}</a></td>
+                <td style="width:120px" align="center"></td>
+                <td style="width:120px" align="center"><a style="right:10px" href="javascript:emailPrompt('{{ entry.resource_id.text }}')">Email</a></td>
+                <td style="width:110px" align="center">{{ entry.updated.text }}</td>
+                <td style="width:70px; border-left:1px #000 solid" align="center"><a href='{{ entry.get_alternate_link.href }}' target="_blank"><img src="images/docs.gif" /><img src="images/popup.png" /></a></td>
+            </tr>
+        </table>
+	</div>
+{% endfor %}
+</div>

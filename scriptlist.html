@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Scriptlist</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+<link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+$(document).ready(function(){
+						   window.addEventListener("message", uploadWindow, false); 
+						   refreshList();
+						   $.post('/contactlist', {fromPage : 'scriptlist'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
+						   $('#recipient').keyup(function(event){if(event.which==188)tokenize()});
+						   $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
+						   $('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
+						   $('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
+						   $('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
+						   });
+function uploadWindow(evt){
+	if (evt.data == 'uploading'){
+		document.getElementById('uploadFrame').height= '0px';
+		document.getElementById('uploadFrame').width= '0px';
+		document.getElementById('uploading').style.display = 'block';
+	}
+	else{
+		document.getElementById('uploadFrame').style.height= '210px';
+		document.getElementById('uploadFrame').style.width= '250px';
+		document.getElementById('uploading').style.display = 'none';
+		window.open(evt.data);
+		refreshList();
+	}
+}
+function refreshList(){
+	$.post('/list', function(data){
+	document.getElementById('loading').style.display = 'none';
+	if(data=='no entries'){
+		document.getElementById('noentries').style.display = 'block';
+	}
+	else{
+		document.getElementById('content').innerHTML = data;
+	}
+							 });
+}
+function tokenize(){
+	var counter = 0;
+	var c = document.getElementsByTagName('div');
+		for(var i=0;i<c.length;i++){
+			if(c[i].className=='token'){
+				counter++;
+				}
+			}
+	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
+	var txtbox = document.getElementById('recipient');
+	var data = txtbox.value.replace(',','');
+	var whitespace = data.replace(/ /g, "");
+	if (whitespace==""){return;}
+	var arr = data.split(' ');
+	var email = arr.pop();
+	var name = "";
+	if(arr.length == 0){name = email;}
+	else{name = arr.join(' ').replace(/"/g, '');}
+	// Create Token div
+	var newToken = document.createElement('div');
+	var insertedToken = document.getElementById('recipients').appendChild(newToken);
+	insertedToken.className='token';
+	insertedToken.id = email;
+	// Create Name Area
+	var newSpan = document.createElement('span');
+	var nameSpan = insertedToken.appendChild(newSpan);
+	var nameText = document.createTextNode(name);
+	nameSpan.appendChild(nameText);
+	//Create Mailto area
+	var newSpan = document.createElement('span');
+	var emailSpan = insertedToken.appendChild(newSpan);
+	var emailText = document.createTextNode(email);
+	emailSpan.className = 'mailto';
+	emailSpan.appendChild(emailText);
+	// create X button
+	var newA = document.createElement('a');
+	var xA = insertedToken.appendChild(newA);
+	var xText = document.createTextNode(" | X");
+	xA.appendChild(xText);
+	var js = 'javascript:removeToken("'+email+'")'
+	xA.setAttribute('href', js);
+	txtbox.value='';
+	
+}
+function removeToken(v){
+	var token = document.getElementById(v);
+	token.parentNode.removeChild(token);	
+	}
+function selectAll(obj){
+	var listItems = document.getElementsByTagName('input');
+	var bool = obj.checked
+	for(var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			listItems[i].checked = bool;
+		}
+	}
+}
+
+
+function script(v){
+url = '/editor?resource_id=' + v;
+window.open(url);
+}
+
+function deleteScript(v){
+	var script = document.getElementById(v);
+	script.style.backgroundColor = '#ccc';
+	script.style.opacity = '0.5';
+	$.post("/delete", {resource_id : v}, function(){script.parentNode.removeChild(script);});
+	}
+function batchProcess(v){
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					if(v=='delete')	deleteScript(listItems[i].value);
+				}			
+			}
+		}
+	}
+}
+
+
+function emailScript(){
+	tokenize();
+	var arr = new Array();
+	var c = document.getElementsByTagName('span');
+	for(var i=0;i<c.length; i++){
+		if (c[i].className=='mailto'){
+			arr.push(c[i].innerHTML);
+			}
+		}
+	var recipients = arr.join(',');
+	var subject = document.getElementById('subject').value;
+	var body_message = document.getElementById('message').innerHTML;
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist'});
+	document.getElementById('emailpopup').style.visibility = 'hidden';
+	document.getElementById('recipient').value = "";
+	document.getElementById('subject').value = "";
+	document.getElementById('message').innerHTML = "";
+	document.getElementById('recipients').innerHTML = "";
+}
+var resource_id="";
+function emailPrompt(v){
+	resource_id=v;
+	document.getElementById('emailpopup').style.visibility = 'visible';
+}
+function hideEmailPrompt(){
+document.getElementById('emailpopup').style.visibility = 'hidden';
+document.getElementById('recipient').value = "";
+document.getElementById('subject').value = "";
+document.getElementById('message').innerHTML = "";
+document.getElementById('recipients').innerHTML = "";
+}
+
+function renamePrompt(){
+	var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var resource_id = listItems[i].value;
+					counter++;
+				}
+			}
+		}
+	}
+	if(counter>1)alert("select one at a time");
+	else if (counter==1){
+		var title = 'name' + resource_id;
+		document.getElementById('renameTitle').innerHTML = "Rename " + document.getElementById(title).innerHTML;
+		document.getElementById('renameField').value = document.getElementById(title).innerHTML;
+		document.getElementById('renamepopup').style.visibility = 'visible';
+		document.getElementById('resource_id').value = resource_id;
+	}
+	
+	}
+
+function hideRenamePrompt(){
+	document.getElementById('renameField').value = "";
+	document.getElementById('renamepopup').style.visibility = 'hidden';
+	}
+	
+function renameScript(){
+	var resource_id = document.getElementById('resource_id').value;
+	var rename = document.getElementById('renameField').value;
+	if (rename==""){return;}
+	var id = "name"+resource_id;
+	document.getElementById(id).innerHTML = rename;
+	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
+	hideRenamePrompt()
+	}
+	
+function uploadPrompt(){
+	document.getElementById('uploadpopup').style.visibility = 'visible';
+	}
+function hideUploadPrompt(){
+	document.getElementById('uploadFrame').src = '/convert';
+	document.getElementById('uploadpopup').style.visibility = 'hidden';
+	}
+
+function titleChange(){
+	var filename = document.getElementById('script').value;
+	var title = filename.replace('.celtx', '');
+	document.getElementById('hidden').value = title;
+	}
+function uploadScript(){
+	var script = document.getElementById('script').files[0].getAsBinary();
+	var filename = document.getElementById('filename');
+	$.post('/convertprocess', {script : script, filename : filename})
+	}
+function newScriptPrompt(){
+	document.getElementById('newscriptpopup').style.visibility = 'visible';
+	}
+function hideNewScriptPrompt(){
+	document.getElementById('newScript').value = "";
+	document.getElementById('newscriptpopup').style.visibility = 'hidden';
+	}
+
+function createScript (){
+	var filename = document.getElementById('newScript').value;
+	if (filename!=''){
+		var url = '/loading?filename=' + filename;
+		window.open(url);
+	}
+	hideNewScriptPrompt()
+	setTimeout('refreshList()', 10000);
+	}
+function hideExportPrompt(){
+	document.getElementById('exportpopup').style.visibility = 'hidden';
+	document.getElementById('exportList').innerHTML = '';
+	}
+function exportPrompt(){
+	var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var newRow = document.createElement('tr');
+					var row = document.getElementById('exportList').appendChild(newRow);
+					var newData = row.appendChild(document.createElement('td'));
+					var newTxt = document.createTextNode(document.getElementById('name'+listItems[i].value).innerHTML);
+					newData.appendChild(newTxt);
+					//Create Selection cell					
+					newData = row.appendChild(document.createElement('td'));
+					var newSelect = document.createElement('select');
+					var select = newData.appendChild(newSelect);
+					select.name = listItems[i].value;
+					var option = select.appendChild(document.createElement('option'));
+					option.appendChild(document.createTextNode('Adobe PDF'));
+					option = select.appendChild(document.createElement('option'));
+					option.appendChild(document.createTextNode('.txt (for Celtx or FD)'));
+					counter++;
+				}
+			}
+		}
+	}
+	if (counter>0){
+		document.getElementById('exportpopup').style.visibility = 'visible';
+		}
+	}
+function exportScripts(){
+	var id;
+	var format;
+	var exports = document.getElementsByTagName('select');
+	for (var i=0; i<exports.length; i++){
+		id = exports[i].name;
+		if (exports[i].selectedIndex == 0) format = 'pdf';
+		else format = 'txt';
+		url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist';
+		window.open(url);
+	}
+	hideExportPrompt();
+}
+</script>
+<style>
+img { border:none; }
+tr {border:1px #999999 solid; width:90%}
+td {border:none}
+body{margin:0; padding:0;}
+.ui-menu{
+	width:400px;
+}
+
+.ui-menu-item{
+	font-size:65%
+	}
+.TEXT{  
+  font-size:10pt;  
+  background-color:white; 
+  border-style:inset; 
+  border-width:2px;
+  font-family:Verdana, Geneva, sans-serif;
+}
+.token{
+	background-color:#ddd;
+	padding:3px;
+	margin:3px;
+	float:none;
+	font:Verdana, Geneva, sans-serif;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	float:left;
+	}
+.token a{
+	text-decoration:none;
+	color:#000;
+}
+.mailto{
+	display:none;
+}
+.tab{
+	float:right;
+	padding:5px;
+	padding-left:15px;
+	margin-top:4px;
+	background-color:#7694D8;
+	-moz-border-radius-topleft:15px;
+	-webkit-border-top-left-radius:15px;
+	-moz-border-radius-bottomleft:15px;
+	-webkit-border-bottom-left-radius:15px;
+}
+#loading{
+	color:#333;
+	padding-top:2px;
+	padding-bottom:4px;
+	font-size:22px;
+	background-color:#FF6;
+	width:200px;
+	margin:auto;
+	-moz-border-radius-bottomleft:15px;
+	-webkit-border-bottom-left-radius:15px;
+	-moz-border-radius-bottomright:15px;
+	-webkit-border-bottom-right-radius:15px;
+	border:1px #eee solid;
+	border-top:none;
+}
+</style>
+</head>
+
+<body>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16492540-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<div id="emailpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideEmailPrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Send Script
+            <br /><br />
+			<label for="recipient">Recipients (max 5, comma seperated)</label>
+			<br />
+            <div id="recipients"></div>
+			<input class="TEXT" type='text' name='recipient' id='recipient' style="width:400px" />
+			<br />
+			<label for="subject">Subject</label>
+			<br />
+			<input class="TEXT" type='text' name='subject' id='subject' style="width:400px" />
+			<br />
+			<label for="message">Message (optional)</label>
+			<br />
+			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
+			<br />
+			<input type='button' onClick='emailScript()' value='Send' />
+            <br />
+			<b>Note:</b> you will automatically get a copy yourself
+		</div>
+	</div>
+</div>
+<div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
+			<br />
+            
+			<p id="renameTitle"></p>
+			<br />
+            <input type="hidden" value="blank" id="resource_id" />
+			<input class="TEXT" type='text' name='renameField' id='renameField' style="width:350px" />
+			<br />
+			<input type='button' onClick='renameScript()' value='Rename' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="uploadpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; padding-bottom:0; border:double">
+    <a href="javascript:hideUploadPrompt()" style="color:#333; float:left">Close</a><br><br>
+		<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
+		</iframe>
+        <div id="uploading" style="display:none"><p>Converting script...</p><img src="images/uploading.gif" /><br><br><br></div>
+	</div>
+</div>
+<div id="newscriptpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideNewScriptPrompt()" style="color:#333">Close</a>
+			<br />
+            
+			<p>New Script Title</p>
+			<br />
+			<input class="TEXT" type='text' name='newScript' id='newScript' style="width:350px" />
+			<br />
+			<input type='button' onClick='createScript()' value='Create' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a>
+			<br />
+			<p>Export as...</p>
+			<table cellspacing='0' cellpadding='0' style='border:none; width:350px' id="exportList"></table>
+			<br />
+			<input type='button' onClick='exportScripts()' value='Export' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="header" style="position:fixed; top:0; left:0; right:0; height:70pt;">
+
+<div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div><br /><br />
+<div style="float:right; padding-right:8px;"><span style="color:red;">Problems?  </span><a href="/submitbug" target="_blank">Submit a bug</a> or <a href='mailto:ritchie@rawscripts.com'>Email Me</a></div>
+<div style="width:100%; clear:both; background-color:#7694D8; padding:3px 0; position:absolute; bottom:0; border-top:2px #ddd groove; border-bottom:2px #ddd ridge;">
+	<input type='button' onClick="newScriptPrompt()" value='New Script' />
+    <input type="button" onClick="uploadPrompt()" value="Upload" />
+    <input type="button" onClick="renamePrompt()" value="Rename"  style="margin-left:55px;" />
+	<input type='button' onClick="exportPrompt()" value='Export' />
+    <input type='button' onClick="batchProcess('delete')" value='Delete' style="margin-left:55px; margin-right:15px;" />
+</div>
+</div>
+
+<div style="postion:absolute; right:0; left:0; bottom:0; top:80pt;">
+
+	<div style="background-color:#7694D8; position:absolute; right:0; left:130px; bottom:0; top:70pt;">
+    	
+		<div id="owned" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
+			<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+                <table width="100%">
+                  <tr>
+                <td style='width:15px;'><input onClick='selectAll(this)' type='checkbox' value='all' /></td>
+                    <td>My Scripts</td>
+                    <td style="width:120px" align="center"></td>
+              		<td style="width:120px" align="center">Email</td>
+                    <td style="width:110px" align="center">Last Viewed</td>
+                    <td style="width:70px" align="center">GDocs</td>
+                  </tr>
+                </table>
+		    </div>
+            <div id="content"></div>
+            <div id="loading"><div style="" align="center">Loading...</div></div>
+			<div id="noentries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">You have no scripts yet. <a href='javascript:newScript()'>Start one</a> now.</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

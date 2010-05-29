@@ -1,0 +1,15 @@
+<div id="list">
+{% for entry in feed.entry %}
+	<div class="entry" id="{{ entry.resource_id.text }}">
+	<div class="title" id="name{{ entry.resource_id.text }}" style="display:block;" onClick="showActions('show{{ entry.resource_id.text }}')">{{ entry.title.text }}</div>
+    	<div class="actions" id="show{{ entry.resource_id.text }}" style="display:none; border-top:1px #999999 solid;">
+            <input class="btn" type="button" onClick="emailPrompt('{{ entry.resource_id.text }}')" value="Email" />
+            <input class="btn" type="button" onClick="renamePrompt('{{ entry.resource_id.text }}')" value="Rename" /><br>
+            <input class="btn" type="button" onClick="deleteScript('{{ entry.resource_id.text }}')" value="Delete" /><br>
+            <input class="btn" type="button" onClick="script('{{ entry.resource_id.text }}')" value="View Script" />
+            <div style="clear:both"></div>
+        </div>
+      
+    </div>
+{% endfor %}
+</div>
