@@ -101,6 +101,52 @@ h6 {
 }
 /*------ End Screenplay Formatting -------
 
+*/
+
+/*------ Printing css -------
+
+*/
+h1.print{
+	line-height:93%;
+	background-color:#fff;
+}
+h2.print{
+	line-height:93%;
+}
+h3.print{
+	line-height:93%;
+}
+h3.printMore{
+	/*more*/
+	margin-top:0 !important;
+	margin-bottom:0;
+	}
+h4.print{
+	line-height:93%;
+}
+h5.print{
+	line-height:93%;
+}
+h6.print{
+	line-height:93%;
+}
+.printPageBreak{
+	page-break-before:always;
+	line-height:93%;
+	margin:0;
+}
+.printNotes{
+	vertical-align:super;
+	
+	font-family:Georgia, "Times New Roman", Times, serif;
+}
+
+.footnote{
+	margin-bottom:10px;
+}
+
+/*
+
 ---------Begin Page Layout--------------
 Edit all you like
 */
@@ -112,9 +158,9 @@ Edit all you like
  text-transform: uppercase;
  margin: 0;
 }
-}
+
 [contenteditable]:hover {
-  outline: 1px dotted #ccc;
+  
 }
 hr {
   border:1px dotted #999;

@@ -305,6 +305,7 @@ function notesIndex(){
 		document.getElementById('noteindex').removeChild(c[j]);
 		j--;
 	}
+	var noteCounter = 0;
 	var spans = document.getElementsByTagName('span');
 	for (var i=0; i<spans.length; i++){
 		if(spans[i].className == 'notes'){
@@ -330,12 +331,14 @@ function notesIndex(){
 			note.className = 'postit';
 			note.contentEditable = 'true';
 			note.id = arr[0];
+			noteCounter++;
 			
 			
 		}
 	}
 	$('.postit').blur(function(e){updateNote(e.target)});
 	$('.postit').click(function(e){scrollToNote(e.target)});
+	return noteCounter
 }
 
 function scrollToNote(obj){
@@ -875,7 +878,80 @@ function tabs(obj){
 	
 }
 
- 
+function printPrompt(){
+	var notesCounter = notesIndex();
+	if (notesCounter==0) printScript(0);
+	else document.getElementById('printpopup').style.visibility = 'visible';
+	}
+function hidePrintPrompt(){
+	document.getElementById('printpopup').style.visibility = 'hidden';
+	}
+//---- HTML style printing with and without notes----
+function printScript(bool){
+	pagination();
+	document.getElementById('wholeShebang').style.display = 'none';
+	var printDiv = document.body.appendChild(document.createElement('div'));
+	printDiv.id = 'printDiv';
+	printDiv.style.width = '600px';
+	printDiv.style.margin = 'auto';
+	var content = '<div>';
+	var script = document.getElementById('textEditor').innerHTML;
+	script = script.replace(/<hr class="pb">/gi, '<p style="display:none"></p>');
+	script = script.replace(/class="pn"/gi, 'class="printPageBreak"');
+	script = script.replace(/<h3 class="more">/gi, '<h3 class="printMore">');
+	script = script.replace(/<span class="notes"/gi, '<span class="printNotes"');
+	printDiv.innerHTML = script;
+	var c = printDiv.childNodes;
+	for (var i=0; i<c.length; i++){
+		if(c[i].className!='printPageBreak' && c[i].className!='printMore' && c[i].className!='printPageBreak')c[i].className = 'print';
+	}
+	// Printing Notes
+	if(bool==1){
+		var notesHeader = printDiv.appendChild(document.createElement('p'));
+		notesHeader.appendChild(document.createTextNode('Notes for '+ document.getElementById('title').firstChild.nodeValue.toUpperCase() +':'));
+		notesHeader.style.pageBreakBefore = 'always';
+		var orderedList = printDiv.appendChild(document.createElement('ol'));
+		var notesCounter = 1;
+		var notes = document.getElementsByTagName('span');
+		for(var i=0; i<notes.length;i++){
+			if (notes[i].className=='printNotes'){
+				notes[i].removeAttribute('style');
+				notes[i].innerHTML = notesCounter;
+				// figure out what page it's on
+				var prevSib = notes[i].parentNode;
+				var findPage = 0;
+				while(findPage==0){
+					if(prevSib = prevSib.previousSibling){
+						if(prevSib.className=='printPageBreak'){
+							var pageSpan = prevSib.nextSibling;
+							pageSpan = (pageSpan.nodeName=='#text' ? pageSpan.nextSibling : pageSpan);
+							var pageNumber = prevSib.innerHTML.replace('.','');
+							findPage=1;
+						}
+					}
+					else{
+						var pageNumber = 1;
+						findPage=1;
+					}
+				}
+				var noteText = 'Page ' + pageNumber + ' -- ' + notes[i].title.split('?comment=')[1].replace(/HTMLLINEBREAK/g, '<br>');
+				var footnote = orderedList.appendChild(document.createElement('li'));
+				footnote.className = 'footnote';
+				footnote.innerHTML = noteText;
+				notesCounter++;
+			}
+		}
+	}
+	// end routine for printing notes
+	else $('.printNotes').css('display', 'none');
+	$('.printPageBreak').css('page-break-before', 'always');
+	window.print() ;
+	hidePrintPrompt();
+	document.getElementById('wholeShebang').style.display = 'block'; 
+	printDiv.parentNode.removeChild(printDiv);
+	
+}
+
 //
 //----------------------------------------------
 //---------Backend Processes-------------------
