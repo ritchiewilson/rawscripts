@@ -22,12 +22,14 @@ function editorinit(resource_id)
 	var t;
 	$('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
 	$('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
-	$('body').keypress(function(){
+	$('body').keydown(function(e){
 		if (document.getElementById('demo').innerHTML != 'demo'){
-			clearTimeout(t);
-			t = setTimeout('save()', 10000);
-			var s = document.getElementById('save');
-			if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}
+			if(e.which!=37 && e.which!=38 && e.which!=39 && e.which!=40 && e.which!=91 && e.which!=93 && e.which!=16 && e.which!=17 && e.which!=18 && e.which!=34 && e.which!=33){
+				clearTimeout(t);
+				t = setTimeout('save()', 10000);
+				var s = document.getElementById('save');
+				if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}
+			}
 		}
 		});
 	$("#optionMenu").mouseover(function(){document.getElementById('hiddenMenu').style.display='block';});

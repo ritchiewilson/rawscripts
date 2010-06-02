@@ -1134,7 +1134,7 @@ function save() {
 		$('.sm').removeClass('sm');
 		var node = window.getSelection().anchorNode;
 		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		if (startNode.className!='notes'&&startNode.className!='postit') startNode.className = 'sm';
+		if (startNode.parentNode.id=='textEditor') startNode.className = 'sm';
 	}
 	catch(err){;}
 	if(document.getElementById('suggest')!=null){return;}
