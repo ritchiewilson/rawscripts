@@ -884,21 +884,44 @@ function continued() {
 		try{c[i].firstChild.nodeValue = c[i].firstChild.nodeValue.replace(/\s+$/,"");}
 		catch(err){;}
 		}
-	var b;
-	for (var a=0; a<c.length-1; a++){
-		b=a+1;
-		try{
-			c[b].firstChild.nodeValue = c[b].firstChild.nodeValue.replace(" (CONT'D)", "");
-			if (c[a].firstChild.nodeValue.replace(" (CONT'D)", "").toUpperCase().replace(/ (O.S.)/i, "") == c[b].firstChild.nodeValue.toUpperCase().replace(/ (O.S.)/i, "")){
-			c[b].firstChild.nodeValue = c[b].firstChild.nodeValue + " (CONT'D)";
+	// Delete old Mores
+	for (var b=0; b<c.length-1; b++){
+		c[b].firstChild.nodeValue = c[b].firstChild.nodeValue.replace(" (CONT'D)", "");
+	}
+	// insert new ones
+	var c = document.getElementById('textEditor').childNodes;
+	var prev = null;
+	var arr = [];
+	var current;
+	for (var i=0; i<c.length; i++){
+		current='';
+		// check current and see what to do
+		if (c[i].nodeName=='H1') prev = null;
+		if (c[i].nodeName=='H3'){
+			arr = c[i].childNodes
+			for (var j=0; j<arr.length; j++){
+				if (arr[j].nodeName=='#text') current = current+arr[j].nodeValue;
 			}
-		}
-		catch(err){;}
-		if (c[a].firstChild.nodeValue == '(MORE)'){
-			c[b].firstChild.nodeValue = c[b].firstChild.nodeValue + " (CONT'D)";
+			current = current.toUpperCase();
+			current = current.replace(" (O.S.)", '').replace(" (V.O.)", '').replace(" (O.C.)", '').toUpperCase();
+
+			if(prev=='&more&'){
+				c[i].innerHTML = c[i].innerHTML +" (CONT'D)";
+				prev = current;
 			}
+			else if(c[i].className == 'more'){
+				prev = '&more&';
+			}
+			else if (current==prev){
+				c[i].innerHTML = c[i].innerHTML +" (CONT'D)";
+				prev = current;
+			}
+			else prev = current;
+			
 		}
 	}
+}
+
  
 
 function printPrompt(){
