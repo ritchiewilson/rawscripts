@@ -12,7 +12,6 @@ function infoSizes(){
 	$('#characterindex').height(oneBox);
 }
 function infoResize(e){
-	console.log('start resize');
 	var raw = document.getElementById('mouseInfo').innerHTML.split('?');
 	var header = raw[1];
 	var difference = raw[2] - e.clientY;
@@ -299,8 +298,6 @@ function insertNote(){
 	var container = selection.startContainer;
 	var offset = selection.startOffset - 1;
 	window.getSelection().extend(container, offset);
-	//alert(window.getSelection());
-	//return;
 	var span = "<span class='notes' title='new'>X</span>";
 	fontEdit('insertHTML', span);
 	var obj;
@@ -324,6 +321,7 @@ function insertNote(){
 	var d = new Date();
 	var id = d.getTime();
 	obj.title = id + '?comment=';
+	notesIndex();
 	$('.postit').blur(function(e){updateNote(e.target); document.getElementById('save').disabled=false});
 	document.getElementById(id).focus();
 	
