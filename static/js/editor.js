@@ -4,6 +4,46 @@ function nope(){
 alert("Sorry, you're going to have to login to use these functions.");
 }
 
+function infoSizes(){
+	var total = $('#scriptInfo').height() - 50;
+	var oneBox = (total/3) - $('#sceneBoxHandle').height();
+	$('#sceneindex').height(oneBox)
+	$('#noteindex').height(oneBox)
+	$('#characterindex').height(oneBox);
+}
+function infoResize(e){
+	console.log('start resize');
+	var raw = document.getElementById('mouseInfo').innerHTML.split('?');
+	var header = raw[1];
+	var difference = raw[2] - e.clientY;
+	if (header=='noteBoxHandle'){
+		if ($('#sceneindex').height()-difference>=0){
+			if($('#noteindex').height()+difference>=0){
+				$('#sceneindex').height($('#sceneindex').height()-difference);
+				$('#noteindex').height($('#noteindex').height()+difference);
+			}
+		}
+	}
+	else if (header=='characterBoxHandle'){
+		if($('#noteindex').height()-difference>=0){
+			if($('#characterindex').height()+difference>=0){
+				$('#noteindex').height($('#noteindex').height()-difference);
+				$('#characterindex').height($('#characterindex').height()+difference);
+			}
+		}
+	}
+	raw[2] = e.clientY;
+	document.getElementById('mouseInfo').innerHTML = raw.join('?');
+}
+function trackMouseDown(event){
+	if(event.target.id!='sceneBoxHandle'){
+		var init = event.clientY;
+		document.getElementById('mouseInfo').innerHTML = 'down?'+ event.target.id + '?' + init;
+	}
+}
+function trackMouseUp(event){
+	document.getElementById('mouseInfo').innerHTML = 'up?0?0';
+}
 function tokenize(kind){
 	var counter = 0;
 	var c = document.getElementsByTagName('div');
@@ -285,14 +325,12 @@ function insertNote(){
 	var id = d.getTime();
 	obj.title = id + '?comment=';
 	$('.postit').blur(function(e){updateNote(e.target); document.getElementById('save').disabled=false});
-	tabs('thing');
 	document.getElementById(id).focus();
 	
 	
 	
 }
 function selectNote(obj){
-	tabs('thing');
 	var prev = obj.title;
 	var arr = prev.split('?comment=');
 	var id = arr[0];
@@ -864,19 +902,6 @@ function continued() {
 		}
 	}
  
-function tabs(obj){
-	try{
-		var which = obj.innerHTML.toLowerCase();
-		var id = which.slice(0,-1)+'box';
-	}
-	catch(err){var id = 'notebox';}
-	document.getElementById('scenebox').style.display = 'none';
-	document.getElementById('characterbox').style.display = 'none';
-	document.getElementById('notebox').style.display = 'none';
-	document.getElementById(id).style.display = 'block';
-	if (id == 'notebox')notesIndex();
-	
-}
 
 function printPrompt(){
 	var notesCounter = notesIndex();
@@ -1112,12 +1137,12 @@ function save() {
 	  var resourceId = url.split('=')[1];
 	  var content = document.getElementById('textEditor').innerHTML;
 	  $.post("/save", {resource_id : resourceId, content : content, fromPage : 'editor'}, function(){s.value='Saved';em.disabled=false; ex.disabled=false; em.value='Send'; ex.value='Export'});
-	  var chara = window.getSelection();
-	  try{
-		chara.extend(startNode, 1);
-		chara.collapseToEnd();
-		}
-	  catch(err){;}
+	  //var chara = window.getSelection();
+	  //try{
+		//chara.extend(startNode, 1);
+		//chara.collapseToEnd();
+		//}
+	  //catch(err){;}
 	  sceneIndex();
 	}
 }

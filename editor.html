@@ -45,10 +45,7 @@ $(document).ready(function(){
 	padding:15px;
 	min-height:70px;
 }
-.tabs{
-	width:60px;
-	cursor:pointer;
-}
+
 .notes {
 	background-color:#EAA500;
 	font-family:Arial, Helvetica, sans-serif;
@@ -131,6 +128,18 @@ table{
 	text-decoration:none;
 	color:#000;
 }
+.infoHandle{
+	background-color:#90A6D8;
+	border:2px ridge;
+	padding:2px;
+	margin-bottom:2px;
+	cursor:n-resize;
+}
+.infoBox{
+	background-color:white;
+	border:2px ridge;
+}
+	
 </style>
 <body> 
 <script type="text/javascript">
@@ -302,34 +311,28 @@ table{
         </div> 
     </div>
 </div>
-<div contenteditable="false" id="effect" style="position:fixed; top:59pt; right:-352px; bottom:5px; width:365px; overflow:hidden; z-index:0; background-color:#90A6D8;"> 
+<div contenteditable="false" id="effect" style="position:fixed; top:59pt; right:-352px; bottom:5px; width:365px; overflow:hidden; z-index:0;"> 
 	<div align="center" style="width:11px; position:absolute; top:0px; bottom:0px; border: 1px #bbb solid; background-Color: #ddd"> 
 		<div id="sidebarButton" onMouseOver="this.style.backgroundColor = '#888888'" onMouseOut="this.style.backgroundColor = '#aaaaaa'" style="margin-top:45%; background-Color:#aaa; cursor:pointer;"> 
 		<<br>>
 		</div> 
 	</div> 
-    <div id="tabbedInfo" style="position:absolute; top:0px; right: 0px; width:344px; height:100%;">
-    	<table>
-        	<tr>
-            	<td class="tabs" align="center">Scenes</td>
-                <td class="tabs" align="center">Notes</td>
-                <td class="tabs" align="center">Characters</td>
-            </tr>
-        </table>
-	<div align="right" id="scenebox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%;">
-		<div id="sceneindex" style="position:absolute; bottom:0px; top:0px; right:0px; border:4px #ccc ridge; width:100%; overflow:auto; background-color:white;" align="left"> 
-		</div> 
-	</div> 
-    <div align="right" id="notebox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%; display:none"> 
-		<div id="noteindex" style="border:4px #ccc ridge; width:100%; position:absolute; bottom:0px; top:0px; right:0px; overflow:auto; background-color:white;" align="left"> 
-		</div> 
-	</div> 
-	<div align="right" id="characterbox" style="position:absolute; top:20px; right: 0px; width:344px; height:100%; display:none"> 
-		<div id="characterindex" style="border:4px #ccc ridge; width:100%; position:absolute; bottom:0px; top:0px; right:0px; overflow:auto; background-color:white;" align="left"> 
-		</div> 
-	</div> 
+    <div id="scriptInfo" style="position:absolute; top:0px; right: 0px; bottom:0; border:4px ridge; width:344px;">
+        <div align="right" class="infoBox" id="scenebox">
+            <div id='sceneBoxHandle' class="infoHandle">Scene Index</div>
+            <div id="sceneindex" style="overflow:auto; padding:2px;" align="left"></div> 
+        </div> 
+        <div align="right" class="infoBox" id="notebox"> 
+            <div id='noteBoxHandle' class="infoHandle">Notes</div>
+            <div id="noteindex" style="overflow:auto;" align="left"></div> 
+        </div> 
+        <div align="right" class="infoBox" id="characterbox">
+            <div id='characterBoxHandle' class="infoHandle">Characters</div>
+            <div id="characterindex" style="overflow:auto; padding:2px;" align="left"></div> 
+        </div> 
     </div>
-</div> 
+</div>
+<div id="mouseInfo" style="display:none">up?0?0</div>
 </div>
   <script>
    CFInstall.check({

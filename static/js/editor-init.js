@@ -2,13 +2,15 @@
 function editorinit(resource_id)
 {	
 	htmlTitleUpdate();
+	infoSizes('init');
 	notesIndex();
+	$('.infoHandle').mousedown(function(e){trackMouseDown(e)});
+	$(window).mouseup(function(e){trackMouseUp(e)});
+	$(window).mousemove(function(e){if(document.getElementById('mouseInfo').innerHTML.split('?')[0]=='down')infoResize(e);});
+	$(window).resize(function(){infoSizes()});
 	$('.postit').focusin(function(e){document.getElementById('format').disabled=true});
 	$('.postit').focusout(function(e){document.getElementById('format').disabled=false});
 	$('.postit').click(function(e){scrollToNote(e.target)});
-	$('.tabs').click(function(e){tabs(e.target)});
-	$(".tabs").mouseover(function(){$(this).css("background-color", "#999ccc");});
-	$(".tabs").mouseout(function(){$(this).css("background-color", "#90A6D8");});
 	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault()}});
@@ -20,7 +22,14 @@ function editorinit(resource_id)
 	var t;
 	$('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
 	$('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
-	$('body').keypress(function(){clearTimeout(t);t = setTimeout('save()', 10000);var s = document.getElementById('save');if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}});
+	$('body').keypress(function(){
+		if (document.getElementById('demo').innerHTML != 'demo'){
+			clearTimeout(t);
+			t = setTimeout('save()', 10000);
+			var s = document.getElementById('save');
+			if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}
+		}
+		});
 	$("#optionMenu").mouseover(function(){document.getElementById('hiddenMenu').style.display='block';});
 	$("#optionMenu").mouseout(function(){document.getElementById('hiddenMenu').style.display='none';});
 	$(".menuItem").mouseover(function(){$(this).css("background-color", "#bbb");});
@@ -179,5 +188,6 @@ function editorinit(resource_id)
 	if(resource_id!='demo'){save();}
 	else{document.getElementById('demo').appendChild(document.createTextNode('demo'));}
 	document.getElementById('loading').style.visibility = 'hidden';
+	
 	
 };
