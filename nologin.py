@@ -106,6 +106,21 @@ class Editor (webapp.RequestHandler):
                         'script_title': script_title,
                         'user': user,}
     path = os.path.join(os.path.dirname(__file__), 'editor.html')
+
+    # See if this person is
+    # a reader or writer
+    if not resource_id=='demo':
+      token = get_auth_token(self.request)
+      client = gdata.docs.client.DocsClient()
+      acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
+      user = users.get_current_user().email()
+      role = ''
+      for acl in acl_feed.entry:
+        if acl.scope.value == 'ritchie.a.f.wilson@gmail.com':
+          if acl.role.value == 'owner':
+            path = os.path.join(os.path.dirname(__file__), 'viewer.html')
+
+        
     mobile = 0
     #Check if should send to mobile Page
     ua = self.request.user_agent

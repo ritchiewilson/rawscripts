@@ -58,6 +58,11 @@ class Users (db.Model):
   name = db.StringProperty()
   firstUse = db.DateTimeProperty(auto_now_add=True)
 
+class Notes (db.Model):
+  resource_id = db.StringProperty()
+  updated = db.DateTimeProperty(auto_now_add=True)
+  data = db.TextProperty()
+
 class Activity (db.Model):
   name = db.StringProperty()
   activity = db.StringProperty()
@@ -639,6 +644,23 @@ class Share (webapp.RequestHandler):
       i=i+1
     
 
+class PostNotes (webapp.RequestHandler):
+  def post(self):
+    user = self.request.get('user')
+    resource_id = self.request.get('resource_id')
+    data = self.request.get('data')
+
+    q= db.GqlQuery("SELECT * FROM Notes "+
+                   "WHERE resource_id='"+resource_id+"'"+
+                   "AND user='"+user+"'")
+    results = q.fetch(5)
+    for p in results:
+      p.delete()
+    newNotes = Notes(user = user,
+                     resource_id=resource_id,
+                     data=data,)
+    newNotes.put()
+
 def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
                                         ('/delete', Delete),
@@ -650,6 +672,7 @@ def main():
 					('/contactlist', ContactList),
                                         ('/convertprocess', ConvertProcess),
                                         ('/share', Share),
+                                        ('/postnotes', PostNotes),
                                         ('/list', List),],
                                        debug=True)
   

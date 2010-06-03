@@ -151,6 +151,18 @@ h6.print{
 Edit all you like
 */
 
+#contextMenu{
+	font-family:"Courier New", Courier, monospace;
+	background-color:#CCC;
+	border:1px #666 solid;
+	padding:2px 6px 2px 4px;
+	-webkit-box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+	-moz-box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+	cursor:pointer;
+}
+#contextMenu:hover{
+	background-color:#0C6;
+}
 
 .character, .scene {
  font-family: "Courier New",Courier,monospace;
@@ -159,9 +171,7 @@ Edit all you like
  margin: 0;
 }
 
-[contenteditable]:hover {
-  
-}
+
 hr {
   border:1px dotted #999;
 }

@@ -40,7 +40,7 @@ function editorinit(resource_id)
 										 document.getElementById('focus').removeAttribute('id');
 										 event.target.id = 'focus';});
 	$("#textEditor").click(function(event) {
-						if(event.target.className=='notes'){selectNote(event.target);return;}
+						if(event.target.className=='notes' || event.target.className=='sharedNotes'){selectNote(event.target);return;}
 						getFormat();
 						var a = document.getElementById('suggest')
 						if(a!=null) a.parentNode.removeChild(a);
@@ -60,7 +60,7 @@ function editorinit(resource_id)
 									  var startNode = (node.nodeName == "#text" ? node.parentNode : node);
 									  var c = startNode.nodeName;
 									  
-									  if (startNode.className=='notes'){
+									  if (startNode.className=='notes' || startNode.className=='sharedNotes'){
 										  if(startNode.innerHTML!='' && startNode.innerHTML!='X'){
 											  startNode.innerHTML ='X';
 										  }
@@ -141,7 +141,7 @@ function editorinit(resource_id)
 	///// set notes to correct class name
 	var span = document.getElementsByTagName('span');
 	for (var z=0; z<span.length; z++){
-		if (span[z].className=='notes'){
+		if (span[z].className=='notes' || span[z].className=='sharedNotes'){
 			span[z].innerHTML = 'X';
 		}
 	}

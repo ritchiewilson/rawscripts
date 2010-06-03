@@ -322,7 +322,6 @@ function insertNote(){
 	var id = d.getTime();
 	obj.title = id + '?comment=';
 	notesIndex();
-	$('.postit').blur(function(e){updateNote(e.target); document.getElementById('save').disabled=false});
 	document.getElementById(id).focus();
 	
 	
@@ -344,7 +343,7 @@ function notesIndex(){
 	var noteCounter = 0;
 	var spans = document.getElementsByTagName('span');
 	for (var i=0; i<spans.length; i++){
-		if(spans[i].className == 'notes'){
+		if(spans[i].className == 'notes' || spans[i].className == 'sharedNotes'){
 			spans[i].innerHTML ='X';
 			var arr = spans[i].title.split('?comment=');
 			var data = (arr.length>1 ? arr[1] : spans[i].title);
@@ -364,7 +363,12 @@ function notesIndex(){
 			}
 			var note = document.getElementById('noteindex').appendChild(document.createElement('div'));
 			note.innerHTML=noteHTML;
-			note.className = 'postit';
+			if (spans[i].className == 'notes'){
+				note.className = 'postit';
+			}
+			if (spans[i].className == 'sharedNotes'){
+				note.className = 'sharedPostit';
+			}
 			note.contentEditable = 'true';
 			note.id = arr[0];
 			noteCounter++;
@@ -373,7 +377,7 @@ function notesIndex(){
 		}
 	}
 	$('.postit').blur(function(e){updateNote(e.target)});
-	$('.postit').click(function(e){scrollToNote(e.target)});
+	$('.sharedPostit').click(function(e){scrollToNote(e.target)});
 	return noteCounter
 }
 
@@ -408,7 +412,7 @@ function fontEdit(x,y) {
 	try{
 		var node = window.getSelection().anchorNode;
 		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		if(startNode.className=='notes')return;
+		if(startNode.className=='notes' || startNode.className=='sharedNotes')return;
 	}
 	catch(err){;}
 	document.execCommand(x,"",y);
@@ -420,7 +424,9 @@ function enterButton(e) {
 	var marker = 0;
 	var d = document.getElementsByTagName('span');
 	for(var i=0; i<d.length; i++){
-		if (d[i].className=='notes' && d[i].parentNode.nodeName=='DIV'){
+		var ifNote =0;
+		if (d[i].className=='notes' || d[i].className=='sharedNotes') ifNotes =1;
+		if (ifNotes==1 && d[i].parentNode.nodeName=='DIV'){
 			var c = d[i].parentNode.previousSibling.nodeName;
 			var headerType;
 			if (c == "H1") {headerType='h2';}
@@ -515,15 +521,17 @@ while (k<p.length){
 	//--
 	try{
 	for(var i=0; i<parts.length; i++){
+		var ifNotes = 0;
+		if (parts[i].className=='notes' || parts[i].className=='sharedNotes') ifNotes = 1;
 		if (parts[i].nodeName=='undefined'){;}
 		else if (parts[i].nodeName=='#text') slug = slug+parts[i].nodeValue;
-		else if (parts[i].nodeName=='SPAN'&& parts[i].className!='notes') {
+		else if (parts[i].nodeName=='SPAN'&& ifNotes == 0) {
 			var spanTxt = parts[i].firstChild.nodeValue;
 			slug = slug +spanTxt;
 			parts[i].parentNode.removeChild(parts[i]);
 			p[k].lastChild.nodeValue = p[k].firstChild.nodeValue + spanTxt;
 		}
-		else if (parts[i].nodeName=='SPAN'&& parts[i].className=='notes') {;}
+		else if (ifNotes==1) {;}
 		else slug = slug+parts[i].firstChild.nodeValue;
 		}
 	}
@@ -933,6 +941,7 @@ function hidePrintPrompt(){
 	document.getElementById('printpopup').style.visibility = 'hidden';
 	}
 //---- HTML style printing with and without notes----
+//----- Done Local so doenst need server connection----
 function printScript(bool){
 	pagination();
 	document.getElementById('wholeShebang').style.display = 'none';
@@ -946,6 +955,7 @@ function printScript(bool){
 	script = script.replace(/class="pn"/gi, 'class="printPageBreak"');
 	script = script.replace(/<h3 class="more">/gi, '<h3 class="printMore">');
 	script = script.replace(/<span class="notes"/gi, '<span class="printNotes"');
+	script = script.replace(/<span class="sharedNotes"/gi, '<span class="printNotes"');
 	printDiv.innerHTML = script;
 	var c = printDiv.childNodes;
 	for (var i=0; i<c.length; i++){
