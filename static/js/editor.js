@@ -10,6 +10,10 @@ function infoSizes(){
 	$('#sceneindex').height(oneBox)
 	$('#noteindex').height(oneBox)
 	$('#characterindex').height(oneBox);
+	while ($('#characterindex').height()>+0){
+		$('#noteindex').height($('#noteindex').height()+1);
+		$('#characterindex').height($('#characterindex').height()-1);
+	}
 }
 function infoResize(e){
 	var raw = document.getElementById('mouseInfo').innerHTML.split('?');
@@ -345,14 +349,19 @@ function notesIndex(){
 	for (var i=0; i<spans.length; i++){
 		if(spans[i].className == 'notes' || spans[i].className == 'sharedNotes'){
 			spans[i].innerHTML ='X';
+			var user='';
 			var arr = spans[i].title.split('?comment=');
-			var data = (arr.length>1 ? arr[1] : spans[i].title);
+			var content = arr[1].split('?user=')[0];
+			if (spans[i].className=='sharedNotes') user = arr[1].split('?user=')[1];
 			if ($.browser.mozilla){
 				var pattern = new RegExp('HTMLLINEBREAK', 'gi');
-				var noteHTML = data.replace(pattern,'<br>');
+				var noteHTML = content.replace(pattern,'<br>');
+				if (user!=''){
+					noteHTML = noteHTML+'<br><br>--'+user;
+				}
 			}
 			else{
-				var lines = data.split('HTMLLINEBREAK');
+				var lines = content.split('HTMLLINEBREAK');
 				var noteHTML = lines[0];
 				for (var j=1; j<lines.length; j++){
 					noteHTML = noteHTML+'<div>';
@@ -360,6 +369,10 @@ function notesIndex(){
 					else noteHTML = noteHTML + lines[j];
 					noteHTML = noteHTML+'</div>';
 				}
+				if (user!=''){
+					noteHTML = noteHTML+'<div><br></div><div><br></div><div>--'+user+'</div>';
+				}
+				
 			}
 			var note = document.getElementById('noteindex').appendChild(document.createElement('div'));
 			note.innerHTML=noteHTML;
