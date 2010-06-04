@@ -23,7 +23,7 @@ $(document).ready(function(){
 	$.post('/scriptcontent',
 		   {resource_id:resource_id},
 		   function(data){
-			   document.getElementById('textEditor').innerHTML=data;
+			   document.getElementById('textEditor').innerHTML=data.split('&notes&')[0];
 			   var titleDiv = document.getElementById('title');
 			   var i=0;
 			   while (i<titleDiv.childNodes.length){
@@ -31,7 +31,13 @@ $(document).ready(function(){
 			   }
 			   titleDiv.appendChild(document.createTextNode(document.getElementById('ajaxTitle').firstChild.nodeValue));
 			   document.getElementById('textEditor').removeChild(document.getElementById('ajaxTitle'));
-			   
+			   var c = $(':header');
+				if (c[0]!=null){
+					for (var i = 0; i<c.length; i++)
+						{c[i].innerHTML = c[i].innerHTML.replace(/^\s+|\s+$/g,"");
+					}
+				}
+			   insertSharedNotes(String(data.split('&notes&')[1]));
 			   editorinit(resource_id);
 			   
 			   })

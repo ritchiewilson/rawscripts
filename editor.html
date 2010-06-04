@@ -23,7 +23,8 @@ $(document).ready(function(){
 	$.post('/scriptcontent',
 		   {resource_id:resource_id},
 		   function(data){
-			   document.getElementById('textEditor').innerHTML=data;
+			   alert(data.split('&notes&')[1]);
+			   document.getElementById('textEditor').innerHTML=data.split('&notes&')[0];
 			   var titleDiv = document.getElementById('title');
 			   var i=0;
 			   while (i<titleDiv.childNodes.length){

@@ -53,7 +53,12 @@ def get_auth_token(request):
   gdata.gauth.ae_save(session_token, 'docsandcontacts' + current_user.user_id())
   return session_token
 
-
+class Notes (db.Model):
+  user = db.StringProperty()
+  resource_id = db.StringProperty()
+  updated = db.DateTimeProperty(auto_now_add=True)
+  data = db.TextProperty()
+  
 class Activity (db.Model):
   name = db.StringProperty()
   activity = db.StringProperty()
@@ -179,6 +184,23 @@ class ScriptContent (webapp.RequestHandler):
       content = content.replace('<br>','')
       script_title = entry.title.text
       content = content+"<div id='ajaxTitle'>"+script_title+"</div>"
+
+      #now retrieve
+      #shared notes and
+      #insert into script
+
+      content = content + '&notes&'
+      
+      q= db.GqlQuery("SELECT * FROM Notes "+
+                     "WHERE resource_id='"+resource_id+"'")
+      results = q.fetch(50)
+      notes=0
+      for p in results:
+        notes=notes+1
+        content = content+'&user&'+p.user+'&data&'+p.data
+      if notes == 0:
+        content = content + 'nonedata'
+      
       size = len(content)
     a = Activity(name=users.get_current_user().email(),
                  scriptName = script_title,

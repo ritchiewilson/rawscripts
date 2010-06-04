@@ -104,6 +104,37 @@ function removeToken(v){
 //-------------- Handling Notes ands stuff------
 //--------------next five or six fucntions------
 
+function insertSharedNotes(data){
+	if (data=='none') {;}
+	else if (data=='nonedata') {;}
+	else {
+		var c = document.getElementById('textEditor').childNodes;
+		data = data.slice(6);
+		var users = data.split('&user&');
+		for (var i=0; i<users.length; i++){
+			console.log('users.length='+users.length);
+			var arrOne = users[i].split('&data&');
+			var user = arrOne[0];
+			var notesUnits = arrOne[1].split("&unit&");
+			for (var j=0; j<notesUnits.length; j++){
+				console.log('notesUnites.length='+notesUnits.length);
+				var id = notesUnits[j].split("?comment=")[0];
+				var comment = notesUnits[j].split("?comment=")[1].split('?position=')[0];
+				var position = notesUnits[j].split("?comment=")[1].split('?position=')[1];
+				for (var k=0; k<c.length; k++){
+					if (String(k) == position){
+						var insertedNote = c[k].appendChild(document.createElement('span'));
+						insertedNote.className = 'sharedNotes';
+						insertedNote.title = id+'?comment='+comment+'?user='+user;
+						insertedNote.appendChild(document.createTextNode('X'));
+						console.log('inserted note');
+					}
+				}
+			}
+		}
+	}
+}
+
 function updateNote(obj){
 	var id = obj.id;
 	if (id==''){id=obj.parentNode.id;}
@@ -243,7 +274,7 @@ function submitNotes(){
 			while (d[j]!=elem){
 				j++;
 			}
-			data = data + '&unit&' + c[i].title.split('?user=')[0] + '?position=' + (j-1)/2;
+			data = data + '&unit&' + c[i].title.split('?user=')[0] + '?position=' + j;
 			
 		}
 	}

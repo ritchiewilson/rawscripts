@@ -3,7 +3,9 @@ function editorinit(resource_id)
 {	
 	htmlTitleUpdate();
 	infoSizes('init');
+	console.log('after notes index');
 	notesIndex();
+	console.log('afternotes index');
 	totalPages();
 	$('#textEditor').click(function(){currentPage()});
 	$('#textEditor').bind("contextmenu", function(e){insertNote(e); return false;});
@@ -29,12 +31,14 @@ function editorinit(resource_id)
 	$("#optionMenu").mouseout(function(){document.getElementById('hiddenMenu').style.display='none';});
 	$(".menuItem").mouseover(function(){$(this).css("background-color", "#bbb");});
 	$(".menuItem").mouseout(function(){$(this).css("background-color", "#ddd");});
+	console.log('after jquery keydown functions');
 	characterIndex();
+	console.log('after cgaracter index');
 	var $button = $("#sidebarButton");
     var $sidebar = $("#effect");
     var $container = $("#container");
 	var $info = $("#info");
-    
+    console.log('right before animation');
     $sidebar.animate({marginRight:'+=360px'},600);
     $container.animate({right:'+=360px'},600);
 	$info.animate({right:'+=360px'},600);
@@ -52,17 +56,13 @@ function editorinit(resource_id)
                        $container.animate({right:'+=360px'},600);
 					   $info.animate({right:'+=360px'},600);
                    });
-	
+	console.log('after animation');
 	try{
 		sceneIndex();
 		getFormat();
 	}
 	catch(err){;}
 	document.getElementById('loading').style.visibility = 'hidden';
-	var c = $(':header');
-	if (c[0]!=null){
-	for (var i = 0; i<c.length; i++)
-	{c[i].innerHTML = c[i].innerHTML.replace(/^\s+|\s+$/g,"");}}
 	
 	
 };
