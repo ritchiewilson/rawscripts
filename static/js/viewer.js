@@ -123,7 +123,9 @@ function insertSharedNotes(data){
 				var position = notesUnits[j].split("?comment=")[1].split('?position=')[1];
 				for (var k=0; k<c.length; k++){
 					if (String(k) == position){
-						var insertedNote = c[k].appendChild(document.createElement('span'));
+						var node = c[k];
+						node = (node.nodeName=='#text' ? c[k+1] : node);
+						var insertedNote = node.appendChild(document.createElement('span'));
 						insertedNote.className = 'sharedNotes';
 						insertedNote.title = id+'?comment='+comment+'?user='+user;
 						insertedNote.appendChild(document.createTextNode('X'));
@@ -217,7 +219,7 @@ function notesIndex(){
 						note.contentEditable = 'true';
 					}
 					else {
-						note.innerHTML= note.innerHTML+"<br><br><br>"+arr[1].split('?user=')[1];
+						note.innerHTML= note.innerHTML+"<br><br><br>--"+arr[1].split('?user=')[1];
 					}
 				}
 				note.id = arr[0];
@@ -265,16 +267,19 @@ function submitNotes(){
 	var data='';
 	for (var i=0; i<c.length; i++){
 		if(c[i].className=='sharedNotes'){
-			//firugre out where the note was placed
-			elem = c[i].parentNode;
-			while (elem.nodeName!='H1' && elem.nodeName!='H2' && elem.nodeName!='H3' && elem.nodeName!='H4' && elem.nodeName!='H5' && elem.nodeName!='H6'){
-				elem = elem.parentNode;
+			// only submit if this note is from this user
+			if(c[i].title.split('?user=')[1]==document.getElementById('user').innerHTML){
+				//firugre out where the note was placed
+				elem = c[i].parentNode;
+				while (elem.nodeName!='H1' && elem.nodeName!='H2' && elem.nodeName!='H3' && elem.nodeName!='H4' && elem.nodeName!='H5' && elem.nodeName!='H6'){
+					elem = elem.parentNode;
+				}
+				var j=0;
+				while (d[j]!=elem){
+					j++;
+				}
+				data = data + '&unit&' + c[i].title.split('?user=')[0] + '?position=' + j;
 			}
-			var j=0;
-			while (d[j]!=elem){
-				j++;
-			}
-			data = data + '&unit&' + c[i].title.split('?user=')[0] + '?position=' + j;
 			
 		}
 	}

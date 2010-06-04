@@ -1,5 +1,5 @@
 // Onload - a big init file setting up jquery and everything
-function editorinit(resource_id)
+function viewerinit(resource_id)
 {	
 	htmlTitleUpdate();
 	infoSizes('init');
