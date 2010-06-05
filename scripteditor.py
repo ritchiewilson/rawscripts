@@ -427,8 +427,20 @@ class Save (webapp.RequestHandler):
                        activity="save")
           a.put()
           return
+    respond = ''
+    q = db.GqlQuery("SELECT * FROM Notes "+
+                          "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(500)
+    notes=0
+    #Check for new notes
+    for p in results:
+      notes=notes+1
+      respond = respond+'&user&'+p.user+'&data&'+p.data
+      p.delete()
+    if respond=='&data&':
+      respond='no new notes'
     self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write('1')
+    self.response.out.write(respond)
     # Track what the user is doing
     a = Activity(name=users.get_current_user().email(),
                  scriptName = entry.title.text,

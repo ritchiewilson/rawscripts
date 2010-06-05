@@ -26,7 +26,7 @@ function editorinit(resource_id)
 		if (document.getElementById('demo').innerHTML != 'demo'){
 			if(e.which!=37 && e.which!=38 && e.which!=39 && e.which!=40 && e.which!=91 && e.which!=93 && e.which!=16 && e.which!=17 && e.which!=18 && e.which!=34 && e.which!=33){
 				clearTimeout(t);
-				t = setTimeout('save()', 10000);
+				t = setTimeout("save()", 10000);
 				var s = document.getElementById('save');
 				if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}
 			}
@@ -102,7 +102,7 @@ function editorinit(resource_id)
 		}).keydown(function (e) {
 		if(e.which == ctrlNum) isCtrl=true;
 		if(e.which == 83 && isCtrl == true) {
-			save();
+			save('notinit');
 			return false;
 		}
 	});
@@ -113,7 +113,7 @@ function editorinit(resource_id)
 		}).keydown(function (e) {
 		if(e.which == 93) isCtrl=true;
 		if(e.which == 83 && isCtrl == true) {
-			save();
+			save('notinit');
 			return false;
 		}
 	});

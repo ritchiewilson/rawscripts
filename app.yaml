@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 3
+version: 4
 runtime: python
 api_version: 1
 
@@ -31,6 +31,9 @@ handlers:
 
 - url: /js
   static_dir: static/js
+
+- url: /js/min
+  static_dir: static/js/min
 
 - url: /text
   static_dir: static/text

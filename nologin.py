@@ -121,8 +121,8 @@ class Editor (webapp.RequestHandler):
       user = users.get_current_user().email()
       role = ''
       for acl in acl_feed.entry:
-        if acl.scope.value == 'ritchie.a.f.wilson@gmail.com':
-          if acl.role.value == 'owner':
+        if acl.role.value == 'owner':
+          if not acl.scope.value == user:
             path = os.path.join(os.path.dirname(__file__), 'viewer.html')
 
         

@@ -279,41 +279,58 @@ fontEdit('formatBlock', 'h' + i);
 
 
 function insertSharedNotes(data){
-	if (data=='none') {;}
-	else if (data=='nonedata') {;}
+	if (data=='none' || data =='nonedata' || data =='cleaned notes db' || data=='no new notes') {;}
 	else {
+		var numberOfNotes = 0;
 		var c = document.getElementById('textEditor').childNodes;
 		data = data.slice(6);
 		var users = data.split('&user&');
 		for (var i=0; i<users.length; i++){
-			console.log('users.length='+users.length);
-			var arrOne = users[i].split('&data&');
-			var user = arrOne[0];
-			var notesUnits = arrOne[1].split("&unit&");
-			for (var j=0; j<notesUnits.length; j++){
-				var id = notesUnits[j].split("?comment=")[0];
-				var comment = notesUnits[j].split("?comment=")[1].split('?position=')[0];
-				var position = notesUnits[j].split("?comment=")[1].split('?position=')[1];
-				var spans = document.getElementsTagName('spans');
-				var ifExists=0;
-				for (var m=0; m<spans.length;m++){
-					if (spans[m].title.split('?comment=')[0]==id){
-						spans[m].title = id+'?comment='+comment+'?user='+user;
-						ifExists=1;
+			try{
+				var arrOne = users[i].split('&data&');
+				var user = arrOne[0];
+				var notesUnits = arrOne[1].split("&unit&");
+				for (var j=0; j<notesUnits.length; j++){
+					var id = notesUnits[j].split("?comment=")[0];
+					var comment = notesUnits[j].split("?comment=")[1].split('?position=')[0];
+					var position = notesUnits[j].split("?comment=")[1].split('?position=')[1];
+					var spans = document.getElementsByTagName('span');
+					var ifExists=0;
+					for (var m=0; m<spans.length;m++){
+						if (spans[m].title.split('?comment=')[0]==id){
+							spans[m].title = id+'?comment='+comment+'?user='+user;
+							ifExists=1;
+							numberOfNotes++;
+						}
 					}
-				}
-				if (ifExists==0){
-					for (var k=0; k<c.length; k++){
-						if (String(k) == position){
-							var insertedNote = c[k].appendChild(document.createElement('span'));
-							insertedNote.className = 'sharedNotes';
-							insertedNote.title = id+'?comment='+comment+'?user='+user;
-							insertedNote.appendChild(document.createTextNode('X'));
+					if (ifExists==0){
+						for (var k=0; k<c.length; k++){
+							if (String(k) == position){
+								var insertedNote = c[k].appendChild(document.createElement('span'));
+								insertedNote.className = 'sharedNotes';
+								insertedNote.title = id+'?comment='+comment+'?user='+user;
+								insertedNote.appendChild(document.createTextNode('X'));
+								numberOfNotes++;
+							}
 						}
 					}
 				}
 			}
+			catch(err){;}
 		}
+	}
+	if (numberOfNotes!=0){
+		notesIndex();
+		var s = document.getElementById('save');
+		var ex = document.getElementById('exportS');
+		var em = document.getElementById('emailS');
+		s.value='Save';
+		s.disabled=false;
+		em.disabled=false; 
+		ex.disabled=false; 
+		em.value='Send'; 
+		ex.value='Export';
+		save();
 	}
 }
 
@@ -422,11 +439,11 @@ function notesIndex(){
 			note.innerHTML=noteHTML;
 			if (spans[i].className == 'notes'){
 				note.className = 'postit';
+				note.contentEditable = 'true';
 			}
 			if (spans[i].className == 'sharedNotes'){
 				note.className = 'sharedPostit';
 			}
-			note.contentEditable = 'true';
 			note.id = arr[0];
 			noteCounter++;
 			
@@ -542,7 +559,7 @@ function getFormat(){
 		currentPage();
 		onTabOrEnter();
 	}
-	catch(err){console.log(err);}
+	catch(err){;}
 }
 
 function onTabOrEnter(){
@@ -1224,7 +1241,7 @@ function save() {
 	  var url = window.location.href;
 	  var resourceId = url.split('=')[1];
 	  var content = document.getElementById('textEditor').innerHTML;
-	  $.post("/save", {resource_id : resourceId, content : content, fromPage : 'editor'}, function(){s.value='Saved';em.disabled=false; ex.disabled=false; em.value='Send'; ex.value='Export'});
+	  $.post("/save", {resource_id : resourceId, content : content, fromPage : 'editor'}, function(data){s.value='Saved';em.disabled=false; ex.disabled=false; em.value='Send'; ex.value='Export'; insertSharedNotes(data)});
 	  //var chara = window.getSelection();
 	  //try{
 		//chara.extend(startNode, 1);
