@@ -15,11 +15,76 @@ function uploadWindow(evt){
 function refreshList(){
 	$.post('/list', function(data){
 	document.getElementById('loading').style.display = 'none';
-	if(data=='no entries'){
+	var owned = data.split('?shared=')[0];
+	if(owned=='?owned=none'){
 		document.getElementById('noentries').style.display = 'block';
 	}
 	else{
-		document.getElementById('content').innerHTML = data;
+		//remove old data
+		var childs = document.getElementById('content').childNodes;
+		for (var i=0; i<childs.length; i++){
+			childs[i].parentNode.removeChild(childs[i]);
+			i--;
+		}
+		//update with new info
+		owned = owned.slice(19);
+		var scriptlist= owned.split('?scriptname=');
+		for (var i=0; i<scriptlist.length; i++){
+			var title = scriptlist[i].split('?resource_id=')[0];
+			var resource_id = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[0];
+			var alternate_link = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
+			var updated = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
+			var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+			listDiv.id = 'list';
+			var entryDiv = listDiv.appendChild(document.createElement('div'));
+			entryDiv.id = resource_id;
+			entryDiv.className = 'entry';
+			var entryTable = entryDiv.appendChild(document.createElement('table'));
+			var entryTr = entryTable.appendChild(document.createElement('tr'));
+			//make checkbox
+			var checkboxTd = entryTr.appendChild(document.createElement('td'));
+			checkboxTd.className='checkboxCell';
+			var input = checkboxTd.appendChild(document.createElement('input'));
+			input.type='checkbox';
+			input.name = 'listItems';
+			input.value = resource_id;
+			//make title
+			var titleCell = entryTr.appendChild(document.createElement('td'));
+			var titleLink = titleCell.appendChild(document.createElement('a'));
+			titleLink.id = 'name'+resource_id;
+			var href = 'javascript:script("'+resource_id+'")';
+			titleLink.href=href;
+			titleLink.appendChild(document.createTextNode(title));
+			//shared column
+			var sharedTd = entryTr.appendChild(document.createElement('td'));
+			sharedTd.className = 'sharedCell';
+			sharedTd.align = 'center';
+			//email column
+			var emailTd = entryTr.appendChild(document.createElement('td'));
+			emailTd.className = 'emailCell';
+			emailTd.align='center';
+			var emailLink = emailTd.appendChild(document.createElement('a'));
+			emailLink.className = 'emailLink';
+			href = 'javascript:emailPrompt("'+resource_id+'")';
+			emailLink.href=href;
+			emailLink.appendChild(document.createTextNode('Email'));
+			// Last updated
+			var updatedTd = entryTr.appendChild(document.createElement('td'));
+			updatedTd.className = 'updatedCell';
+			updatedTd.align='center';
+			updatedTd.appendChild(document.createTextNode(updated));
+			//Gdocs Link
+			var gdocsTd=entryTr.appendChild(document.createElement('td'));
+			gdocsTd.className = 'gdocsCell';
+			gdocsTd.align='center';
+			var gdocsLink=gdocsTd.appendChild(document.createElement('a'));
+			gdocsLink.href=alertnate_link;
+			gdocsLink.target='_blank';
+			var gif = gdocsLink.appendChild(document.getElementById('img'));
+			gif.src="images/docs.gif";
+			var png = gdocsLink.appendChild(document.getElementById('img'));
+			png.src="images/popup.png";
+		}
 	}
 							 });
 }

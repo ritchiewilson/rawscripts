@@ -158,9 +158,12 @@ class List (webapp.RequestHandler):
       location = new_folder.content.src
     folder_feed = client.GetDocList(uri=location, auth_token=token)
     today = datetime.date.today()
-    for entry in folder_feed.entry:
+    owned = '?owned='
+    shared = '?shared='
+    for script in folder_feed.entry:
+      #sort out time notation
       i=0
-      yyyymmdd = str(entry.updated.text).split('T')
+      yyyymmdd = str(script.updated.text).split('T')
       date = yyyymmdd[0].split('-')
       months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
       if int(date[0]) == int(today.year):
@@ -169,21 +172,47 @@ class List (webapp.RequestHandler):
             i=1
       if i==1:
         time = yyyymmdd[1].split(':')
-        entry.updated.text = str(int(time[0])) + ':' + time[1]
+        script.updated.text = str(int(time[0])) + ':' + time[1]
       else:
         month = int(date[1])-1
         dateformat = months[month] + ' ' + str(int(date[2]))
-        entry.updated.text = dateformat
+        script.updated.text = dateformat
+      #figure out who owns what
+      # put items in apropriate list
+      acl_feed = client.GetAclPermissions(entry.resource_id.text, auth_token=token)
+      user = users.get_current_user().email()
+      role = ''
+      for acl in acl_feed.entry:
+        if acl.role.value == 'owner':
+          if acl.scope.value == user:
+            owned = owned + '?scriptname='+script.title.text
+            owned = owned + '?resource_id='+script.resource_id.text
+            owned = owned + '?alternate_link='+script.GetAlternateLink().href
+            owned = owned + '?updated=' + script.updated.text
+            sharecounter=0
+            for acl in acl_feed.entry:
+              if not acl.role.value == 'owner':
+                sharecounter=sharecounter+1
+                owned = owned + '?shared_with=' + acl.scope.value
+            if sharecounter == 0:
+              owned = owned+'?shared_with=none'
+          else:
+            shared = shared + '?scriptname='+script.title.text
+            shared = shared + '?resource_id='+script.resource_id.text
+            shared = shared + '?alternate_link='+script.GetAlternateLink().href
+            shared = shared + '?updated=' + script.updated.text
+            
+     
     k=0
     for entry in folder_feed.entry:
       k=k+1
-    if k==0:
-      self.response.headers['Content-Type'] = 'text/plain'
-      self.response.out.write('no entries')
-    else:
-      template_values = { 'feed' : folder_feed }
-      self.response.headers['Content-Type'] = 'text/html'
-      self.response.out.write(template.render(path, template_values))
+    if owned =='?owned=':
+      owned = owned+'none'
+    if shared == '?shared=':
+      shared = shared + 'none'
+    fullList = owned+shared
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(fullList)
     a = Activity(name=users.get_current_user().email(),
                  numberOfScripts = k,
                  mobile = mobile,

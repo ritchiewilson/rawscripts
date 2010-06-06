@@ -68,3 +68,27 @@ body{margin:0; padding:0;}
 	-moz-border-radius-bottomleft:25px;
 	-webkit-border-bottom-left-radius:25px;
 }
+.entry{
+	display:block;
+	border-bottom:1px #999999 solid;
+
+}
+.checkboxCell{
+	width:15px;
+}
+.sharedCell{
+	width:120px;
+}
+.emailCell{
+	width:120px;
+}
+.emailLink{
+	right:10px;
+}
+.updatedCell{
+	width:110px;
+}
+.gdocsCell{
+	width:70px;
+	border-left:1px #000 solid;
+}

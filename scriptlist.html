@@ -5,7 +5,7 @@
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
+<script type="text/javascript" src="js/scriptlist.js"></script>
 <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
@@ -151,6 +151,23 @@ $(document).ready(function(){
                   <tr>
                 <td style='width:15px;'><input onClick='selectAll(this)' type='checkbox' value='all' /></td>
                     <td>My Scripts</td>
+                    <td style="width:120px" align="center"></td>
+              		<td style="width:120px" align="center">Email</td>
+                    <td style="width:110px" align="center">Last Viewed</td>
+                    <td style="width:70px" align="center">GDocs</td>
+                  </tr>
+                </table>
+		    </div>
+            <div id="content"></div>
+            <div id="loading"><div style="" align="center">Loading...</div></div>
+			<div id="noentries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">You have no scripts yet. <a href='javascript:newScript()'>Start one</a> now.</div>
+		</div>
+        <div id="shared" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
+			<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+                <table width="100%">
+                  <tr>
+                <td style='width:15px;'><input onClick='selectAll(this)' type='checkbox' value='all' /></td>
+                    <td>Friends' Scripts</td>
                     <td style="width:120px" align="center"></td>
               		<td style="width:120px" align="center">Email</td>
                     <td style="width:110px" align="center">Last Viewed</td>
