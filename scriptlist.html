@@ -5,7 +5,7 @@
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/scriptlist.js"></script>
+<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
 <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
@@ -18,6 +18,7 @@ $(document).ready(function(){
 						   $('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 						   $('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
 						   $('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
+						   $('.tab').click(function(e){tabs(e.target.id)});
 						   });
 
 </script>
@@ -123,6 +124,27 @@ $(document).ready(function(){
 		</div>
 	</div>
 </div>
+<div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Share Script <b id="shareTitle"></b>
+            <br /><br />
+			
+			<label for="recipient">Recipients (max 5, comma seperated)</label>
+			<br />
+            <div id="collaborators"></div>
+			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
+			<br />
+			<input type='button' onClick='shareScript()' value='Send' />
+            <input type="hidden" value="blank" id="shareResource_id" />
+            
+			
+		</div>
+	</div>
+</div>
 <div id="header" style="position:fixed; top:0; left:0; right:0; height:70pt;">
 
 <div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div><br /><br />
@@ -132,6 +154,7 @@ $(document).ready(function(){
     <input type="button" onClick="uploadPrompt()" value="Upload" />
     <input type="button" onClick="renamePrompt()" value="Rename"  style="margin-left:55px;" />
 	<input type='button' onClick="exportPrompt()" value='Export' />
+    <input type="button" onClick="sharePrompt()" value="Share" />
     <input type='button' onClick="batchProcess('delete')" value='Delete' style="margin-left:55px; margin-right:15px;" />
 </div>
 </div>
@@ -149,9 +172,9 @@ $(document).ready(function(){
 			<div style="border-bottom:2px #999999 solid; background-color:#ddd">
                 <table width="100%">
                   <tr>
-                <td style='width:15px;'><input onClick='selectAll(this)' type='checkbox' value='all' /></td>
+                <td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
                     <td>My Scripts</td>
-                    <td style="width:120px" align="center"></td>
+                    <td style="width:120px" align="center">Shared With</td>
               		<td style="width:120px" align="center">Email</td>
                     <td style="width:110px" align="center">Last Viewed</td>
                     <td style="width:70px" align="center">GDocs</td>
@@ -162,22 +185,22 @@ $(document).ready(function(){
             <div id="loading"><div style="" align="center">Loading...</div></div>
 			<div id="noentries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">You have no scripts yet. <a href='javascript:newScript()'>Start one</a> now.</div>
 		</div>
-        <div id="shared" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
+        <div id="shared" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 			<div style="border-bottom:2px #999999 solid; background-color:#ddd">
                 <table width="100%">
                   <tr>
-                <td style='width:15px;'><input onClick='selectAll(this)' type='checkbox' value='all' /></td>
+                <td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
                     <td>Friends' Scripts</td>
-                    <td style="width:120px" align="center"></td>
+                    <td style="width:120px" align="center">Owner</td>
               		<td style="width:120px" align="center">Email</td>
                     <td style="width:110px" align="center">Last Viewed</td>
                     <td style="width:70px" align="center">GDocs</td>
                   </tr>
                 </table>
 		    </div>
-            <div id="content"></div>
-            <div id="loading"><div style="" align="center">Loading...</div></div>
-			<div id="noentries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">You have no scripts yet. <a href='javascript:newScript()'>Start one</a> now.</div>
+            <div id="sharedContent"></div>
+            <div id="sharedLoading"><div style="" align="center">Loading...</div></div>
+			<div id="sharedNoEntries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">No one is sharing scripts with you.</div>
 		</div>
 	</div>
 </div>

@@ -12,6 +12,24 @@ function uploadWindow(evt){
 		refreshList();
 	}
 }
+
+function tabs(v){
+	var c = document.getElementsByTagName('input');
+	for (var i=0; i<c.length; i++){
+		if (c[i].type == 'checkbox'){
+			c[i].checked = false;
+		}
+	}
+	if(v=='myScripts'){
+		document.getElementById('owned').style.display='block';
+		document.getElementById('shared').style.display='none';
+	}
+	else{
+		document.getElementById('owned').style.display='none';
+		document.getElementById('shared').style.display='block';
+	}
+}
+
 function refreshList(){
 	$.post('/list', function(data){
 	document.getElementById('loading').style.display = 'none';
@@ -29,17 +47,19 @@ function refreshList(){
 		//update with new info
 		owned = owned.slice(19);
 		var scriptlist= owned.split('?scriptname=');
+		var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+		listDiv.id = 'list';
 		for (var i=0; i<scriptlist.length; i++){
 			var title = scriptlist[i].split('?resource_id=')[0];
 			var resource_id = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[0];
 			var alternate_link = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
 			var updated = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
-			listDiv.id = 'list';
+			var shared_with=scriptlist[i].split('?shared_with=', 2)[1];
 			var entryDiv = listDiv.appendChild(document.createElement('div'));
 			entryDiv.id = resource_id;
 			entryDiv.className = 'entry';
 			var entryTable = entryDiv.appendChild(document.createElement('table'));
+			entryTable.width = '100%';
 			var entryTr = entryTable.appendChild(document.createElement('tr'));
 			//make checkbox
 			var checkboxTd = entryTr.appendChild(document.createElement('td'));
@@ -59,6 +79,15 @@ function refreshList(){
 			var sharedTd = entryTr.appendChild(document.createElement('td'));
 			sharedTd.className = 'sharedCell';
 			sharedTd.align = 'center';
+			var colabs = shared_with.split('?shared_with=');
+			for (var z=0; z<colabs.length; z++){
+				//if(colabs[z]!='none'){
+					sharedTd.appendChild(document.createTextNode(colabs[z]));
+					if (z<(colabs.length-1)){
+						sharedTd.appendChild(document.createTextNode(', '));
+					}
+				//}
+			}
 			//email column
 			var emailTd = entryTr.appendChild(document.createElement('td'));
 			emailTd.className = 'emailCell';
@@ -78,17 +107,92 @@ function refreshList(){
 			gdocsTd.className = 'gdocsCell';
 			gdocsTd.align='center';
 			var gdocsLink=gdocsTd.appendChild(document.createElement('a'));
-			gdocsLink.href=alertnate_link;
+			gdocsLink.href=alternate_link;
 			gdocsLink.target='_blank';
-			var gif = gdocsLink.appendChild(document.getElementById('img'));
+			var gif = gdocsLink.appendChild(document.createElement('img'));
 			gif.src="images/docs.gif";
-			var png = gdocsLink.appendChild(document.getElementById('img'));
+			var png = gdocsLink.appendChild(document.createElement('img'));
+			png.src="images/popup.png";
+		}
+	}
+	var shared = data.split('?shared=')[1];
+	document.getElementById('sharedLoading').style.display='none';
+	if (shared=='none'){
+		document.getElementById('sharedNoEntries').style.display='block';
+	}
+	else{
+		//remove old data
+		var childs = document.getElementById('sharedContent').childNodes;
+		for (var i=0; i<childs.length; i++){
+			childs[i].parentNode.removeChild(childs[i]);
+			i--;
+		}
+		//update with new info
+		shared = shared.slice(12);
+		var sharedScriptList= shared.split('?scriptname=');
+		var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
+		listDiv.id = 'sharedList';
+		for(var i=0; i<sharedScriptList.length; i++){
+			var title = sharedScriptList[i].split('?resource_id=')[0];
+			var resource_id = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[0];
+			var alternate_link = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
+			var updated = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
+			var shared_with=sharedScriptList[i].split('?shared_with=', 2)[1];
+			var entryDiv = listDiv.appendChild(document.createElement('div'));
+			entryDiv.id = resource_id;
+			entryDiv.className = 'entry';
+			var entryTable = entryDiv.appendChild(document.createElement('table'));
+			entryTable.width = '100%';
+			var entryTr = entryTable.appendChild(document.createElement('tr'));
+			//make checkbox
+			var checkboxTd = entryTr.appendChild(document.createElement('td'));
+			checkboxTd.className='checkboxCell';
+			var input = checkboxTd.appendChild(document.createElement('input'));
+			input.type='checkbox';
+			input.name = 'sharedListItems';
+			input.value = resource_id;
+			//make title
+			var titleCell = entryTr.appendChild(document.createElement('td'));
+			var titleLink = titleCell.appendChild(document.createElement('a'));
+			titleLink.id = 'name'+resource_id;
+			var href = 'javascript:script("'+resource_id+'")';
+			titleLink.href=href;
+			titleLink.appendChild(document.createTextNode(title));
+			//shared column
+			var sharedTd = entryTr.appendChild(document.createElement('td'));
+			sharedTd.className = 'sharedCell';
+			sharedTd.align = 'center';
+			sharedTd.appendChild(document.createTextNode(shared_with));
+			//email column
+			var emailTd = entryTr.appendChild(document.createElement('td'));
+			emailTd.className = 'emailCell';
+			emailTd.align='center';
+			var emailLink = emailTd.appendChild(document.createElement('a'));
+			emailLink.className = 'emailLink';
+			href = 'javascript:emailPrompt("'+resource_id+'")';
+			emailLink.href=href;
+			emailLink.appendChild(document.createTextNode('Email'));
+			// Last updated
+			var updatedTd = entryTr.appendChild(document.createElement('td'));
+			updatedTd.className = 'updatedCell';
+			updatedTd.align='center';
+			updatedTd.appendChild(document.createTextNode(updated));
+			//Gdocs Link
+			var gdocsTd=entryTr.appendChild(document.createElement('td'));
+			gdocsTd.className = 'gdocsCell';
+			gdocsTd.align='center';
+			var gdocsLink=gdocsTd.appendChild(document.createElement('a'));
+			gdocsLink.href=alternate_link;
+			gdocsLink.target='_blank';
+			var gif = gdocsLink.appendChild(document.createElement('img'));
+			gif.src="images/docs.gif";
+			var png = gdocsLink.appendChild(document.createElement('img'));
 			png.src="images/popup.png";
 		}
 	}
 							 });
 }
-function tokenize(){
+function tokenize(kind){
 	var counter = 0;
 	var c = document.getElementsByTagName('div');
 		for(var i=0;i<c.length;i++){
@@ -97,7 +201,7 @@ function tokenize(){
 				}
 			}
 	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
-	var txtbox = document.getElementById('recipient');
+	var txtbox = document.getElementById(kind);
 	var data = txtbox.value.replace(',','');
 	var whitespace = data.replace(/ /g, "");
 	if (whitespace==""){return;}
@@ -108,7 +212,7 @@ function tokenize(){
 	else{name = arr.join(' ').replace(/"/g, '');}
 	// Create Token div
 	var newToken = document.createElement('div');
-	var insertedToken = document.getElementById('recipients').appendChild(newToken);
+	var insertedToken = document.getElementById(kind+'s').appendChild(newToken);
 	insertedToken.className='token';
 	insertedToken.id = email;
 	// Create Name Area
@@ -136,12 +240,14 @@ function removeToken(v){
 	var token = document.getElementById(v);
 	token.parentNode.removeChild(token);	
 	}
-function selectAll(obj){
+function selectAll(obj, which){
 	var listItems = document.getElementsByTagName('input');
 	var bool = obj.checked
 	for(var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
-			listItems[i].checked = bool;
+			if(listItems[i].name ==which){
+				listItems[i].checked = bool;
+			}
 		}
 	}
 }
@@ -163,7 +269,7 @@ function batchProcess(v){
 	for (var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
 			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
+				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems'){
 					if(v=='delete')	deleteScript(listItems[i].value);
 				}			
 			}
@@ -173,7 +279,7 @@ function batchProcess(v){
 
 
 function emailScript(){
-	tokenize();
+	tokenize('recipient');
 	var arr = new Array();
 	var c = document.getElementsByTagName('span');
 	for(var i=0;i<c.length; i++){
@@ -288,7 +394,7 @@ function exportPrompt(){
 	for (var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
 			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
+				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems'){
 					var newRow = document.createElement('tr');
 					var row = document.getElementById('exportList').appendChild(newRow);
 					var newData = row.appendChild(document.createElement('td'));
@@ -324,4 +430,46 @@ function exportScripts(){
 		window.open(url);
 	}
 	hideExportPrompt();
+}
+function sharePrompt(){
+	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
+	var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var resource_id = listItems[i].value;
+					counter++;
+				}
+			}
+		}
+	}
+	if(counter>1)alert("select one at a time");
+	else if (counter==1){
+		var title = 'name' + resource_id;
+		document.getElementById('shareTitle').innerHTML = "Rename " + document.getElementById(title).innerHTML;
+		document.getElementById('sharepopup').style.visibility = 'visible';
+		document.getElementById('shareResource_id').value = resource_id;
+	}
+}
+function hideSharePrompt(){
+document.getElementById('sharepopup').style.visibility = 'hidden';
+document.getElementById('collaborator').value = "";
+document.getElementById('collaborators').innerHTML = "";
+}
+function shareScript(){
+	tokenize('collaborator');
+	var arr = new Array();
+	var c = document.getElementsByTagName('span');
+	for(var i=0;i<c.length; i++){
+		if (c[i].className=='mailto'){
+			arr.push(c[i].innerHTML);
+			}
+		}
+	var collaborators = arr.join(',');
+	var url = window.location.href;
+	var resource_id = document.getElementById('shareResource_id').value;
+	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'});
+	hideSharePrompt();
 }

@@ -54,6 +54,11 @@ def get_auth_token(request):
   gdata.gauth.ae_save(session_token, 'docsandcontacts' + current_user.user_id())
   return session_token
 
+class ShareDB (db.Model):
+  name = db.StringProperty()
+  resource_id = db.StringProperty()
+  fromPage = db.StringProperty()
+
 class Users (db.Model):
   name = db.StringProperty()
   firstUse = db.DateTimeProperty(auto_now_add=True)
@@ -152,14 +157,29 @@ class List (webapp.RequestHandler):
     for entry in feed.entry:
        if entry.title.text == 'RawScripts':
           i=1
+          raw_folder = entry
           location = entry.content.src
     if i==0:
       new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
       location = new_folder.content.src
+      raw_folder=new_folder
+
+    #move new shared scripts into RawScripts Folder, if need Be
+    client = gdata.docs.client.DocsClient()
+    query = db.GqlQuery("SELECT * FROM ShareDB "+
+                        "WHERE name='"+users.get_current_user().email()+"'")
+    results = query.fetch(500)
+    for m in results:
+      new_shared_doc = client.GetDoc(m.resource_id, auth_token=token)
+      client.Move(new_shared_doc, raw_folder, auth_token=token)
+      m.delete()
+      
+      
     folder_feed = client.GetDocList(uri=location, auth_token=token)
     today = datetime.date.today()
     owned = '?owned='
     shared = '?shared='
+    current_user = users.get_current_user().email()
     for script in folder_feed.entry:
       #sort out time notation
       i=0
@@ -179,30 +199,34 @@ class List (webapp.RequestHandler):
         script.updated.text = dateformat
       #figure out who owns what
       # put items in apropriate list
-      acl_feed = client.GetAclPermissions(entry.resource_id.text, auth_token=token)
-      user = users.get_current_user().email()
-      role = ''
-      for acl in acl_feed.entry:
-        if acl.role.value == 'owner':
-          if acl.scope.value == user:
-            owned = owned + '?scriptname='+script.title.text
-            owned = owned + '?resource_id='+script.resource_id.text
-            owned = owned + '?alternate_link='+script.GetAlternateLink().href
-            owned = owned + '?updated=' + script.updated.text
-            sharecounter=0
-            for acl in acl_feed.entry:
-              if not acl.role.value == 'owner':
-                sharecounter=sharecounter+1
-                owned = owned + '?shared_with=' + acl.scope.value
-            if sharecounter == 0:
-              owned = owned+'?shared_with=none'
-          else:
-            shared = shared + '?scriptname='+script.title.text
-            shared = shared + '?resource_id='+script.resource_id.text
-            shared = shared + '?alternate_link='+script.GetAlternateLink().href
-            shared = shared + '?updated=' + script.updated.text
+      try:
+        
+        acl_feed = client.GetAclPermissions(script.resource_id.text, auth_token=token)
+        for acl in acl_feed.entry:
+          if acl.role.value == 'owner':
+            if acl.scope.value == current_user:
+              owned = owned + '?scriptname='+script.title.text
+              owned = owned + '?resource_id='+script.resource_id.text
+              owned = owned + '?alternate_link='+script.GetAlternateLink().href
+              owned = owned + '?updated=' + script.updated.text
+              sharecounter=0
+              for acl in acl_feed.entry:
+                if not acl.role.value == 'owner':
+                  sharecounter=sharecounter+1
+                  owned = owned + '?shared_with=' + acl.scope.value
+              if sharecounter == 0:
+                owned = owned+'?shared_with=none'
+            else:
+              shared = shared + '?scriptname='+script.title.text
+              shared = shared + '?resource_id='+script.resource_id.text
+              shared = shared + '?alternate_link='+script.GetAlternateLink().href
+              shared = shared + '?updated=' + script.updated.text
+              for acl in acl_feed.entry:
+                if acl.role.value == 'owner':
+                  shared = shared + '?shared_with=' + acl.scope.value
+      except:
+        notThere = 1
             
-     
     k=0
     for entry in folder_feed.entry:
       k=k+1
@@ -665,7 +689,6 @@ class ConvertProcess (webapp.RequestHandler):
 
 class Share (webapp.RequestHandler):
   def post(self):
-    eror = 1
     resource_id = self.request.get('resource_id')
     collaborators = self.request.get('collaborators')
     fromPage = self.request.get('fromPage')
@@ -674,15 +697,30 @@ class Share (webapp.RequestHandler):
     collabList = collaborators.split(',')
     client = gdata.docs.client.DocsClient()
     entry = client.GetDoc(resource_id, auth_token=token)
+    mobile = 0
+    #Check if should send to mobile Page
+    ua = self.request.user_agent
+    props = da.getPropertiesAsTyped(tree, ua)
+    if props.has_key('mobileDevice'):
+      if props['mobileDevice']:
+        path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
+        mobile = 1
     i=0
     while i<len(collabList):
-      scope = gdata.acl.data.AclScope(value=collabList[i], type='user')
-      role = gdata.acl.data.AclRole(value='reader')
-      acl_entry = gdata.docs.data.Acl(scope=scope, role=role)
-      try:
-        new_acl = client.Post(acl_entry, entry.GetAclFeedLink().href, auth_token=token)
-      except:
-        eror=1
+      k=0
+      while k<4:
+        try:
+          scope = gdata.acl.data.AclScope(value=collabList[i], type='user')
+          role = gdata.acl.data.AclRole(value='reader')
+          acl_entry = gdata.docs.data.Acl(scope=scope, role=role)
+          new_acl = client.Post(acl_entry, entry.GetAclFeedLink().href, auth_token=token)
+          s = ShareDB(resource_id=resource_id,
+                    name=collabList[i],
+                    fromPage=fromPage)
+          s.put()
+          k=5
+        except:
+          k=k+1
       i=i+1
     
 

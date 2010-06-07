@@ -17,6 +17,7 @@ body{margin:0; padding:0;}
   border-style:inset; 
   border-width:2px;
   font-family:Verdana, Geneva, sans-serif;
+  width:400px;
 }
 .token{
 	background-color:#ddd;
@@ -37,7 +38,7 @@ body{margin:0; padding:0;}
 }
 
 #loading{
-	color:#333;
+	/*color:#333;
 	padding-top:2px;
 	padding-bottom:4px;
 	font-size:22px;
@@ -50,6 +51,7 @@ body{margin:0; padding:0;}
 	-webkit-border-bottom-right-radius:15px;
 	border:1px #eee solid;
 	border-top:none;
+	*/
 }
 #nav {
 	position:absolute;
@@ -57,11 +59,12 @@ body{margin:0; padding:0;}
 	top:100px;
 }
 .tab{
+	cursor:pointer;
 	padding:5px;
 	padding-left:15px;
 	margin-top:4px;
 	width:100%;
-	font-size:16pt;
+	font-size:14pt;
 	background-color:#7694D8;
 	-moz-border-radius-topleft:25px;
 	-webkit-border-top-left-radius:25px;
