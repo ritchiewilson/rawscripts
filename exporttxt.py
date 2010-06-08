@@ -9,8 +9,16 @@ def exportToText(data):
   #content = content.replace("\r\n", "")
   content = content.replace('<br>', '')
   content = content.replace('<hr class=pb>', '')
-  pattern = re.compile(r'<span class=notes .*</span>')
-  content = re.sub(pattern, '', content)
+  pattern = re.compile(r'<span class=notes .*?</span>')
+  z=0
+  while z<50:
+    content = re.sub(pattern, '', content)
+    z=z+1
+  pattern = re.compile(r'<span class=sharedNotes .*?</span>')
+  z=0
+  while z<50:
+    content = re.sub(pattern, '', content)
+    z=z+1
   content = content.replace(""" (CONT'D)""", "")
   content = content.replace("""<h3 class=more>""", "")
   content = content.replace("""(MORE)""", "")

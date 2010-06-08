@@ -131,14 +131,17 @@ $(document).ready(function(){
 			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
 			<br /><br />
             Share Script <b id="shareTitle"></b>
-            <br /><br />
-			
+            <br /><br>
+			<table id="hasAccess" width="300px">
+            </table>
+            <br>
 			<label for="recipient">Recipients (max 5, comma seperated)</label>
 			<br />
+            <p>To be added</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br />
-			<input type='button' onClick='shareScript()' value='Send' />
+			<br /><br><br><br>
+			<input type='button' onClick='shareScript()' value='Send Invitations' />
             <input type="hidden" value="blank" id="shareResource_id" />
             
 			
@@ -154,7 +157,6 @@ $(document).ready(function(){
     <input type="button" onClick="uploadPrompt()" value="Upload" />
     <input type="button" onClick="renamePrompt()" value="Rename"  style="margin-left:55px;" />
 	<input type='button' onClick="exportPrompt()" value='Export' />
-    <input type="button" onClick="sharePrompt()" value="Share" />
     <input type='button' onClick="batchProcess('delete')" value='Delete' style="margin-left:55px; margin-right:15px;" />
 </div>
 </div>

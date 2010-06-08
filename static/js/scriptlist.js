@@ -54,7 +54,8 @@ function refreshList(){
 			var resource_id = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[0];
 			var alternate_link = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
 			var updated = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var shared_with=scriptlist[i].split('?shared_with=', 2)[1];
+			var shared_with=scriptlist[i].split('?shared_with=');
+			shared_with.splice(0,1);
 			var entryDiv = listDiv.appendChild(document.createElement('div'));
 			entryDiv.id = resource_id;
 			entryDiv.className = 'entry';
@@ -78,16 +79,25 @@ function refreshList(){
 			//shared column
 			var sharedTd = entryTr.appendChild(document.createElement('td'));
 			sharedTd.className = 'sharedCell';
-			sharedTd.align = 'center';
-			var colabs = shared_with.split('?shared_with=');
-			for (var z=0; z<colabs.length; z++){
-				//if(colabs[z]!='none'){
-					sharedTd.appendChild(document.createTextNode(colabs[z]));
-					if (z<(colabs.length-1)){
-						sharedTd.appendChild(document.createTextNode(', '));
-					}
-				//}
+			sharedTd.align = 'right';
+			if (shared_with[0]=='none'){
+				var collabs = '';
 			}
+			else{
+				if (shared_with.length==1){
+					var collabs = '1 person ';
+				}
+				else {
+					var collabs = String(shared_with.length)+" people ";
+				}
+			}
+			sharedTd.appendChild(document.createTextNode(collabs));
+			var manage = sharedTd.appendChild(document.createElement('a'));
+			var href = "javascript:sharePrompt('"+resource_id+"')";
+			manage.href=href;
+			manage.appendChild(document.createTextNode('Manage'));
+			manage.id = 'share'+resource_id;
+			manage.title = shared_with.join('&');
 			//email column
 			var emailTd = entryTr.appendChild(document.createElement('td'));
 			emailTd.className = 'emailCell';
@@ -438,32 +448,45 @@ function exportScripts(){
 	}
 	hideExportPrompt();
 }
-function sharePrompt(){
+function removeAccess(v){
+	var bool = confirm("Are you sure you want to take away access from "+v+"?");
+	if (bool==true){
+		var resource_id = document.getElementById('shareResource_id').value;
+		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'scriptlist', removePerson : v}, function(data){removeShareUser(data)})
+		document.getElementById(v.toLowerCase()).style.opacity = '0.5';
+		document.getElementById(v.toLowerCase()).style.backgroundColor = '#ddd';
+	}
+}
+function removeShareUser(data){
+	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
+}
+function sharePrompt(v){
 	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
-	var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
-					var resource_id = listItems[i].value;
-					counter++;
-				}
-			}
+	var collabs = document.getElementById('share'+v).title.split('&');
+	var hasAccess = document.getElementById('hasAccess');
+	for (var i=0; i<collabs.length; i++){
+		if(collabs[i]!='none'){
+			var collabTr = hasAccess.appendChild(document.createElement('tr'));
+			collabTr.id=collabs[i].toLowerCase();
+			var emailTd = collabTr.appendChild(document.createElement('td'));
+			emailTd.appendChild(document.createTextNode(collabs[i]));
+			var remove = collabTr.appendChild(document.createElement('td'));
+			var newA = remove.appendChild(document.createElement('a'));
+			newA.appendChild(document.createTextNode('Remove Access'));
+			var href = "javascript:removeAccess('"+collabs[i]+"')";
+			newA.href = href;
 		}
 	}
-	if(counter>1)alert("select one at a time");
-	else if (counter==1){
-		var title = 'name' + resource_id;
-		document.getElementById('shareTitle').innerHTML = "Rename " + document.getElementById(title).innerHTML;
-		document.getElementById('sharepopup').style.visibility = 'visible';
-		document.getElementById('shareResource_id').value = resource_id;
-	}
+	document.getElementById('shareTitle').innerHTML = document.getElementById('name'+v).innerHTML;
+	document.getElementById('sharepopup').style.visibility = 'visible';
+	document.getElementById('shareResource_id').value = v;
+	
 }
 function hideSharePrompt(){
 document.getElementById('sharepopup').style.visibility = 'hidden';
 document.getElementById('collaborator').value = "";
 document.getElementById('collaborators').innerHTML = "";
+document.getElementById('hasAccess').innerHTML = '';
 }
 function shareScript(){
 	tokenize('collaborator');
@@ -477,6 +500,6 @@ function shareScript(){
 	var collaborators = arr.join(',');
 	var url = window.location.href;
 	var resource_id = document.getElementById('shareResource_id').value;
-	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'});
+	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'}, function(){refreshList()});
 	hideSharePrompt();
 }

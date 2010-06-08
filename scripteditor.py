@@ -632,34 +632,10 @@ class ConvertProcess (webapp.RequestHandler):
     t = t.replace('<br>', '')
     t = t.replace('&nbsp;', '')
     pattern = re.compile(r'<span.*?>')
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
-    t = re.sub(pattern, '', t)
+    xyz=0
+    while xyz<50:
+      t = re.sub(pattern, '', t)
+      xyz=xyz+1
     parts = t.split('</p>')
     parts.pop()
     script=''
@@ -734,6 +710,19 @@ class Share (webapp.RequestHandler):
           k=k+1
       i=i+1
     
+class RemoveAccess (webapp.RequestHandler):
+  def post(self):
+    token = get_auth_token(self.request)
+    resource_id=self.request.get('resource_id')
+    remove_person = self.request.get('removePerson')
+    client = gdata.docs.client.DocsClient()
+    acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
+    for acl in acl_feed.entry:
+      if remove_person.lower() == acl.scope.value.lower():
+        client.Delete(acl.GetEditLink().href, force=True, auth_token=token)
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write(remove_person.lower())
+        return
 
 class PostNotes (webapp.RequestHandler):
   def post(self):
@@ -752,6 +741,7 @@ class PostNotes (webapp.RequestHandler):
                      data=data,)
     newNotes.put()
 
+
 def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
                                         ('/delete', Delete),
@@ -764,6 +754,7 @@ def main():
                                         ('/convertprocess', ConvertProcess),
                                         ('/share', Share),
                                         ('/postnotes', PostNotes),
+                                        ('/removeaccess', RemoveAccess),
                                         ('/list', List),],
                                        debug=True)
   
