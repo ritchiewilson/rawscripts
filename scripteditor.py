@@ -204,7 +204,7 @@ class List (webapp.RequestHandler):
         acl_feed = client.GetAclPermissions(script.resource_id.text, auth_token=token)
         for acl in acl_feed.entry:
           if acl.role.value == 'owner':
-            if acl.scope.value == current_user:
+            if acl.scope.value.lower() == current_user.lower():
               owned = owned + '?scriptname='+script.title.text
               owned = owned + '?resource_id='+script.resource_id.text
               owned = owned + '?alternate_link='+script.GetAlternateLink().href
@@ -511,31 +511,36 @@ class Save (webapp.RequestHandler):
 
 class NewScript (webapp.RequestHandler):
   def post(self):
-    filename = self.request.get('filename')
-    filename = filename.replace('%20', ' ')
-    token=get_auth_token(self.request)
-    client = gdata.docs.client.DocsClient()
-    feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
-    i=0
-    for entry in feed.entry:
-       if entry.title.text == 'RawScripts':
-          i=1
-          location = entry
-    if i==0:
-      new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
-      location = new_folder
-    doc = client.GetDoc('document%3A0AaXZx9SZPN4pZGhqaHhrdGJfMjY2Y2Q2Y3czaGg', auth_token=token)
-    new_doc = client.Copy(doc, filename, auth_token=token)
-    client.Move(new_doc, location, auth_token=token)
-    url = '/editor?resource_id=' + new_doc.resource_id.text
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(url)
-    # Track what the user is doing
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = new_doc.title.text,
-                 resource_id = new_doc.resource_id.text,
-                 activity="newscript")
-    a.put()
+    try:
+      
+      filename = self.request.get('filename')
+      filename = filename.replace('%20', ' ')
+      token=get_auth_token(self.request)
+      client = gdata.docs.client.DocsClient()
+      feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
+      i=0
+      for entry in feed.entry:
+         if entry.title.text == 'RawScripts':
+            i=1
+            location = entry
+      if i==0:
+        new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
+        location = new_folder
+      doc = client.GetDoc('document%3A0AaXZx9SZPN4pZGhqaHhrdGJfMjY2Y2Q2Y3czaGg', auth_token=token)
+      new_doc = client.Copy(doc, filename, auth_token=token)
+      client.Move(new_doc, location, auth_token=token)
+      url = '/editor?resource_id=' + new_doc.resource_id.text
+      self.response.headers['Content-Type'] = 'text/plain'
+      self.response.out.write(url)
+      # Track what the user is doing
+      a = Activity(name=users.get_current_user().email(),
+                   scriptName = new_doc.title.text,
+                   resource_id = new_doc.resource_id.text,
+                   activity="newscript")
+      a.put()
+    except:
+      self.response.headers['Content-Type'] = 'text/plain'
+      self.response.out.write('error')
 
     
 class ContactList (webapp.RequestHandler):

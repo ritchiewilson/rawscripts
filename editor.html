@@ -22,6 +22,10 @@ $(document).ready(function(){
 	$.post('/scriptcontent',
 		   {resource_id:resource_id},
 		   function(data){
+               if (data.split("&alternate_link&").length>1){
+                    couldNotLoad(data);
+                    return;
+               }
 			   document.getElementById('textEditor').innerHTML=data.split('&notes&')[0];
 			   var titleDiv = document.getElementById('title');
 			   var i=0;
@@ -166,6 +170,22 @@ $(document).ready(function(){
 			<br />
 			<input type='button' onClick='shareScript()' value='Send' />
 			
+		</div>
+	</div>
+</div>
+<div id="couldnotloadpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:refresh()" style="color:#333">Try Reloading</a>
+			<br /><br />
+            <b>Grr... Error...</b>
+            <br />
+            <p>Sorry. There was a problem loading your script. <a id="alt_link" href="#">Check Google Docs</a> to make sure this script is still in it's place.</p>
+            <p>If it's still there, just try <a href="javascript:refresh()">refreshing the page</a>.</p>
+			<br />
+            <div id="collaborators"></div>
+			<br />
 		</div>
 	</div>
 </div>

@@ -4,6 +4,15 @@ function nope(){
 alert("Sorry, you're going to have to login to use these functions.");
 }
 
+function couldNotLoad(data){
+    var alternate_link= data.split("&alternate_link&")[1];
+    document.getElementById('couldnotloadpopup').style.visibility = 'visible';
+    document.getElementById('alt_link').href = alternate_link;
+}
+function refresh(){
+    window.location.href=window.location.href;
+}
+
 function infoSizes(){
 	var total = $('#scriptInfo').height() - 50;
 	var oneBox = (total/3) - $('#sceneBoxHandle').height();

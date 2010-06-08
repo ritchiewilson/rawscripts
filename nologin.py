@@ -122,7 +122,7 @@ class Editor (webapp.RequestHandler):
       role = ''
       for acl in acl_feed.entry:
         if acl.role.value == 'owner':
-          if not acl.scope.value == user:
+          if not acl.scope.value.lower() == user.lower():
             path = os.path.join(os.path.dirname(__file__), 'viewer.html')
 
         
@@ -165,6 +165,7 @@ class ScriptContent (webapp.RequestHandler):
       client.http_client.debug = True
       entry = client.GetDoc(resource_id, auth_token = token)
       exportFormat = '&exportFormat=html'
+      alt_link = 'error&alternate_link&' + entry.GetAlternateLink().href
 
       #This is where I get all the problems, on GetFileContent. 
       #Loop three times to reduce errors
@@ -176,8 +177,8 @@ class ScriptContent (webapp.RequestHandler):
         except:
           k=k+1
           if k==3:
-            self.response.headers['Content-Type'] = 'text/html'
-            self.response.out.write('<p>grrr.... GOOGLE! Something screwed up. Try reloading this page to try again</p>')
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write(alt_link)
             return
       headless = page.split('</div>')[1]
       content = headless.split('</body>')[0]

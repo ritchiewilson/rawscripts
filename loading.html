@@ -8,7 +8,18 @@
 function load() {
 	var url = window.location.href;
 	var filename = url.split('=')[1];
-	$.post("/newscript", {filename : filename}, function(data){window.location = data });
+	$.post("/newscript", {filename : filename}, function(data){handleData(data)});
+}
+function handleData(data){
+    if (data=='error'){
+        document.getElementById('couldnotloadpopup').style.visibility = 'visible';
+    }
+    else{
+        window.location=data;
+    }
+}
+function refresh(){
+    window.location = window.location.href;
 }
 </script>
 
@@ -28,6 +39,22 @@ function load() {
   })();
 
 </script>
+<div id="couldnotloadpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:refresh()" style="color:#333">Try Reloading</a>
+			<br /><br />
+            <b>Grr... Error...</b>
+            <br />
+            <p>Sorry. There was a problem loading your script. <a id="alt_link" href="http://docs.google.com">Login to Google Docs</a> to make sure there you're using a valid Google Account.</p>
+            <p>Then, just try <a href="javascript:refresh()">refreshing the page</a>.</p>
+			<br />
+            <div id="collaborators"></div>
+			<br />
+		</div>
+	</div>
+</div>
 	<div style="width:600px; margin-left:auto; margin-right:auto">
     	<h2>Loading...</h2>
         <img src="images/loading.gif" />
