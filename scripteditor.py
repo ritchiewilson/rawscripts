@@ -391,6 +391,8 @@ class EmailScript (webapp.RequestHandler):
                        fromPage = fromPage,
                        activity="email")
           a.put()
+          self.response.headers['Content-Type'] = 'text/plain'
+          self.response.out.write('not sent')
           return
         
     #Reformat PDF so It looks nice, goes out smaller and stuff
@@ -436,6 +438,8 @@ class EmailScript (webapp.RequestHandler):
                        error = 'emailing fail',
                        activity="email")
           a.put()
+          self.response.headers['Content-Type'] = 'text/plain'
+          self.response.out.write('not sent')
           return
     # record who's doing what
     a = Activity(name=users.get_current_user().email(),
@@ -448,6 +452,8 @@ class EmailScript (webapp.RequestHandler):
                  numberRecipients = len(recipients),
                  activity="email")
     a.put()
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write('sent')
 
 class Save (webapp.RequestHandler):
   def post(self):

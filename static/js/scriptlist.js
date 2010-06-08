@@ -277,7 +277,17 @@ function batchProcess(v){
 	}
 }
 
-
+function emailComplete(e){
+	document.getElementById('emailS').disabled = false;
+	document.getElementById('emailS').value = 'Send';
+	if (e=='sent'){
+		alert("Email Sent")
+		hideEmailPrompt();
+	}
+	else{
+		alert("There was a problem sending your email. Please try again later.")
+	}
+}
 function emailScript(){
 	tokenize('recipient');
 	var arr = new Array();
@@ -290,12 +300,9 @@ function emailScript(){
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	var body_message = document.getElementById('message').innerHTML;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist'});
-	document.getElementById('emailpopup').style.visibility = 'hidden';
-	document.getElementById('recipient').value = "";
-	document.getElementById('subject').value = "";
-	document.getElementById('message').innerHTML = "";
-	document.getElementById('recipients').innerHTML = "";
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist'}, function(e){emailComplete(e)});
+	document.getElementById('emailS').disabled = true;
+	document.getElementById('emailS').value = 'Sending...';
 }
 var resource_id="";
 function emailPrompt(v){

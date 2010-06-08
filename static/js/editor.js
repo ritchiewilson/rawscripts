@@ -1064,7 +1064,11 @@ function printScript(bool){
 						findPage=1;
 					}
 				}
-				var noteText = 'Page ' + pageNumber + ' -- ' + notes[i].title.split('?comment=')[1].replace(/HTMLLINEBREAK/g, '<br>');
+				var splitVar = notes[i].title.split('?comment=')[1].split('?user=');
+				var noteText = 'Page ' + pageNumber + ' -- ' + splitVar[0].replace(/HTMLLINEBREAK/g, '<br>');
+				if (splitVar.length>1){
+					noteText=noteText+"<br><br>--"+splitVar[1];
+				}
 				var footnote = orderedList.appendChild(document.createElement('li'));
 				footnote.className = 'footnote';
 				footnote.innerHTML = noteText;
@@ -1172,6 +1176,17 @@ function shareScript(){
 
 	
 //------------Emailing fucntions
+function emailComplete(e){
+	document.getElementById('emailS').disabled = false;
+	document.getElementById('emailS').value = 'Send';
+	if (e=='sent'){
+		alert("Email Sent")
+		hideDiv();
+	}
+	else{
+		alert("There was a problem sending your email. Please try again later.")
+	}
+}
 	
 function emailScript(){
 	if(document.getElementById('demo').innerHTML=='demo'){
@@ -1191,13 +1206,17 @@ function emailScript(){
 	var body_message = document.getElementById('message').innerHTML;
 	var url = window.location.href;
 	var resource_id = url.split('=')[1];
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor'});
-	hideDiv();
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor'}, function(e){emailComplete(e)});
+	document.getElementById('emailS').disabled = true;
+	document.getElementById('emailS').value = 'Sending...';
 }
 function emailPrompt(v){
 	
 	$.post('/contactlist', {fromPage : 'editorEmail'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
 	save();
+	if(document.getElementById('demo').innerHTML=='demo'){
+		return;
+	}
 	document.getElementById('hideshow').style.visibility = 'visible';
 }
 function hideDiv(){
