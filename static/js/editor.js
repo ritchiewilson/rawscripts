@@ -1185,7 +1185,7 @@ function refreshShareList(v){
 }
 function sharePrompt(){
 	var resource_id = window.location.href.split('?resource_id=')[1];
-	$.post('/getsharelist', {resource_id:resource_id , fromPage :'scriptlist'}, function(data){refreshShareList(data)}});
+	$.post('/getsharelist', {resource_id:resource_id , fromPage :'scriptlist'}, function(data){refreshShareList(data)});
 	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	document.getElementById('sharepopup').style.visibility = 'visible';
 	document.getElementById('shareTitle').innerHTML = document.getElementById('title').innerHTML;
