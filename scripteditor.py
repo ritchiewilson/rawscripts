@@ -1,4 +1,3 @@
-test
 import StringIO
 import os
 import re
@@ -24,6 +23,7 @@ import zipfile
 import exporttxt
 from pyPdf import PdfFileWriter, PdfFileReader
 import gdata.acl.data
+import logging
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -183,7 +183,9 @@ class List (webapp.RequestHandler):
     owned = '?owned='
     shared = '?shared='
     current_user = users.get_current_user().email()
+    #star Cycling through scripts
     for script in folder_feed.entry:
+
       #sort out time notation
       i=0
       yyyymmdd = str(script.updated.text).split('T')
@@ -219,6 +221,15 @@ class List (webapp.RequestHandler):
                   owned = owned + '?shared_with=' + acl.scope.value
               if sharecounter == 0:
                 owned = owned+'?shared_with=none'
+              #find out of this script has new notes for the user
+              query = db.GqlQuery("SELECT * From Notes "+
+                                 "WHERE resource_id='"+script.resource_id.text+"'")
+              results = query.fetch(500)
+              uselessVariable = 0
+              for count in results:
+                uselessVariable=uselessVariable+1
+              if not uselessVariable==0:
+                owned = owned +'?newNotes=newNotes'
             else:
               shared = shared + '?scriptname='+script.title.text
               shared = shared + '?resource_id='+script.resource_id.text

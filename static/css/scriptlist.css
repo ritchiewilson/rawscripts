@@ -95,3 +95,6 @@ body{margin:0; padding:0;}
 	width:70px;
 	border-left:1px #000 solid;
 }
+.newNotesSpan{
+	color:red;
+}

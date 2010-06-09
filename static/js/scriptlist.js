@@ -54,8 +54,12 @@ function refreshList(v){
 			var resource_id = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[0];
 			var alternate_link = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
 			var updated = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var shared_with=scriptlist[i].split('?shared_with=');
+			var shared_with=scriptlist[i].split('?newNotes=')[0].split('?shared_with=');
 			shared_with.splice(0,1);
+			var newNotes=false;
+			if(scriptlist[i].split('?newNotes=').length!=1){
+				newNotes=true;
+			}
 			var entryDiv = listDiv.appendChild(document.createElement('div'));
 			entryDiv.id = resource_id;
 			entryDiv.className = 'entry';
@@ -73,6 +77,11 @@ function refreshList(v){
 			var titleCell = entryTr.appendChild(document.createElement('td'));
 			var titleLink = titleCell.appendChild(document.createElement('a'));
 			titleLink.id = 'name'+resource_id;
+			if (newNotes==true){
+				var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+				newNotesSpan.appendChild(document.createTextNode(' New Notes'));
+				newNotesSpan.className = 'newNotesSpan';
+			}
 			var href = 'javascript:script("'+resource_id+'")';
 			titleLink.href=href;
 			titleLink.appendChild(document.createTextNode(title));
