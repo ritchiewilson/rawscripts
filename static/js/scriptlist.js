@@ -463,10 +463,11 @@ function removeAccess(v){
 }
 function removeShareUser(data){
 	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
+	refreshList();
 }
 function sharePrompt(v){
 	document.getElementById('shareS').disabled = false;
-	document.getElementById('shareS').value = "Sending Invite...";
+	document.getElementById('shareS').value = "Send Invitation";
 	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	var collabs = document.getElementById('share'+v).title.split('&');
 	var hasAccess = document.getElementById('hasAccess');

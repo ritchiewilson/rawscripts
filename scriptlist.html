@@ -10,16 +10,17 @@
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
 $(document).ready(function(){
-						   window.addEventListener("message", uploadWindow, false); 
-						   refreshList();
-						   $.post('/contactlist', {fromPage : 'scriptlist'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
-						   $('#recipient').keyup(function(event){if(event.which==188)tokenize()});
-						   $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
-						   $('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
-						   $('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
-						   $('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
-						   $('.tab').click(function(e){tabs(e.target.id)});
-						   });
+	window.addEventListener("message", uploadWindow, false); 
+	refreshList();
+	$.post('/contactlist', {fromPage : 'scriptlist'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
+	$('#recipient').keyup(function(event){if(event.which==188)tokenize()});
+	$('#collaborator').keyup(function(event){if(event.which==188)tokenize()});
+	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
+	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
+	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
+	$('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
+	$('.tab').click(function(e){tabs(e.target.id)});
+});
 
 </script>
 </head>

@@ -1157,11 +1157,14 @@ function exportScripts(){
 function removeAccess(v){
 	var bool = confirm("Are you sure you want to take away access from "+v+"?");
 	if (bool==true){
-		var resource_id = document.getElementById('shareResource_id').value;
+		var resource_id = window.location.href.split('=')[1];
 		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'editor', removePerson : v}, function(data){removeShareUser(data)})
 		document.getElementById(v.toLowerCase()).style.opacity = '0.5';
 		document.getElementById(v.toLowerCase()).style.backgroundColor = '#ddd';
 	}
+}
+function removeShareUser(data){
+	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
 }
 function refreshShareList(v){
 	var data = v.slice(6);
@@ -1169,7 +1172,7 @@ function refreshShareList(v){
 	var hasAccess = document.getElementById('hasAccess');
 	hasAccess.innerHTML='';
 	for (var i=0; i<collabs.length; i++){
-		if(collabs[i]!='none'){
+		if(collabs[i]!=''){
 			var collabTr = hasAccess.appendChild(document.createElement('tr'));
 			collabTr.id=collabs[i].toLowerCase();
 			var emailTd = collabTr.appendChild(document.createElement('td'));
