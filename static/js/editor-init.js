@@ -190,6 +190,11 @@ function editorinit(resource_id)
 	if(resource_id!='demo'){save();}
 	else{document.getElementById('demo').appendChild(document.createTextNode('demo'));}
 	document.getElementById('loading').style.visibility = 'hidden';
+	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){
+		var contacts = data.split(';');
+		$("input#collaborator").autocomplete({source: contacts});
+		$("input#recipient").autocomplete({source: contacts});
+		});
 	
 	
 };

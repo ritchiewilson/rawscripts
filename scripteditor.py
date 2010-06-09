@@ -167,13 +167,15 @@ class List (webapp.RequestHandler):
     #move new shared scripts into RawScripts Folder, if need Be
     client = gdata.docs.client.DocsClient()
     query = db.GqlQuery("SELECT * FROM ShareDB "+
-                        "WHERE name='"+users.get_current_user().email()+"'")
+                        "WHERE name='"+users.get_current_user().email().lower()+"'")
     results = query.fetch(500)
     for m in results:
-      new_shared_doc = client.GetDoc(m.resource_id, auth_token=token)
-      client.Move(new_shared_doc, raw_folder, auth_token=token)
-      m.delete()
-      
+      try:
+        new_shared_doc = client.GetDoc(m.resource_id, auth_token=token)
+        client.Move(new_shared_doc, raw_folder, auth_token=token)
+        m.delete()
+      except:
+        randomVar=1
       
     folder_feed = client.GetDocList(uri=location, auth_token=token)
     today = datetime.date.today()
@@ -693,6 +695,7 @@ class Share (webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
         mobile = 1
     i=0
+    addedCollabs=''
     while i<len(collabList):
       k=0
       while k<4:
@@ -706,9 +709,12 @@ class Share (webapp.RequestHandler):
                     fromPage=fromPage)
           s.put()
           k=5
+          addedCollabs = addedCollabs+collabList[i] + ','
         except:
           k=k+1
       i=i+1
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(addedCollabs)
     
 class RemoveAccess (webapp.RequestHandler):
   def post(self):
@@ -720,9 +726,14 @@ class RemoveAccess (webapp.RequestHandler):
     for acl in acl_feed.entry:
       if remove_person.lower() == acl.scope.value.lower():
         client.Delete(acl.GetEditLink().href, force=True, auth_token=token)
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write(remove_person.lower())
-        return
+    q = db.GqlQuery("SELECT * FROM ShareDb "+
+                          "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(50)
+    for p in results:
+      if p.name.lower() == remove_person.lower():
+        p.delete()
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(remove_person.lower())
 
 class GetShareList (webapp.RequestHandler):
   def post(self):

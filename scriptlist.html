@@ -12,9 +12,13 @@
 $(document).ready(function(){
 	window.addEventListener("message", uploadWindow, false); 
 	refreshList();
-	$.post('/contactlist', {fromPage : 'scriptlist'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
-	$('#recipient').keyup(function(event){if(event.which==188)tokenize()});
-	$('#collaborator').keyup(function(event){if(event.which==188)tokenize()});
+	$.post('/contactlist', {fromPage : 'scriptlist'}, function(data){
+		var contacts = data.split(';');
+		$("input#recipient").autocomplete({source: contacts});
+		$("input#collaborator").autocomplete({source: contacts});
+		});
+	$('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
+	$('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
 	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
@@ -133,11 +137,11 @@ $(document).ready(function(){
 			<br /><br />
             Share Script: <b id="shareTitle"></b>
             <br /><br>
-			<table id="hasAccess" width="300px">
+			<table id="hasAccess" width="350px">
             </table>
             <br>
 			<br />
-            <p>To be added</p>
+            <p>To be added: (comma seperated)</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
 			<br /><br><br><br>

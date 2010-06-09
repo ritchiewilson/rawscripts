@@ -30,7 +30,7 @@ function tabs(v){
 	}
 }
 
-function refreshList(){
+function refreshList(v){
 	$.post('/list', function(data){
 	document.getElementById('loading').style.display = 'none';
 	var owned = data.split('?shared=')[0];
@@ -199,6 +199,9 @@ function refreshList(){
 			var png = gdocsLink.appendChild(document.createElement('img'));
 			png.src="images/popup.png";
 		}
+	}
+	if(v){
+		sharePrompt(v);
 	}
 							 });
 }
@@ -457,24 +460,26 @@ function removeAccess(v){
 	if (bool==true){
 		var resource_id = document.getElementById('shareResource_id').value;
 		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'scriptlist', removePerson : v}, function(data){removeShareUser(data)})
-		document.getElementById(v.toLowerCase()).style.opacity = '0.5';
-		document.getElementById(v.toLowerCase()).style.backgroundColor = '#ddd';
+		document.getElementById('shared'+v.toLowerCase()).style.opacity = '0.5';
+		document.getElementById('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
 	}
 }
 function removeShareUser(data){
-	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
+	document.getElementById('shared'+data).parentNode.removeChild(document.getElementById('shared'+data));
 	refreshList();
 }
 function sharePrompt(v){
 	document.getElementById('shareS').disabled = false;
 	document.getElementById('shareS').value = "Send Invitation";
-	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	var collabs = document.getElementById('share'+v).title.split('&');
 	var hasAccess = document.getElementById('hasAccess');
+	document.getElementById('collaborator').value = "";
+	document.getElementById('collaborators').innerHTML = "";
+	hasAccess.innerHTML="";
 	for (var i=0; i<collabs.length; i++){
 		if(collabs[i]!='none'){
 			var collabTr = hasAccess.appendChild(document.createElement('tr'));
-			collabTr.id=collabs[i].toLowerCase();
+			collabTr.id='shared'+collabs[i].toLowerCase();
 			var emailTd = collabTr.appendChild(document.createElement('td'));
 			emailTd.appendChild(document.createTextNode(collabs[i]));
 			var remove = collabTr.appendChild(document.createElement('td'));
@@ -491,10 +496,10 @@ function sharePrompt(v){
 	
 }
 function hideSharePrompt(){
-document.getElementById('sharepopup').style.visibility = 'hidden';
-document.getElementById('collaborator').value = "";
-document.getElementById('collaborators').innerHTML = "";
-document.getElementById('hasAccess').innerHTML = '';
+	document.getElementById('sharepopup').style.visibility = 'hidden';
+	document.getElementById('collaborator').value = "";
+	document.getElementById('collaborators').innerHTML = "";
+	document.getElementById('hasAccess').innerHTML = '';
 }
 function shareScript(){
 	tokenize('collaborator');
@@ -506,9 +511,8 @@ function shareScript(){
 			}
 		}
 	var collaborators = arr.join(',');
-	var url = window.location.href;
 	var resource_id = document.getElementById('shareResource_id').value;
-	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'}, function(){refreshList(); hideSharePrompt(); sharePrompt(resource_id)});
+	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){refreshList(resource_id);});
 	document.getElementById('shareS').disabled = true;
 	document.getElementById('shareS').value = "Sending Invites...";
 }

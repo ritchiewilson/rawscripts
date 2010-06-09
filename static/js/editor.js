@@ -1189,7 +1189,6 @@ function refreshShareList(v){
 function sharePrompt(){
 	var resource_id = window.location.href.split('?resource_id=')[1];
 	$.post('/getsharelist', {resource_id:resource_id , fromPage :'scriptlist'}, function(data){refreshShareList(data)});
-	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	document.getElementById('sharepopup').style.visibility = 'visible';
 	document.getElementById('shareTitle').innerHTML = document.getElementById('title').innerHTML;
 	}
@@ -1216,6 +1215,7 @@ function shareScript(){
 	var resource_id = url.split('=')[1];
 	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'});
 	hideSharePrompt();
+    sharePrompt();
 }
 
 	
@@ -1256,7 +1256,7 @@ function emailScript(){
 }
 function emailPrompt(v){
 	
-	$.post('/contactlist', {fromPage : 'editorEmail'}, function(data){var contacts = data.split(';');$("input#recipient").autocomplete({source: contacts});});
+	$.post('/contactlist', {fromPage : 'editorEmail'}, function(data){var contacts = data.split(';');});
 	save();
 	if(document.getElementById('demo').innerHTML=='demo'){
 		return;
