@@ -724,6 +724,19 @@ class RemoveAccess (webapp.RequestHandler):
         self.response.out.write(remove_person.lower())
         return
 
+class GetShareList (webapp.RequestHandler):
+  def post(self):
+    token = get_auth_token(self.request)
+    resource_id=self.request.get('resource_id')
+    client = gdata.docs.client.DocsClient()
+    acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
+    output = ''
+    for acl in acl_feed.entry:
+      if not acl.role.value == 'owner':
+        output = output + '?user=' + acl.scope.value
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(output)
+
 class PostNotes (webapp.RequestHandler):
   def post(self):
     user = self.request.get('user')
@@ -755,6 +768,7 @@ def main():
                                         ('/share', Share),
                                         ('/postnotes', PostNotes),
                                         ('/removeaccess', RemoveAccess),
+                                        ('/getsharelist', GetShareList),
                                         ('/list', List),],
                                        debug=True)
   

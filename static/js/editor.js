@@ -1154,9 +1154,41 @@ function exportScripts(){
 	hideExportPrompt();
 }
 //------------- Sharing fucntions
+function removeAccess(v){
+	var bool = confirm("Are you sure you want to take away access from "+v+"?");
+	if (bool==true){
+		var resource_id = document.getElementById('shareResource_id').value;
+		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'editor', removePerson : v}, function(data){removeShareUser(data)})
+		document.getElementById(v.toLowerCase()).style.opacity = '0.5';
+		document.getElementById(v.toLowerCase()).style.backgroundColor = '#ddd';
+	}
+}
+function refreshShareList(v){
+	var data = v.slice(6);
+	var collabs = data.split('?user=')
+	var hasAccess = document.getElementById('hasAccess');
+	hasAccess.innerHTML='';
+	for (var i=0; i<collabs.length; i++){
+		if(collabs[i]!='none'){
+			var collabTr = hasAccess.appendChild(document.createElement('tr'));
+			collabTr.id=collabs[i].toLowerCase();
+			var emailTd = collabTr.appendChild(document.createElement('td'));
+			emailTd.appendChild(document.createTextNode(collabs[i]));
+			var remove = collabTr.appendChild(document.createElement('td'));
+			remove.align = 'right';
+			var newA = remove.appendChild(document.createElement('a'));
+			newA.appendChild(document.createTextNode('Remove Access'));
+			var href = "javascript:removeAccess('"+collabs[i]+"')";
+			newA.href = href;
+		}
+	}
+}
 function sharePrompt(){
+	var resource_id = window.location.href.split('?resource_id=')[1];
+	$.post('/getsharelist', {resource_id:resource_id , fromPage :'scriptlist'}, function(data){refreshShareList(data)}});
 	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	document.getElementById('sharepopup').style.visibility = 'visible';
+	document.getElementById('shareTitle').innerHTML = document.getElementById('title').innerHTML;
 	}
 function hideSharePrompt(){
 document.getElementById('sharepopup').style.visibility = 'hidden';

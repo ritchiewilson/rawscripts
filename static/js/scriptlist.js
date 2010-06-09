@@ -448,6 +448,10 @@ function exportScripts(){
 	}
 	hideExportPrompt();
 }
+//-----------------Done Export Functions------
+//
+//
+//-----------------Start Share Functions------
 function removeAccess(v){
 	var bool = confirm("Are you sure you want to take away access from "+v+"?");
 	if (bool==true){
@@ -461,6 +465,8 @@ function removeShareUser(data){
 	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
 }
 function sharePrompt(v){
+	document.getElementById('shareS').disabled = false;
+	document.getElementById('shareS').value = "Sending Invite...";
 	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){var contacts = data.split(';');$("input#collaborator").autocomplete({source: contacts});});
 	var collabs = document.getElementById('share'+v).title.split('&');
 	var hasAccess = document.getElementById('hasAccess');
@@ -471,6 +477,7 @@ function sharePrompt(v){
 			var emailTd = collabTr.appendChild(document.createElement('td'));
 			emailTd.appendChild(document.createTextNode(collabs[i]));
 			var remove = collabTr.appendChild(document.createElement('td'));
+			remove.align='right';
 			var newA = remove.appendChild(document.createElement('a'));
 			newA.appendChild(document.createTextNode('Remove Access'));
 			var href = "javascript:removeAccess('"+collabs[i]+"')";
@@ -500,6 +507,7 @@ function shareScript(){
 	var collaborators = arr.join(',');
 	var url = window.location.href;
 	var resource_id = document.getElementById('shareResource_id').value;
-	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'}, function(){refreshList()});
-	hideSharePrompt();
+	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'}, function(){refreshList(); hideSharePrompt(); sharePrompt(resource_id)});
+	document.getElementById('shareS').disabled = true;
+	document.getElementById('shareS').value = "Sending Invites...";
 }

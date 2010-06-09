@@ -160,15 +160,20 @@ $(document).ready(function(){
 		<div class="popup">
 			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
 			<br /><br />
-            Share Script
-            <br /><br />
-			
-			<label for="recipient">Recipients (max 5, comma seperated)</label>
+            Share Script: <b id="shareTitle"></b>
+            <br /><br>
+			<table id="hasAccess" width="300px">
+		<tr><td>Loading...</td></tr>
+            </table>
+            <br>
 			<br />
+            <p>To be added</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br />
-			<input type='button' onClick='shareScript()' value='Send' />
+			<br /><br><br><br>
+			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
+            <input type="hidden" value="blank" id="shareResource_id" />
+            
 			
 		</div>
 	</div>
