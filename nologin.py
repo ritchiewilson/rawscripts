@@ -58,7 +58,12 @@ class Notes (db.Model):
   resource_id = db.StringProperty()
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
-  
+
+class LastUpdatedEtag (db.Model):
+  name = db.StringProperty()
+  etag = db.StringProperty()
+  resource_id = db.StringProperty()
+
 class Activity (db.Model):
   name = db.StringProperty()
   activity = db.StringProperty()
@@ -201,7 +206,19 @@ class ScriptContent (webapp.RequestHandler):
         content = content+'&user&'+p.user+'&data&'+p.data
       if notes == 0:
         content = content + 'nonedata'
-      
+
+      query = db.GqlQuery("SELECT * FROM LastUpdatedEtag "+
+                          "WHERE resource_id='"+resource_id+"' "+
+                          "AND name='"+users.get_current_user().email()+"'")
+      results = query.fetch(5)
+      for p in results:
+        p.delete()
+      e = LastUpdatedEtag(name = users.get_current_user().email(),
+                          etag = entry.etag,
+                          resource_id=resource_id)
+      e.put()
+
+        
       size = len(content)
     a = Activity(name=users.get_current_user().email(),
                  scriptName = script_title,

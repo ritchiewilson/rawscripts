@@ -59,7 +59,12 @@ class ShareDB (db.Model):
   name = db.StringProperty()
   resource_id = db.StringProperty()
   fromPage = db.StringProperty()
-
+  
+class LastUpdatedEtag (db.Model):
+  name = db.StringProperty()
+  etag = db.StringProperty()
+  resource_id = db.StringProperty()
+  
 class Users (db.Model):
   name = db.StringProperty()
   firstUse = db.DateTimeProperty(auto_now_add=True)
@@ -183,6 +188,12 @@ class List (webapp.RequestHandler):
     owned = '?owned='
     shared = '?shared='
     current_user = users.get_current_user().email()
+
+    #get last viewed information on all of this users scripts
+    #
+    etagsQuery = db.GqlQuery("SELECT * FROM LastUpdatedEtag "+
+                          "WHERE name='"+users.get_current_user().email()+"'")
+    etagsResults = etagsQuery.fetch(500)
     #star Cycling through scripts
     for script in folder_feed.entry:
 
@@ -238,6 +249,17 @@ class List (webapp.RequestHandler):
               for acl in acl_feed.entry:
                 if acl.role.value == 'owner':
                   shared = shared + '?shared_with=' + acl.scope.value
+              noEtags=1
+              for t in etagsResults:
+                if t.resource_id == script.resource_id.text:
+                  noEtags=0
+                  if t.etag == script.etag:
+                    shared = shared + '?etagUpdate=no'
+                  else:
+                    shared = shared + '?etagUpdate=yes'
+              if noEtags==1:
+                shared = shared + '?etagUpdate=no'
+                
       except:
         notThere = 1
             

@@ -80,7 +80,7 @@ function refreshList(v){
 			if (newNotes==true){
 				var newNotesSpan = titleCell.appendChild(document.createElement('span'));
 				newNotesSpan.appendChild(document.createTextNode(' New Notes'));
-				newNotesSpan.className = 'newNotesSpan';
+				newNotesSpan.className = 'redAlertSpan';
 			}
 			var href = 'javascript:script("'+resource_id+'")';
 			titleLink.href=href;
@@ -156,7 +156,8 @@ function refreshList(v){
 			var resource_id = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[0];
 			var alternate_link = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
 			var updated = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var shared_with=sharedScriptList[i].split('?shared_with=', 2)[1];
+			var shared_with = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[1].split('?etagUpdate=')[0];
+			var etagUpdate=sharedScriptList[i].split('?etagUpdate=')[1];
 			var entryDiv = listDiv.appendChild(document.createElement('div'));
 			entryDiv.id = resource_id;
 			entryDiv.className = 'entry';
@@ -177,6 +178,11 @@ function refreshList(v){
 			var href = 'javascript:script("'+resource_id+'")';
 			titleLink.href=href;
 			titleLink.appendChild(document.createTextNode(title));
+			if (etagUpdate =='yes'){
+				var newSpan = titleCell.appendChild(document.createElement('span'));
+				newSpan.appendChild(document.createTextNode(' Updated'));
+				newSpan.className = 'redAlertSpan';
+			}
 			//shared column
 			var sharedTd = entryTr.appendChild(document.createElement('td'));
 			sharedTd.className = 'sharedCell';
