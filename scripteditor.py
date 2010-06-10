@@ -738,12 +738,13 @@ class RemoveAccess (webapp.RequestHandler):
     for acl in acl_feed.entry:
       if remove_person.lower() == acl.scope.value.lower():
         client.Delete(acl.GetEditLink().href, force=True, auth_token=token)
-    q = db.GqlQuery("SELECT * FROM ShareDb "+
+    q = db.GqlQuery("SELECT * FROM ShareDB "+
                           "WHERE resource_id='"+resource_id+"'")
     results = q.fetch(50)
     for p in results:
       if p.name.lower() == remove_person.lower():
         p.delete()
+    logging.info(remove_person.lower())
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write(remove_person.lower())
 
