@@ -281,3 +281,9 @@ table{
 	background-color:white;
 	border:2px ridge;
 }
+.alerts{
+	position:fixed;
+	top:3px;
+	left:45%;
+	display:none;
+}

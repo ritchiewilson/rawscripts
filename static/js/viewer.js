@@ -3,9 +3,7 @@ function viewerinit(resource_id)
 {	
 	htmlTitleUpdate();
 	infoSizes('init');
-	console.log('after notes index');
 	notesIndex();
-	console.log('afternotes index');
 	totalPages();
 	$('#textEditor').click(function(){currentPage()});
 	$('#textEditor').bind("contextmenu", function(e){insertNote(e); return false;});
@@ -16,6 +14,14 @@ function viewerinit(resource_id)
 	$('.postit').focusin(function(e){document.getElementById('format').disabled=true});
 	$('.postit').focusout(function(e){document.getElementById('format').disabled=false});
 	$('.postit').click(function(e){scrollToNote(e.target)});
+	$('body').keydown(function(e){
+	if(e.which!=37 && e.which!=38 && e.which!=39 && e.which!=40 && e.which!=91 && e.which!=93 && e.which!=16 && e.which!=17 && e.which!=18 && e.which!=34 && e.which!=33){
+		clearTimeout(t);
+		t = setTimeout("submitNotes()", 10000);
+		var s = document.getElementById('submit');
+		if(s.value == 'Saved Notes'){s.disabled=false; s.value = 'Submit Notes';}
+	}
+	});
 	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault()}});
@@ -31,14 +37,11 @@ function viewerinit(resource_id)
 	$("#optionMenu").mouseout(function(){document.getElementById('hiddenMenu').style.display='none';});
 	$(".menuItem").mouseover(function(){$(this).css("background-color", "#bbb");});
 	$(".menuItem").mouseout(function(){$(this).css("background-color", "#ddd");});
-	console.log('after jquery keydown functions');
 	characterIndex();
-	console.log('after cgaracter index');
 	var $button = $("#sidebarButton");
     var $sidebar = $("#effect");
     var $container = $("#container");
 	var $info = $("#info");
-    console.log('right before animation');
     $sidebar.animate({marginRight:'+=360px'},600);
     $container.animate({right:'+=360px'},600);
 	$info.animate({right:'+=360px'},600);
@@ -382,7 +385,7 @@ function submitNotes(){
 	var url = window.location.href;
 	var resource_id = url.split('=')[1];
 	
-	$.post('/postnotes', {data : data , user : user , resource_id : resource_id});
+	$.post('/postnotes', {data : data , user : user , resource_id : resource_id}, function(e){document.getElementById('submit').value="Saved Notes"; document.getElementById('submit').disabled=true;});
 }
 
 
