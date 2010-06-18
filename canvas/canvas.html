@@ -2,33 +2,39 @@
 <html>
   <head>
   <script src="/Users/ritchiewilson/Documents/Python/Screenplay_Editor/static/js/jquery.min.js" type="text/javascript"></script>
-  <script src="/Users/ritchiewilson/Desktop/canvas/editor.js" type="text/javascript"></script>
+  <script src="/Users/ritchiewilson/Documents/Python/Screenplay_Editor/static/js/jquery.mousewheel.min.js" type="text/javascript"></script>
+  <script src="/Users/ritchiewilson/Documents/Python/Screenplay_Editor/canvas/editor.js" type="text/javascript"></script>
+  <script src="/Users/ritchiewilson/Documents/Python/Screenplay_Editor/canvas/scripts.js" type="text/javascript"></script>
   <script>
   $(document).ready(function(){
     document.getElementById('canvas').width = $('#container').width();
     document.getElementById('canvas').height = $('#container').height();
+    $('#container').mousewheel(function(e, d){e.preventDefault();scroll(-d*45);});
   });
   $(window).resize(function(){
     document.getElementById('canvas').width = $('#container').width();
     document.getElementById('canvas').height = $('#container').height();
   });
   $('*').keydown(function(e){
-						  var d= new Date();
-	  	milli = d.getMilliseconds();
+  var d= new Date();
+  milli = d.getMilliseconds();
   if(e.which==13)enter();
   else if(e.which==38)upArrow();
   else if(e.which==40)downArrow();
   else if(e.which==39)rightArrow();
   else if(e.which==37)leftArrow();
-  else if(e.which==8)backspace();
+  else if(e.which==8)backspace(e);
   else if(e.which==46)deleteButton();
   else if(e.which==9){e.preventDefault(); tab();}
   //console.log(e.which);
   });
   $('*').keyup(function(e){
   });
-  $('*').click(function(e){
-    mouseClick(e);
+  $('*').mousedown(function(e){
+    mouseDown(e);
+  });
+  $('*').mouseup(function(e){
+    mouseUp(e);
   });
   </script>
   <style>
