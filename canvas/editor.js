@@ -8,7 +8,7 @@
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
    var background = '#fff';
-   var font = '11pt Courier';
+   var font = '12pt Courier';
    var foreground = '#000';
    var lineheight = 15;
    var milli = 0;
@@ -30,9 +30,10 @@
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
-    var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 212,0,1,1],[36, 121,0,0,2],[30, 167,0,0,1],[61, 570,1,1,2]];
-    var fontWidth = 9;
-    if ($.browser.mozilla)fontWidth=8;
+    var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 232,0,1,1],[36, 131,0,0,2],[30, 181,0,0,1],[61, 632,1,1,2]];
+    var fontWidth = 10;
+    //if ($.browser.mozilla)fontWidth=11;
+    var editorWidth = 675;
     
         
 function setup(){
@@ -52,14 +53,12 @@ function mouseUp(e){
         if (e.clientX>10 && e.clientX<100 && e.clientY<30 && e.clientY >10){
             formatMenu = true;
         }
-        else if(e.clientY>height-39 && e.clientY<height && e.clientX>598 && e.clientX<618){
+        else if(e.clientY>height-39 && e.clientY<height && e.clientX>editorWidth-22 && e.clientX<editorWidth-2){
                 if(e.clientY>height-20)scroll(30);
                 else scroll(-30);
             }
         else{
             paint(e, false, false);
-            anch.col=pos.col;
-            anch.row=pos.row;
         }
     }
     else{
@@ -454,9 +453,12 @@ function enter(){
 	lines.splice(pos.row+1,0,newArr);
 	pos.row++;
 	pos.col=0;
+    anch.row=pos.row;
+    anch.col=pos.col;
+    console.log(lines[pos.row][0]);
     // This means it was a scene before
     // so run scene index
-    paint(false,false,true);
+    //paint(false,false,true);
     if(lines[pos.row][1]=='a')sceneIndex();
 }
 
@@ -482,6 +484,7 @@ function tab(){
 function handlekeypress(event) {
 	var d= new Date();
   	milli = d.getMilliseconds();
+    if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
 	if (event.which!=13){
 		lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
   		pos.col++;
@@ -507,10 +510,8 @@ function characterIndex(v){
         }
     }
     if (!found){
-        //console.log('notfound');
         characters.push([chara,1]);
     }
-    //console.log(characters);
 }
 function sceneIndex(){
     scenes=[];
@@ -529,25 +530,25 @@ function scrollArrows(ctx){
     var height = document.getElementById('canvas').height;
     //up arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(598, height-39, 20,20);
+    ctx.fillRect(editorWidth-22, height-39, 20,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(600, height-37, 16, 16);
+    ctx.fillRect(editorWidth-20, height-37, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(602, height-24);
-    ctx.lineTo(608, height-35);
-    ctx.lineTo(614, height-24);
+    ctx.moveTo(editorWidth-18, height-24);
+    ctx.lineTo(editorWidth-12, height-35);
+    ctx.lineTo(editorWidth-6, height-24);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
     //down arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(598, height-19, 20,20);
+    ctx.fillRect(editorWidth-22, height-19, 20,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(600, height-18, 16, 16);
+    ctx.fillRect(editorWidth-20, height-18, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(602, height-15);
-    ctx.lineTo(608, height-4);
-    ctx.lineTo(614, height-15);
+    ctx.moveTo(editorWidth-18, height-15);
+    ctx.lineTo(editorWidth-12, height-4);
+    ctx.lineTo(editorWidth-6, height-15);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
@@ -558,7 +559,7 @@ function scrollBar(ctx, y){
     if (barHeight<30)barHeight=30;
     if (barHeight>=height-35-39)barHeight=height-35-39;
     var topPixel = (vOffset/(y-height))*(height-35-39-barHeight)+35;
-    ctx.fillRect(598, topPixel, 20,barHeight);
+    ctx.fillRect(editorWidth-22, topPixel, 20,barHeight);
     
 }
 function paint(e, anchE, forceCalc){
@@ -567,15 +568,15 @@ function paint(e, anchE, forceCalc){
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
 	ctx.fillStyle = background;
-	ctx.fillRect(0, 0, 800, 570);
+	//ctx.fillRect(0, 0, 800, 570);
     ctx.fillStyle = foreground;
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ddd';
     ctx.beginPath();
     ctx.moveTo(2,2);
     ctx.lineTo(2,document.getElementById('canvas').height-1);
-    ctx.lineTo(620, document.getElementById('canvas').height-1);
-    ctx.lineTo(620,2);
+    ctx.lineTo(editorWidth, document.getElementById('canvas').height-1);
+    ctx.lineTo(editorWidth,2);
     ctx.stroke();
     
     ctx.font=font;
@@ -589,16 +590,22 @@ function paint(e, anchE, forceCalc){
         else{
             var type = lines[i][1];
             //Cursor position
+            var anchOrFocus = (anchE ? anch.row : pos.row);
             if (i==pos.row){
                 var cursorY = y-lineheight;
-                if (type == 'a')var cursorX =31;
-                else if (type == 's')var cursorX =31;
-                else if (type == 'd')var cursorX =121;
-                else if (type == 'c')var cursorX =212;
-                else if (type == 'p')var cursorX =167;
-                else if (type == 't')var cursorX =570;
+                if (type == 'a')var cursorX =WrapVariableArray[1][1];
+                else if (type == 's')var cursorX =WrapVariableArray[0][1];
+                else if (type == 'd')var cursorX =WrapVariableArray[3][1];
+                else if (type == 'c')var cursorX =WrapVariableArray[2][1];
+                else if (type == 'p')var cursorX =WrapVariableArray[4][1];
+                else if (type == 't')var cursorX =WrapVariableArray[5][1];
                 var thisRow = true;
                 var wrappedText = [];
+            }
+            if (i==anch.row){
+                var anchorY = y-lineheight;
+                var anchorThisRow = true;
+                var anchorWrappedText = []
             }
             
             var lineContent = lines[i][0];
@@ -615,7 +622,7 @@ function paint(e, anchE, forceCalc){
                 // use this opportunity to put int he grey backing
                 var greyHeight = (Math.round((lineContent.length/61)+.5))*16;
                 ctx.fillStyle='#ddd';
-                ctx.fillRect(wrapVars[1]-3,(y-12-vOffset),540, greyHeight);
+                ctx.fillRect(wrapVars[1]-3,(y-12-vOffset),605, greyHeight);
                 ctx.fillStyle=foreground;
             }
             else if(type=='a') var wrapVars = WrapVariableArray[1];
@@ -626,7 +633,7 @@ function paint(e, anchE, forceCalc){
             
             var wordsArr = lineContent.split(' ');
             var word = 0;
-            if(e)var wrapCounterOnClick=[];
+            if(e||anchE)var wrapCounterOnClick=[];
             linesNLB[i]=0;
             while(word<wordsArr.length){
                 var itr=0;
@@ -641,8 +648,9 @@ function paint(e, anchE, forceCalc){
                         linesNLB[i]=linesNLB[i]+1;
                         y+=lineheight;
                     }
-                    if(e)wrapCounterOnClick.push(printString.length);
+                    if(e||anchE)wrapCounterOnClick.push(printString.length);
                     if(thisRow)wrappedText.push(printString.length);
+                    if(anchorThisRow)anchorWrappedText.push(printString.length);
                 }
                 else{
                     var itr=0;
@@ -657,19 +665,15 @@ function paint(e, anchE, forceCalc){
                     word+=itr-1;
                     itr =0;
                     var lbCounter=1;
-                    if(e)wrapCounterOnClick.push(newLineToPrint.length);
+                    if(e||anchE)wrapCounterOnClick.push(newLineToPrint.length);
                     if (thisRow)wrappedText.push(newLineToPrint.length);
+                    if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
                 }
                 // changing cursor position
                 // on click
                 // Bad place to put it. See if can be done
                 // better in mouseClick function
-                //console.log(y-4-18*lbCounter);
                 if(e && e.clientY+vOffset>(y-6-18*lbCounter) && e.clientY+vOffset<(y+19-18*lbCounter)){
-                    //console.log(e.clientY);
-                    //console.log(y);
-                    //console.log(i);
-                    //console.log(wrapCounterOnClick.length);
                     pos.row=i;
                     pos.col=0;
                     for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
@@ -688,9 +692,30 @@ function paint(e, anchE, forceCalc){
                     if(pos.col<0)pos.col=0;
                     
                 }
-                // end mouseClick bits
+                // Now setting anchor position
+                if(anchE && anchE.clientY+vOffset>(y-6-18*lbCounter) && anchE.clientY+vOffset<(y+19-18*lbCounter)){
+                    anch.row=i;
+                    anch.col=0;
+                    for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
+                        anch.col+=wrapCounterOnClick[integ]+1;
+                    }
+                    if(type!='t')anch.col+=Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                    else{
+                        anch.col-=Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
+                        anch.col+=lines[i][0].length;
+                    }
+                    var onClickLengthLimit=0;
+                    for(var integ=0; integ<wrapCounterOnClick.length; integ++){
+                        onClickLengthLimit+=wrapCounterOnClick[integ]+1;
+                    }
+                    if(anch.col>onClickLengthLimit)anch.col=onClickLengthLimit-1;
+                    if(anch.col<0)anch.col=0;
+                    
+                }
+                
             }
             var thisRow=false;
+            var anchorThisRow=false;
         }
 	  }
       // End Looping through lines
@@ -708,7 +733,7 @@ function paint(e, anchE, forceCalc){
 	  }
 	  if(cursor&&wrappedText){
           var wrapCounter=0;
-          lrPosDiff = pos.col;
+          var lrPosDiff = pos.col;
           var totalCharacters=wrappedText[wrapCounter];
           while (pos.col>totalCharacters){
                 wrapCounter++;
@@ -721,18 +746,39 @@ function paint(e, anchE, forceCalc){
 		  ctx.fillRect(lr,ud,1,20);
 	  }
       
-      
-      //
-      /*
-      characters.sort();
-      for(var i=0; i<characters.length; i++){
-        ctx.fillText(characters[i][0], 640, y);
-        y+=lineheight;
+      if(anch.row!=pos.row || anch.col!=pos.col){
+          if(anchorWrappedText){
+              var wrapCounter=0;
+              var lrPosDiff = anch.col;
+              var totalCharacters=anchorWrappedText[wrapCounter];
+              while (anch.col>totalCharacters){
+                    wrapCounter++;
+                    totalCharacters+=1+anchorWrappedText[wrapCounter];
+              }
+              totalCharacters-=anchorWrappedText[wrapCounter];
+              //console.log(totalCharacters);
+              var type=lines[anch.row][1];
+              if(type=='s')anchorX=WrapVariableArray[0][1];
+              else if(type=='a')anchorX=WrapVariableArray[1][1];
+              else if(type=='c')anchorX=WrapVariableArray[2][1];
+              else if(type=='d')anchorX=WrapVariableArray[3][1];
+              else if(type=='p')anchorX=WrapVariableArray[4][1];
+              else if(type=='t')anchorX=WrapVariableArray[5][1];
+              var lr = anchorX+((anch.col-totalCharacters)*fontWidth);
+              if(lines[anch.row][1]=='t')lr -= lines[anch.row][0].length*fontWidth;
+              var ud = 2+anchorY+(wrapCounter*lineheight)-vOffset;
+              ctx.fillStyle='red'
+              ctx.fillRect(lr,ud,1,20);
+              ctx.fillStyle=foreground;
+          }
       }
-      */
+      
+      
+      
+      //Make the scene list
       var sceneY=50;
       for(var i=0; i<scenes.length; i++){
-        ctx.fillText(scenes[i], 640,sceneY);
+        ctx.fillText(scenes[i], editorWidth+20,sceneY);
         sceneY+=lineheight;
       }
           //Start work on frame and buttons and stuff
