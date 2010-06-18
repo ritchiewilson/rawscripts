@@ -1,3 +1,4 @@
+   var shiftDown=false;
    var characters =[];
    var scenes=[];
    var canvas;
@@ -5,6 +6,7 @@
    var linesNLB= [];
    var vOffset = 0;
    var pos = { col: 0, row: 0};
+   var anch = {col:0, row:0};
    var background = '#fff';
    var font = '11pt Courier';
    var foreground = '#000';
@@ -28,9 +30,10 @@
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
-    var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 212,0,1,1],[36, 121,0,0,2],[30, 167,0,0,1],[61, 570,1,1,2]]
+    var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 212,0,1,1],[36, 121,0,0,2],[30, 167,0,0,1],[61, 570,1,1,2]];
     var fontWidth = 9;
-    if ($.browser.mozilla)fontWidth=10;
+    if ($.browser.mozilla)fontWidth=8;
+    
         
 function setup(){
     var canvas = document.getElementById('canvas');
@@ -38,8 +41,8 @@ function setup(){
     document.onkeypress = handlekeypress;
     characterInit();
     sceneIndex();
-    paint(false,true);
-    setInterval('paint(false, false)', 40);
+    paint(false,false,true);
+    setInterval('paint(false,false, false)', 40);
 }
 
 function mouseUp(e){
@@ -54,7 +57,9 @@ function mouseUp(e){
                 else scroll(-30);
             }
         else{
-            paint(e, false);
+            paint(e, false, false);
+            anch.col=pos.col;
+            anch.row=pos.row;
         }
     }
     else{
@@ -71,13 +76,14 @@ function mouseUp(e){
         }
         formatMenu=false;
     }
-    if (e.clientX>200 && e.clientX<310 && e.clientY<27 && e.clientY >7){
+    if (e.clientX>200 && e.clientX<310 && e.clientY<27 && e.clientY>7){
         //lines = [['Fade In:','a'],['int. house - day', 's']];
         lines = fivePages;
-        paint(false, true);
+        paint(false, false, true);
     }    
 }
 function mouseDown(e){
+    paint(false, e, false);
 }
 function scroll(v){
     vOffset+=v;
@@ -226,6 +232,10 @@ function upArrow(){
             }
         }
     }
+    if(!shiftDown){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 	
 function downArrow(){
@@ -293,6 +303,10 @@ function downArrow(){
             if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
         }
     }
+    if(!shiftDown){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 
 function leftArrow(){
@@ -302,6 +316,11 @@ function leftArrow(){
 		pos.col=lines[pos.row][0].length;
 	}
 	else pos.col = pos.col-1;
+    
+    if(!shiftDown){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 	
 function rightArrow(){
@@ -311,64 +330,136 @@ function rightArrow(){
 		pos.col=0;
 	}
 	else pos.col = pos.col+1;
+    
+    if(!shiftDown){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
-	
+
 function backspace(e){
     e.preventDefault();
     var slug=false;
     if (lines[pos.row][1]=='s')var slug=true;
-	if(pos.col==0 && pos.row==0) return;
-	if(pos.col==0){
-		var j = lines[pos.row][0];
-		lines.splice(pos.row,1);
-		var newPos = lines[pos.row-1][0].length;
-		lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-		pos.col=newPos;
-		pos.row--;
-	}
-	else{
-		lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-		pos.col--;
-	}
+	if(pos.row==anch.row && pos.col==anch.col){
+        if(pos.col==0 && pos.row==0) return;
+        if(pos.col==0){
+            var j = lines[pos.row][0];
+            lines.splice(pos.row,1);
+            var newPos = lines[pos.row-1][0].length;
+            lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+            pos.col=newPos;
+            pos.row--;
+        }
+        else{
+            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+            pos.col--;
+        }
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
+    // This is for deleting a range
+    else{
+        //put the focus after the anchor
+        var switchPos =false;
+        if(anch.row>pos.row)switchPos=true;
+        if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+        if(switchPos){
+            var coor = anch.row;
+            anch.row = pos.row;
+            pos.row = coor;
+            coor = anch.col;
+            anch.col = pos.col;
+            pos.col = coor;
+        }
+        while(pos.col!=anch.col || pos.row!=anch.row){
+            if(lines[pos.row][1]=='s')slug=true;
+            if(pos.col==0){
+                var j = lines[pos.row][0];
+                lines.splice(pos.row,1);
+                var newPos = lines[pos.row-1][0].length;
+                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                pos.col=newPos;
+                pos.row--;
+            }
+            else{
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                pos.col--;
+            }
+        }
+    }
     if (slug)sceneIndex();
 }
 function deleteButton(){
     var slug=false;
-    if (lines[pos.row][1]=='s')var slug=true;
-    if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-    if(pos.col==(lines[pos.row][0].length)){
-        if (lines[pos.row+1][1]=='s')slug=true;
-        var j = lines[pos.row+1][0];
-        lines.splice((pos.row+1),1);
-        lines[pos.row][0]+=j;
+    if(pos.row==anch.row&&pos.col==anch.col){
+        if (lines[pos.row][1]=='s')var slug=true;
+        if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+        if(pos.col==(lines[pos.row][0].length)){
+            if (lines[pos.row+1][1]=='s')slug=true;
+            var j = lines[pos.row+1][0];
+            lines.splice((pos.row+1),1);
+            lines[pos.row][0]+=j;
+        }
+        else{
+            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+        }
     }
+    // This is for deleting a range
     else{
-        lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+        //put the focus after the anchor
+        var switchPos =false;
+        if(anch.row>pos.row)switchPos=true;
+        if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+        if(switchPos){
+            var coor = anch.row;
+            anch.row = pos.row;
+            pos.row = coor;
+            coor = anch.col;
+            anch.col = pos.col;
+            pos.col = coor;
+        }
+        while(pos.col!=anch.col || pos.row!=anch.row){
+            if(lines[pos.row][1]=='s')slug=true;
+            if(pos.col==0){
+                var j = lines[pos.row][0];
+                lines.splice(pos.row,1);
+                var newPos = lines[pos.row-1][0].length;
+                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                pos.col=newPos;
+                pos.row--;
+            }
+            else{
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                pos.col--;
+            }
+        }
     }
     if (slug)sceneIndex();
 }
 	
-	function enter(){
-        if(lines[pos.row][1]=='c')characterIndex(lines[pos.row][0]);
+function enter(){
+    if(lines[pos.row][1]=='c')characterIndex(lines[pos.row][0]);
         
-		var j = lines[pos.row][0].slice(0,pos.col);
-		var k = lines[pos.row][0].slice(pos.col);
-		lines[pos.row][0] = j;
-        if (lines[pos.row][1] == 's')var newElem = 'a';
-        else if (lines[pos.row][1] == 'a')var newElem = 'c';
-        else if (lines[pos.row][1] == 'c')var newElem = 'd';
-        else if (lines[pos.row][1] == 'p')var newElem = 'd';
-        else if (lines[pos.row][1] == 'd')var newElem = 'c';
-        else if (lines[pos.row][1] == 't')var newElem = 's';
-		var newArr = [k,newElem];
-		lines.splice(pos.row+1,0,newArr);
-		pos.row++;
-		pos.col=0;
-        // This means it was a scene before
-        // so run scene index
-        if(lines[pos.row][1]=='a')sceneIndex();
-		
-	}
+	var j = lines[pos.row][0].slice(0,pos.col);
+	var k = lines[pos.row][0].slice(pos.col);
+	lines[pos.row][0] = j;
+    if (lines[pos.row][1] == 's')var newElem = 'a';
+    else if (lines[pos.row][1] == 'a')var newElem = 'c';
+    else if (lines[pos.row][1] == 'c')var newElem = 'd';
+    else if (lines[pos.row][1] == 'p')var newElem = 'd';
+    else if (lines[pos.row][1] == 'd')var newElem = 'c';
+    else if (lines[pos.row][1] == 't')var newElem = 's';
+	var newArr = [k,newElem];
+	lines.splice(pos.row+1,0,newArr);
+	pos.row++;
+	pos.col=0;
+    // This means it was a scene before
+    // so run scene index
+    paint(false,false,true);
+    if(lines[pos.row][1]=='a')sceneIndex();
+}
+
 function tab(){
     var slug=false;
     if (lines[pos.row][1]=='s')var slug=true;
@@ -395,7 +486,9 @@ function handlekeypress(event) {
 		lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
   		pos.col++;
         if (lines[pos.row][1]=='s')sceneIndex();
-  	}  	
+  	}
+    anch.col=pos.col;
+    anch.row=pos.row;
 }
 function characterInit(){
     for(var i=0; i<lines.length;i++){
@@ -409,7 +502,6 @@ function characterIndex(v){
     var found=false;
     for(var i=0;i<characters.length;i++){
         if(characters[i][0]==chara){
-            //console.log('match');
             characters[i][1]=characters[i][1]+1;
             found=true;
         }
@@ -469,7 +561,7 @@ function scrollBar(ctx, y){
     ctx.fillRect(598, topPixel, 20,barHeight);
     
 }
-function paint(e, forceCalc){
+function paint(e, anchE, forceCalc){
     //console.log('pos.col='+pos.col+' pos.row='+pos.row);
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
@@ -537,7 +629,6 @@ function paint(e, forceCalc){
             if(e)var wrapCounterOnClick=[];
             linesNLB[i]=0;
             while(word<wordsArr.length){
-                
                 var itr=0;
                 if (wordsArr.slice(word).join().length<wrapVars[0]){
                     var printString = wordsArr.slice(word).join(' ');
@@ -584,9 +675,9 @@ function paint(e, forceCalc){
                     for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
                         pos.col+=wrapCounterOnClick[integ]+1;
                     }
-                    if(type!='t')pos.col+=Math.round(((e.clientX-wrapVars[1])/9));
+                    if(type!='t')pos.col+=Math.round(((e.clientX-wrapVars[1])/fontWidth));
                     else{
-                        pos.col-=Math.round(((wrapVars[1]-e.clientX)/9));
+                        pos.col-=Math.round(((wrapVars[1]-e.clientX)/fontWidth));
                         pos.col+=lines[i][0].length;
                     }
                     var onClickLengthLimit=0;
@@ -624,8 +715,8 @@ function paint(e, forceCalc){
                 totalCharacters+=1+wrappedText[wrapCounter];
           }
           totalCharacters-=wrappedText[wrapCounter];
-		  var lr = cursorX+((pos.col-totalCharacters)*9);
-          if(lines[pos.row][1]=='t')lr -= lines[pos.row][0].length*9;
+		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
+          if(lines[pos.row][1]=='t')lr -= lines[pos.row][0].length*fontWidth;
 		  var ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
 		  ctx.fillRect(lr,ud,1,20);
 	  }

@@ -26,9 +26,11 @@
   else if(e.which==8)backspace(e);
   else if(e.which==46)deleteButton();
   else if(e.which==9){e.preventDefault(); tab();}
+  else if(e.which==16)shiftDown=true;
   //console.log(e.which);
   });
   $('*').keyup(function(e){
+  if(e.which==16)shiftDown=false;
   });
   $('*').mousedown(function(e){
     mouseDown(e);
