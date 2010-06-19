@@ -8,9 +8,10 @@
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
    var background = '#fff';
-   var font = '12pt Courier';
+   var font = '10pt Courier';
+   var fontWidth = 8;
    var foreground = '#000';
-   var lineheight = 15;
+   var lineheight = 13;
    var milli = 0;
    var formatMenu = false;
    var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
@@ -31,7 +32,7 @@
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
     var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 232,0,1,1],[36, 131,0,0,2],[30, 181,0,0,1],[61, 632,1,1,2]];
-    var fontWidth = 10;
+    
     //if ($.browser.mozilla)fontWidth=11;
     var editorWidth = 675;
     
@@ -66,17 +67,17 @@ function mouseUp(e){
             var a = e.clientY;
             var b=25;
             var c =19;
-            if (a<b)lines[pos.row][1]='s';
-            else if(a<(b+c))lines[pos.row][1]='a';
-            else if(a<(b+2*c))lines[pos.row][1]='c';
-            else if(a<(b+3*c))lines[pos.row][1]='d';
-            else if(a<(b+4*c))lines[pos.row][1]='p';
-            else lines[pos.row][1] = 't';
+            if (a<b)lines[pos.row][1]=0;
+            else if(a<(b+c))lines[pos.row][1]=1;
+            else if(a<(b+2*c))lines[pos.row][1]=2;
+            else if(a<(b+3*c))lines[pos.row][1]=3;
+            else if(a<(b+4*c))lines[pos.row][1]=4;
+            else lines[pos.row][1] = 5;
         }
         formatMenu=false;
     }
     if (e.clientX>200 && e.clientX<310 && e.clientY<27 && e.clientY>7){
-        //lines = [['Fade In:','a'],['int. house - day', 's']];
+        //lines = [['Fade In:',1],['int. house - day', 0]];
         lines = fivePages;
         paint(false, false, true);
     }    
@@ -91,12 +92,12 @@ function scroll(v){
 function upArrow(){
     if (pos.row==0 && pos.col==0)return;
     var type = lines[pos.row][1];
-    if (type=='s') var wrapVars=WrapVariableArray[0];
-    else if(type=='a') var wrapVars = WrapVariableArray[1];
-    else if(type=='c') var wrapVars = WrapVariableArray[2];
-    else if(type=='d') var wrapVars = WrapVariableArray[3];
-    else if(type=='p') var wrapVars = WrapVariableArray[4];
-    else if(type=='t') var wrapVars = WrapVariableArray[5];
+    if (type==0) var wrapVars=WrapVariableArray[0];
+    else if(type==1) var wrapVars = WrapVariableArray[1];
+    else if(type==2) var wrapVars = WrapVariableArray[2];
+    else if(type==3) var wrapVars = WrapVariableArray[3];
+    else if(type==4) var wrapVars = WrapVariableArray[4];
+    else if(type==5) var wrapVars = WrapVariableArray[5];
     // Only do calculations if 
     // there is wrapped text
     if(lines[pos.row][0].length>wrapVars[0]){
@@ -136,12 +137,12 @@ function upArrow(){
         //if this is the first line in a block of wrapped text
         if(integ==0){
             var prevLineType = lines[pos.row-1][1];
-            if (prevLineType=='s')var newWrapVars=WrapVariableArray[0];
-            else if(prevLineType=='a') var newWrapVars = WrapVariableArray[1];
-            else if(prevLineType=='c') var newWrapVars = WrapVariableArray[2];
-            else if(prevLineType=='d') var newWrapVars = WrapVariableArray[3];
-            else if(prevLineType=='p') var newWrapVars = WrapVariableArray[4];
-            else if(prevLineType=='t') var newWrapVars = WrapVariableArray[5];
+            if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+            else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+            else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+            else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+            else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+            else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
             // If the previous line (the one we're jumping into)
             // has only one line, don't run the calcs, just go to it
             if(lines[pos.row-1][0].length<newWrapVars[0]){
@@ -189,12 +190,12 @@ function upArrow(){
         }
         else{
             var prevLineType = lines[pos.row-1][1];
-            if (prevLineType=='s')var newWrapVars=WrapVariableArray[0];
-            else if(prevLineType=='a') var newWrapVars = WrapVariableArray[1];
-            else if(prevLineType=='c') var newWrapVars = WrapVariableArray[2];
-            else if(prevLineType=='d') var newWrapVars = WrapVariableArray[3];
-            else if(prevLineType=='p') var newWrapVars = WrapVariableArray[4];
-            else if(prevLineType=='t') var newWrapVars = WrapVariableArray[5];
+            if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+            else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+            else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+            else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+            else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+            else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
             // If the previous line (the one we're jumping into)
             // has only one line, don't run the calcs, just go to it
             if(lines[pos.row-1][0].length<newWrapVars[0]){
@@ -240,12 +241,12 @@ function upArrow(){
 function downArrow(){
     if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
     var type = lines[pos.row][1];
-    if (type=='s')var wrapVars=WrapVariableArray[0];
-    else if(type=='a') var wrapVars = WrapVariableArray[1];
-    else if(type=='c') var wrapVars = WrapVariableArray[2];
-    else if(type=='d') var wrapVars = WrapVariableArray[3];
-    else if(type=='p') var wrapVars = WrapVariableArray[4];
-    else if(type=='t') var wrapVars = WrapVariableArray[5];
+    if (type==0)var wrapVars=WrapVariableArray[0];
+    else if(type==1) var wrapVars = WrapVariableArray[1];
+    else if(type==2) var wrapVars = WrapVariableArray[2];
+    else if(type==3) var wrapVars = WrapVariableArray[3];
+    else if(type==4) var wrapVars = WrapVariableArray[4];
+    else if(type==5) var wrapVars = WrapVariableArray[5];
     if (lines[pos.row][0].length>wrapVars[0]){
         var wordsArr = lines[pos.row][0].split(' ');
         var word = 0;
@@ -339,7 +340,7 @@ function rightArrow(){
 function backspace(e){
     e.preventDefault();
     var slug=false;
-    if (lines[pos.row][1]=='s')var slug=true;
+    if (lines[pos.row][1]==0)var slug=true;
 	if(pos.row==anch.row && pos.col==anch.col){
         if(pos.col==0 && pos.row==0) return;
         if(pos.col==0){
@@ -372,7 +373,7 @@ function backspace(e){
             pos.col = coor;
         }
         while(pos.col!=anch.col || pos.row!=anch.row){
-            if(lines[pos.row][1]=='s')slug=true;
+            if(lines[pos.row][1]==0)slug=true;
             if(pos.col==0){
                 var j = lines[pos.row][0];
                 lines.splice(pos.row,1);
@@ -392,10 +393,10 @@ function backspace(e){
 function deleteButton(){
     var slug=false;
     if(pos.row==anch.row&&pos.col==anch.col){
-        if (lines[pos.row][1]=='s')var slug=true;
+        if (lines[pos.row][1]==0)var slug=true;
         if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
         if(pos.col==(lines[pos.row][0].length)){
-            if (lines[pos.row+1][1]=='s')slug=true;
+            if (lines[pos.row+1][1]==0)slug=true;
             var j = lines[pos.row+1][0];
             lines.splice((pos.row+1),1);
             lines[pos.row][0]+=j;
@@ -419,7 +420,7 @@ function deleteButton(){
             pos.col = coor;
         }
         while(pos.col!=anch.col || pos.row!=anch.row){
-            if(lines[pos.row][1]=='s')slug=true;
+            if(lines[pos.row][1]==0)slug=true;
             if(pos.col==0){
                 var j = lines[pos.row][0];
                 lines.splice(pos.row,1);
@@ -438,17 +439,17 @@ function deleteButton(){
 }
 	
 function enter(){
-    if(lines[pos.row][1]=='c')characterIndex(lines[pos.row][0]);
+    if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
         
 	var j = lines[pos.row][0].slice(0,pos.col);
 	var k = lines[pos.row][0].slice(pos.col);
 	lines[pos.row][0] = j;
-    if (lines[pos.row][1] == 's')var newElem = 'a';
-    else if (lines[pos.row][1] == 'a')var newElem = 'c';
-    else if (lines[pos.row][1] == 'c')var newElem = 'd';
-    else if (lines[pos.row][1] == 'p')var newElem = 'd';
-    else if (lines[pos.row][1] == 'd')var newElem = 'c';
-    else if (lines[pos.row][1] == 't')var newElem = 's';
+    if (lines[pos.row][1] == 0)var newElem = 1;
+    else if (lines[pos.row][1] == 1)var newElem = 2;
+    else if (lines[pos.row][1] == 2)var newElem = 3;
+    else if (lines[pos.row][1] == 4)var newElem = 3;
+    else if (lines[pos.row][1] == 3)var newElem = 2;
+    else if (lines[pos.row][1] == 5)var newElem = 0;
 	var newArr = [k,newElem];
 	lines.splice(pos.row+1,0,newArr);
 	pos.row++;
@@ -458,24 +459,24 @@ function enter(){
     console.log(lines[pos.row][0]);
     // This means it was a scene before
     // so run scene index
-    //paint(false,false,true);
-    if(lines[pos.row][1]=='a')sceneIndex();
+    paint(false,false,true);
+    if(lines[pos.row][1]==1)sceneIndex();
 }
 
 function tab(){
     var slug=false;
-    if (lines[pos.row][1]=='s')var slug=true;
+    if (lines[pos.row][1]==0)var slug=true;
 	var type = lines[pos.row][1];
-	if (type=='a'){
-        lines[pos.row][1]='s';
+	if (type==1){
+        lines[pos.row][1]=0;
         slug=true;
     }
-	else if (type=='s')lines[pos.row][1]='c';
-	else if (type=='c')lines[pos.row][1]='a';
-	else if (type=='d')lines[pos.row][1]='p';
-	else if (type=='p')lines[pos.row][1]='d';
-	else if (type=='t'){
-        lines[pos.row][1]='s';
+	else if (type==0)lines[pos.row][1]=2;
+	else if (type==2)lines[pos.row][1]=1;
+	else if (type==3)lines[pos.row][1]=4;
+	else if (type==4)lines[pos.row][1]=3;
+	else if (type==5){
+        lines[pos.row][1]=0;
         slug=true;
     }
     if(slug)sceneIndex();
@@ -488,14 +489,14 @@ function handlekeypress(event) {
 	if (event.which!=13){
 		lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
   		pos.col++;
-        if (lines[pos.row][1]=='s')sceneIndex();
+        if (lines[pos.row][1]==0)sceneIndex();
   	}
     anch.col=pos.col;
     anch.row=pos.row;
 }
 function characterInit(){
     for(var i=0; i<lines.length;i++){
-        if (lines[i][1]=='c'){
+        if (lines[i][1]==2){
             characterIndex(lines[i][0]);
         }
     }
@@ -517,7 +518,7 @@ function sceneIndex(){
     scenes=[];
     var num = 0;
     for (var i=0; i<lines.length; i++){
-        if(lines[i][1]=='s'){
+        if(lines[i][1]==0){
             num++;
             scenes.push(String(num)+') '+lines[i][0].toUpperCase());
         }
@@ -579,13 +580,94 @@ function paint(e, anchE, forceCalc){
     ctx.lineTo(editorWidth,2);
     ctx.stroke();
     
+    //Draw in range if there is one
+    if(pos.row!=anch.row || anch.col!=pos.col){
+        if(pos.row>anch.row){
+            var startRange = {row:anch.row, col:anch.col};
+            var endRange = {row:pos.row, col:pos.col};
+        }
+        else if(pos.row==anch.row && pos.col>anch.col){
+            var startRange = {row:anch.row, col:anch.col};
+            var endRange = {row:pos.row, col:pos.col};
+        }
+        else{
+            var startRange = {row:pos.row, col:pos.col};
+            var endRange = {row:anch.row, col:anch.col};
+        }
+        //get the starting position
+        var startHeight = 41;
+        for (var i=0; i<startRange.row;i++){
+            startHeight+=lineheight*linesNLB[i].length;
+        }
+        var i=0;
+        var startRangeCol=linesNLB[startRange.row][i]+1;
+        while(startRange.col>startRangeCol){
+            startHeight+=lineheight;
+            i++;
+            startRangeCol+=linesNLB[startRange.row][i]+1;
+        }
+        startRangeCol-=linesNLB[startRange.row][i]+1;
+        var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
+        startWidth+=((startRange.col-startRangeCol)*fontWidth);
+        startHeight+=lineheight;
+        
+        //getting the ending position
+        
+        var endHeight = 41;
+        for (var j=0; j<endRange.row;j++){
+            endHeight+=lineheight*linesNLB[j].length;
+        }
+        var j=0;
+        var endRangeCol=linesNLB[endRange.row][j]+1;
+        while(endRange.col>endRangeCol){
+            endHeight+=lineheight;
+            j++;
+            endRangeCol+=linesNLB[endRange.row][j]+1;
+        }
+        endRangeCol-=linesNLB[endRange.row][j]+1;
+        var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
+        endWidth+=((endRange.col-endRangeCol)*fontWidth);
+        endHeight+=lineheight;
+        //console.log(startRangeCol+linesNLB[startRange.row][i]-startRange.col);
+        // Now compare stuff and draw blue Box
+        ctx.fillStyle='lightBlue';
+        if(endHeight==startHeight){
+            var onlyBlueLine = startWidth;
+            if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
+            ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
+        }
+        else{
+            var firstLineBlue = startWidth;
+             if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+            ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+            while(startHeight+lineheight<endHeight){
+                i++;
+                startHeight+=lineheight;
+                if(linesNLB[startRange.row].length<=i){
+                    startRange.row++;
+                    i=0;
+                }
+                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+                ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+                
+            }
+            var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
+            if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
+            ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+            
+            
+        }
+    }
+    ctx.fillStyle=foreground;
+    
     ctx.font=font;
 	var y = lineheight+50;
     //Stary Cycling through lines
 	for (var i=0; i<lines.length; i++){
         //Don't render things way outside the screen
         if(!forceCalc && (y-vOffset>1200||y-vOffset<0)){
-            y+=(lineheight*linesNLB[i]);
+            y+=(lineheight*linesNLB[i].length);
         }
         else{
             var type = lines[i][1];
@@ -593,12 +675,12 @@ function paint(e, anchE, forceCalc){
             var anchOrFocus = (anchE ? anch.row : pos.row);
             if (i==pos.row){
                 var cursorY = y-lineheight;
-                if (type == 'a')var cursorX =WrapVariableArray[1][1];
-                else if (type == 's')var cursorX =WrapVariableArray[0][1];
-                else if (type == 'd')var cursorX =WrapVariableArray[3][1];
-                else if (type == 'c')var cursorX =WrapVariableArray[2][1];
-                else if (type == 'p')var cursorX =WrapVariableArray[4][1];
-                else if (type == 't')var cursorX =WrapVariableArray[5][1];
+                if (type == 1)var cursorX =WrapVariableArray[1][1];
+                else if (type == 0)var cursorX =WrapVariableArray[0][1];
+                else if (type == 3)var cursorX =WrapVariableArray[3][1];
+                else if (type == 2)var cursorX =WrapVariableArray[2][1];
+                else if (type == 4)var cursorX =WrapVariableArray[4][1];
+                else if (type == 5)var cursorX =WrapVariableArray[5][1];
                 var thisRow = true;
                 var wrappedText = [];
             }
@@ -617,7 +699,7 @@ function paint(e, anchE, forceCalc){
             //wrapVars[2]= bool, align right
             //wrapVars[3]= bool, uppercase
             //wrapVars[4]=number of line breaks after
-            if (type=='s'){
+            if (type==0){
                 var wrapVars=WrapVariableArray[0];
                 // use this opportunity to put int he grey backing
                 var greyHeight = (Math.round((lineContent.length/61)+.5))*16;
@@ -625,16 +707,16 @@ function paint(e, anchE, forceCalc){
                 ctx.fillRect(wrapVars[1]-3,(y-12-vOffset),605, greyHeight);
                 ctx.fillStyle=foreground;
             }
-            else if(type=='a') var wrapVars = WrapVariableArray[1];
-            else if(type=='c') var wrapVars = WrapVariableArray[2];
-            else if(type=='d') var wrapVars =  WrapVariableArray[3];
-            else if(type=='p') var wrapVars = WrapVariableArray[4];
-            else if(type=='t') var wrapVars = WrapVariableArray[5];
+            else if(type==1) var wrapVars = WrapVariableArray[1];
+            else if(type==2) var wrapVars = WrapVariableArray[2];
+            else if(type==3) var wrapVars =  WrapVariableArray[3];
+            else if(type==4) var wrapVars = WrapVariableArray[4];
+            else if(type==5) var wrapVars = WrapVariableArray[5];
             
             var wordsArr = lineContent.split(' ');
             var word = 0;
             if(e||anchE)var wrapCounterOnClick=[];
-            linesNLB[i]=0;
+            linesNLB[i]=[];
             while(word<wordsArr.length){
                 var itr=0;
                 if (wordsArr.slice(word).join().length<wrapVars[0]){
@@ -644,8 +726,10 @@ function paint(e, anchE, forceCalc){
                     if(printString!='')ctx.fillText(printString, wrapVars[1] , y-vOffset);
                     ctx.textAlign='left';
                     word=wordsArr.length;
-                    for(var lbCounter=0; lbCounter<wrapVars[4]; lbCounter++){
-                        linesNLB[i]=linesNLB[i]+1;
+                    linesNLB[i].push(printString.length);
+                    y+=lineheight;
+                    if(wrapVars[4]==2){
+                        linesNLB[i].push(0);
                         y+=lineheight;
                     }
                     if(e||anchE)wrapCounterOnClick.push(printString.length);
@@ -660,7 +744,7 @@ function paint(e, anchE, forceCalc){
                         if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
                     }
                     ctx.fillText(newLineToPrint, wrapVars[1], y-vOffset);
-                    linesNLB[i]=linesNLB[i]+1;
+                    linesNLB[i].push(newLineToPrint.length);
                     y+=lineheight;
                     word+=itr-1;
                     itr =0;
@@ -673,13 +757,13 @@ function paint(e, anchE, forceCalc){
                 // on click
                 // Bad place to put it. See if can be done
                 // better in mouseClick function
-                if(e && e.clientY+vOffset>(y-6-18*lbCounter) && e.clientY+vOffset<(y+19-18*lbCounter)){
+                if(e && e.clientY+vOffset>(y-6-25*lbCounter) && e.clientY+vOffset<(y+19-25*lbCounter)){
                     pos.row=i;
                     pos.col=0;
                     for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
                         pos.col+=wrapCounterOnClick[integ]+1;
                     }
-                    if(type!='t')pos.col+=Math.round(((e.clientX-wrapVars[1])/fontWidth));
+                    if(type!=5)pos.col+=Math.round(((e.clientX-wrapVars[1])/fontWidth));
                     else{
                         pos.col-=Math.round(((wrapVars[1]-e.clientX)/fontWidth));
                         pos.col+=lines[i][0].length;
@@ -693,13 +777,13 @@ function paint(e, anchE, forceCalc){
                     
                 }
                 // Now setting anchor position
-                if(anchE && anchE.clientY+vOffset>(y-6-18*lbCounter) && anchE.clientY+vOffset<(y+19-18*lbCounter)){
+                if(anchE && anchE.clientY+vOffset>(y-6-25*lbCounter) && anchE.clientY+vOffset<(y+19-25*lbCounter)){
                     anch.row=i;
                     anch.col=0;
                     for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
                         anch.col+=wrapCounterOnClick[integ]+1;
                     }
-                    if(type!='t')anch.col+=Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                    if(type!=5)anch.col+=Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
                     else{
                         anch.col-=Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
                         anch.col+=lines[i][0].length;
@@ -719,7 +803,11 @@ function paint(e, anchE, forceCalc){
         }
 	  }
       // End Looping through lines
-	  
+	  // delete extra data in linesNLB
+      for(var z=i+1; z<linesNLB.length;z++){
+        linesNLB.pop();
+        z--;
+      }
 	  // Cursor
 	  var d= new Date();
 	  var newMilli = d.getMilliseconds();
@@ -741,10 +829,12 @@ function paint(e, anchE, forceCalc){
           }
           totalCharacters-=wrappedText[wrapCounter];
 		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
-          if(lines[pos.row][1]=='t')lr -= lines[pos.row][0].length*fontWidth;
+          if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
 		  var ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-		  ctx.fillRect(lr,ud,1,20);
+		  ctx.fillRect(lr,ud,2,17);
 	  }
+      
+      /*
       
       if(anch.row!=pos.row || anch.col!=pos.col){
           if(anchorWrappedText){
@@ -758,20 +848,21 @@ function paint(e, anchE, forceCalc){
               totalCharacters-=anchorWrappedText[wrapCounter];
               //console.log(totalCharacters);
               var type=lines[anch.row][1];
-              if(type=='s')anchorX=WrapVariableArray[0][1];
-              else if(type=='a')anchorX=WrapVariableArray[1][1];
-              else if(type=='c')anchorX=WrapVariableArray[2][1];
-              else if(type=='d')anchorX=WrapVariableArray[3][1];
-              else if(type=='p')anchorX=WrapVariableArray[4][1];
-              else if(type=='t')anchorX=WrapVariableArray[5][1];
+              if(type==0)anchorX=WrapVariableArray[0][1];
+              else if(type==1)anchorX=WrapVariableArray[1][1];
+              else if(type==2)anchorX=WrapVariableArray[2][1];
+              else if(type==3)anchorX=WrapVariableArray[3][1];
+              else if(type==4)anchorX=WrapVariableArray[4][1];
+              else if(type==5)anchorX=WrapVariableArray[5][1];
               var lr = anchorX+((anch.col-totalCharacters)*fontWidth);
-              if(lines[anch.row][1]=='t')lr -= lines[anch.row][0].length*fontWidth;
+              if(lines[anch.row][1]==5)lr -= lines[anch.row][0].length*fontWidth;
               var ud = 2+anchorY+(wrapCounter*lineheight)-vOffset;
               ctx.fillStyle='red'
               ctx.fillRect(lr,ud,1,20);
               ctx.fillStyle=foreground;
           }
       }
+      */
       
       
       
@@ -790,12 +881,12 @@ function paint(e, anchE, forceCalc){
     ctx.fillStyle= foreground;
     ctx.font = '12pt Arial';
     var f = lines[pos.row][1];
-    if (f=='s')var format = 'Slugline';
-    else if(f=='a')var format = 'Action';
-    else if(f=='c')var format = 'Character';
-    else if(f=='d')var format = 'Dialog';
-    else if(f=='p')var format = 'Parenthetical';
-    else if(f=='t')var format = 'Transition';
+    if (f==0)var format = 'Slugline';
+    else if(f==1)var format = 'Action';
+    else if(f==2)var format = 'Character';
+    else if(f==3)var format = 'Dialog';
+    else if(f==4)var format = 'Parenthetical';
+    else if(f==5)var format = 'Transition';
     ctx.fillText(format, 15, 23);
 	ctx.font = font;
 	ctx.fillStyle = foreground;
@@ -817,4 +908,9 @@ function paint(e, anchE, forceCalc){
       //Make ScrollBar
       scrollArrows(ctx);
       scrollBar(ctx, y);
+      //if(forceCalc)console.log(linesNLB);
+      if(anchE){
+        pos.row=anch.row;
+        pos.col=anch.col;
+      }
 	}
