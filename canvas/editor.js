@@ -1,4 +1,9 @@
+   var pageBreaks=[];
+   var mouseX=0;
+   var mouseY=0;
    var shiftDown=false;
+   var mouseDownBool=false;
+   var scrollBarBool=false;
    var characters =[];
    var scenes=[];
    var canvas;
@@ -31,23 +36,26 @@
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
-    var WrapVariableArray = [[61, 31,0,1,2],[61,31,0,0,2],[40, 232,0,1,1],[36, 131,0,0,2],[30, 181,0,0,1],[61, 632,1,1,2]];
+    var WrapVariableArray = [[62, 111+50,0,1,2],[62,111+50,0,0,2],[40, 271+50,0,1,1],[36, 191+50,0,0,2],[30, 231+50,0,0,1],[61, 601+50,1,1,2]];
     
     //if ($.browser.mozilla)fontWidth=11;
-    var editorWidth = 675;
+    var editorWidth = 850;
     
         
 function setup(){
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.onkeypress = handlekeypress;
+    //lines = fivePages;
     characterInit();
     sceneIndex();
-    paint(false,false,true);
-    setInterval('paint(false,false, false)', 40);
+    paint(false,false,true,false);
+    setInterval('paint(false,false, false,false)', 40);
 }
 
 function mouseUp(e){
+    mouseDownBool=false;
+    scrollBarBool=false;
     var width = document.getElementById('canvas').width;
     var height = document.getElementById('canvas').height;
     if (!formatMenu){
@@ -59,7 +67,7 @@ function mouseUp(e){
                 else scroll(-30);
             }
         else{
-            paint(e, false, false);
+            //paint(e, false, false,false);
         }
     }
     else{
@@ -78,16 +86,72 @@ function mouseUp(e){
     }
     if (e.clientX>200 && e.clientX<310 && e.clientY<27 && e.clientY>7){
         //lines = [['Fade In:',1],['int. house - day', 0]];
-        lines = fivePages;
-        paint(false, false, true);
+        //lines = fivePages;
+        paint(false, false, true,false);
+        jumpTo();
     }    
 }
 function mouseDown(e){
-    paint(false, e, false);
+    var height = document.getElementById('canvas').height;
+    var pagesHeight = (pageBreaks.length+1)*74*lineheight;
+    var barHeight = ((height-35)/pagesHeight)*(height-35-39);
+    if (barHeight<20)barHeight=20;
+    if (barHeight>=height-35-39)barHeight=height-35-39;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-35-39-barHeight)+35;
+    if(formatMenu){
+        if (e.clientX>10 && e.clientX<110 && e.clientY<150 && e.clientY >10){
+            var a = e.clientY;
+            var b=25;
+            var c =19;
+            if (a<b)lines[pos.row][1]=0;
+            else if(a<(b+c))lines[pos.row][1]=1;
+            else if(a<(b+2*c))lines[pos.row][1]=2;
+            else if(a<(b+3*c))lines[pos.row][1]=3;
+            else if(a<(b+4*c))lines[pos.row][1]=4;
+            else lines[pos.row][1] = 5;
+        }
+        formatMenu=false;
+    }
+    else if(e.clientX>30 && e.clientX<editorWidth-100 && e.clientY>40){
+        mouseDownBool=true;
+        paint(false, e, false,false);
+    }
+    else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
+        scrollBarBool=true;
+    }
+}
+function mouseMove(e){
+    if(scrollBarBool)scrollBarDrag(e);
+    mouseX=e.clientX;
+    mouseY=e.clientY;
+    if(mouseDownBool) paint(e, false, false,true);
+}
+function scrollBarDrag(e){
+    var diff = mouseY-e.clientY;
+    var height = document.getElementById('canvas').height;
+    var pagesHeight = (pageBreaks.length+1)*74*lineheight;
+    vOffset-=pagesHeight/height*diff;
+    if (vOffset<0)vOffset=0;
+    var pagesHeight = (pageBreaks.length+1)*74*lineheight-document.getElementById('canvas').height;
+    if(vOffset>pagesHeight)vOffset=pagesHeight;
 }
 function scroll(v){
     vOffset+=v;
     if (vOffset<0)vOffset=0;
+    var pagesHeight = (pageBreaks.length+1)*74*lineheight-document.getElementById('canvas').height;
+    if(vOffset>pagesHeight)vOffset=pagesHeight;
+}
+function jumpTo(){
+    var scrollHeight=0;
+    for(var i=0;i<pos.row;i++){
+        for(var count=0; count<pageBreaks.length; count++){
+            if(pageBreaks[count][0]==i){
+                scrollHeight+=lineheight*(56-pageBreaks[count][1]+17)
+            }
+        }
+        scrollHeight+=(linesNLB[i].length*lineheight);
+    }
+    vOffset=scrollHeight;
 }
 function upArrow(){
     if (pos.row==0 && pos.col==0)return;
@@ -236,6 +300,7 @@ function upArrow(){
         anch.col=pos.col;
         anch.row=pos.row;
     }
+    paint(false,false,false,true);
 }
 	
 function downArrow(){
@@ -307,6 +372,7 @@ function downArrow(){
         anch.col=pos.col;
         anch.row=pos.row;
     }
+    paint(false,false,false,true);
 }
 
 function leftArrow(){
@@ -339,17 +405,26 @@ function rightArrow(){
 
 function backspace(e){
     e.preventDefault();
+    var forceCalc=false;
     var slug=false;
     if (lines[pos.row][1]==0)var slug=true;
 	if(pos.row==anch.row && pos.col==anch.col){
         if(pos.col==0 && pos.row==0) return;
-        if(pos.col==0){
+        if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+            lines.splice(pos.row,1);
+            pos.row--;
+            pos.col=lines[pos.row][0].length;
+            anch.row=pos.row;
+            anch.col=pos.col;
+        }
+        else if(pos.col==0){
             var j = lines[pos.row][0];
             lines.splice(pos.row,1);
             var newPos = lines[pos.row-1][0].length;
             lines[pos.row-1][0] = lines[pos.row-1][0]+j;
             pos.col=newPos;
             pos.row--;
+            forceCalc=true;
         }
         else{
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
@@ -381,6 +456,7 @@ function backspace(e){
                 lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                 pos.col=newPos;
                 pos.row--;
+                forceCalc=true;
             }
             else{
                 lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
@@ -388,18 +464,26 @@ function backspace(e){
             }
         }
     }
+    paint(false,false,forceCalc,false);
     if (slug)sceneIndex();
 }
 function deleteButton(){
     var slug=false;
+    var forceCalc=false;
     if(pos.row==anch.row&&pos.col==anch.col){
         if (lines[pos.row][1]==0)var slug=true;
         if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-        if(pos.col==(lines[pos.row][0].length)){
+        if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+            lines.splice(pos.row,1);
+            pos.col=0;
+            anch.col=0;
+        }
+        else if(pos.col==(lines[pos.row][0].length)){
             if (lines[pos.row+1][1]==0)slug=true;
             var j = lines[pos.row+1][0];
             lines.splice((pos.row+1),1);
             lines[pos.row][0]+=j;
+            forceCalc=true;
         }
         else{
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
@@ -428,6 +512,7 @@ function deleteButton(){
                 lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                 pos.col=newPos;
                 pos.row--;
+                forceCalc=true;
             }
             else{
                 lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
@@ -435,6 +520,7 @@ function deleteButton(){
             }
         }
     }
+    paint(false,false,forceCalc,false);
     if (slug)sceneIndex();
 }
 	
@@ -456,10 +542,9 @@ function enter(){
 	pos.col=0;
     anch.row=pos.row;
     anch.col=pos.col;
-    console.log(lines[pos.row][0]);
     // This means it was a scene before
     // so run scene index
-    paint(false,false,true);
+    paint(false,false,true,false);
     if(lines[pos.row][1]==1)sceneIndex();
 }
 
@@ -480,6 +565,22 @@ function tab(){
         slug=true;
     }
     if(slug)sceneIndex();
+    if(lines[pos.row][1]==4){
+        if(lines[pos.row][0].charAt(0)!='('){
+            lines[pos.row][0]='('+lines[pos.row][0];
+            pos.col++;
+            anch.col++;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+    }
+    if(lines[pos.row][1]==3){
+        if(lines[pos.row][0].charAt(0)=='('){
+            lines[pos.row][0]=lines[pos.row][0].substr(1);
+            pos.col--;
+            anch.col--;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+    }
 }
 	
 function handlekeypress(event) {
@@ -494,6 +595,26 @@ function handlekeypress(event) {
     anch.col=pos.col;
     anch.row=pos.row;
 }
+
+// Managining arrays
+// calcing data
+function pagination(){
+    pageBreaks = [];
+    i = 0;
+    while(i<lines.length){
+        lineCount = 0;
+        while(lineCount+linesNLB[i].length<56){
+            lineCount+=linesNLB[i].length;
+            i++;
+            if (i==lines.length){
+                return;
+            }
+        }
+        while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4)i--;
+        pageBreaks.push([i, lineCount]);
+    }
+}
+
 function characterInit(){
     for(var i=0; i<lines.length;i++){
         if (lines[i][1]==2){
@@ -556,20 +677,113 @@ function scrollArrows(ctx){
 }
 function scrollBar(ctx, y){
     var height = document.getElementById('canvas').height;
-    var barHeight = ((height-35)/y)*(height-35-39);
-    if (barHeight<30)barHeight=30;
+    var pagesHeight = (pageBreaks.length+1)*74*lineheight;
+    var barHeight = ((height-35)/pagesHeight)*(height-35-39);
+    if (barHeight<20)barHeight=20;
     if (barHeight>=height-35-39)barHeight=height-35-39;
-    var topPixel = (vOffset/(y-height))*(height-35-39-barHeight)+35;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-35-39-barHeight)+35;
     ctx.fillRect(editorWidth-22, topPixel, 20,barHeight);
-    
 }
-function paint(e, anchE, forceCalc){
+function drawRange(ctx){
+    if(pos.row>anch.row){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else if(pos.row==anch.row && pos.col>anch.col){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else{
+        var startRange = {row:pos.row, col:pos.col};
+        var endRange = {row:anch.row, col:anch.col};
+    }
+    //get the starting position
+    var startHeight = 125;
+    var count=0;
+    for (var i=0; i<startRange.row;i++){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]-1==i){
+            startHeight+=lineheight*(56-pageBreaks[count][1]+17);
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        startHeight+=lineheight*linesNLB[i].length;
+    }
+    var i=0;
+    var startRangeCol=linesNLB[startRange.row][i]+1;
+    while(startRange.col>startRangeCol){
+        startHeight+=lineheight;
+        i++;
+        startRangeCol+=linesNLB[startRange.row][i]+1;
+    }
+    startRangeCol-=linesNLB[startRange.row][i]+1;
+    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
+    startWidth+=((startRange.col-startRangeCol)*fontWidth);
+    startHeight+=lineheight;
+
+    //getting the ending position
+
+    var endHeight = 125;
+    count=0;
+    for (var j=0; j<endRange.row;j++){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]-1==j){
+            endHeight+=lineheight*(56-pageBreaks[count][1]+17);
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        endHeight+=lineheight*linesNLB[j].length;
+    }
+    var j=0;
+    var endRangeCol=linesNLB[endRange.row][j]+1;
+    while(endRange.col>endRangeCol){
+        endHeight+=lineheight;
+        j++;
+        endRangeCol+=linesNLB[endRange.row][j]+1;
+    }
+    endRangeCol-=linesNLB[endRange.row][j]+1;
+    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
+    endWidth+=((endRange.col-endRangeCol)*fontWidth);
+    endHeight+=lineheight;
+    
+    // Now compare stuff and draw blue Box
+    ctx.fillStyle='lightBlue';
+    if(endHeight==startHeight){
+        var onlyBlueLine = startWidth;
+        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
+        ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
+    }
+    else{
+        var firstLineBlue = startWidth;
+         if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+        ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+        while(startHeight+lineheight<endHeight){
+            for(var counter=0; counter<pageBreaks.length; counter++){
+                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && i==linesNLB[startRange.row].length-1){
+                    startHeight+=lineheight*(56-pageBreaks[counter][1]+17);
+                }
+            }
+            i++;
+            startHeight+=lineheight;
+            if(linesNLB[startRange.row].length<=i){
+                startRange.row++;
+                i=0;
+            }
+            var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+            if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+            ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+            
+        }
+        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
+        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
+        ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+    }
+}
+function paint(e, anchE, forceCalc, forceScroll){
     //console.log('pos.col='+pos.col+' pos.row='+pos.row);
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
-	ctx.fillStyle = background;
-	//ctx.fillRect(0, 0, 800, 570);
+	ctx.fillStyle = '#ccc';
+	ctx.fillRect(0, 0, editorWidth, document.getElementById('canvas').height);
     ctx.fillStyle = foreground;
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ddd';
@@ -580,95 +794,73 @@ function paint(e, anchE, forceCalc){
     ctx.lineTo(editorWidth,2);
     ctx.stroke();
     
-    //Draw in range if there is one
-    if(pos.row!=anch.row || anch.col!=pos.col){
-        if(pos.row>anch.row){
-            var startRange = {row:anch.row, col:anch.col};
-            var endRange = {row:pos.row, col:pos.col};
-        }
-        else if(pos.row==anch.row && pos.col>anch.col){
-            var startRange = {row:anch.row, col:anch.col};
-            var endRange = {row:pos.row, col:pos.col};
-        }
-        else{
-            var startRange = {row:pos.row, col:pos.col};
-            var endRange = {row:anch.row, col:anch.col};
-        }
-        //get the starting position
-        var startHeight = 41;
-        for (var i=0; i<startRange.row;i++){
-            startHeight+=lineheight*linesNLB[i].length;
-        }
-        var i=0;
-        var startRangeCol=linesNLB[startRange.row][i]+1;
-        while(startRange.col>startRangeCol){
-            startHeight+=lineheight;
-            i++;
-            startRangeCol+=linesNLB[startRange.row][i]+1;
-        }
-        startRangeCol-=linesNLB[startRange.row][i]+1;
-        var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
-        startWidth+=((startRange.col-startRangeCol)*fontWidth);
-        startHeight+=lineheight;
-        
-        //getting the ending position
-        
-        var endHeight = 41;
-        for (var j=0; j<endRange.row;j++){
-            endHeight+=lineheight*linesNLB[j].length;
-        }
-        var j=0;
-        var endRangeCol=linesNLB[endRange.row][j]+1;
-        while(endRange.col>endRangeCol){
-            endHeight+=lineheight;
-            j++;
-            endRangeCol+=linesNLB[endRange.row][j]+1;
-        }
-        endRangeCol-=linesNLB[endRange.row][j]+1;
-        var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
-        endWidth+=((endRange.col-endRangeCol)*fontWidth);
-        endHeight+=lineheight;
-        //console.log(startRangeCol+linesNLB[startRange.row][i]-startRange.col);
-        // Now compare stuff and draw blue Box
-        ctx.fillStyle='lightBlue';
-        if(endHeight==startHeight){
-            var onlyBlueLine = startWidth;
-            if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-            ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
-        }
-        else{
-            var firstLineBlue = startWidth;
-             if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-            ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
-            while(startHeight+lineheight<endHeight){
-                i++;
-                startHeight+=lineheight;
-                if(linesNLB[startRange.row].length<=i){
-                    startRange.row++;
-                    i=0;
-                }
-                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-                ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
-                
+    //draw in pages
+    var pageStartX = 45;
+    var pageStartY = 45;
+    for(var i=0; i<=pageBreaks.length;i++){
+        ctx.fillStyle = background;
+        ctx.fillRect(pageStartX, pageStartY-vOffset, editorWidth*0.85, lineheight*70);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(editorWidth*0.85), lineheight*70);
+        ctx.strokeStyle='#999';
+        ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(editorWidth*0.85)+4, lineheight*70+4);
+        ctx.fillStyle=foreground;
+        if(i>0)ctx.fillText(String(i+1)+'.', 628, pageStartY-vOffset+85);
+        pageStartY+= lineheight*72;
+    }
+    
+    // use this opportunity to put in the grey backing
+    var greyHeight = 124;
+    var wrapVars=WrapVariableArray[0];
+    ctx.fillStyle='#ddd';
+    if(!forceCalc){
+        var count=0;
+        for (var i=0;i<lines.length;i++){
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+                greyHeight+=lineheight*(56-pageBreaks[count][1]+17);
+                count++;
+                if(count==pageBreaks.length)count--;
             }
-            var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
-            if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-            ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
-            
-            
+            for(var j=0; j<linesNLB[i].length; j++){
+                greyHeight+=lineheight;
+                if (lines[i][1]==0 && linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3,greyHeight-vOffset,61*fontWidth+6, 14);
+            }
         }
     }
     ctx.fillStyle=foreground;
     
+    //Draw in range if there is one
+    if(pos.row!=anch.row || anch.col!=pos.col){
+        drawRange(ctx);
+    }
+    ctx.fillStyle=foreground;
+    
     ctx.font=font;
-	var y = lineheight+50;
+	var y = lineheight+135;
     //Stary Cycling through lines
+    var latestCharacter = '';
+    var count = 0;
 	for (var i=0; i<lines.length; i++){
+        //make sure there are parenthesese for parenthetics
+        if(lines[i][1]==4){
+            if(lines[i][0].charAt(0)!='(')lines[i][0]='('+lines[i][0];
+            if(lines[i][0].charAt(lines[i][0].length-1)!=')')lines[i][0]=lines[i][0]+')';
+        }
+        //set correct line height
+        //on page breaks
+        if(!forceCalc){
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+                y+=lineheight*(56-pageBreaks[count][1]+17);
+                count++;
+                if(count==pageBreaks.length)count--;
+            }
+        }
         //Don't render things way outside the screen
         if(!forceCalc && (y-vOffset>1200||y-vOffset<0)){
             y+=(lineheight*linesNLB[i].length);
         }
+        
         else{
             var type = lines[i][1];
             //Cursor position
@@ -699,14 +891,7 @@ function paint(e, anchE, forceCalc){
             //wrapVars[2]= bool, align right
             //wrapVars[3]= bool, uppercase
             //wrapVars[4]=number of line breaks after
-            if (type==0){
-                var wrapVars=WrapVariableArray[0];
-                // use this opportunity to put int he grey backing
-                var greyHeight = (Math.round((lineContent.length/61)+.5))*16;
-                ctx.fillStyle='#ddd';
-                ctx.fillRect(wrapVars[1]-3,(y-12-vOffset),605, greyHeight);
-                ctx.fillStyle=foreground;
-            }
+            if (type==0)var wrapVars=WrapVariableArray[0];
             else if(type==1) var wrapVars = WrapVariableArray[1];
             else if(type==2) var wrapVars = WrapVariableArray[2];
             else if(type==3) var wrapVars =  WrapVariableArray[3];
@@ -721,6 +906,8 @@ function paint(e, anchE, forceCalc){
                 var itr=0;
                 if (wordsArr.slice(word).join().length<wrapVars[0]){
                     var printString = wordsArr.slice(word).join(' ');
+                    if(lines[i][1]==2 && latestCharacter!='' && lines[i][0].toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
+                    if(lines[i][1]==0)latestCharacter='';
                     if (wrapVars[3]==1)printString= printString.toUpperCase();
                     if (wrapVars[2]==1)ctx.textAlign='right';
                     if(printString!='')ctx.fillText(printString, wrapVars[1] , y-vOffset);
@@ -748,63 +935,94 @@ function paint(e, anchE, forceCalc){
                     y+=lineheight;
                     word+=itr-1;
                     itr =0;
-                    var lbCounter=1;
                     if(e||anchE)wrapCounterOnClick.push(newLineToPrint.length);
                     if (thisRow)wrappedText.push(newLineToPrint.length);
                     if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
+                }
+                //remve a line if it's dialog
+                //followed by parenthetics
+                if(lines[i][1]==3 && i+1!=lines.length && lines[i+1][1]==4){
+                    linesNLB[i].pop();
+                    y-=lineheight;
                 }
                 // changing cursor position
                 // on click
                 // Bad place to put it. See if can be done
                 // better in mouseClick function
-                if(e && e.clientY+vOffset>(y-6-25*lbCounter) && e.clientY+vOffset<(y+19-25*lbCounter)){
+                if(e && e.clientY<y-vOffset-lineheight && e.clientY>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
                     pos.row=i;
                     pos.col=0;
-                    for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
-                        pos.col+=wrapCounterOnClick[integ]+1;
+                    var itr=0;
+                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
+                    while(e.clientY>lbMeasure){
+                        pos.col+=linesNLB[i][itr]+1;
+                        lbMeasure+=lineheight;
+                        itr++;
                     }
-                    if(type!=5)pos.col+=Math.round(((e.clientX-wrapVars[1])/fontWidth));
+                    if(type!=5){
+                        var remainder = Math.round(((e.clientX-wrapVars[1])/fontWidth));
+                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
+                        if(remainder<0)remainder=0;
+                        pos.col+=remainder;
+                    }
                     else{
-                        pos.col-=Math.round(((wrapVars[1]-e.clientX)/fontWidth));
+                        var remainder = Math.round(((wrapVars[1]-e.clientX)/fontWidth));
+                        if(remainder<0)remainder = 0;
+                        pos.col-=remainder;
                         pos.col+=lines[i][0].length;
                     }
                     var onClickLengthLimit=0;
                     for(var integ=0; integ<wrapCounterOnClick.length; integ++){
                         onClickLengthLimit+=wrapCounterOnClick[integ]+1;
                     }
-                    if(pos.col>onClickLengthLimit)pos.col=onClickLengthLimit-1;
                     if(pos.col<0)pos.col=0;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
                     
                 }
                 // Now setting anchor position
-                if(anchE && anchE.clientY+vOffset>(y-6-25*lbCounter) && anchE.clientY+vOffset<(y+19-25*lbCounter)){
+                
+                if(anchE && anchE.clientY<y-vOffset-lineheight && anchE.clientY>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
                     anch.row=i;
                     anch.col=0;
-                    for(var integ=0; integ<wrapCounterOnClick.length-1; integ++){
-                        anch.col+=wrapCounterOnClick[integ]+1;
+                    var itr=0;
+                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
+                    while(anchE.clientY>lbMeasure){
+                        anch.col+=linesNLB[i][itr]+1;
+                        lbMeasure+=lineheight;
+                        itr++;
                     }
-                    if(type!=5)anch.col+=Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                    if(type!=5){
+                        var remainder = Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
+                        if(remainder<0)remainder=0;
+                        anch.col+=remainder;
+                    }
                     else{
-                        anch.col-=Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
+                        var remainder = Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
+                        if(remainder<0)remainder = 0;
+                        anch.col-=remainder;
                         anch.col+=lines[i][0].length;
                     }
                     var onClickLengthLimit=0;
                     for(var integ=0; integ<wrapCounterOnClick.length; integ++){
                         onClickLengthLimit+=wrapCounterOnClick[integ]+1;
                     }
-                    if(anch.col>onClickLengthLimit)anch.col=onClickLengthLimit-1;
                     if(anch.col<0)anch.col=0;
-                    
+                    if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
                 }
+                
                 
             }
             var thisRow=false;
             var anchorThisRow=false;
         }
-	  }
+    //setup stuff of Con't
+    if(lines[i][1]==2)var latestCharacter = lines[i][0];
+        
+    }
       // End Looping through lines
 	  // delete extra data in linesNLB
-      for(var z=i+1; z<linesNLB.length;z++){
+      for(var z=i; z<linesNLB.length;z++){
         linesNLB.pop();
         z--;
       }
@@ -833,37 +1051,6 @@ function paint(e, anchE, forceCalc){
 		  var ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
 		  ctx.fillRect(lr,ud,2,17);
 	  }
-      
-      /*
-      
-      if(anch.row!=pos.row || anch.col!=pos.col){
-          if(anchorWrappedText){
-              var wrapCounter=0;
-              var lrPosDiff = anch.col;
-              var totalCharacters=anchorWrappedText[wrapCounter];
-              while (anch.col>totalCharacters){
-                    wrapCounter++;
-                    totalCharacters+=1+anchorWrappedText[wrapCounter];
-              }
-              totalCharacters-=anchorWrappedText[wrapCounter];
-              //console.log(totalCharacters);
-              var type=lines[anch.row][1];
-              if(type==0)anchorX=WrapVariableArray[0][1];
-              else if(type==1)anchorX=WrapVariableArray[1][1];
-              else if(type==2)anchorX=WrapVariableArray[2][1];
-              else if(type==3)anchorX=WrapVariableArray[3][1];
-              else if(type==4)anchorX=WrapVariableArray[4][1];
-              else if(type==5)anchorX=WrapVariableArray[5][1];
-              var lr = anchorX+((anch.col-totalCharacters)*fontWidth);
-              if(lines[anch.row][1]==5)lr -= lines[anch.row][0].length*fontWidth;
-              var ud = 2+anchorY+(wrapCounter*lineheight)-vOffset;
-              ctx.fillStyle='red'
-              ctx.fillRect(lr,ud,1,20);
-              ctx.fillStyle=foreground;
-          }
-      }
-      */
-      
       
       
       //Make the scene list
@@ -908,9 +1095,15 @@ function paint(e, anchE, forceCalc){
       //Make ScrollBar
       scrollArrows(ctx);
       scrollBar(ctx, y);
-      //if(forceCalc)console.log(linesNLB);
       if(anchE){
         pos.row=anch.row;
         pos.col=anch.col;
       }
+      if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
+      if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
+      if(forceScroll){
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-50)scroll(45);
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
+      }
+      if(forceCalc)pagination();
 	}
