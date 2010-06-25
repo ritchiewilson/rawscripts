@@ -47,7 +47,7 @@ function setup(){
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.onkeypress = handlekeypress;
-    lines = fivePages;
+    lines = mullet;
     characterInit();
     sceneIndex();
     paint(false,false,true,false);
