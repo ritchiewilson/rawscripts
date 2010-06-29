@@ -59,6 +59,9 @@ handlers:
 - url: /test.*
   script: nologin.py
 
+- url: /save.*
+  script: nologin.py
+
 - url: /.*
   login: required
   script: scripteditor.py

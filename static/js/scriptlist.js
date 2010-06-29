@@ -32,190 +32,93 @@ function tabs(v){
 
 function refreshList(v){
 	$.post('/list', function(data){
+    console.log(data);
 	document.getElementById('loading').style.display = 'none';
-	var owned = data.split('?shared=')[0];
-	if(owned=='?owned=none'){
-		document.getElementById('noentries').style.display = 'block';
+    //remove old data
+    var childs = document.getElementById('content').childNodes;
+    for (var i=0; i<childs.length; i++){
+        childs[i].parentNode.removeChild(childs[i]);
+        i--;
+    }
+    //update with new info
+    var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+    listDiv.id = 'list';
+    var x = JSON.parse(data);
+    if(x.length==0){
+        document.getElementById('noentries').style.display='block';
+        return;
+    }
+    for (var i=0; i<x.length; i++){
+        var title = x[i][1];
+        var resource_id = x[i][0];
+        var updated = x[i][2]
+        var entryDiv = listDiv.appendChild(document.createElement('div'));
+        entryDiv.id = resource_id;
+        entryDiv.className = 'entry';
+        var entryTable = entryDiv.appendChild(document.createElement('table'));
+        entryTable.width = '100%';
+        var entryTr = entryTable.appendChild(document.createElement('tr'));
+        //make checkbox
+        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+        checkboxTd.className='checkboxCell';
+        var input = checkboxTd.appendChild(document.createElement('input'));
+        input.type='checkbox';
+        input.name = 'listItems';
+        input.value = resource_id;
+        //make title
+        var titleCell = entryTr.appendChild(document.createElement('td'));
+        var titleLink = titleCell.appendChild(document.createElement('a'));
+        titleLink.id = 'name'+resource_id;
+        /*
+        if (newNotes==true){
+            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
+            newNotesSpan.className = 'redAlertSpan';
+        }
+        */
+        var href = 'javascript:script("'+resource_id+'")';
+        titleLink.href=href;
+        titleLink.appendChild(document.createTextNode(title));
+        //shared column
+        var sharedTd = entryTr.appendChild(document.createElement('td'));
+        sharedTd.className = 'sharedCell';
+        sharedTd.align = 'right';
+        /*
+        if (shared_with[0]=='none'){
+            var collabs = '';
+        }
+        else{
+            if (shared_with.length==1){
+                var collabs = '1 person ';
+            }
+            else {
+                var collabs = String(shared_with.length)+" people ";
+            }
+        }
+        sharedTd.appendChild(document.createTextNode(collabs));
+        var manage = sharedTd.appendChild(document.createElement('a'));
+        var href = "javascript:sharePrompt('"+resource_id+"')";
+        manage.href=href;
+        manage.appendChild(document.createTextNode('Manage'));
+        manage.id = 'share'+resource_id;
+        manage.title = shared_with.join('&');
+        */
+        //email column
+        var emailTd = entryTr.appendChild(document.createElement('td'));
+        emailTd.className = 'emailCell';
+        emailTd.align='center';
+        var emailLink = emailTd.appendChild(document.createElement('a'));
+        emailLink.className = 'emailLink';
+        href = 'javascript:emailPrompt("'+resource_id+'")';
+        emailLink.href=href;
+        emailLink.appendChild(document.createTextNode('Email'));
+        // Last updated
+        var updatedTd = entryTr.appendChild(document.createElement('td'));
+        updatedTd.className = 'updatedCell';
+        updatedTd.align='center';
+        updatedTd.appendChild(document.createTextNode(updated));
 	}
-	else{
-		//remove old data
-		var childs = document.getElementById('content').childNodes;
-		for (var i=0; i<childs.length; i++){
-			childs[i].parentNode.removeChild(childs[i]);
-			i--;
-		}
-		//update with new info
-		owned = owned.slice(19);
-		var scriptlist= owned.split('?scriptname=');
-		var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
-		listDiv.id = 'list';
-		for (var i=0; i<scriptlist.length; i++){
-			var title = scriptlist[i].split('?resource_id=')[0];
-			var resource_id = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[0];
-			var alternate_link = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
-			var updated = scriptlist[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var shared_with=scriptlist[i].split('?newNotes=')[0].split('?shared_with=');
-			shared_with.splice(0,1);
-			var newNotes=false;
-			if(scriptlist[i].split('?newNotes=').length!=1){
-				newNotes=true;
-			}
-			var entryDiv = listDiv.appendChild(document.createElement('div'));
-			entryDiv.id = resource_id;
-			entryDiv.className = 'entry';
-			var entryTable = entryDiv.appendChild(document.createElement('table'));
-			entryTable.width = '100%';
-			var entryTr = entryTable.appendChild(document.createElement('tr'));
-			//make checkbox
-			var checkboxTd = entryTr.appendChild(document.createElement('td'));
-			checkboxTd.className='checkboxCell';
-			var input = checkboxTd.appendChild(document.createElement('input'));
-			input.type='checkbox';
-			input.name = 'listItems';
-			input.value = resource_id;
-			//make title
-			var titleCell = entryTr.appendChild(document.createElement('td'));
-			var titleLink = titleCell.appendChild(document.createElement('a'));
-			titleLink.id = 'name'+resource_id;
-			if (newNotes==true){
-				var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-				newNotesSpan.appendChild(document.createTextNode(' New Notes'));
-				newNotesSpan.className = 'redAlertSpan';
-			}
-			var href = 'javascript:script("'+resource_id+'")';
-			titleLink.href=href;
-			titleLink.appendChild(document.createTextNode(title));
-			//shared column
-			var sharedTd = entryTr.appendChild(document.createElement('td'));
-			sharedTd.className = 'sharedCell';
-			sharedTd.align = 'right';
-			if (shared_with[0]=='none'){
-				var collabs = '';
-			}
-			else{
-				if (shared_with.length==1){
-					var collabs = '1 person ';
-				}
-				else {
-					var collabs = String(shared_with.length)+" people ";
-				}
-			}
-			sharedTd.appendChild(document.createTextNode(collabs));
-			var manage = sharedTd.appendChild(document.createElement('a'));
-			var href = "javascript:sharePrompt('"+resource_id+"')";
-			manage.href=href;
-			manage.appendChild(document.createTextNode('Manage'));
-			manage.id = 'share'+resource_id;
-			manage.title = shared_with.join('&');
-			//email column
-			var emailTd = entryTr.appendChild(document.createElement('td'));
-			emailTd.className = 'emailCell';
-			emailTd.align='center';
-			var emailLink = emailTd.appendChild(document.createElement('a'));
-			emailLink.className = 'emailLink';
-			href = 'javascript:emailPrompt("'+resource_id+'")';
-			emailLink.href=href;
-			emailLink.appendChild(document.createTextNode('Email'));
-			// Last updated
-			var updatedTd = entryTr.appendChild(document.createElement('td'));
-			updatedTd.className = 'updatedCell';
-			updatedTd.align='center';
-			updatedTd.appendChild(document.createTextNode(updated));
-			//Gdocs Link
-			var gdocsTd=entryTr.appendChild(document.createElement('td'));
-			gdocsTd.className = 'gdocsCell';
-			gdocsTd.align='center';
-			var gdocsLink=gdocsTd.appendChild(document.createElement('a'));
-			gdocsLink.href=alternate_link;
-			gdocsLink.target='_blank';
-			var gif = gdocsLink.appendChild(document.createElement('img'));
-			gif.src="images/docs.gif";
-			var png = gdocsLink.appendChild(document.createElement('img'));
-			png.src="images/popup.png";
-		}
-	}
-	var shared = data.split('?shared=')[1];
-	document.getElementById('sharedLoading').style.display='none';
-	if (shared=='none'){
-		document.getElementById('sharedNoEntries').style.display='block';
-	}
-	else{
-		//remove old data
-		var childs = document.getElementById('sharedContent').childNodes;
-		for (var i=0; i<childs.length; i++){
-			childs[i].parentNode.removeChild(childs[i]);
-			i--;
-		}
-		//update with new info
-		shared = shared.slice(12);
-		var sharedScriptList= shared.split('?scriptname=');
-		var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
-		listDiv.id = 'sharedList';
-		for(var i=0; i<sharedScriptList.length; i++){
-			var title = sharedScriptList[i].split('?resource_id=')[0];
-			var resource_id = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[0];
-			var alternate_link = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[0];
-			var updated = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[0];
-			var shared_with = sharedScriptList[i].split('?resource_id=')[1].split('?alternate_link=')[1].split('?updated=')[1].split('?shared_with=')[1].split('?etagUpdate=')[0];
-			var etagUpdate=sharedScriptList[i].split('?etagUpdate=')[1];
-			var entryDiv = listDiv.appendChild(document.createElement('div'));
-			entryDiv.id = resource_id;
-			entryDiv.className = 'entry';
-			var entryTable = entryDiv.appendChild(document.createElement('table'));
-			entryTable.width = '100%';
-			var entryTr = entryTable.appendChild(document.createElement('tr'));
-			//make checkbox
-			var checkboxTd = entryTr.appendChild(document.createElement('td'));
-			checkboxTd.className='checkboxCell';
-			var input = checkboxTd.appendChild(document.createElement('input'));
-			input.type='checkbox';
-			input.name = 'sharedListItems';
-			input.value = resource_id;
-			//make title
-			var titleCell = entryTr.appendChild(document.createElement('td'));
-			var titleLink = titleCell.appendChild(document.createElement('a'));
-			titleLink.id = 'name'+resource_id;
-			var href = 'javascript:script("'+resource_id+'")';
-			titleLink.href=href;
-			titleLink.appendChild(document.createTextNode(title));
-			if (etagUpdate =='yes'){
-				var newSpan = titleCell.appendChild(document.createElement('span'));
-				newSpan.appendChild(document.createTextNode(' Updated'));
-				newSpan.className = 'redAlertSpan';
-			}
-			//shared column
-			var sharedTd = entryTr.appendChild(document.createElement('td'));
-			sharedTd.className = 'sharedCell';
-			sharedTd.align = 'center';
-			sharedTd.appendChild(document.createTextNode(shared_with));
-			//email column
-			var emailTd = entryTr.appendChild(document.createElement('td'));
-			emailTd.className = 'emailCell';
-			emailTd.align='center';
-			var emailLink = emailTd.appendChild(document.createElement('a'));
-			emailLink.className = 'emailLink';
-			href = 'javascript:emailPrompt("'+resource_id+'")';
-			emailLink.href=href;
-			emailLink.appendChild(document.createTextNode('Email'));
-			// Last updated
-			var updatedTd = entryTr.appendChild(document.createElement('td'));
-			updatedTd.className = 'updatedCell';
-			updatedTd.align='center';
-			updatedTd.appendChild(document.createTextNode(updated));
-			//Gdocs Link
-			var gdocsTd=entryTr.appendChild(document.createElement('td'));
-			gdocsTd.className = 'gdocsCell';
-			gdocsTd.align='center';
-			var gdocsLink=gdocsTd.appendChild(document.createElement('a'));
-			gdocsLink.href=alternate_link;
-			gdocsLink.target='_blank';
-			var gif = gdocsLink.appendChild(document.createElement('img'));
-			gif.src="images/docs.gif";
-			var png = gdocsLink.appendChild(document.createElement('img'));
-			png.src="images/popup.png";
-		}
-	}
-	if(v){
+    if(v){
 		sharePrompt(v);
 	}
 							 });
@@ -413,12 +316,17 @@ function hideNewScriptPrompt(){
 function createScript (){
 	var filename = document.getElementById('newScript').value;
 	if (filename!=''){
-		var url = '/loading?filename=' + filename;
-		window.open(url);
+		$.post('/newscript', {filename:filename}, function(data){
+            window.open('editor?resource_id='+data);
+        });
+            
 	}
-	hideNewScriptPrompt()
+	hideNewScriptPrompt();
 	setTimeout('refreshList()', 10000);
-	}
+}
+function recieveMessage(e){
+    
+}
 function hideExportPrompt(){
 	document.getElementById('exportpopup').style.visibility = 'hidden';
 	document.getElementById('exportList').innerHTML = '';
