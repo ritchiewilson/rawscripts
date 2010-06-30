@@ -100,7 +100,7 @@ function save(){
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
-    console.log(data);
+    //console.log(data);
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(false,false,true,false);
@@ -540,6 +540,7 @@ function backspace(e){
         }
         // This is for deleting a range
         else{
+            forceCalc=true;
             //put the focus after the anchor
             var switchPos =false;
             if(anch.row>pos.row)switchPos=true;
@@ -564,7 +565,6 @@ function backspace(e){
                     lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                     pos.col=newPos;
                     pos.row--;
-                    forceCalc=true;
                     undoQue.push(['back',pos.row, pos.col,'line',elem]);
                 }
                 else{
@@ -607,6 +607,7 @@ function deleteButton(){
         }
         // This is for deleting a range
         else{
+            forceCalc=true;
             //put the focus after the anchor
             var switchPos =false;
             if(anch.row>pos.row)switchPos=true;
@@ -631,7 +632,6 @@ function deleteButton(){
                     lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                     pos.col=newPos;
                     pos.row--;
-                    forceCalc=true;
                 }
                 else{
                     undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
@@ -837,8 +837,9 @@ function undo(){
 function pagination(){
     pageBreaks = [];
     i = 0;
+    var r=0;
     while(i<lines.length){
-        lineCount = 0;
+        lineCount = r;
         while(lineCount+linesNLB[i].length<56){
             lineCount+=linesNLB[i].length;
             i++;
@@ -846,12 +847,36 @@ function pagination(){
                 return;
             }
         }
-        while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
-            //console.log(lines[i-1][0]);
-            i--;
-            lineCount-=linesNLB[i].length;
+        var s=0;
+        r=0;
+        if(lines[i][1]==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
         }
-        pageBreaks.push([i, lineCount]);
+        else if(lines[i][1]==3 && lineCount<54 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else{
+            while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
+                //console.log(lines[i-1][0]);
+                i--;
+                lineCount-=linesNLB[i].length;
+            }
+        }
+        pageBreaks.push([i, lineCount, s]);
     }
 }
 
@@ -953,7 +978,6 @@ function topMenuOver(v){
     }
 }
 function topMenuOut(v){
-    console.log(document.getElementById(v+'Menu').style.display);
     if(document.getElementById(v+'Menu').style.display=='none'){
         document.getElementById(v).style.backgroundColor='#A2BAE9';
         document.getElementById(v).style.color='black';
@@ -1036,12 +1060,15 @@ function drawRange(ctx){
         var startRange = {row:pos.row, col:pos.col};
         var endRange = {row:anch.row, col:anch.col};
     }
+    
     //get the starting position
     var startHeight = lineheight*9+3;
     var count=0;
     for (var i=0; i<startRange.row;i++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]-1==i){
-            startHeight+=lineheight*(72-pageBreaks[count][1]);
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            startHeight-=(pageBreaks[count][2])*lineheight;
+            if(lines[i][1]==3)startHeight+=lineheight;
             count++;
             if(count==pageBreaks.length)count--;
         }
@@ -1051,6 +1078,14 @@ function drawRange(ctx){
     var startRangeCol=linesNLB[startRange.row][i]+1;
     while(startRange.col>startRangeCol){
         startHeight+=lineheight;
+        if(pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[startRange.row][1]==3)startHeight+=lineheight;
+        }
+        else if(pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[startRange.row][1]==3)startHeight+=lineheight;
+        }
         i++;
         startRangeCol+=linesNLB[startRange.row][i]+1;
     }
@@ -1064,8 +1099,10 @@ function drawRange(ctx){
     var endHeight = lineheight*9+3;
     count=0;
     for (var j=0; j<endRange.row;j++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]-1==j){
-            endHeight+=lineheight*(72-pageBreaks[count][1]);
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==j){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            endHeight-=(pageBreaks[count][2])*lineheight;
+            if(lines[j][1]==3)endHeight+=lineheight;
             count++;
             if(count==pageBreaks.length)count--;
         }
@@ -1075,6 +1112,14 @@ function drawRange(ctx){
     var endRangeCol=linesNLB[endRange.row][j]+1;
     while(endRange.col>endRangeCol){
         endHeight+=lineheight;
+        if(pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[endRange.row][1]==3)endHeight+=lineheight;
+        }
+        else if(pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[endRange.row][1]==3)endHeight+=lineheight;
+        }
         j++;
         endRangeCol+=linesNLB[endRange.row][j]+1;
     }
@@ -1096,8 +1141,12 @@ function drawRange(ctx){
         ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
         while(startHeight+lineheight<endHeight){
             for(var counter=0; counter<pageBreaks.length; counter++){
-                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && i==linesNLB[startRange.row].length-1){
-                    startHeight+=lineheight*(72-pageBreaks[counter][1]);
+                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
+                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+                }
+                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
+                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
                 }
             }
             i++;
@@ -1111,6 +1160,7 @@ function drawRange(ctx){
             ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
             
         }
+        //ctx.fillStyle="blue";
         var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
         if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
         ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
@@ -1150,7 +1200,11 @@ function paint(e, anchE, forceCalc, forceScroll){
         var count=0;
         for (var i=0;i<lines.length;i++){
             if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
-                greyHeight+=lineheight*(72-pageBreaks[count][1]);
+                greyHeight=72*lineheight*(count+1)+9*lineheight+2;
+                if(pageBreaks[count][2]!=0){
+                    greyHeight-=pageBreaks[count][2]*lineheight;
+                    if(lines[i][1]==3)greyHeight+=lineheight;
+                }
                 count++;
                 if(count==pageBreaks.length)count--;
             }
@@ -1175,6 +1229,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     
     ctx.font=font;
 	var y = lineheight*11;
+    var cos=[];
     //Stary Cycling through lines
     var latestCharacter = '';
     var count = 0;
@@ -1186,15 +1241,21 @@ function paint(e, anchE, forceCalc, forceScroll){
         }
         //set correct line height
         //on page breaks
+        var bb=false;
         if(!forceCalc){
             if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
-                y+=lineheight*(72-pageBreaks[count][1]);
-                count++;
-                if(count==pageBreaks.length)count--;
+                if(pageBreaks[count][2]==0){
+                    y=72*lineheight*(count+1)+11*lineheight;
+                    count++;
+                    if(count==pageBreaks.length)count--;
+                }
+                else{
+                    bb=true;
+                }
             }
         }
         //Don't render things way outside the screen
-        if(!forceCalc && (y-vOffset>1200||y-vOffset<0)){
+        if(!forceCalc && !bb && (y-vOffset>1200||y-vOffset<-200)){
             y+=(lineheight*linesNLB[i].length);
         }
         
@@ -1278,7 +1339,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                 }
                 //remve a line if it's dialog
                 //followed by parenthetics
-                if(lines[i][1]==3 && i+1!=lines.length && lines[i+1][1]==4){
+                if(lines[i][1]==3 && i+1!=lines.length && lines[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
                     linesNLB[i].pop();
                     y-=lineheight;
                 }
@@ -1347,8 +1408,17 @@ function paint(e, anchE, forceCalc, forceScroll){
                     if(anch.col<0)anch.col=0;
                     if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
                 }
-                
-                
+                if(bb && linesNLB[i].length==pageBreaks[count][2]){
+                    if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1], y-vOffset);
+                    y=72*lineheight*(count+1)+11*lineheight;
+                    if(lines[i][1]==3){
+                        ctx.fillText(latestCharacter.toUpperCase()+"(CONT'D)", WrapVariableArray[2][1], y-vOffset);
+                        y+=lineheight;
+                    }
+                    count++;
+                    bb=false;
+                    if(pos.row==i){cos.push(count);}
+                }
             }
             var thisRow=false;
             var anchorThisRow=false;
@@ -1381,6 +1451,12 @@ function paint(e, anchE, forceCalc, forceScroll){
                 wrapCounter++;
                 totalCharacters+=1+wrappedText[wrapCounter];
           }
+          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+                cursorY=72*cos[0]*lineheight+7*lineheight;
+                if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==3)cursorY+=lineheight;
+                if(pageBreaks[cos[0]-1][1]==56 && lines[pos.row][1]==1)cursorY-=lineheight;
+          }
+          //console.log(cos);
           totalCharacters-=wrappedText[wrapCounter];
 		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
           if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
