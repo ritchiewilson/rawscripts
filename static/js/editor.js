@@ -1,3 +1,4 @@
+   var typeToScript=true;
    var undoQue = [];
    var redoQue = [];
    var pageBreaks=[];
@@ -100,13 +101,16 @@ function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
     console.log(data);
-    if(data==''){
-        lines = [["Fade In:",1],["Int. ",0]];
-    }
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(false,false,true,false);
         return;
+    }
+    var title=data.split('?title=')[0];
+    document.getElementById('title').innerHTML=title;
+    data=data.split('?title=')[1];
+    if(data==''){
+        lines = [["Fade In:",1],["Int. ",0]];
     }
     else{
         var x = JSON.parse(data);
@@ -120,7 +124,7 @@ function setup(){
         pos.col=lines[1][0].length
         anch.col=pos.col;
     }
-    console.log(lines);
+    console.log(lines.length);
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.onkeypress = handlekeypress;
@@ -171,7 +175,7 @@ function mouseDown(e){
         }
         if(id=='save')save();
         else if(id=='undo')undo();
-        else if(id=='rename')rename();
+        else if(id=='rename')renamePrompt();
         a.style.display='none';
     }
     else{
@@ -236,314 +240,286 @@ function jumpTo(v){
     if(vOffset>pagesHeight)vOffset=pagesHeight;
 }
 function upArrow(){
-    if (pos.row==0 && pos.col==0)return;
-    var type = lines[pos.row][1];
-    if (type==0) var wrapVars=WrapVariableArray[0];
-    else if(type==1) var wrapVars = WrapVariableArray[1];
-    else if(type==2) var wrapVars = WrapVariableArray[2];
-    else if(type==3) var wrapVars = WrapVariableArray[3];
-    else if(type==4) var wrapVars = WrapVariableArray[4];
-    else if(type==5) var wrapVars = WrapVariableArray[5];
-    // Only do calculations if 
-    // there is wrapped text
-    if(lines[pos.row][0].length>wrapVars[0]){
-        var wordsArr = lines[pos.row][0].split(' ');
-        var word = 0;
-        var lineLengths=[];
-        while(word<wordsArr.length){
-            if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                lineLengths.push(wordsArr.slice(word).join().length);
-                word=wordsArr.length
-                
-            }
-            else{
-                var integ=0;
-                while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                    integ++;
+    if(typeToScript){
+        if (pos.row==0 && pos.col==0)return;
+        var type = lines[pos.row][1];
+        if (type==0) var wrapVars=WrapVariableArray[0];
+        else if(type==1) var wrapVars = WrapVariableArray[1];
+        else if(type==2) var wrapVars = WrapVariableArray[2];
+        else if(type==3) var wrapVars = WrapVariableArray[3];
+        else if(type==4) var wrapVars = WrapVariableArray[4];
+        else if(type==5) var wrapVars = WrapVariableArray[5];
+        // Only do calculations if 
+        // there is wrapped text
+        if(lines[pos.row][0].length>wrapVars[0]){
+            var wordsArr = lines[pos.row][0].split(' ');
+            var word = 0;
+            var lineLengths=[];
+            while(word<wordsArr.length){
+                if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                    lineLengths.push(wordsArr.slice(word).join().length);
+                    word=wordsArr.length
+                    
                 }
-                lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                word+=integ-1;
-            }
-        }
-        // now we have the variable lineLengths
-        // this is an array holding all the wrapped line lengths
-        //
-        //use variable 'integ' to figure out 
-        //what line the cursor is on
-        integ=0;
-        var totalCharacters=lineLengths[0];
-        while(totalCharacters<pos.col){
-            integ++;
-            totalCharacters+=lineLengths[integ]+1;
-        }
-        // totalCharacters now equals
-        // all character up to and including
-        // current line (integ) including spaces
-        
-        //if this is the first line in a block of wrapped text
-        if(integ==0){
-            var prevLineType = lines[pos.row-1][1];
-            if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
-            else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
-            else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
-            else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
-            else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
-            else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
-            // If the previous line (the one we're jumping into)
-            // has only one line, don't run the calcs, just go to it
-            if(lines[pos.row-1][0].length<newWrapVars[0]){
-                pos.row--;
-                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-            }
-            else{
-                var wordsArr = lines[pos.row-1][0].split(' ');
-                var word = 0;
-                var lineLengths=[];
-                while(word<wordsArr.length){
-                    if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                        lineLengths.push(wordsArr.slice(word).join().length);
-                        word=wordsArr.length
-                        
+                else{
+                    var integ=0;
+                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                        integ++;
                     }
-                    else{
-                        var integ = 0;
-                        while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                            integ++;
+                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                    word+=integ-1;
+                }
+            }
+            // now we have the variable lineLengths
+            // this is an array holding all the wrapped line lengths
+            //
+            //use variable 'integ' to figure out 
+            //what line the cursor is on
+            integ=0;
+            var totalCharacters=lineLengths[0];
+            while(totalCharacters<pos.col){
+                integ++;
+                totalCharacters+=lineLengths[integ]+1;
+            }
+            // totalCharacters now equals
+            // all character up to and including
+            // current line (integ) including spaces
+            
+            //if this is the first line in a block of wrapped text
+            if(integ==0){
+                var prevLineType = lines[pos.row-1][1];
+                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
+                // If the previous line (the one we're jumping into)
+                // has only one line, don't run the calcs, just go to it
+                if(lines[pos.row-1][0].length<newWrapVars[0]){
+                    pos.row--;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                }
+                else{
+                    var wordsArr = lines[pos.row-1][0].split(' ');
+                    var word = 0;
+                    var lineLengths=[];
+                    while(word<wordsArr.length){
+                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                            lineLengths.push(wordsArr.slice(word).join().length);
+                            word=wordsArr.length
+                            
                         }
-                        lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                        word+=integ-1;
-                    }
-                // now we have the variable lineLengths
-                // this is an array holding all the wrapped line lengths
-                }
-                pos.row--;
-                pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-                if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
-                
-            }
-        }
-        // if this is some middle line in a block of wrapped text
-        else{
-            pos.col-=lineLengths[integ-1]+1;
-            if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
-        }
-    }
-    //if the current block does
-    //not have wrapped text
-    else{
-        if(pos.row==0){
-            pos.col=0;
-        }
-        else{
-            var prevLineType = lines[pos.row-1][1];
-            if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
-            else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
-            else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
-            else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
-            else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
-            else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
-            // If the previous line (the one we're jumping into)
-            // has only one line, don't run the calcs, just go to it
-            if(lines[pos.row-1][0].length<newWrapVars[0]){
-                pos.row--;
-                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-            }
-            //if the previous line has wrapped text
-            //do crazy calcs to figure where to
-            // jump to
-            else{
-                var wordsArr = lines[pos.row-1][0].split(' ');
-                var word = 0;
-                var lineLengths=[];
-                while(word<wordsArr.length){
-                    if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                        lineLengths.push(wordsArr.slice(word).join().length);
-                        word=wordsArr.length
-                        
-                    }
-                    else{
-                        var integ = 0;
-                        while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                            integ++;
+                        else{
+                            var integ = 0;
+                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                                integ++;
+                            }
+                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                            word+=integ-1;
                         }
-                        lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                        word+=integ-1;
+                    // now we have the variable lineLengths
+                    // this is an array holding all the wrapped line lengths
                     }
-                // now we have the variable lineLengths
-                // this is an array holding all the wrapped line lengths
+                    pos.row--;
+                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+                    
                 }
-                pos.row--;
-                pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-                if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+            }
+            // if this is some middle line in a block of wrapped text
+            else{
+                pos.col-=lineLengths[integ-1]+1;
+                if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
             }
         }
+        //if the current block does
+        //not have wrapped text
+        else{
+            if(pos.row==0){
+                pos.col=0;
+            }
+            else{
+                var prevLineType = lines[pos.row-1][1];
+                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
+                // If the previous line (the one we're jumping into)
+                // has only one line, don't run the calcs, just go to it
+                if(lines[pos.row-1][0].length<newWrapVars[0]){
+                    pos.row--;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                }
+                //if the previous line has wrapped text
+                //do crazy calcs to figure where to
+                // jump to
+                else{
+                    var wordsArr = lines[pos.row-1][0].split(' ');
+                    var word = 0;
+                    var lineLengths=[];
+                    while(word<wordsArr.length){
+                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                            lineLengths.push(wordsArr.slice(word).join().length);
+                            word=wordsArr.length
+                            
+                        }
+                        else{
+                            var integ = 0;
+                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                                integ++;
+                            }
+                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                            word+=integ-1;
+                        }
+                    // now we have the variable lineLengths
+                    // this is an array holding all the wrapped line lengths
+                    }
+                    pos.row--;
+                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+                }
+            }
+        }
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+        paint(false,false,false,true);
     }
-    if(!shiftDown){
-        anch.col=pos.col;
-        anch.row=pos.row;
-    }
-    paint(false,false,false,true);
 }
 	
 function downArrow(){
-    if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
-    var type = lines[pos.row][1];
-    if (type==0)var wrapVars=WrapVariableArray[0];
-    else if(type==1) var wrapVars = WrapVariableArray[1];
-    else if(type==2) var wrapVars = WrapVariableArray[2];
-    else if(type==3) var wrapVars = WrapVariableArray[3];
-    else if(type==4) var wrapVars = WrapVariableArray[4];
-    else if(type==5) var wrapVars = WrapVariableArray[5];
-    if (lines[pos.row][0].length>wrapVars[0]){
-        var wordsArr = lines[pos.row][0].split(' ');
-        var word = 0;
-        var lineLengths=[];
-        while(word<wordsArr.length){
-            if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                lineLengths.push(wordsArr.slice(word).join().length);
-                word=wordsArr.length
-                
-            }
-            else{
-                var integ = 0;
-                while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                    integ++;
+    if(typeToScript){
+        if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
+        var type = lines[pos.row][1];
+        if (type==0)var wrapVars=WrapVariableArray[0];
+        else if(type==1) var wrapVars = WrapVariableArray[1];
+        else if(type==2) var wrapVars = WrapVariableArray[2];
+        else if(type==3) var wrapVars = WrapVariableArray[3];
+        else if(type==4) var wrapVars = WrapVariableArray[4];
+        else if(type==5) var wrapVars = WrapVariableArray[5];
+        if (lines[pos.row][0].length>wrapVars[0]){
+            var wordsArr = lines[pos.row][0].split(' ');
+            var word = 0;
+            var lineLengths=[];
+            while(word<wordsArr.length){
+                if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                    lineLengths.push(wordsArr.slice(word).join().length);
+                    word=wordsArr.length
+                    
                 }
-                lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                word+=integ-1;
+                else{
+                    var integ = 0;
+                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                        integ++;
+                    }
+                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                    word+=integ-1;
+                }
+            }
+            //use variable 'integ' to figure out 
+            //what line the cursor is on
+            integ=0;
+            var totalCharacters=lineLengths[0];
+            while(totalCharacters<pos.col){
+                integ++;
+                totalCharacters+=lineLengths[integ]+1;
+            }
+            //if this is the last line in a block of wrapped text
+            if(integ+1==lineLengths.length){
+                for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
+                    pos.col-=lineLengths[newinteg];
+                }
+                pos.col--;
+                pos.row++;
+                if(pos.row>lines.length-1){
+                    pos.row--;
+                    pos.col=lines[pos.row][0].length;
+                }
+                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+            }
+            // if this is some middle line in a block of wrapped text
+            else{
+                pos.col+=lineLengths[integ]+1;
+                if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
             }
         }
-        //use variable 'integ' to figure out 
-        //what line the cursor is on
-        integ=0;
-        var totalCharacters=lineLengths[0];
-        while(totalCharacters<pos.col){
-            integ++;
-            totalCharacters+=lineLengths[integ]+1;
-        }
-        //if this is the last line in a block of wrapped text
-        if(integ+1==lineLengths.length){
-            for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
-                pos.col-=lineLengths[newinteg];
-            }
-            pos.col--;
-            pos.row++;
-            if(pos.row>lines.length-1){
-                pos.row--;
+        else{
+            if(pos.row==lines.length-1){
                 pos.col=lines[pos.row][0].length;
             }
-            if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+            else{
+                pos.row++;
+                if(pos.row>lines.length-1) pos.row=lines.length-1;
+                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+            }
         }
-        // if this is some middle line in a block of wrapped text
-        else{
-            pos.col+=lineLengths[integ]+1;
-            if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
         }
+        paint(false,false,false,true);
     }
-    else{
-        if(pos.row==lines.length-1){
-            pos.col=lines[pos.row][0].length;
-        }
-        else{
-            pos.row++;
-            if(pos.row>lines.length-1) pos.row=lines.length-1;
-            if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-        }
-    }
-    if(!shiftDown){
-        anch.col=pos.col;
-        anch.row=pos.row;
-    }
-    paint(false,false,false,true);
 }
 
 function leftArrow(){
-	if(pos.row==0 && pos.col==0) return;
-	if(pos.col==0){
-		pos.row--;
-		pos.col=lines[pos.row][0].length;
-	}
-	else{
-        pos.col = pos.col-1;
-    }
-    
-    if(!shiftDown){
-        anch.col=pos.col;
-        anch.row=pos.row;
+    if(typeToScript){
+        if(pos.row==0 && pos.col==0) return;
+        if(pos.col==0){
+            pos.row--;
+            pos.col=lines[pos.row][0].length;
+        }
+        else{
+            pos.col = pos.col-1;
+        }
+        
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
     }
 }
 	
 function rightArrow(){
-	if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
-	if(pos.col==lines[pos.row][0].length){
-		pos.row++;
-		pos.col=0;
-	}
-	else pos.col = pos.col+1;
-    
-    if(!shiftDown){
-        anch.col=pos.col;
-        anch.row=pos.row;
+    if(typeToScript){
+        if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
+        if(pos.col==lines[pos.row][0].length){
+            pos.row++;
+            pos.col=0;
+        }
+        else pos.col = pos.col+1;
+        
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
     }
 }
 
 function backspace(e){
-    e.preventDefault();
-    var forceCalc=false;
-    var slug=false;
-    if (lines[pos.row][1]==0)var slug=true;
-    // simple case, one letter backspace
-	if(pos.row==anch.row && pos.col==anch.col){
-        if(pos.col==0 && pos.row==0) return;
-        else if(lines[pos.row][1]==4 && pos.col==1){
-            var j=lines[pos.row][0];
-            if(j.charAt(0)=='(')j=j.substr(1);
-            if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
-            var newPos = lines[pos.row-1][0].length;
-            lines.splice(pos.row,1);
-            pos.row--
-            pos.col=newPos;
-            lines[pos.row][0]=lines[pos.row][0]+j;
-            undoQue.push(['back',pos.row, pos.col,'line',4]);
-        }
-        else if(pos.col==0){
-            var elem = lines[pos.row][1];
-            var j = lines[pos.row][0];
-            lines.splice(pos.row,1);
-            var newPos = lines[pos.row-1][0].length;
-            lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-            pos.col=newPos;
-            pos.row--;
-            undoQue.push(['back',pos.row, pos.col,'line',elem]);
-            forceCalc=true;
-        }
-        else{
-            undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-            pos.col--;
-        }
-        anch.col=pos.col;
-        anch.row=pos.row;
-    }
-    // This is for deleting a range
-    else{
-        //put the focus after the anchor
-        var switchPos =false;
-        if(anch.row>pos.row)switchPos=true;
-        if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-        if(switchPos){
-            var coor = anch.row;
-            anch.row = pos.row;
-            pos.row = coor;
-            coor = anch.col;
-            anch.col = pos.col;
-            pos.col = coor;
-        }
-        var undoCount=0;
-        while(pos.col!=anch.col || pos.row!=anch.row){
-            undoCount++;
-            if(lines[pos.row][1]==0)slug=true;
-            if(pos.col==0){
+    if(typeToScript){
+        e.preventDefault();
+        var forceCalc=false;
+        var slug=false;
+        if (lines[pos.row][1]==0)var slug=true;
+        // simple case, one letter backspace
+        if(pos.row==anch.row && pos.col==anch.col){
+            if(pos.col==0 && pos.row==0) return;
+            else if(lines[pos.row][1]==4 && pos.col==1){
+                var j=lines[pos.row][0];
+                if(j.charAt(0)=='(')j=j.substr(1);
+                if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
+                var newPos = lines[pos.row-1][0].length;
+                lines.splice(pos.row,1);
+                pos.row--
+                pos.col=newPos;
+                lines[pos.row][0]=lines[pos.row][0]+j;
+                undoQue.push(['back',pos.row, pos.col,'line',4]);
+            }
+            else if(pos.col==0){
                 var elem = lines[pos.row][1];
                 var j = lines[pos.row][0];
                 lines.splice(pos.row,1);
@@ -551,108 +527,150 @@ function backspace(e){
                 lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                 pos.col=newPos;
                 pos.row--;
-                forceCalc=true;
                 undoQue.push(['back',pos.row, pos.col,'line',elem]);
+                forceCalc=true;
             }
             else{
                 undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
                 lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
                 pos.col--;
             }
+            anch.col=pos.col;
+            anch.row=pos.row;
         }
-        undoQue.push(['br',undoCount]);
+        // This is for deleting a range
+        else{
+            //put the focus after the anchor
+            var switchPos =false;
+            if(anch.row>pos.row)switchPos=true;
+            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+            if(switchPos){
+                var coor = anch.row;
+                anch.row = pos.row;
+                pos.row = coor;
+                coor = anch.col;
+                anch.col = pos.col;
+                pos.col = coor;
+            }
+            var undoCount=0;
+            while(pos.col!=anch.col || pos.row!=anch.row){
+                undoCount++;
+                if(lines[pos.row][1]==0)slug=true;
+                if(pos.col==0){
+                    var elem = lines[pos.row][1];
+                    var j = lines[pos.row][0];
+                    lines.splice(pos.row,1);
+                    var newPos = lines[pos.row-1][0].length;
+                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                    pos.col=newPos;
+                    pos.row--;
+                    forceCalc=true;
+                    undoQue.push(['back',pos.row, pos.col,'line',elem]);
+                }
+                else{
+                    undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                    pos.col--;
+                }
+            }
+            undoQue.push(['br',undoCount]);
+        }
+        paint(false,false,forceCalc,false);
+        if (slug)sceneIndex();
     }
-    paint(false,false,forceCalc,false);
-    if (slug)sceneIndex();
 }
 function deleteButton(){
-    var slug=false;
-    var forceCalc=false;
-    if(pos.row==anch.row&&pos.col==anch.col){
-        if (lines[pos.row][1]==0)var slug=true;
-        if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-        if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
-            undoQue.push(['delete',pos.row,pos.col,'line',4]);
-            lines.splice(pos.row,1);
-            pos.col=0;
-            anch.col=0;
-        }
-        else if(pos.col==(lines[pos.row][0].length)){
-            undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
-            if (lines[pos.row+1][1]==0)slug=true;
-            var j = lines[pos.row+1][0];
-            lines.splice((pos.row+1),1);
-            lines[pos.row][0]+=j;
-            forceCalc=true;
-        }
-        else{
-            undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
-            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
-        }
-    }
-    // This is for deleting a range
-    else{
-        //put the focus after the anchor
-        var switchPos =false;
-        if(anch.row>pos.row)switchPos=true;
-        if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-        if(switchPos){
-            var coor = anch.row;
-            anch.row = pos.row;
-            pos.row = coor;
-            coor = anch.col;
-            anch.col = pos.col;
-            pos.col = coor;
-        }
-        var undoCount=0;
-        while(pos.col!=anch.col || pos.row!=anch.row){
-            undoCount++;
-            if(lines[pos.row][1]==0)slug=true;
-            if(pos.col==0){
-                undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
-                var j = lines[pos.row][0];
+    if(typeToScript){
+        var slug=false;
+        var forceCalc=false;
+        if(pos.row==anch.row&&pos.col==anch.col){
+            if (lines[pos.row][1]==0)var slug=true;
+            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+                undoQue.push(['delete',pos.row,pos.col,'line',4]);
                 lines.splice(pos.row,1);
-                var newPos = lines[pos.row-1][0].length;
-                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                pos.col=newPos;
-                pos.row--;
+                pos.col=0;
+                anch.col=0;
+            }
+            else if(pos.col==(lines[pos.row][0].length)){
+                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
+                if (lines[pos.row+1][1]==0)slug=true;
+                var j = lines[pos.row+1][0];
+                lines.splice((pos.row+1),1);
+                lines[pos.row][0]+=j;
                 forceCalc=true;
             }
             else{
-                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                pos.col--;
+                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
             }
         }
-        undoQue.push(['dr',undoCount]);
+        // This is for deleting a range
+        else{
+            //put the focus after the anchor
+            var switchPos =false;
+            if(anch.row>pos.row)switchPos=true;
+            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+            if(switchPos){
+                var coor = anch.row;
+                anch.row = pos.row;
+                pos.row = coor;
+                coor = anch.col;
+                anch.col = pos.col;
+                pos.col = coor;
+            }
+            var undoCount=0;
+            while(pos.col!=anch.col || pos.row!=anch.row){
+                undoCount++;
+                if(lines[pos.row][1]==0)slug=true;
+                if(pos.col==0){
+                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
+                    var j = lines[pos.row][0];
+                    lines.splice(pos.row,1);
+                    var newPos = lines[pos.row-1][0].length;
+                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                    pos.col=newPos;
+                    pos.row--;
+                    forceCalc=true;
+                }
+                else{
+                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
+                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                    pos.col--;
+                }
+            }
+            undoQue.push(['dr',undoCount]);
+        }
+        paint(false,false,forceCalc,false);
+        if (slug)sceneIndex();
     }
-    paint(false,false,forceCalc,false);
-    if (slug)sceneIndex();
 }
 	
 function enter(){
-    undoQue.push(['enter', pos.row, pos.col]);
-    if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
-        
-	var j = lines[pos.row][0].slice(0,pos.col);
-	var k = lines[pos.row][0].slice(pos.col);
-	lines[pos.row][0] = j;
-    if (lines[pos.row][1] == 0)var newElem = 1;
-    else if (lines[pos.row][1] == 1)var newElem = 2;
-    else if (lines[pos.row][1] == 2)var newElem = 3;
-    else if (lines[pos.row][1] == 4)var newElem = 3;
-    else if (lines[pos.row][1] == 3)var newElem = 2;
-    else if (lines[pos.row][1] == 5)var newElem = 0;
-	var newArr = [k,newElem];
-	lines.splice(pos.row+1,0,newArr);
-	pos.row++;
-	pos.col=0;
-    anch.row=pos.row;
-    anch.col=pos.col;
-    // This means it was a scene before
-    // so run scene index
-    paint(false,false,true,false);
-    if(lines[pos.row][1]==1)sceneIndex();
+    if(typeToScript){
+        undoQue.push(['enter', pos.row, pos.col]);
+        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
+            
+        var j = lines[pos.row][0].slice(0,pos.col);
+        var k = lines[pos.row][0].slice(pos.col);
+        lines[pos.row][0] = j;
+        if (lines[pos.row][1] == 0)var newElem = 1;
+        else if (lines[pos.row][1] == 1)var newElem = 2;
+        else if (lines[pos.row][1] == 2)var newElem = 3;
+        else if (lines[pos.row][1] == 4)var newElem = 3;
+        else if (lines[pos.row][1] == 3)var newElem = 2;
+        else if (lines[pos.row][1] == 5)var newElem = 0;
+        var newArr = [k,newElem];
+        lines.splice(pos.row+1,0,newArr);
+        pos.row++;
+        pos.col=0;
+        anch.row=pos.row;
+        anch.col=pos.col;
+        // This means it was a scene before
+        // so run scene index
+        paint(false,false,true,false);
+        if(lines[pos.row][1]==1)sceneIndex();
+    }
 }
 
 function tab(){
@@ -692,19 +710,21 @@ function tab(){
 }
 	
 function handlekeypress(event) {
-    event.preventDefault();
-	var d= new Date();
-  	milli = d.getMilliseconds();
-    if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
-	if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
-        //console.log(event.which);
-        undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
-		lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
-  		pos.col++;
-        if (lines[pos.row][1]==0)sceneIndex();
-  	}
-    anch.col=pos.col;
-    anch.row=pos.row;
+    if(typeToScript){
+        event.preventDefault();
+        var d= new Date();
+        milli = d.getMilliseconds();
+        if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
+        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
+            //console.log(event.which);
+            undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
+            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
+            pos.col++;
+            if (lines[pos.row][1]==0)sceneIndex();
+        }
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 
 // Managining arrays
@@ -939,6 +959,31 @@ function topMenuOut(v){
         document.getElementById(v).style.color='black';
     }
 }
+
+//menu options and stuff
+//rename
+function renamePrompt(){
+    typeToScript=false;
+    document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
+    document.getElementById('renameField').value = document.getElementById('title').innerHTML;
+    document.getElementById('renamepopup').style.visibility = 'visible';
+}
+
+function hideRenamePrompt(){
+	document.getElementById('renameField').value = "";
+	document.getElementById('renamepopup').style.visibility = 'hidden';
+    typeToScript=true;
+}
+	
+function renameScript(){
+	var rename = document.getElementById('renameField').value;
+	if (rename==""){return;}
+	document.getElementById('title').innerHTML = rename;
+	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
+	hideRenamePrompt()
+}
+	
+
 
 //drawing functions
 // like the scroll arrows

@@ -8,7 +8,7 @@ function uploadWindow(evt){
 		document.getElementById('uploadFrame').style.height= '210px';
 		document.getElementById('uploadFrame').style.width= '250px';
 		document.getElementById('uploading').style.display = 'none';
-		window.open(evt.data);
+		window.open('editor?resource_id='+evt.data);
 		refreshList();
 	}
 }

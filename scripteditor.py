@@ -20,7 +20,7 @@ import gdata.contacts.client
 import api
 import random
 import zipfile
-import exporttxt
+import export
 from pyPdf import PdfFileWriter, PdfFileReader
 import gdata.acl.data
 import logging
@@ -194,70 +194,34 @@ class Rename (webapp.RequestHandler):
 class Export (webapp.RequestHandler):
   def get(self):
     fromPage = self.request.get('fromPage')
-    token = get_auth_token(self.request)
     resource_id = self.request.get('resource_id')
     export_format = self.request.get('export_format')
+    user=users.get_current_user().email().lower()
     if resource_id:
-      client = gdata.docs.client.DocsClient()
-      entry = client.GetDoc(resource_id, auth_token = token)
-      filename = str(entry.title.text)
-      if export_format == 'txt':
-        exportFormat = '&exportFormat=html'
-      else:
-        exportFormat = '&exportFormat=pdf'
-      application_type = ''
-      if export_format == 'pdf':
-        application_type = 'application/pdf'
-      elif export_format == 'txt':
-        application_type = 'text/plain'
-      #This is where I get all the problems, on GetFileContent. 
-      #Loop three times to reduce errors
-      k=0
-      while k<3:
-        try:
-          script = client.GetFileContent(uri=entry.content.src + exportFormat, auth_token=token)
-          k=5
-        except:
-          k=k+1
-          if k==3:
-            self.response.headers['Content-Type'] = 'text/html'
-            self.response.out.write('<p>grrr.... GOOGLE! Something screwed up. Try reloading this page to try again</p>')
-            return
-      if export_format == 'pdf':
-        data = StringIO.StringIO(script)
-        output = PdfFileWriter()
-        input1 = PdfFileReader(data)
-
-        i=0
-        pages = input1.getNumPages()
-        while i<pages:
-          output.addPage(input1.getPage(i))
-          i=i+1
-
-        outputStream = StringIO.StringIO()
-        output.write(outputStream)
-        filename = 'filename=' + filename + '.pdf'
-        self.response.headers['Content-Type'] = application_type
-        self.response.headers['Content-Disposition'] = filename
-        self.response.out.write(outputStream.getvalue())
-        size = len(outputStream.getvalue())
-      elif export_format =='txt':
-        newfile = exporttxt.exportToText(script)
-        filename = 'filename=' + filename + '.txt'
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.headers['Content-Disposition'] = 'attachment; ' +filename
-        self.response.out.write(newfile.getvalue())
-        size = len(newfile.getvalue())
-      # record who's doing what
-      a = Activity(name=users.get_current_user().email(),
-                   scriptName = entry.title.text,
-                   resource_id = resource_id,
-                   format = export_format,
-                   scriptSize = size,
-                   triesBeforeSuccess = k,
-                   fromPage = fromPage,
-                   activity="export")
-      a.put()
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results = q.fetch(500)
+      p=False
+      for i in results:
+        if i.user==user:
+          if i.permission=='owner':
+            p=True
+            title=i.title
+            logging.info(title)
+      if p==True:
+        q=db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE resource_id='"+resource_id+"' "+
+                      "ORDER BY version DESC")
+        results = q.fetch(1000)
+        data=results[0].data
+        
+        if export_format =='txt':
+          newfile = export.Text(data)
+          filename = 'filename=' + str(title) + '.txt'
+          logging.info(filename)  
+          self.response.headers['Content-Type'] = 'text/plain'
+          self.response.headers['Content-Disposition'] = 'attachment; ' +filename
+          self.response.out.write(newfile.getvalue())
   
 class EmailScript (webapp.RequestHandler):
   def post(self):
@@ -413,21 +377,23 @@ class ConvertProcess (webapp.RequestHandler):
     capture = self.request.get('filename')
     if capture:
       filename = capture.replace('%20', ' ')
-    token=get_auth_token(self.request)
-    client = gdata.docs.client.DocsClient()
-    feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
-    i=0
-    for entry in feed.entry:
-       if entry.title.text == 'RawScripts':
-          i=1
-          location = entry
-    if i==0:
-      new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
-      location = new_folder
-    doc = client.GetDoc('document%3A0AaXZx9SZPN4pZGhqaHhrdGJfMjY2Y2Q2Y3czaGg', auth_token=token)
-    new_doc = client.Copy(doc, filename, auth_token=token)
-    client.Move(new_doc, location, auth_token=token)
+    user=users.get_current_user().email()
+    alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    resource_id=''
+    for x in random.sample(alphabet,20):
+      resource_id+=x
 
+    q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+    results=q.fetch(2)
+
+    while len(results)>0:
+      resource_id=''
+      for x in random.sample(alphabet,10):
+        resource_id+=x
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results=q.fetch(2)
 
     # Format Celtx file
     celtx = StringIO.StringIO(self.request.get('script'))
@@ -442,61 +408,62 @@ class ConvertProcess (webapp.RequestHandler):
     txt = z.read(script)
     headless= txt.split('<body>')[1]
     t=headless.split('</body>')[0]
-    t = t.replace('<p class="action">', '<h2>')
-    t = t.replace('<p class="character">', '<h3>')
-    t = t.replace('<p class="dialog">', '<h4>')
-    t = t.replace('<p class="transition">', '<h5>')
-    t = t.replace('<p class="parenthetical">', '<h6>')
-    t = t.replace('</span>', '')
-    t = t.replace('(O.S)', '(o.s.)')
-    t = t.replace('(o.s)', '(o.s.)')
-    t = t.replace(' (cont)', '')
-    t = t.replace(' (CONT)', '')
+    pattern = re.compile(r'<span.*?">', re.DOTALL)
+    t = re.sub(pattern, '', t)
+    t = t.replace("</span>","")
+    t = t.replace(" <br>",'')
+    t = t.replace("<br> ",'')
+    t = t.replace("<br>",'')
     t = t.replace('\n', ' ')
     t = t.replace('\r\n', " ")
-    t = t.replace('<br>', '')
-    t = t.replace('&nbsp;', '')
-    pattern = re.compile(r'<span.*?>')
-    xyz=0
-    while xyz<50:
-      t = re.sub(pattern, '', t)
-      xyz=xyz+1
+    t = t.replace('&nbsp;','')
+    t = t.replace(' (cont)', '')
     parts = t.split('</p>')
     parts.pop()
-    script=''
-    i=0
-    while i < len(parts):
-      num = parts[i][3]
-      if num == " ":
-        sh = parts[i].split('ing">')[1]
-        parts[i]= '<h1>' + sh +'</h1>'
-        script = script+parts[i]
-        i=i+1
-      else:
-        parts[i] = parts[i] + '</h' +num+'>'
-        script = script + parts[i]
-        i=i+1
 
-    # Save formated thing to Google Docs
-    header = """<div class="m"></div>"""
-    script = header+script
-    size = len(script)
-    ms = gdata.data.MediaSource(file_handle=script, content_length=size, content_type='text/html')
-    client.Update(new_doc, media_source=ms, auth_token=token, force=True)
-    url = 'http://www.rawscripts.com/editor?resource_id=' + new_doc.resource_id.text
+    jl=[]
+    count=0
+    for i in parts:
+        unit=[]
+        i=i.replace('"',"'")
+        unit.append
+        if i[4]=='i':
+            unit.append(i.split('>')[1])
+            unit.append(0)
+        else:
+            unit.append(i.split('>')[1])
+            if i[11]=='a':
+                unit.append(1)
+            if i[11]=='c':
+                unit.append(2)
+            if i[11]=='d':
+                unit.append(3)
+            if i[11]=='p':
+                unit.append(4)
+            if i[11]=='t':
+                unit.append(5)
+        jl.append(unit)
+        
+    contents=json.dumps(jl)
 
-    template_values = { 'url': url }
+    s = ScriptData(resource_id=resource_id,
+                   data=contents,
+                   version=1)
+    s.put()
+
+    u = UsersScripts(user=user,
+                     title=filename,
+                     resource_id=resource_id,
+                     permission='owner')
+    u.put()
+    
+
+    template_values = { 'url': resource_id }
     
     self.response.headers['Content-Type'] = 'text/html'
     path = os.path.join(os.path.dirname(__file__), 'UploadComplete.html')
     self.response.out.write(template.render(path, template_values))
-    # Track what the user is doing
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = new_doc.title.text,
-                 resource_id = new_doc.resource_id.text,
-                 scriptSize = size,
-                 activity="upload")
-    a.put()
+    
 
 
 class Share (webapp.RequestHandler):

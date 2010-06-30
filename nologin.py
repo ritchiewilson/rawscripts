@@ -20,10 +20,11 @@ import gdata.contacts.client
 import api
 import random
 import zipfile
-import exporttxt
+import export
 from pyPdf import PdfFileWriter, PdfFileReader
 import gdata.acl.data
 import logging
+import json
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -129,16 +130,17 @@ class ScriptContent (webapp.RequestHandler):
       if i.user==users.get_current_user().email().lower():
         if i.permission=='owner':
           p=True
-    logging.info(resource_id)
+          title=i.title
 
     if p==True:
       q = db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE resource_id='"+resource_id+"' "+
                       "ORDER BY version DESC")
       results = q.fetch(1000)
+
       
       self.response.headers["Content-Type"]='text/plain'
-      self.response.out.write(results[0].data)
+      self.response.out.write(title+'?title='+results[0].data)
 
 
 class Save (webapp.RequestHandler):
