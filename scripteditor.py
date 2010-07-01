@@ -20,10 +20,11 @@ import gdata.contacts.client
 import api
 import random
 import zipfile
-import exporttxt
+import export
 from pyPdf import PdfFileWriter, PdfFileReader
 import gdata.acl.data
 import logging
+import json
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -75,22 +76,18 @@ class Notes (db.Model):
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
 
-class Activity (db.Model):
-  name = db.StringProperty()
-  activity = db.StringProperty()
-  numberOfScripts = db.IntegerProperty()
-  scriptSize = db.IntegerProperty()
+class ScriptData (db.Model):
   resource_id = db.StringProperty()
-  scriptName = db.StringProperty()
-  format = db.StringProperty()
-  recipients = db.StringListProperty()
-  numberRecipients = db.IntegerProperty()
-  numberOfContacts = db.IntegerProperty()
-  fromPage = db.StringProperty()
-  error = db.StringProperty()
-  triesBeforeSuccess = db.IntegerProperty
-  mobile = db.IntegerProperty()
+  data = db.TextProperty()
+  version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
+
+class UsersScripts (db.Model):
+  user = db.StringProperty()
+  resource_id = db.StringProperty()
+  title = db.StringProperty()
+  updated = db.StringProperty()
+  permission = db.StringProperty()
 
 class ScriptList(webapp.RequestHandler):
   """Requests the list of the user's Screenplays in the RawScripts folder."""
@@ -98,21 +95,6 @@ class ScriptList(webapp.RequestHandler):
   def get(self):
 
     template_values = { 'sign_out': users.create_logout_url('/') }
-    # See if we have an auth token for this user.
-    token = get_auth_token(self.request)
-    if token is None:
-      template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(
-          self.request.url, ['http://docs.google.com/feeds/', 'http://www.google.com/m8/feeds/'])
-      path = os.path.join(os.path.dirname(__file__), 'auth_required.html')
-      self.response.out.write(template.render(path, template_values))
-      return    
-  
-    elif token == False:
-      self.response.out.write(
-          '<html><body><a href="%s">You must sign in first</a>'
-          '</body></html>' % users.create_login_url('/scriptlist'))
-      return
-
     template_values['user'] = users.get_current_user().email()
 
     
@@ -129,11 +111,6 @@ class ScriptList(webapp.RequestHandler):
 
     self.response.headers['Content-Type'] = 'text/html'
     self.response.out.write(template.render(path, template_values))
-    # record who's doing what
-    a = Activity(name=users.get_current_user().email(),
-                 mobile = mobile,
-                 activity="scriptlist")
-    a.put()
 
     q= db.GqlQuery("SELECT * FROM Users "+
                    "WHERE name='"+users.get_current_user().email()+"'")
@@ -147,7 +124,6 @@ class ScriptList(webapp.RequestHandler):
 
 class List (webapp.RequestHandler):
   def post(self):
-    path = os.path.join(os.path.dirname(__file__), 'list.html')
     mobile = 0
     #Check if should send to mobile Page
     ua = self.request.user_agent
@@ -156,232 +132,96 @@ class List (webapp.RequestHandler):
       if props['mobileDevice']:
         path = os.path.join(os.path.dirname(__file__), 'mobilelist.html')
         mobile = 1
-    token=get_auth_token(self.request)
-    client = gdata.docs.client.DocsClient()
-    feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
-    i = 0
-    for entry in feed.entry:
-       if entry.title.text == 'RawScripts':
-          i=1
-          raw_folder = entry
-          location = entry.content.src
-    if i==0:
-      new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
-      location = new_folder.content.src
-      raw_folder=new_folder
 
-    #move new shared scripts into RawScripts Folder, if need Be
-    client = gdata.docs.client.DocsClient()
-    query = db.GqlQuery("SELECT * FROM ShareDB "+
-                        "WHERE name='"+users.get_current_user().email().lower()+"'")
-    results = query.fetch(500)
-    for m in results:
-      try:
-        new_shared_doc = client.GetDoc(m.resource_id, auth_token=token)
-        client.Move(new_shared_doc, raw_folder, auth_token=token)
-        m.delete()
-      except:
-        randomVar=1
-      
-    folder_feed = client.GetDocList(uri=location, auth_token=token)
-    today = datetime.date.today()
-    owned = '?owned='
-    shared = '?shared='
-    current_user = users.get_current_user().email()
+    q= db.GqlQuery("SELECT * FROM UsersScripts "+
+                   "WHERE user='"+users.get_current_user().email().lower()+"' "+
+                   "AND permission='owner'")
+    results = q.fetch(1000)
 
-    #get last viewed information on all of this users scripts
-    #
-    etagsQuery = db.GqlQuery("SELECT * FROM LastUpdatedEtag "+
-                          "WHERE name='"+users.get_current_user().email()+"'")
-    etagsResults = etagsQuery.fetch(500)
-    #star Cycling through scripts
-    for script in folder_feed.entry:
+    pl = []
+    for i in results:
+      pl.append([i.resource_id, i.title, i.updated])
 
-      #sort out time notation
-      i=0
-      yyyymmdd = str(script.updated.text).split('T')
-      date = yyyymmdd[0].split('-')
-      months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
-      if int(date[0]) == int(today.year):
-        if int(date[1]) == int(today.month):
-          if int(date[2]) == int(today.day):
-            i=1
-      if i==1:
-        time = yyyymmdd[1].split(':')
-        script.updated.text = str(int(time[0])) + ':' + time[1]
-      else:
-        month = int(date[1])-1
-        dateformat = months[month] + ' ' + str(int(date[2]))
-        script.updated.text = dateformat
-      #figure out who owns what
-      # put items in apropriate list
-      try:
-        
-        acl_feed = client.GetAclPermissions(script.resource_id.text, auth_token=token)
-        for acl in acl_feed.entry:
-          if acl.role.value == 'owner':
-            if acl.scope.value.lower() == current_user.lower():
-              owned = owned + '?scriptname='+script.title.text
-              owned = owned + '?resource_id='+script.resource_id.text
-              owned = owned + '?alternate_link='+script.GetAlternateLink().href
-              owned = owned + '?updated=' + script.updated.text
-              sharecounter=0
-              for acl in acl_feed.entry:
-                if not acl.role.value == 'owner':
-                  sharecounter=sharecounter+1
-                  owned = owned + '?shared_with=' + acl.scope.value
-              if sharecounter == 0:
-                owned = owned+'?shared_with=none'
-              #find out of this script has new notes for the user
-              query = db.GqlQuery("SELECT * From Notes "+
-                                 "WHERE resource_id='"+script.resource_id.text+"'")
-              results = query.fetch(500)
-              uselessVariable = 0
-              for count in results:
-                uselessVariable=uselessVariable+1
-              if not uselessVariable==0:
-                owned = owned +'?newNotes=newNotes'
-            else:
-              shared = shared + '?scriptname='+script.title.text
-              shared = shared + '?resource_id='+script.resource_id.text
-              shared = shared + '?alternate_link='+script.GetAlternateLink().href
-              shared = shared + '?updated=' + script.updated.text
-              for acl in acl_feed.entry:
-                if acl.role.value == 'owner':
-                  shared = shared + '?shared_with=' + acl.scope.value
-              noEtags=1
-              for t in etagsResults:
-                if t.resource_id == script.resource_id.text:
-                  noEtags=0
-                  if t.etag == script.etag:
-                    shared = shared + '?etagUpdate=no'
-                  else:
-                    shared = shared + '?etagUpdate=yes'
-              if noEtags==1:
-                shared = shared + '?etagUpdate=no'
-                
-      except:
-        notThere = 1
-            
-    k=0
-    for entry in folder_feed.entry:
-      k=k+1
-    if owned =='?owned=':
-      owned = owned+'none'
-    if shared == '?shared=':
-      shared = shared + 'none'
-    fullList = owned+shared
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(fullList)
-    a = Activity(name=users.get_current_user().email(),
-                 numberOfScripts = k,
-                 mobile = mobile,
-                 activity="scriptlist")
-    a.put()
+    j = json.dumps(pl)
+    self.response.out.write(j)
 
 class Delete (webapp.RequestHandler):
   def post(self):
-    token = get_auth_token(self.request)
     resource_id = self.request.get('resource_id')
-    if not resource_id==None:
-      client = gdata.docs.client.DocsClient()
-      entry = client.GetDoc(resource_id, auth_token=token)
-      client.Delete(entry, auth_token=token)
-      # record who's doing what
-      a = Activity(name=users.get_current_user().email(),
-                   scriptName = entry.title.text,
-                   resource_id = resource_id,
-                   activity="delete")
-      a.put()
-    self.redirect('/scriptlist')
+    q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(1000)
+    p=False
+    for i in results:
+      if i.permission=='owner':
+        if i.user==users.get_current_user().email().lower():
+          p=True
+    if p==True:
+      for i in results:
+        if i.permission=='owner':
+          i.permission='ownerDeleted'
+          i.put()
+        if i.permission=='collab':
+          i.permission='collabDeleted'
+          i.put()
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write('1')
+    else:
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write('0')
+    
+    
 
 class Rename (webapp.RequestHandler):
   def post(self):
-    token = get_auth_token(self.request)
     resource_id = self.request.get('resource_id')
     fromPage = self.request.get('fromPage')
     rename = self.request.get('rename')
-    if not resource_id==None:
-      client = gdata.docs.client.DocsClient()
-      entry = client.GetDoc(resource_id, auth_token=token)
-      entry.title.text = rename
-      client.Update(entry, auth_token=token)
-      # record who's doing what
-      a = Activity(name=users.get_current_user().email(),
-                   scriptName = entry.title.text,
-                   resource_id = resource_id,
-                   fromPage = fromPage,
-                   activity="rename")
-      a.put()
-    self.redirect('/scriptlist')
+    q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(1000)
+    p=False
+    for i in results:
+      if i.permission=='owner':
+        if i.user==users.get_current_user().email().lower():
+          p=True
+    if p==True:
+      for i in results:
+        i.title=rename
+        i.put()
+    
 
 class Export (webapp.RequestHandler):
   def get(self):
     fromPage = self.request.get('fromPage')
-    token = get_auth_token(self.request)
     resource_id = self.request.get('resource_id')
     export_format = self.request.get('export_format')
+    user=users.get_current_user().email().lower()
     if resource_id:
-      client = gdata.docs.client.DocsClient()
-      entry = client.GetDoc(resource_id, auth_token = token)
-      filename = str(entry.title.text)
-      if export_format == 'txt':
-        exportFormat = '&exportFormat=html'
-      else:
-        exportFormat = '&exportFormat=pdf'
-      application_type = ''
-      if export_format == 'pdf':
-        application_type = 'application/pdf'
-      elif export_format == 'txt':
-        application_type = 'text/plain'
-      #This is where I get all the problems, on GetFileContent. 
-      #Loop three times to reduce errors
-      k=0
-      while k<3:
-        try:
-          script = client.GetFileContent(uri=entry.content.src + exportFormat, auth_token=token)
-          k=5
-        except:
-          k=k+1
-          if k==3:
-            self.response.headers['Content-Type'] = 'text/html'
-            self.response.out.write('<p>grrr.... GOOGLE! Something screwed up. Try reloading this page to try again</p>')
-            return
-      if export_format == 'pdf':
-        data = StringIO.StringIO(script)
-        output = PdfFileWriter()
-        input1 = PdfFileReader(data)
-
-        i=0
-        pages = input1.getNumPages()
-        while i<pages:
-          output.addPage(input1.getPage(i))
-          i=i+1
-
-        outputStream = StringIO.StringIO()
-        output.write(outputStream)
-        filename = 'filename=' + filename + '.pdf'
-        self.response.headers['Content-Type'] = application_type
-        self.response.headers['Content-Disposition'] = filename
-        self.response.out.write(outputStream.getvalue())
-        size = len(outputStream.getvalue())
-      elif export_format =='txt':
-        newfile = exporttxt.exportToText(script)
-        filename = 'filename=' + filename + '.txt'
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.headers['Content-Disposition'] = 'attachment; ' +filename
-        self.response.out.write(newfile.getvalue())
-        size = len(newfile.getvalue())
-      # record who's doing what
-      a = Activity(name=users.get_current_user().email(),
-                   scriptName = entry.title.text,
-                   resource_id = resource_id,
-                   format = export_format,
-                   scriptSize = size,
-                   triesBeforeSuccess = k,
-                   fromPage = fromPage,
-                   activity="export")
-      a.put()
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results = q.fetch(500)
+      p=False
+      for i in results:
+        if i.user==user:
+          if i.permission=='owner':
+            p=True
+            title=i.title
+            logging.info(title)
+      if p==True:
+        q=db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE resource_id='"+resource_id+"' "+
+                      "ORDER BY version DESC")
+        results = q.fetch(1000)
+        data=results[0].data
+        
+        if export_format =='txt':
+          newfile = export.Text(data)
+          filename = 'filename=' + str(title) + '.txt'
+          logging.info(filename)  
+          self.response.headers['Content-Type'] = 'text/plain'
+          self.response.headers['Content-Disposition'] = 'attachment; ' +filename
+          self.response.out.write(newfile.getvalue())
   
 class EmailScript (webapp.RequestHandler):
   def post(self):
@@ -490,131 +330,44 @@ class EmailScript (webapp.RequestHandler):
     a.put()
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write('sent')
-
-class Save (webapp.RequestHandler):
-  def post(self):
-    token = get_auth_token(self.request)
-    resource_id = self.request.get('resource_id')
-    if resource_id == None:
-      return
-    content = self.request.get('content')
-    header = """<div class="m"></div>"""
-    content = header+content
-    size = len(content)
-    client = gdata.docs.client.DocsClient()
-    k=0
-    while k<3:
-      try:
-        entry = client.GetDoc(resource_id, auth_token=token)
-        ms = gdata.data.MediaSource(file_handle=content, content_length=size, content_type='text/html')
-        client.Update(entry, media_source=ms, auth_token=token, force=True)
-        k=5
-      except:
-        k=k+1
-        if k==3:
-          self.response.headers['Content-Type'] = 'text/plain'
-          self.response.out.write('0')
-          a = Activity(name=users.get_current_user().email(),
-                       scriptName = entry.title.text,
-                       resource_id = resource_id,
-                       scriptSize = size,
-                       error = 'update fail',
-                       activity="save")
-          a.put()
-          return
-    respond = ''
-    q = db.GqlQuery("SELECT * FROM Notes "+
-                          "WHERE resource_id='"+resource_id+"'")
-    results = q.fetch(500)
-    notes=0
-    #Check for new notes
-    for p in results:
-      notes=notes+1
-      respond = respond+'&user&'+p.user+'&data&'+p.data
-      p.delete()
-    if respond=='&data&':
-      respond='no new notes'
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(respond)
-    # Track what the user is doing
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = entry.title.text,
-                 resource_id = resource_id,
-                 scriptSize = size,
-                 triesBeforeSuccess = k,
-                 activity="save")
-    a.put()
+    
 
 class NewScript (webapp.RequestHandler):
   def post(self):
-    try:
       
-      filename = self.request.get('filename')
-      filename = filename.replace('%20', ' ')
-      token=get_auth_token(self.request)
-      client = gdata.docs.client.DocsClient()
-      feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
-      i=0
-      for entry in feed.entry:
-         if entry.title.text == 'RawScripts':
-            i=1
-            location = entry
-      if i==0:
-        new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
-        location = new_folder
-      doc = client.GetDoc('document%3A0AaXZx9SZPN4pZGhqaHhrdGJfMjY2Y2Q2Y3czaGg', auth_token=token)
-      new_doc = client.Copy(doc, filename, auth_token=token)
-      client.Move(new_doc, location, auth_token=token)
-      url = '/editor?resource_id=' + new_doc.resource_id.text
-      self.response.headers['Content-Type'] = 'text/plain'
-      self.response.out.write(url)
-      # Track what the user is doing
-      a = Activity(name=users.get_current_user().email(),
-                   scriptName = new_doc.title.text,
-                   resource_id = new_doc.resource_id.text,
-                   activity="newscript")
-      a.put()
-    except:
-      self.response.headers['Content-Type'] = 'text/plain'
-      self.response.out.write('error')
+    filename = self.request.get('filename')
+    filename = filename.replace('%20', ' ')
+    user=users.get_current_user().email()
+    alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    resource_id=''
+    for x in random.sample(alphabet,20):
+      resource_id+=x
 
+    q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+    results=q.fetch(2)
+
+    while len(results)>0:
+      resource_id=''
+      for x in random.sample(alphabet,10):
+        resource_id+=x
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results=q.fetch(2)
     
-class ContactList (webapp.RequestHandler):
-  def post(self):
-    fromPage = self.request.get('fromPage')
-    token = get_auth_token(self.request)
-    client = gdata.contacts.client.ContactsClient()
-    feed = client.GetContacts(auth_token=token)
-    contactlist = ""
-    numberOfContacts = 0
-    for entry in feed.entry:
-      for email in entry.email:
-        if str(entry.title.text)=='None':
-          contactlist = contactlist + str(email.address) + ';'
-        else:
-          contactlist = contactlist + '"' + str(entry.title.text) + '"  ' + str(email.address) + ';'
-        numberOfContacts = numberOfContacts+1
-    i=0
-    while i==0:
-      try:
-        feed = client.GetNext(feed, auth_token=token)
-        for entry in feed.entry:
-          for email in entry.email:
-            if str(entry.title.text)=='None':
-              contactlist = contactlist + str(email.address) + ';'
-            else:
-              contactlist = contactlist + '"' + str(entry.title.text) + '"  ' + str(email.address) + ';'
-            numberOfContacts = numberOfContacts+1
-      except:
-        i=1
+    s = ScriptData(resource_id=resource_id,
+                   data='[["Fade In:",1],["Int. ",0]]',
+                   version=1)
+    s.put()
+
+    u = UsersScripts(user=user,
+                     title=filename,
+                     resource_id=resource_id,
+                     permission='owner')
+    u.put()
     self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(contactlist)
-    # Track what the user is doing
-    a = Activity(name=users.get_current_user().email(),
-                 numberOfContacts = numberOfContacts,
-                 fromPage = fromPage,
-                 activity="contacts")
-    a.put()
+    self.response.out.write(resource_id)
+
 
 class ConvertProcess (webapp.RequestHandler):
   def post(self):
@@ -624,21 +377,23 @@ class ConvertProcess (webapp.RequestHandler):
     capture = self.request.get('filename')
     if capture:
       filename = capture.replace('%20', ' ')
-    token=get_auth_token(self.request)
-    client = gdata.docs.client.DocsClient()
-    feed = client.GetDocList(uri='/feeds/default/private/full/-/folder', auth_token=token)
-    i=0
-    for entry in feed.entry:
-       if entry.title.text == 'RawScripts':
-          i=1
-          location = entry
-    if i==0:
-      new_folder = client.Create(gdata.docs.data.FOLDER_LABEL, 'RawScripts', auth_token=token)
-      location = new_folder
-    doc = client.GetDoc('document%3A0AaXZx9SZPN4pZGhqaHhrdGJfMjY2Y2Q2Y3czaGg', auth_token=token)
-    new_doc = client.Copy(doc, filename, auth_token=token)
-    client.Move(new_doc, location, auth_token=token)
+    user=users.get_current_user().email()
+    alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    resource_id=''
+    for x in random.sample(alphabet,20):
+      resource_id+=x
 
+    q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+    results=q.fetch(2)
+
+    while len(results)>0:
+      resource_id=''
+      for x in random.sample(alphabet,10):
+        resource_id+=x
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results=q.fetch(2)
 
     # Format Celtx file
     celtx = StringIO.StringIO(self.request.get('script'))
@@ -653,61 +408,62 @@ class ConvertProcess (webapp.RequestHandler):
     txt = z.read(script)
     headless= txt.split('<body>')[1]
     t=headless.split('</body>')[0]
-    t = t.replace('<p class="action">', '<h2>')
-    t = t.replace('<p class="character">', '<h3>')
-    t = t.replace('<p class="dialog">', '<h4>')
-    t = t.replace('<p class="transition">', '<h5>')
-    t = t.replace('<p class="parenthetical">', '<h6>')
-    t = t.replace('</span>', '')
-    t = t.replace('(O.S)', '(o.s.)')
-    t = t.replace('(o.s)', '(o.s.)')
-    t = t.replace(' (cont)', '')
-    t = t.replace(' (CONT)', '')
+    pattern = re.compile(r'<span.*?">', re.DOTALL)
+    t = re.sub(pattern, '', t)
+    t = t.replace("</span>","")
+    t = t.replace(" <br>",'')
+    t = t.replace("<br> ",'')
+    t = t.replace("<br>",'')
     t = t.replace('\n', ' ')
     t = t.replace('\r\n', " ")
-    t = t.replace('<br>', '')
-    t = t.replace('&nbsp;', '')
-    pattern = re.compile(r'<span.*?>')
-    xyz=0
-    while xyz<50:
-      t = re.sub(pattern, '', t)
-      xyz=xyz+1
+    t = t.replace('&nbsp;','')
+    t = t.replace(' (cont)', '')
     parts = t.split('</p>')
     parts.pop()
-    script=''
-    i=0
-    while i < len(parts):
-      num = parts[i][3]
-      if num == " ":
-        sh = parts[i].split('ing">')[1]
-        parts[i]= '<h1>' + sh +'</h1>'
-        script = script+parts[i]
-        i=i+1
-      else:
-        parts[i] = parts[i] + '</h' +num+'>'
-        script = script + parts[i]
-        i=i+1
 
-    # Save formated thing to Google Docs
-    header = """<div class="m"></div>"""
-    script = header+script
-    size = len(script)
-    ms = gdata.data.MediaSource(file_handle=script, content_length=size, content_type='text/html')
-    client.Update(new_doc, media_source=ms, auth_token=token, force=True)
-    url = 'http://www.rawscripts.com/editor?resource_id=' + new_doc.resource_id.text
+    jl=[]
+    count=0
+    for i in parts:
+        unit=[]
+        i=i.replace('"',"'")
+        unit.append
+        if i[4]=='i':
+            unit.append(i.split('>')[1])
+            unit.append(0)
+        else:
+            unit.append(i.split('>')[1])
+            if i[11]=='a':
+                unit.append(1)
+            if i[11]=='c':
+                unit.append(2)
+            if i[11]=='d':
+                unit.append(3)
+            if i[11]=='p':
+                unit.append(4)
+            if i[11]=='t':
+                unit.append(5)
+        jl.append(unit)
+        
+    contents=json.dumps(jl)
 
-    template_values = { 'url': url }
+    s = ScriptData(resource_id=resource_id,
+                   data=contents,
+                   version=1)
+    s.put()
+
+    u = UsersScripts(user=user,
+                     title=filename,
+                     resource_id=resource_id,
+                     permission='owner')
+    u.put()
+    
+
+    template_values = { 'url': resource_id }
     
     self.response.headers['Content-Type'] = 'text/html'
     path = os.path.join(os.path.dirname(__file__), 'UploadComplete.html')
     self.response.out.write(template.render(path, template_values))
-    # Track what the user is doing
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = new_doc.title.text,
-                 resource_id = new_doc.resource_id.text,
-                 scriptSize = size,
-                 activity="upload")
-    a.put()
+    
 
 
 class Share (webapp.RequestHandler):
@@ -805,11 +561,9 @@ def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
                                         ('/delete', Delete),
                                         ('/newscript', NewScript),
-                                        ('/save', Save),
                                         ('/export', Export),
                                         ('/rename', Rename),
 					('/emailscript', EmailScript),
-					('/contactlist', ContactList),
                                         ('/convertprocess', ConvertProcess),
                                         ('/share', Share),
                                         ('/postnotes', PostNotes),

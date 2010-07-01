@@ -20,9 +20,11 @@ import gdata.contacts.client
 import api
 import random
 import zipfile
-import exporttxt
+import export
 from pyPdf import PdfFileWriter, PdfFileReader
 import gdata.acl.data
+import logging
+import json
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -59,28 +61,19 @@ class Notes (db.Model):
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
 
-class LastUpdatedEtag (db.Model):
-  name = db.StringProperty()
-  etag = db.StringProperty()
-  resource_id = db.StringProperty()
 
-class Activity (db.Model):
-  name = db.StringProperty()
-  activity = db.StringProperty()
-  numberOfScripts = db.IntegerProperty()
-  scriptSize = db.IntegerProperty()
+class ScriptData (db.Model):
   resource_id = db.StringProperty()
-  scriptName = db.StringProperty()
-  format = db.StringProperty()
-  recipients = db.StringListProperty()
-  numberRecipients = db.IntegerProperty()
-  numberOfContacts = db.IntegerProperty()
-  fromPage = db.StringProperty()
-  error = db.StringProperty()
-  triesBeforeSuccess = db.IntegerProperty
-  mobile = db.IntegerProperty()
+  data = db.TextProperty()
+  version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
 
+class UsersScripts (db.Model):
+  user = db.StringProperty()
+  resource_id = db.StringProperty()
+  title = db.StringProperty()
+  updated = db.StringProperty()
+  permission = db.StringProperty()
 
 class Welcome (webapp.RequestHandler):
   def get(self):
@@ -100,36 +93,9 @@ class Welcome (webapp.RequestHandler):
 
 class Editor (webapp.RequestHandler):
   def get(self):
-    resource_id = self.request.get('resource_id')
-    if resource_id == 'demo':
-      user = 'user@example.com'
-      sign_out = '/'
-      name='demo'
-    else:
-      user = users.get_current_user().email()
-      sign_out = users.create_logout_url('/')
-      name = users.get_current_user().email()
-    script_title = 'RawScripts'
 
-
-    template_values = { 'sign_out': sign_out,
-                        'script_title': script_title,
-                        'user': user,}
+    template_values = {}
     path = os.path.join(os.path.dirname(__file__), 'editor.html')
-
-    # See if this person is
-    # a reader or writer
-    if not resource_id=='demo':
-      token = get_auth_token(self.request)
-      client = gdata.docs.client.DocsClient()
-      acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
-      user = users.get_current_user().email()
-      role = ''
-      for acl in acl_feed.entry:
-        if acl.role.value == 'owner':
-          if not acl.scope.value.lower() == user.lower():
-            path = os.path.join(os.path.dirname(__file__), 'viewer.html')
-
         
     mobile = 0
     #Check if should send to mobile Page
@@ -142,12 +108,6 @@ class Editor (webapp.RequestHandler):
     
     self.response.headers['Content-Type'] = 'text/html'
     self.response.out.write(template.render(path, template_values))
-    # Track what the user is doing
-    a = Activity(name=name,
-                 scriptName = script_title,
-                 mobile = mobile,
-                 activity="editor")
-    a.put()
 
 class ScriptContent (webapp.RequestHandler):
   def post(self):
@@ -158,77 +118,83 @@ class ScriptContent (webapp.RequestHandler):
       self.response.headers['Content-Type'] = 'text/html'
       self.response.out.write(htmlbody)
       return
-  
-    # We should have an auth token for this user.
-    token = get_auth_token(self.request)
-    if not token:
-      self.redirect('/')
-      return
-    resource_id = self.request.get('resource_id')
-    if resource_id:
-      client = gdata.docs.client.DocsClient()
-      client.http_client.debug = True
-      entry = client.GetDoc(resource_id, auth_token = token)
-      exportFormat = '&exportFormat=html'
-      alt_link = 'error&alternate_link&' + entry.GetAlternateLink().href
 
-      #This is where I get all the problems, on GetFileContent. 
-      #Loop three times to reduce errors
-      k=0
-      while k<3:
-        try:
-          page = client.GetFileContent(uri=entry.content.src + exportFormat, auth_token=token)
-          k=5
-        except:
-          k=k+1
-          if k==3:
-            self.response.headers['Content-Type'] = 'text/plain'
-            self.response.out.write(alt_link)
-            return
-      headless = page.split('</div>')[1]
-      content = headless.split('</body>')[0]
-      content = content.replace('<br>','')
-      script_title = entry.title.text
-      content = content+"<div id='ajaxTitle'>"+script_title+"</div>"
+    q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(500)
+    p=False
+    if len(results)==0:
+      self.response.headers["Content-Type"]='text/plain'
+      self.response.out.write('not found')
+    for i in results:
+      if i.user==users.get_current_user().email().lower():
+        if i.permission=='owner':
+          p=True
+          title=i.title
 
-      #now retrieve
-      #shared notes and
-      #insert into script
+    if p==True:
+      q = db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE resource_id='"+resource_id+"' "+
+                      "ORDER BY version DESC")
+      results = q.fetch(1000)
 
-      content = content + '&notes&'
       
-      q= db.GqlQuery("SELECT * FROM Notes "+
-                     "WHERE resource_id='"+resource_id+"'")
-      results = q.fetch(50)
-      notes=0
-      for p in results:
-        notes=notes+1
-        content = content+'&user&'+p.user+'&data&'+p.data
-      if notes == 0:
-        content = content + 'nonedata'
+      self.response.headers["Content-Type"]='text/plain'
+      self.response.out.write(title+'?title='+results[0].data)
 
-      query = db.GqlQuery("SELECT * FROM LastUpdatedEtag "+
-                          "WHERE resource_id='"+resource_id+"' "+
-                          "AND name='"+users.get_current_user().email()+"'")
-      results = query.fetch(5)
-      for p in results:
-        p.delete()
-      e = LastUpdatedEtag(name = users.get_current_user().email(),
-                          etag = entry.etag,
-                          resource_id=resource_id)
-      e.put()
 
-        
-      size = len(content)
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = script_title,
-                 resource_id = resource_id,
-                 scriptSize = size,
-                 triesBeforeSuccess = k,
-                 activity="scriptcontent")
-    a.put()
-    self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(content)
+class Save (webapp.RequestHandler):
+  def post(self):
+    v=0
+    resource_id = self.request.get('resource_id')
+    if resource_id == None:
+      return
+    data=self.request.get('data')
+
+    q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(1000)
+    if len(results)==0:
+      u = UsersScripts(user = users.get_current_user().email().lower(),
+                       resource_id=resource_id,
+                       title='name',
+                       updated='now',
+                       permission='owner')
+      u.put()
+
+      v=1
+
+    else:
+      for i in results:
+        if i.permission=='owner':
+          if i.user==users.get_current_user().email().lower():
+            q = db.GqlQuery("SELECT * FROM ScriptData "+
+                            "WHERE resource_id='"+resource_id+"' "+
+                            "ORDER BY version DESC")
+            results = q.fetch(1000)
+            v = results[0].version
+            v+=1
+
+    
+    if not v==0:
+      a = ScriptData(resource_id=resource_id,
+                     title='title',
+                     data=data,
+                     version=v)
+      a.put()
+
+      q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      results=q.fetch(500)
+      for i in results:
+        i.updated=str(datetime.datetime.today())
+        i.put()
+
+      self.response.out.write('1')
+    else:
+      self.response.out.write('0')
+
+    
 
 class ContactEmail (webapp.RequestHandler):
   def post(self):
@@ -259,6 +225,7 @@ def main():
                                         ('/scriptcontent', ScriptContent),
                                         ('/contactemail', ContactEmail),
                                         ('/bugs', Bugs),
+                                        ('/save', Save),
                                         ('/submitbug', SubmitBug),],
                                        debug=True)
   

@@ -1,1498 +1,1505 @@
-// Onload - a big init file setting up jquery and everything
-function editorinit(resource_id)
-{	
-	htmlTitleUpdate();
-	infoSizes('init');
-	notesIndex();
-	$('.infoHandle').mousedown(function(e){trackMouseDown(e)});
-	$(window).mouseup(function(e){trackMouseUp(e)});
-	$(window).mousemove(function(e){if(document.getElementById('mouseInfo').innerHTML.split('?')[0]=='down')infoResize(e);});
-	$(window).resize(function(){infoSizes()});
-	$('.postit').focusin(function(e){document.getElementById('format').disabled=true});
-	$('.postit').focusout(function(e){document.getElementById('format').disabled=false});
-	$('.postit').click(function(e){scrollToNote(e.target)});
-	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
-	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault()}});
-	$('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
-	$('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	document.getElementById('textEditor').focus();
-	var sel = window.getSelection();
-	sel.collapseToStart();
-	var t;
-	$('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
-	$('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
-	$('body').keydown(function(e){
-		if (document.getElementById('demo').innerHTML != 'demo'){
-			if(e.which!=37 && e.which!=38 && e.which!=39 && e.which!=40 && e.which!=91 && e.which!=93 && e.which!=16 && e.which!=17 && e.which!=18 && e.which!=34 && e.which!=33){
-				clearTimeout(t);
-				t = setTimeout("save()", 10000);
-				var s = document.getElementById('save');
-				if(s.value == 'Saved'){s.disabled=false; s.value = 'Save';}
-			}
-		}
-		});
-	$("#optionMenu").mouseover(function(){document.getElementById('hiddenMenu').style.display='block';});
-	$("#optionMenu").mouseout(function(){document.getElementById('hiddenMenu').style.display='none';});
-	$(".menuItem").mouseover(function(){$(this).css("background-color", "#bbb");});
-	$(".menuItem").mouseout(function(){$(this).css("background-color", "#ddd");});
-	$(".charSuggest").mouseover(function(event){
-										 document.getElementById('focus').removeAttribute('id');
-										 event.target.id = 'focus';});
-	$("#textEditor").click(function(event) {
-						if(event.target.className=='notes' || event.target.className=='sharedNotes'){selectNote(event.target);return;}
-						getFormat();
-						var a = document.getElementById('suggest')
-						if(a!=null) a.parentNode.removeChild(a);
-						});  
-	$("#textEditor").keydown(function(event) {
-									  if(event.which==13 && document.getElementById('focus')!=null){event.preventDefault(); charSelect(event);document.getElementById('hidden').innerHTML='1';}
-									  if(event.which==9) tabButton(event);
-									  if(document.getElementById('suggest')!=null){
-										  if(event.which==38 || event.which==40){
-											  suggestNav(event);
-											  }
-									  }
-									  });
-	$("#textEditor").keyup(function(event) {
-									
-									  var node = window.getSelection().anchorNode;
-									  var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-									  var c = startNode.nodeName;
-									  
-									  if (startNode.className=='notes' || startNode.className=='sharedNotes'){
-										  if(startNode.innerHTML!='' && startNode.innerHTML!='X'){
-											  startNode.innerHTML ='X';
-										  }
-									  }
-									  if(event.which==8){getFormat(); notesIndex();}
-									  if(document.getElementById('suggest')!=null){
-										  if(event.which==38 || event.which==40){
-											  event.preventDefault();
-											  return;
-											  }
-										  }
-									  
-									  if (c!='H3'){var e = document.getElementById('suggest'); if (e!=null){e.parentNode.removeChild(e);}}
-									  if(event.which==13){
-										if(document.getElementById('hidden').innerHTML=='1'){
-											event.preventDefault();
-											document.getElementById('hidden').innerHTML="0";
-										}
-										else{enterButton(event);}}
-									  else if (c == "H1") {sceneIndex();if(event.which!=38 && event.which!=40 && event.which!=39 && event.which!=37 && event.which!=91 && event.which!=93 && event.which!=16 && event.which!=8 && event.which!=34 && event.which!=17)characterSuggest(startNode);}
-									  else if (c == 'H3'){if(event.which!=38 && event.which!=40 && event.which!=39 && event.which!=37 && event.which!=91 && event.which!=93 && event.which!=16 && event.which!=8 && event.which!=34 && event.which!=17)characterSuggest(startNode);}
-									  
-									  
-										  getFormat();
-									  });
+   var typeToScript=true;
+   var undoQue = [];
+   var redoQue = [];
+   var pageBreaks=[];
+   var mouseX=0;
+   var mouseY=0;
+   var shiftDown=false;
+   var mouseDownBool=false;
+   var scrollBarBool=false;
+   var characters =[];
+   var scenes=[];
+   var canvas;
+   var ctx;
+   var linesNLB= [];
+   var vOffset = 0;
+   var pos = { col: 0, row: 0};
+   var anch = {col:0, row:0};
+   var background = '#fff';
+   var font = '10pt Courier';
+   var fontWidth = 8;
+   var foreground = '#000';
+   var lineheight = 13;
+   var milli = 0;
+   var formatMenu = false;
+   var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
+   var resource_id='random123456789';
+   // Use the same wrapping procedure over and over
+   // just define an array to pass into it
+    //wrapVars[0]=character length before wrap
+    //wrapVars[1]= distace from edge it should be placed ay
+    //wrapVars[2]= bool, align right
+    //wrapVars[3]= bool, uppercase
+    //wrapVars[4]=number of line breaks after
+    //
+    //
+    //
+    //wrapvariablearray[0]=s
+    //wrapvariablearray[1]=a
+    //wrapvariablearray[2]=c
+    //wrapvariablearray[3]=d
+    //wrapvariablearray[4]=p
+    //wrapvariablearray[5]=t
+    var WrapVariableArray = [[62, 111+50,0,1,2],[62,111+50,0,0,2],[40, 271+50,0,1,1],[36, 191+50,0,0,2],[30, 231+50,0,0,1],[61, 601+50,1,1,2]];
+    
+    //if ($.browser.mozilla)fontWidth=9;
+    var editorWidth = 850;
+    var headerHeight=65;
+    var lines=[];
+    
+    
+$(document).ready(function(){
+    document.getElementById('canvas').height = $('#container').height()-65;
+    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-850)+'px';
+    $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
+    //stuff for filelike menu
+    $('.menuItem').click(function(){openMenu(this.id)});
+    $('.menuItem').mouseover(function(){topMenuOver(this.id)});
+    $('.menuItem').mouseout(function(){topMenuOut(this.id)});
+  });
+  $(window).resize(function(){
+    document.getElementById('canvas').height = $('#container').height()-65;
+    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-850)+'px';
+  });
+  $('*').keydown(function(e){
+  var d= new Date();
+  milli = d.getMilliseconds();
+  if(e.which==13)enter();
+  else if(e.which==38)upArrow();
+  else if(e.which==40)downArrow();
+  else if(e.which==39)rightArrow();
+  else if(e.which==37)leftArrow();
+  else if(e.which==8)backspace(e);
+  else if(e.which==46)deleteButton();
+  else if(e.which==9){e.preventDefault(); tab();}
+  else if(e.which==16)shiftDown=true;
+  //console.log(e.which);
+  });
+  $('*').keyup(function(e){
+  if(e.which==16)shiftDown=false;
+  });
+  $('*').mousedown(function(e){
+    mouseDown(e);
+  });
+  $('*').mouseup(function(e){
+    mouseUp(e);
+  });
+  $('*').mousemove(function(e){
+    mouseMove(e);
+  });
+    
+function save(){
+    var data=JSON.stringify(lines);
+    $.post('/save', {data : data, resource_id : resource_id}, function(d){
+        console.log(d);
+    });
+}
 
-	var span = document.getElementsByTagName('span');
-	for (var z=0; z<span.length; z++){
-		if (span[z].className=='notes' || span[z].className=='sharedNotes'){
-			span[z].innerHTML = 'X';
-		}
-	}
-	
-	
-	var c = $(':header');
-	if (c[0]!=null){
-	for (var i = 0; i<c.length; i++)
-	{c[i].innerHTML = c[i].innerHTML.replace(/^\s+|\s+$/g,"");}}
-	characterIndex();
-	pagination();
-    var $button = $("#sidebarButton");
-    var $sidebar = $("#effect");
-    var $container = $("#container");
-	var $info = $("#info");
-    
-    $sidebar.animate({marginRight:'+=360px'},600);
-    $container.animate({right:'+=360px'},600);
-	$info.animate({right:'+=360px'},600);
-    $button.toggle(
-                   function()
-                   {
-                      $sidebar.animate({marginRight:'-=360px'},600);
-                      $container.animate({right:'-=360px'},600);
-					  $info.animate({right:'-=360px'},600);
-    
-                   },
-                   function()
-                   {
-                       $sidebar.animate({marginRight:'+=360px'},600);
-                       $container.animate({right:'+=360px'},600);
-					   $info.animate({right:'+=360px'},600);
-                   });
-	
-	try{
-        $('.sm').attr('id', 'sm');
-        $('#container').scrollTo('#sm', 800);
-        $('.sm').removeAttr('id').removeClass('sm');
+function setup(){
+    resource_id=window.location.href.split('=')[1];
+    $.post('/scriptcontent', {resource_id:resource_id}, function(data){
+    //console.log(data);
+    if(data=='not found'){
+        lines = [["Sorry, the script wasn't found.",1]];
+        paint(false,false,true,false);
+        return;
+    }
+    var title=data.split('?title=')[0];
+    document.getElementById('title').innerHTML=title;
+    data=data.split('?title=')[1];
+    if(data==''){
+        lines = [["Fade In:",1],["Int. ",0]];
+    }
+    else{
+        var x = JSON.parse(data);
+        for(var i=0; i<x.length; i++){
+            lines.push([x[i][0], x[i][1]]);
         }
-    catch(err){;}
-	try{
-		sceneIndex();
-		getFormat();
-	}
-	catch(err){;}
-	if(resource_id!='demo'){save();}
-	else{document.getElementById('demo').appendChild(document.createTextNode('demo'));}
-	document.getElementById('loading').style.visibility = 'hidden';
-	$.post('/contactlist', {fromPage : 'editorShare'}, function(data){
-		var contacts = data.split(';');
-		$("input#collaborator").autocomplete({source: contacts});
-		$("input#recipient").autocomplete({source: contacts});
-		});
+    }
+    if(lines.length==2){
+        pos.row=1;
+        anch.row=1
+        pos.col=lines[1][0].length
+        anch.col=pos.col;
+    }
+    console.log(lines.length);
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    document.onkeypress = handlekeypress;
+    characterInit();
+    sceneIndex();
+    paint(false,false,true,false);
+    setInterval('paint(false,false, false,false)', 40);
+    });
+}
+function changeFormat(v){
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1]]);
+    lines[pos.row][1]=v;
+    anch.col=pos.col;
+    anch.row=pos.row;
+    sceneIndex();
+}
+
+function mouseUp(e){
+    mouseDownBool=false;
+    scrollBarBool=false;
+    var width = document.getElementById('canvas').width;
+    var height = document.getElementById('canvas').height;
+            
+    if(e.clientY-headerHeight>height-39 && e.clientY-headerHeight<height && e.clientX>editorWidth-22 && e.clientX<editorWidth-2){
+            if(e.clientY-headerHeight>height-20)scroll(30);
+            else scroll(-30);
+        }
+}
+function mouseDown(e){
+    var menu = false;
+    var c = document.getElementsByTagName('div');
+    for(var i=0;i<c.length;i++){
+        if(c[i].className=='topMenu' && c[i].style.display=='block'){
+            menu=true;
+            var a=c[i];
+        }
+    }
+    if(menu){
+        var command = e.target;
+        while(command.nodeName!='DIV'){
+            command=command.parentNode
+        }
+        id=command.id;
+        var f = id.slice(0,-1);
+        if (f=='format'){
+            changeFormat(id.slice(-1));
+
+        }
+        if(id=='save')save();
+        else if(id=='undo')undo();
+        else if(id=='rename')renamePrompt();
+        a.style.display='none';
+    }
+    else{
+        var height = document.getElementById('canvas').height;
+        var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+        var barHeight = ((height)/pagesHeight)*(height-39);
+        if (barHeight<20)barHeight=20;
+        if (barHeight>=height-39)barHeight=height-39;
+        var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+        
+        if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
+            mouseDownBool=true;
+            paint(false, e, false,false);
+        }
+        else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
+            scrollBarBool=true;
+        }
+    }
+}
+function mouseMove(e){
+    if(scrollBarBool)scrollBarDrag(e);
+    mouseX=e.clientX;
+    mouseY=e.clientY;
+    if(mouseDownBool) paint(e, false, false,true);
+}
+function scrollBarDrag(e){
+    var diff = mouseY-e.clientY;
+    var height = document.getElementById('canvas').height-50;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+    vOffset-=pagesHeight/height*diff;
+    if (vOffset<0)vOffset=0;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
+    if(vOffset>pagesHeight)vOffset=pagesHeight;
+}
+function scroll(v){
+    vOffset+=v;
+    if (vOffset<0)vOffset=0;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
+    if(vOffset>pagesHeight)vOffset=pagesHeight;
+}
+function jumpTo(v){
+    console.log(v);
+    if(v!=''){
+        var e = parseInt(v.replace('row',''));
+        pos.row=e;
+        anch.row=pos.row;
+        pos.col=lines[pos.row][0].length;
+        anch.col=pos.col;
+    }
+    else var e=pos.row;
+    var scrollHeight=0;
+    for(var i=0;i<e;i++){
+        for(var count=0; count<pageBreaks.length; count++){
+            if(pageBreaks[count][0]==i){
+                scrollHeight+=lineheight*(72-pageBreaks[count][1]);
+            }
+        }
+        scrollHeight+=(linesNLB[i].length*lineheight);
+    }
+    vOffset=scrollHeight;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
+    if(vOffset>pagesHeight)vOffset=pagesHeight;
+}
+function upArrow(){
+    if(typeToScript){
+        if (pos.row==0 && pos.col==0)return;
+        var type = lines[pos.row][1];
+        if (type==0) var wrapVars=WrapVariableArray[0];
+        else if(type==1) var wrapVars = WrapVariableArray[1];
+        else if(type==2) var wrapVars = WrapVariableArray[2];
+        else if(type==3) var wrapVars = WrapVariableArray[3];
+        else if(type==4) var wrapVars = WrapVariableArray[4];
+        else if(type==5) var wrapVars = WrapVariableArray[5];
+        // Only do calculations if 
+        // there is wrapped text
+        if(lines[pos.row][0].length>wrapVars[0]){
+            var wordsArr = lines[pos.row][0].split(' ');
+            var word = 0;
+            var lineLengths=[];
+            while(word<wordsArr.length){
+                if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                    lineLengths.push(wordsArr.slice(word).join().length);
+                    word=wordsArr.length
+                    
+                }
+                else{
+                    var integ=0;
+                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                        integ++;
+                    }
+                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                    word+=integ-1;
+                }
+            }
+            // now we have the variable lineLengths
+            // this is an array holding all the wrapped line lengths
+            //
+            //use variable 'integ' to figure out 
+            //what line the cursor is on
+            integ=0;
+            var totalCharacters=lineLengths[0];
+            while(totalCharacters<pos.col){
+                integ++;
+                totalCharacters+=lineLengths[integ]+1;
+            }
+            // totalCharacters now equals
+            // all character up to and including
+            // current line (integ) including spaces
+            
+            //if this is the first line in a block of wrapped text
+            if(integ==0){
+                var prevLineType = lines[pos.row-1][1];
+                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
+                // If the previous line (the one we're jumping into)
+                // has only one line, don't run the calcs, just go to it
+                if(lines[pos.row-1][0].length<newWrapVars[0]){
+                    pos.row--;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                }
+                else{
+                    var wordsArr = lines[pos.row-1][0].split(' ');
+                    var word = 0;
+                    var lineLengths=[];
+                    while(word<wordsArr.length){
+                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                            lineLengths.push(wordsArr.slice(word).join().length);
+                            word=wordsArr.length
+                            
+                        }
+                        else{
+                            var integ = 0;
+                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                                integ++;
+                            }
+                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                            word+=integ-1;
+                        }
+                    // now we have the variable lineLengths
+                    // this is an array holding all the wrapped line lengths
+                    }
+                    pos.row--;
+                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+                    
+                }
+            }
+            // if this is some middle line in a block of wrapped text
+            else{
+                pos.col-=lineLengths[integ-1]+1;
+                if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
+            }
+        }
+        //if the current block does
+        //not have wrapped text
+        else{
+            if(pos.row==0){
+                pos.col=0;
+            }
+            else{
+                var prevLineType = lines[pos.row-1][1];
+                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
+                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
+                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
+                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
+                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
+                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
+                // If the previous line (the one we're jumping into)
+                // has only one line, don't run the calcs, just go to it
+                if(lines[pos.row-1][0].length<newWrapVars[0]){
+                    pos.row--;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                }
+                //if the previous line has wrapped text
+                //do crazy calcs to figure where to
+                // jump to
+                else{
+                    var wordsArr = lines[pos.row-1][0].split(' ');
+                    var word = 0;
+                    var lineLengths=[];
+                    while(word<wordsArr.length){
+                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                            lineLengths.push(wordsArr.slice(word).join().length);
+                            word=wordsArr.length
+                            
+                        }
+                        else{
+                            var integ = 0;
+                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                                integ++;
+                            }
+                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                            word+=integ-1;
+                        }
+                    // now we have the variable lineLengths
+                    // this is an array holding all the wrapped line lengths
+                    }
+                    pos.row--;
+                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+                }
+            }
+        }
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+        paint(false,false,false,true);
+    }
+}
 	
+function downArrow(){
+    if(typeToScript){
+        if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
+        var type = lines[pos.row][1];
+        if (type==0)var wrapVars=WrapVariableArray[0];
+        else if(type==1) var wrapVars = WrapVariableArray[1];
+        else if(type==2) var wrapVars = WrapVariableArray[2];
+        else if(type==3) var wrapVars = WrapVariableArray[3];
+        else if(type==4) var wrapVars = WrapVariableArray[4];
+        else if(type==5) var wrapVars = WrapVariableArray[5];
+        if (lines[pos.row][0].length>wrapVars[0]){
+            var wordsArr = lines[pos.row][0].split(' ');
+            var word = 0;
+            var lineLengths=[];
+            while(word<wordsArr.length){
+                if(wordsArr.slice(word).join().length<=wrapVars[0]){
+                    lineLengths.push(wordsArr.slice(word).join().length);
+                    word=wordsArr.length
+                    
+                }
+                else{
+                    var integ = 0;
+                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
+                        integ++;
+                    }
+                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
+                    word+=integ-1;
+                }
+            }
+            //use variable 'integ' to figure out 
+            //what line the cursor is on
+            integ=0;
+            var totalCharacters=lineLengths[0];
+            while(totalCharacters<pos.col){
+                integ++;
+                totalCharacters+=lineLengths[integ]+1;
+            }
+            //if this is the last line in a block of wrapped text
+            if(integ+1==lineLengths.length){
+                for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
+                    pos.col-=lineLengths[newinteg];
+                }
+                pos.col--;
+                pos.row++;
+                if(pos.row>lines.length-1){
+                    pos.row--;
+                    pos.col=lines[pos.row][0].length;
+                }
+                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+            }
+            // if this is some middle line in a block of wrapped text
+            else{
+                pos.col+=lineLengths[integ]+1;
+                if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
+            }
+        }
+        else{
+            if(pos.row==lines.length-1){
+                pos.col=lines[pos.row][0].length;
+            }
+            else{
+                pos.row++;
+                if(pos.row>lines.length-1) pos.row=lines.length-1;
+                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+            }
+        }
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+        paint(false,false,false,true);
+    }
+}
+
+function leftArrow(){
+    if(typeToScript){
+        if(pos.row==0 && pos.col==0) return;
+        if(pos.col==0){
+            pos.row--;
+            pos.col=lines[pos.row][0].length;
+        }
+        else{
+            pos.col = pos.col-1;
+        }
+        
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+    }
+}
 	
-};
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------//
-
-function nope(){
-alert("Sorry, you're going to have to login to use these functions.");
+function rightArrow(){
+    if(typeToScript){
+        if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
+        if(pos.col==lines[pos.row][0].length){
+            pos.row++;
+            pos.col=0;
+        }
+        else pos.col = pos.col+1;
+        
+        if(!shiftDown){
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+    }
 }
 
-function couldNotLoad(data){
-    var alternate_link= data.split("&alternate_link&")[1];
-    document.getElementById('couldnotloadpopup').style.visibility = 'visible';
-    document.getElementById('alt_link').href = alternate_link;
+function backspace(e){
+    if(typeToScript){
+        e.preventDefault();
+        var forceCalc=false;
+        var slug=false;
+        if (lines[pos.row][1]==0)var slug=true;
+        // simple case, one letter backspace
+        if(pos.row==anch.row && pos.col==anch.col){
+            if(pos.col==0 && pos.row==0) return;
+            else if(lines[pos.row][1]==4 && pos.col==1){
+                var j=lines[pos.row][0];
+                if(j.charAt(0)=='(')j=j.substr(1);
+                if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
+                var newPos = lines[pos.row-1][0].length;
+                lines.splice(pos.row,1);
+                pos.row--
+                pos.col=newPos;
+                lines[pos.row][0]=lines[pos.row][0]+j;
+                undoQue.push(['back',pos.row, pos.col,'line',4]);
+            }
+            else if(pos.col==0){
+                var elem = lines[pos.row][1];
+                var j = lines[pos.row][0];
+                lines.splice(pos.row,1);
+                var newPos = lines[pos.row-1][0].length;
+                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                pos.col=newPos;
+                pos.row--;
+                undoQue.push(['back',pos.row, pos.col,'line',elem]);
+                forceCalc=true;
+            }
+            else{
+                undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                pos.col--;
+            }
+            anch.col=pos.col;
+            anch.row=pos.row;
+        }
+        // This is for deleting a range
+        else{
+            forceCalc=true;
+            //put the focus after the anchor
+            var switchPos =false;
+            if(anch.row>pos.row)switchPos=true;
+            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+            if(switchPos){
+                var coor = anch.row;
+                anch.row = pos.row;
+                pos.row = coor;
+                coor = anch.col;
+                anch.col = pos.col;
+                pos.col = coor;
+            }
+            var undoCount=0;
+            while(pos.col!=anch.col || pos.row!=anch.row){
+                undoCount++;
+                if(lines[pos.row][1]==0)slug=true;
+                if(pos.col==0){
+                    var elem = lines[pos.row][1];
+                    var j = lines[pos.row][0];
+                    lines.splice(pos.row,1);
+                    var newPos = lines[pos.row-1][0].length;
+                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                    pos.col=newPos;
+                    pos.row--;
+                    undoQue.push(['back',pos.row, pos.col,'line',elem]);
+                }
+                else{
+                    undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                    pos.col--;
+                }
+            }
+            undoQue.push(['br',undoCount]);
+        }
+        paint(false,false,forceCalc,false);
+        if (slug)sceneIndex();
+    }
 }
-function refresh(){
-    window.location=window.location.href;
+function deleteButton(){
+    if(typeToScript){
+        var slug=false;
+        var forceCalc=false;
+        if(pos.row==anch.row&&pos.col==anch.col){
+            if (lines[pos.row][1]==0)var slug=true;
+            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+                undoQue.push(['delete',pos.row,pos.col,'line',4]);
+                lines.splice(pos.row,1);
+                pos.col=0;
+                anch.col=0;
+            }
+            else if(pos.col==(lines[pos.row][0].length)){
+                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
+                if (lines[pos.row+1][1]==0)slug=true;
+                var j = lines[pos.row+1][0];
+                lines.splice((pos.row+1),1);
+                lines[pos.row][0]+=j;
+                forceCalc=true;
+            }
+            else{
+                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+            }
+        }
+        // This is for deleting a range
+        else{
+            forceCalc=true;
+            //put the focus after the anchor
+            var switchPos =false;
+            if(anch.row>pos.row)switchPos=true;
+            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+            if(switchPos){
+                var coor = anch.row;
+                anch.row = pos.row;
+                pos.row = coor;
+                coor = anch.col;
+                anch.col = pos.col;
+                pos.col = coor;
+            }
+            var undoCount=0;
+            while(pos.col!=anch.col || pos.row!=anch.row){
+                undoCount++;
+                if(lines[pos.row][1]==0)slug=true;
+                if(pos.col==0){
+                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
+                    var j = lines[pos.row][0];
+                    lines.splice(pos.row,1);
+                    var newPos = lines[pos.row-1][0].length;
+                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                    pos.col=newPos;
+                    pos.row--;
+                }
+                else{
+                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
+                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                    pos.col--;
+                }
+            }
+            undoQue.push(['dr',undoCount]);
+        }
+        paint(false,false,forceCalc,false);
+        if (slug)sceneIndex();
+    }
 }
-
-function infoSizes(){
-	var total = $('#scriptInfo').height() - 50;
-	var oneBox = (total/3) - $('#sceneBoxHandle').height();
-	$('#sceneindex').height(oneBox)
-	$('#noteindex').height(oneBox)
-	$('#characterindex').height(oneBox);
-	while ($('#characterindex').height()>+0){
-		$('#noteindex').height($('#noteindex').height()+1);
-		$('#characterindex').height($('#characterindex').height()-1);
-	}
-}
-function infoResize(e){
-	var raw = document.getElementById('mouseInfo').innerHTML.split('?');
-	var header = raw[1];
-	var difference = raw[2] - e.clientY;
-	if (header=='noteBoxHandle'){
-		if ($('#sceneindex').height()-difference>=0){
-			if($('#noteindex').height()+difference>=0){
-				$('#sceneindex').height($('#sceneindex').height()-difference);
-				$('#noteindex').height($('#noteindex').height()+difference);
-			}
-		}
-	}
-	else if (header=='characterBoxHandle'){
-		if($('#noteindex').height()-difference>=0){
-			if($('#characterindex').height()+difference>=0){
-				$('#noteindex').height($('#noteindex').height()-difference);
-				$('#characterindex').height($('#characterindex').height()+difference);
-			}
-		}
-	}
-	raw[2] = e.clientY;
-	document.getElementById('mouseInfo').innerHTML = raw.join('?');
-}
-function trackMouseDown(event){
-	if(event.target.id!='sceneBoxHandle'){
-		var init = event.clientY;
-		document.getElementById('mouseInfo').innerHTML = 'down?'+ event.target.id + '?' + init;
-	}
-}
-function trackMouseUp(event){
-	document.getElementById('mouseInfo').innerHTML = 'up?0?0';
-}
-function tokenize(kind){
-	var counter = 0;
-	var c = document.getElementsByTagName('div');
-		for(var i=0;i<c.length;i++){
-			if(c[i].className=='token'){
-				counter++;
-				}
-			}
-	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
-	var txtbox = document.getElementById(kind);
-	var data = txtbox.value.replace(',','');
-	var whitespace = data.replace(/ /g, "");
-	if (whitespace==""){return;}
-	var arr = data.split(' ');
-	var email = arr.pop();
-	var name = "";
-	if(arr.length == 0){name = email;}
-	else{name = arr.join(' ').replace(/"/g, '');}
-	// Create Token div
-	var newToken = document.createElement('div');
-	var insertedToken = document.getElementById(kind+'s').appendChild(newToken);
-	insertedToken.className='token';
-	insertedToken.id = email;
-	// Create Name Area
-	var newSpan = document.createElement('span');
-	var nameSpan = insertedToken.appendChild(newSpan);
-	var nameText = document.createTextNode(name);
-	nameSpan.appendChild(nameText);
-	//Create Mailto area
-	var newSpan = document.createElement('span');
-	var emailSpan = insertedToken.appendChild(newSpan);
-	var emailText = document.createTextNode(email);
-	emailSpan.className = 'mailto';
-	emailSpan.appendChild(emailText);
-	// create X button
-	var newA = document.createElement('a');
-	var xA = insertedToken.appendChild(newA);
-	var xText = document.createTextNode(" | X");
-	xA.appendChild(xText);
-	var js = 'javascript:removeToken("'+email+'")'
-	xA.setAttribute('href', js);
-	txtbox.value='';
 	
+function enter(){
+    if(typeToScript){
+        undoQue.push(['enter', pos.row, pos.col]);
+        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
+            
+        var j = lines[pos.row][0].slice(0,pos.col);
+        var k = lines[pos.row][0].slice(pos.col);
+        lines[pos.row][0] = j;
+        if (lines[pos.row][1] == 0)var newElem = 1;
+        else if (lines[pos.row][1] == 1)var newElem = 2;
+        else if (lines[pos.row][1] == 2)var newElem = 3;
+        else if (lines[pos.row][1] == 4)var newElem = 3;
+        else if (lines[pos.row][1] == 3)var newElem = 2;
+        else if (lines[pos.row][1] == 5)var newElem = 0;
+        var newArr = [k,newElem];
+        lines.splice(pos.row+1,0,newArr);
+        pos.row++;
+        pos.col=0;
+        anch.row=pos.row;
+        anch.col=pos.col;
+        // This means it was a scene before
+        // so run scene index
+        paint(false,false,true,false);
+        if(lines[pos.row][1]==1)sceneIndex();
+    }
 }
-function removeToken(v){
-	var token = document.getElementById(v);
-	token.parentNode.removeChild(token);	
-	}
 
-function suggestNav(e){
-	e.preventDefault()
-	var c = document.getElementsByTagName('div');
-	var arr = new Array();
-	for(var i=0; i<c.length; i++){
-		if(c[i].className == 'charSuggest'){
-			arr.push(c[i]);
-			}
-		}
-	if(document.getElementById('focus')==null){
-		arr[0].id = 'focus';
-		}
-	else{
-		var charSuggest = document.getElementById('focus')
-		charSuggest.removeAttribute('id');
-		var next 
-		if (e.which==40){
-			if (next = charSuggest.nextSibling){
-				if(next.nodeName == '#text'){next = next.nextSibling}
-				next.setAttribute('id', 'focus')
-				}
-			}
-		if (e.which==38){
-			if (next = charSuggest.previousSibling){
-				if(next.nodeName == '#text'){next = next.nextSibling}
-				next.setAttribute('id', 'focus')
-				}
-			}
-		}
-	}
-
-function characterSuggest(obj){
+function tab(){
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1]]);
+    var slug=false;
+    if (lines[pos.row][1]==0)var slug=true;
+	var type = lines[pos.row][1];
+	if (type==1){
+        lines[pos.row][1]=0;
+        slug=true;
+    }
+	else if (type==0)lines[pos.row][1]=2;
+	else if (type==2)lines[pos.row][1]=1;
+	else if (type==3)lines[pos.row][1]=4;
+	else if (type==4)lines[pos.row][1]=3;
+	else if (type==5){
+        lines[pos.row][1]=0;
+        slug=true;
+    }
+    if(slug)sceneIndex();
+    if(lines[pos.row][1]==4){
+        if(lines[pos.row][0].charAt(0)!='('){
+            lines[pos.row][0]='('+lines[pos.row][0];
+            pos.col++;
+            anch.col++;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+    }
+    if(lines[pos.row][1]==3){
+        if(lines[pos.row][0].charAt(0)=='('){
+            lines[pos.row][0]=lines[pos.row][0].substr(1);
+            pos.col--;
+            anch.col--;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+    }
+}
 	
-	var prev = document.getElementById('suggest');
-	if (prev!=null){
-		prev.parentNode.removeChild(prev);
-	}
-	if(obj.innerHTML=="")return;
-	if(obj.innerHTML=="<br>")return;
-	
-	obj.id='charFocus';
-	var offset = $('#charFocus').offset();
-	var height = window.innerHeight-offset.top;
-	if (height<100){
-		var a = 100-height;
-		var b = '+=' + a;
-		$('#container').scrollTo( b, 10 );
-		offset.top=offset.top-a;
-		}
-	var ypx = offset.top+16+'px';
-	var xpx = offset.left+'px';
-	obj.removeAttribute('id');
-	
-	var newDiv = document.createElement('div');
-	var suggestBox = document.body.appendChild(newDiv);
-	suggestBox.id = 'suggest';
-	suggestBox.style.position = 'fixed';
-	suggestBox.style.top = ypx;
-	suggestBox.style.left = xpx;
-	suggestBox.style.zIndex = '100';
-	suggestBox.className='suggestBox';
-	var nodeType = '';
-	if (obj.nodeName=='H3') nodeType = 'character';
-	else nodeType = 'scene';
-	var ifNone =0;
-	var l = obj.firstChild.nodeValue.length;
-	var c = document.getElementsByTagName('p');
-	for (var i=0; i<c.length; i++){
-		if (c[i].className == nodeType){
-			if(nodeType=='scene'){
-				var arr = c[i].innerHTML.split(')', 2);
-				s = arr[1];
-				s =s.substr(1);
-				s=s.substring(0,l);
-			}
-			else{
-				var s=c[i].innerHTML.substring(0,l);
-			}
-			if (obj.firstChild.nodeValue.toLowerCase()==s.toLowerCase()){
-				/// Figure out exactly what should go in
-				var menuOption;
-				if(nodeType=='scene'){
-					var arr = c[i].innerHTML.split(')', 2);
-					menuOption = arr[1].substr(1).toUpperCase();
-				}
-				else menuOption = c[i].innerHTML;
-				
-				//-------Make sure we're not doubling up
-				//--------
-				var dontPut = 0;
-				var others = document.getElementsByTagName('a')
-				for(var counter = 0; counter<others.length; counter++){
-					if(others[counter].parentNode.className=='charSuggest' && others[counter].innerHTML==menuOption){
-						dontPut =1
-					}
-					// make sure scene thing does show up in suggest as wer're typing uncompleted slugline
-					if(menuOption.toUpperCase()==obj.firstChild.nodeValue.toUpperCase()){
-						dontPut = 1;
-					}
-				}
-				if(dontPut==0){
-					var newDiv = document.createElement('div');
-					var newChar = suggestBox.appendChild(newDiv);
-					newChar.className = 'charSuggest';
-					var newA = document.createElement('a');
-					var insertedA = newChar.appendChild(newA);
-					insertedA.innerHTML = menuOption;
-					if(nodeType=='character')insertedA.innerHTML=insertedA.innerHTML.replace(/^\s+|\s+$/g,"");
-					var href = 'javascript:selectCharacter("'+menuOption+'")';
-					insertedA.href = href;
-					ifNone=1;
-				}
-			}
-		}
-	}
-	if (ifNone==0){suggestBox.parentNode.removeChild(suggestBox);}
-	else{
-		suggestBox.firstChild.id = 'focus';
-		$(".charSuggest").mouseover(function(){
-											   var c = document.getElementById('focus');
-											   if(c!=null){c.removeAttribute('id');}
-											   this.id = 'focus'
-											   }); 
-	};
-	}
-	
-	//// This function picks the chracter onclick
-function selectCharacter(txt){
-	var suggest = document.getElementById('suggest');
-	if (suggest!=null){
-		suggest.parentNode.removeChild(suggest);
-	}
-	var node = window.getSelection().anchorNode;
-	var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-	startNode.innerHTML = txt;
-	var chara = window.getSelection();
-	chara.extend(startNode, 1);
-	chara.collapseToEnd();
-	sceneIndex();
-}
-function charSelect(e){
-var anchor = document.getElementById('focus').firstChild;
-//while(anchor.nodeName!='a'){anchor=anchor.nextSibling;}
-var txt = anchor.innerHTML;
-selectCharacter(txt);
-}
-function bottomScroll(){
-	var node = window.getSelection().anchorNode;
-	var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-	
-	startNode.id='scrollFocus';
-	var offset = $('#scrollFocus').offset();
-	var height = window.innerHeight-offset.top;
-	if (height<100){
-		$('#container').scrollTo( '+=100', 0 );
-		}
-	startNode.removeAttribute('id');
-	
-	}
-
-function tabButton(event) {
- event.preventDefault();
-var i = document.getElementById("format").selectedIndex;
-if (i==4) {i=0;}
-else if (i==3) {i=5;}
-else if (i==2) {i=1;}
-else if (i==5) {i=3;}
-else if (i==1) {i=0;}
-else {i=2;}
-document.getElementById("format").selectedIndex = i;
-i=i+1;
-fontEdit('formatBlock', 'h' + i);
+function handlekeypress(event) {
+    if(typeToScript){
+        event.preventDefault();
+        var d= new Date();
+        milli = d.getMilliseconds();
+        if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
+        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
+            //console.log(event.which);
+            undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
+            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
+            pos.col++;
+            if (lines[pos.row][1]==0)sceneIndex();
+        }
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 
-
-//--------------------
-//-----------------------------------
-//-----------------------------------
-//-------------- Handling Notes ands stuff------
-//--------------next five or six fucntions------
-
-
-function insertSharedNotes(data){
-	if (data=='none' || data =='nonedata' || data =='cleaned notes db' || data=='no new notes') {;}
-	else {
-		var numberOfNotes = 0;
-		var c = document.getElementById('textEditor').childNodes;
-		data = data.slice(6);
-		var users = data.split('&user&');
-		for (var i=0; i<users.length; i++){
-			try{
-				var arrOne = users[i].split('&data&');
-				var user = arrOne[0];
-				var notesUnits = arrOne[1].split("&unit&");
-				for (var j=0; j<notesUnits.length; j++){
-					var id = notesUnits[j].split("?comment=")[0];
-					var comment = notesUnits[j].split("?comment=")[1].split('?position=')[0];
-					var position = notesUnits[j].split("?comment=")[1].split('?position=')[1];
-					var spans = document.getElementsByTagName('span');
-					var ifExists=0;
-					for (var m=0; m<spans.length;m++){
-						if (spans[m].title.split('?comment=')[0]==id){
-							spans[m].title = id+'?comment='+comment+'?user='+user;
-							ifExists=1;
-							numberOfNotes++;
-						}
-					}
-					if (ifExists==0){
-						for (var k=0; k<c.length; k++){
-							if (String(k) == position){
-								var insertedNote = c[k].appendChild(document.createElement('span'));
-								insertedNote.className = 'sharedNotes';
-								insertedNote.title = id+'?comment='+comment+'?user='+user;
-								insertedNote.appendChild(document.createTextNode('X'));
-								numberOfNotes++;
-							}
-						}
-					}
-				}
-			}
-			catch(err){;}
-		}
-	}
-	if (numberOfNotes!=0){
-		notesIndex();
-		var s = document.getElementById('save');
-		var ex = document.getElementById('exportS');
-		var em = document.getElementById('emailS');
-		s.value='Save';
-		s.disabled=false;
-		em.disabled=false; 
-		ex.disabled=false; 
-		em.value='Send'; 
-		ex.value='Export';
-		save();
-	}
+// Managining arrays
+// calcing data
+function undo(){
+    if (undoQue.length==0)return;
+    var dir = undoQue.pop();
+    redoQue.push(dir);
+    console.log(dir);
+    var forceCalc=false;
+    if(dir[0]=='enter'){
+        var j = lines[dir[1]+1][0];
+        lines.splice((dir[1]+1),1);
+        if(lines[dir[1]][1]==4 && lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
+        lines[dir[1]][0]+=j;
+        forceCalc=true;
+    }
+    else if(dir[0]=='back'){
+        if(dir[3]=='line'){
+            var j = lines[dir[1]][0].slice(0,dir[2]);
+            var k = lines[dir[1]][0].slice(dir[2]);
+            if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
+            lines[dir[1]][0] = j;
+            var newArr = [k,dir[4]];
+            lines.splice(dir[1]+1,0,newArr);
+            dir[1]=dir[1]+1;
+            dir[2]=0;
+            forceCalc=true;
+        }
+        else{
+            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+        }
+    }
+    else if(dir[0]=='delete'){
+        if(dir[3]=='line'){
+            var j = lines[dir[1]][0].slice(0,dir[2]);
+            var k = lines[dir[1]][0].slice(dir[2]);
+            if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
+            lines[dir[1]][0] = j;
+            var newArr = [k,dir[4]];
+            lines.splice(dir[1]+1,0,newArr);
+            forceCalc=true;
+        }
+        else{
+            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[3] +lines[dir[1]][0].slice(dir[2]);
+        }
+    }
+    else if(dir[0]=='format'){
+        lines[dir[1]][1]=dir[3];
+        if(lines[dir[1]][0].charAt(0)=='(')lines[dir[1]][0]=lines[dir[1]][0].substr(1);
+        if(lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
+    }
+    else if(dir[0]=='br'){
+        var n=dir[1];
+        for(var i=0; i<n; i++){
+            var dir = undoQue.pop();
+            redoQue.push(dir);
+            if(dir[3]=='line'){
+                var j = lines[dir[1]][0].slice(0,dir[2]);
+                var k = lines[dir[1]][0].slice(dir[2]);
+                if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
+                lines[dir[1]][0] = j;
+                var newArr = [k,dir[4]];
+                lines.splice(dir[1]+1,0,newArr);
+                dir[1]=dir[1]+1;
+                dir[2]=0;
+                forceCalc=true;
+            }
+            else{
+                lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+            }
+        }
+    }
+    else if(dir[0]=='dr'){  
+        var n= dir[1];
+        for(var i=0; i<n; i++){
+            var dir = undoQue.pop();
+            redoQue.push(dir);
+            if(dir[3]=='line'){
+                var j = lines[dir[1]][0].slice(0,dir[2]);
+                var k = lines[dir[1]][0].slice(dir[2]);
+                if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
+                lines[dir[1]][0] = j;
+                var newArr = [k,dir[4]];
+                lines.splice(dir[1]+1,0,newArr);
+                forceCalc=true;
+            }
+            else{
+                lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+            }
+        }
+    }
+    else{
+        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
+        if(lines[dir[1]][1]==4 && lines[dir[1]][0][dir[2]-1]==')'){
+            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
+            dir[2]=dir[2]-1;
+        }
+    }
+    pos.row=dir[1];
+    pos.col=dir[2];
+    anch.row = pos.row;
+    anch.col=pos.col;
+    paint(false,false,true,false);
+    
 }
 
 
 
-
-function updateNote(obj){
-	var id = obj.id;
-	if (id==''){id=obj.parentNode.id;}
-	var spans = document.getElementsByTagName('span');
-	for(var i=0; i<spans.length; i++){
-		if(spans[i].title.split('?comment=')[0] == id){
-			var d = new Date();
-			var newId = d.getTime();
-			var reone = new RegExp('<br>', 'ig');
-			var retwo = new RegExp('<div>', 'ig');
-			var rethree = new RegExp('</div>', 'ig');
-			if ($.browser.mozilla){
-				var data = obj.innerHTML.replace(reone, 'HTMLLINEBREAK')
-			}
-			else{var data = obj.innerHTML.replace(reone, '').replace(rethree, '').replace(retwo, 'HTMLLINEBREAK');}
-			spans[i].title = newId + '?comment=' + data;
-			obj.id = newId;
-		}
-	}
-}
-function insertNote(){
-	fontEdit('insertHTML', 'a');
-	var selection = window.getSelection().getRangeAt(0);
-	var container = selection.startContainer;
-	var offset = selection.startOffset - 1;
-	window.getSelection().extend(container, offset);
-	var span = "<span class='notes' title='new'>X</span>";
-	fontEdit('insertHTML', span);
-	var obj;
-	var marker = 0;
-	var c = document.getElementsByTagName('span')
-	for(var i=0; i<c.length; i++){
-		if (c[i].title=='new'){
-			c[i].className = 'notes';
-			var obj = c[i];
-			marker = 1;
-		}
-	}
-	if (marker == 0){
-		for (var i=0; i<c.length; i++){
-			if (c[i].className=='Apple-style-span' && c[i].innerHTML =='X'){
-				c[i].className = 'notes';
-				var obj = c[i];
-			}
-		}
-	}
-	var d = new Date();
-	var id = d.getTime();
-	obj.title = id + '?comment=';
-	notesIndex();
-	document.getElementById(id).focus();
-	
-	
-	
-}
-function selectNote(obj){
-	var prev = obj.title;
-	var arr = prev.split('?comment=');
-	var id = arr[0];
-	document.getElementById(id).focus();
-}
-function notesIndex(){
-	// Romove old notes
-	var c = document.getElementById('noteindex').childNodes;
-	for(var j=0; j<c.length; j++){
-		document.getElementById('noteindex').removeChild(c[j]);
-		j--;
-	}
-	var noteCounter = 0;
-	var spans = document.getElementsByTagName('span');
-	for (var i=0; i<spans.length; i++){
-		if(spans[i].className == 'notes' || spans[i].className == 'sharedNotes'){
-			spans[i].innerHTML ='X';
-			var user='';
-			var arr = spans[i].title.split('?comment=');
-			var content = arr[1].split('?user=')[0];
-			if (spans[i].className=='sharedNotes') user = arr[1].split('?user=')[1];
-			if ($.browser.mozilla){
-				var pattern = new RegExp('HTMLLINEBREAK', 'gi');
-				var noteHTML = content.replace(pattern,'<br>');
-				if (user!=''){
-					noteHTML = noteHTML+'<br><br>--'+user;
-				}
-			}
-			else{
-				var lines = content.split('HTMLLINEBREAK');
-				var noteHTML = lines[0];
-				for (var j=1; j<lines.length; j++){
-					noteHTML = noteHTML+'<div>';
-					if(lines[j]=='') noteHTML = noteHTML+'<br>';
-					else noteHTML = noteHTML + lines[j];
-					noteHTML = noteHTML+'</div>';
-				}
-				if (user!=''){
-					noteHTML = noteHTML+'<div><br></div><div><br></div><div>--'+user+'</div>';
-				}
-				
-			}
-			var note = document.getElementById('noteindex').appendChild(document.createElement('div'));
-			note.innerHTML=noteHTML;
-			if (spans[i].className == 'notes'){
-				note.className = 'postit';
-				note.contentEditable = 'true';
-			}
-			if (spans[i].className == 'sharedNotes'){
-				note.className = 'sharedPostit';
-			}
-			note.id = arr[0];
-			noteCounter++;
-			
-			
-		}
-	}
-	$('.postit').blur(function(e){updateNote(e.target)});
-	$('.sharedPostit').click(function(e){scrollToNote(e.target)});
-	return noteCounter
-}
-
-function scrollToNote(obj){
-	
-	var id = obj.id;
-	if (id==''){id=obj.parentNode.id;}
-	var c = document.getElementsByTagName('span');
-	var i =0;
-	var marker=0;
-	while (marker == 0){
-		if (c[i].title.split('?comment=')[0]==id){
-			marker = 1;
-			c[i].id = 'note'
-			c[i].innerHTML = 'X';
-			$('#container').scrollTo('#note',500, {onAfter:function(){c[i].removeAttribute('id');}});
-		}
-		else i++;
-		if(i>c.length) marker = 1;
-	}
-}
- 
- 
- 
- 
-//---------------------------------- End of notes fucntions
-//----------------------------------
-//----------------------------------
-//----------------------------------
-//----------------------------------
-function fontEdit(x,y) {
-	try{
-		var node = window.getSelection().anchorNode;
-		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		if(startNode.className=='notes' || startNode.className=='sharedNotes')return;
-	}
-	catch(err){;}
-	document.execCommand(x,"",y);
-	bottomScroll();
-	onTabOrEnter();
-}
- 
-function enterButton(e) {
-	var marker = 0;
-	var d = document.getElementsByTagName('span');
-	for(var i=0; i<d.length; i++){
-		var ifNote =0;
-		if (d[i].className=='notes' || d[i].className=='sharedNotes') ifNotes =1;
-		if (ifNotes==1 && d[i].parentNode.nodeName=='DIV'){
-			var c = d[i].parentNode.previousSibling.nodeName;
-			var headerType;
-			if (c == "H1") {headerType='h2';}
-			else if (c == "H2") {headerType='h3';}
-			else if (c == "H3") {headerType='h4';}
-			else if (c == "H4") {headerType='h3';}
-			else if (c == "H5") {headerType='h1';}
-			else {headerType='h4';}
-			var newHeader = document.getElementById('textEditor').insertBefore(document.createElement(headerType), d[i].parentNode);
-			
-			d[i].parentNode.parentNode.removeChild(d[i].parentNode);
-			newHeader.innerHTML = 's';
-			var range = document.createRange();
-			range.selectNode(newHeader);
-			range.collapse(false);
-			
-			newHeader.firstChild.select();
-			marker = 1;
-		}
-	}
-	if (marker == 0) lineFormat();
-	var node = window.getSelection().anchorNode;
-	var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-	var c = startNode.nodeName;
-	if (c == "H4") {characterIndex();}
-	else if (c == "H2") {sceneIndex();}
-}
- 
-function lineFormat() {
-var j = document.getElementById("format").selectedIndex;
-if (j==0) {j=1;}
-else if (j==1) {j=2;}
-else if (j==2) {j=3;}
-else if (j==3) {j=2;}
-else if (j==5) {j=3;}
-else {j=0;}
-document.getElementById("format").selectedIndex = j;
-j=j+1;
-fontEdit('formatBlock', 'h' + j);
-}
-
- 
-function getFormat(){
-	try{
-		var node = window.getSelection().anchorNode;
-		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		if (startNode.nodeName =='SPAN')startNode = startNode.parentNode;
-		var c = startNode.nodeName;
-		if (c == "H1") {c=0;}
-		else if (c == "H2") {c=1;}
-		else if (c == "H3") {c=2;}
-		else if (c == "H4") {c=3;}
-		else if (c == "H5") {c=4;}
-		else {c=5;}
-		document.getElementById('format').selectedIndex = c;
-		currentPage();
-		onTabOrEnter();
-	}
-	catch(err){;}
-}
-
-function onTabOrEnter(){
-	var node = window.getSelection().anchorNode;
-    var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-	var c= startNode.nodeName;
-	var d = document.getElementById('onTabOrEnter');
-	if (c == "H1") {d.innerHTML = "Tab : Character -- Enter : Action";}
-	else if (c == "H2") {d.innerHTML = "Tab : Slugline -- Enter : Character";}
-	else if (c == "H3") {d.innerHTML = "Tab : Action -- Enter : Dialouge";}
-	else if (c == "H4") {d.innerHTML = "Tab : Parenthetical -- Enter : Character";}
-	else if (c == "H5") {d.innerHTML = "Tab : Slugline -- Enter : Slugline";}
-	else {d.innerHTML = "Tab : Dialouge -- Enter : Dialouge";}
-	}
-	
-function sceneIndex () {
-var p = document.getElementById('textEditor').getElementsByTagName( "h1" ); 
-	var k = 0;
-var s = document.getElementById('sceneindex');
-//remove previous nodes
-var prev = s.childNodes;
-for (var i=0; i<prev.length; i=0){
-	prev[0].parentNode.removeChild(prev[0]);
-	}
-while (k<p.length){
-	var newP = document.createElement('p');
-	var newScene = s.appendChild(newP);
-	var l = k +1;
-	var slug = "";
-	var parts = p[k].childNodes;
-	//--
-	//--TOTO fix try, make it work when one of the sluglines is blank
-	//--
-	try{
-	for(var i=0; i<parts.length; i++){
-		var ifNotes = 0;
-		if (parts[i].className=='notes' || parts[i].className=='sharedNotes') ifNotes = 1;
-		if (parts[i].nodeName=='undefined'){;}
-		else if (parts[i].nodeName=='#text') slug = slug+parts[i].nodeValue;
-		else if (parts[i].nodeName=='SPAN'&& ifNotes == 0) {
-			var spanTxt = parts[i].firstChild.nodeValue;
-			slug = slug +spanTxt;
-			parts[i].parentNode.removeChild(parts[i]);
-			p[k].lastChild.nodeValue = p[k].firstChild.nodeValue + spanTxt;
-		}
-		else if (ifNotes==1) {;}
-		else slug = slug+parts[i].firstChild.nodeValue;
-		}
-	}
-	catch(err){;}
-	var newText = l +") "+ slug;
-	newText = newText.replace(/<BR>/i, "");
-	var newNode = document.createTextNode(newText);
-	newScene.appendChild(newNode);
-	newScene.className = 'scene';
-	newScene.id = 'p'+ l;
-	newScene.style.cursor = "pointer";
-	p[k].setAttribute('id', l);
-	k++;
-	}
-	$(".scene").mouseover(function(){$(this).css("background-color", "#ccccff");});
-	$(".scene").mouseout(function(){$(this).css("background-color", "white");});
-	$(".scene").click(function(){$(this).css("background-color", "#999ccc");sceneSelect(this.id);});
-}
- 
-function sceneSelect(p) {
-var id = "p" + p;
-var v = "#" + p.replace(/p/,"");
-$('#container').scrollTo(v,500);
-}
- 
-function characterIndex() {
-var c = document.getElementsByTagName('h3');
-if (c[0]==null){return;}
-var e = new Array();
-for (var x = 0;x<c.length;x++){
-	e[x] = String(c[x].firstChild.nodeValue).toUpperCase().replace(" (CONT'D)", "").replace(/&nbsp;/gi,"").replace(/\s+$/,"").replace(" (O.S.)", "").replace(" (O.C.)", "").replace(" (V.O.)", "");
-	}
-e.sort();
-var a = 0;
-var b = 1;
-while (a<e.length-1){
-	if (e[a] == e[b])
-		{e.splice(b,1)}
-	else {a++; b++}
-	}
-var cI = document.getElementById('characterindex');
-// remove previous nodes
-var prevChar = cI.childNodes;
-for (var i=0; i<prevChar.length; i=0){
-	prevChar[0].parentNode.removeChild(prevChar[0]);
-	}
-var k = 0;
-while (k<e.length){
-	if(e[k]!='(MORE)'){
-		var newP = document.createElement('p');
-		var newChar = cI.appendChild(newP);
-		newChar.innerHTML = e[k];
-		newChar.className = "character";
-		}
-	k++;
-	}
-continued();
-}
-
-function pasteEdit(){
-	if ($.browser.webkit){
-		setTimeout(function(){
-		var node = window.getSelection().anchorNode;
-		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		removeAttribute();
-		var d = document.getElementById("textEditor");
-		var c = d.childNodes;
-		for (var i = 0; i<c.length; i++) {
-			var f = c[i].firstChild;
-			if (f == "[object HTMLMetaElement]") {c[i].removeChild(f);}
-			else if (f == "[object Text]"){;}
-			else if (f == null) {;}
-			else {document.getElementById('textEditor').insertBefore(f, c[i]); i--;}
-			}
-		sceneIndex();
-		var chara = window.getSelection();
-	  	chara.extend(startNode, 1);
-	  	chara.collapseToEnd();
-		bottomScroll();
-		}, 0);
-	}
-sceneIndex();
-}
-
-function removeAttribute () {
-var m = document.getElementById('textEditor').getElementsByTagName("meta");
-for (var k = 0; k<m.length; k++) {
-	var p = m[k].parentNode;
-	p.removeChild(m[k]);
-	k--;
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h1');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h2');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h3');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h4');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h5');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-var m = document.getElementById('textEditor').getElementsByTagName('h6');
-for (var i = 0; i<m.length; i++){
-	m[i].removeAttribute("style");
-	}
-}
 function pagination(){
-	// trying to fix jumping problem when looking at end of script--- 
-	// - - - - - -just reverse this process at the end
-	document.getElementById('textEditor').style.marginTop='10000px';
-	
-	
-	
-	//DELETE OLD PAGEBREAKS
-	var m = document.getElementsByTagName("hr");
-	for (var k = 0; k<m.length; k++) {
-		var p = m[k].parentNode;
-		p.removeChild(m[k]);
-		k--;
-		}
-	// DELETE OLD (MORE)S
-	var h = document.getElementsByTagName('h3');
-	for(var q=0; q<h.length; q++){
-		if(h[q].className == "more"){
-			// Get the text of the first half of the dialouge
-			var dialouge = h[q].previousSibling;
-			if (dialouge.nodeName == '#text'){
-				dialouge = dialouge.previousSibling;
-				}
-			var partOne = dialouge.innerHTML;
-			
-			// delete next character holder
-			var charHolder = h[q].nextSibling;
-			while(charHolder.nodeName!='H3'){charHolder = charHolder.nextSibling;}
-			var p = charHolder.parentNode;
-			p.removeChild(charHolder);
-			// get next dialouge block then delete it
-			var nextDialouge = h[q].nextSibling;
-			while(nextDialouge.nodeName!='H4'){nextDialouge = nextDialouge.nextSibling;}
-			partOne = partOne+' '+nextDialouge.innerHTML;
-			var p = nextDialouge.parentNode;
-			p.removeChild(nextDialouge);
-			// stick text back in
-			dialouge.innerHTML = partOne;
-			//delete MORE
-			p.removeChild(h[q]);
-			}
-		
-		}
-	// DELETE OLD PAGE NUMBERS
-	var op = document.getElementsByTagName('h5');
-	for (var r=0;r<op.length;r++){
-		if (op[r].className=='pn'){
-			op[r].parentNode.removeChild(op[r]);
-			r--;
-			}
-		}
-	
-	// START COUNTING OUT lines
-	var c = document.getElementById('textEditor').childNodes;
-	var lines = 0;
-	var list = [];
-	var wraps = 1;
-	for (var i = 0; i<c.length; i++){
-		if (c[i].nodeName == "#text") {;}
-		else {
-			var length = 0;
-			if (c[i].nodeName == "H1") {lines=lines+2;}
-			else if (c[i].nodeName == "H3") {lines=lines+2; var name = c[i].innerHTML;}
-			else if (c[i].nodeName == "H5") {lines=lines+2;}
-			else if (c[i].nodeName == "H2") {
-				// add oneline for blank space
-				lines++;
-				var txtData = '';
-				var pieces = c[i].childNodes;
-				for (var iterant=0; iterant<pieces.length; iterant++){
-					if (pieces[iterant].nodeName!='SPAN') txtData = txtData + pieces[iterant].nodeValue;
-					
-				}
-				var words = txtData.split(' ');
-				for (var j=0; j<words.length; j++){
-					length = length+words[j].length+1;
-					if (length>62){
-						lines++;
-						length=0;
-						j--;
-						wraps++;
-						}
-					}
-				//add one line for remainder, or one if it's the only line of dialouge
-				lines++
-				}
-			else if (c[i].nodeName == "H4") {
-				// DON"T add oneline for blank space
-				var txtData = '';
-				var pieces = c[i].childNodes;
-				for (var iterant=0; iterant<pieces.length; iterant++){
-					if (pieces[iterant].nodeName!='SPAN') txtData = txtData + pieces[iterant].nodeValue;
-					
-				}
-				var words = txtData.split(' ');
-				for (var j=0; j<words.length; j++){
-					length = length+words[j].length+1;
-					if (length>35){
-						lines++;
-						length=0;
-						j--;
-						wraps++;
-						}
-					}
-				//add one line for remainder, or one if it's the only line of dialouge
-				lines++
-				}
-			else if (c[i].nodeName == "H6") {
-				// DON"T add oneline for blank space
-				var txtData = '';
-				var pieces = c[i].childNodes;
-				for (var iterant=0; iterant<pieces.length; iterant++){
-					if (pieces[iterant].nodeName!='SPAN') txtData = txtData + pieces[iterant].nodeValue;
-					
-				}
-				var words = txtData.split(' ');
-				for (var j=0; j<words.length; j++){
-					length = length+words[j].length+1;
-					if (length>26){
-						lines++;
-						length=0;
-						j--;
-						}
-					}
-				}
-				
-			if (lines>56){
-				if (c[i].nodeName == 'H2'){;}
-				if (c[i].nodeName == 'H5'){i--; if (c[i].nodeName == "#text") {i--;}}
-				if (c[i].nodeName == 'H1'){i--; if (c[i].nodeName == "#text") {i--;}}
-				if (c[i].nodeName == 'H4'){
-					if(wraps>3){
-							if(lines-wraps<55){
-								var second = c[i].cloneNode(true);
-								var secondPage = document.getElementById('textEditor').insertBefore(second, c[i+1]);
-								
-								var firstPage = 56-lines+wraps;
-								var words = c[i].innerHTML.split(' ');
-								var firstPageLines = 0;
-								var n = 0;
-								var sliceCount = 0
-								var lineLength = 0;
-								var firstPageContent='';
-								while (firstPageLines<firstPage){
-									if (words[n].length+lineLength<35){
-										firstPageContent = firstPageContent + String(words[n]) + ' ';
-										lineLength = lineLength + words[n].length+1;
-										sliceCount = sliceCount+words[n].length+1;
-										n++;
-										}
-									else {
-										lineLength = 0;
-										firstPageLines++;
-										}
-									}
-								
-								var secondPageContent = secondPage.innerHTML;
-								secondPageContent = secondPageContent.replace(firstPageContent, "");
-								// don't allow one line on the second page
-								if (secondPageContent.length<35){
-									var wordArray = firstPageContent.split(" ");
-									lineLength = 0;
-									while(lineLength<35){
-										lineLength = lineLength + wordArray[wordArray.length-1] + 1;
-										secondPageContent = wordArray.pop() + " " + secondPageContent;
-										}
-									firstPageContent = wordArray.join(" ");
-									}
-								//insert dialouge text
-								c[i].innerHTML = firstPageContent;
-								secondPage.innerHTML = secondPageContent;
-								var newBr = document.createElement('h3');
-								var more = document.getElementById('textEditor').insertBefore(newBr, secondPage);
-								more.innerHTML = '(MORE)';
-								more.className = 'more';
-								var newHeader = document.createElement('h3');
-								var character = document.getElementById('textEditor').insertBefore(newHeader, secondPage);
-								character.innerHTML = name;
-								i++;
-								i++;
-								}
-							else{i--;if (c[i].nodeName == "#text") {i--;}}
-							}
-					else {i--; if (c[i].nodeName == "#text") {i--;}}
-					}
-				if (c[i].nodeName == 'H6'){i--; if (c[i].nodeName == "#text") {i--;}}
-				var pb = i+list.length;
-				list.push(pb);
-				lines=0;
-				i--;
-				}
-			wraps=1;
-			}
-	}
-	for (var n=0; n<list.length; n++){
-		var newHr = document.createElement('hr');
-		insertedElement = document.getElementById('textEditor').insertBefore(newHr, c[list[n]]);
-		insertedElement.className='pb';
-	}
-	var pb = document.getElementsByTagName('hr')
-	for(var p=0; p<pb.length; p++){
-		var pageHolder = document.getElementById('textEditor').insertBefore(document.createElement('h5'), pb[p].nextSibling);
-		pageHolder.appendChild(document.createTextNode((p+2)+'.'));
-		pageHolder.className = 'pn';
-		
-		}
-	
-	document.getElementById('totalPages').innerHTML= ' of  '+(list.length+1);
-	/// reversing the margin jump to keep the page in the same place
-	// basicaly reversing the first line of this function
-	document.getElementById('textEditor').style.marginTop = '10px';
-	continued();
-}
-function currentPage(){
-	var node = window.getSelection().anchorNode;
-    var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-    var c = document.getElementById('textEditor').childNodes;
-	var i = 0;
-	var count = 1;
-	while(c[i]!=startNode){
-			if(c[i].nodeName=='HR'){
-				count++;
-				}
-		
-		i++;
-		if(i>c.length) return;
-		}
-	document.getElementById('currentPage').innerHTML = count;
-	}
-	
- 
- function htmlTitleUpdate(){
-	if (document.getElementById('title') == "") {document.title = "Script Editor";}
-	else {document.title = document.getElementById('title').innerHTML;}
-
+    pageBreaks = [];
+    i = 0;
+    var r=0;
+    while(i<lines.length){
+        lineCount = r;
+        while(lineCount+linesNLB[i].length<56){
+            lineCount+=linesNLB[i].length;
+            i++;
+            if (i==lines.length){
+                return;
+            }
+        }
+        var s=0;
+        r=0;
+        if(lines[i][1]==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
+        }
+        else if(lines[i][1]==3 && lineCount<54 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else{
+            while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
+                //console.log(lines[i-1][0]);
+                i--;
+                lineCount-=linesNLB[i].length;
+            }
+        }
+        pageBreaks.push([i, lineCount, s]);
+    }
 }
 
-function continued() {
-	var c = document.getElementsByTagName('h3');
-	for (var i = 0; i<c.length; i++){
-		c[i].innerHTML = c[i].innerHTML.replace(/\s+$/,"");
-		try{c[i].firstChild.nodeValue = c[i].firstChild.nodeValue.replace(/\s+$/,"");}
-		catch(err){;}
-		}
-	// Delete old Mores
-	for (var b=0; b<c.length-1; b++){
-		c[b].firstChild.nodeValue = c[b].firstChild.nodeValue.replace(" (CONT'D)", "");
-	}
-	// insert new ones
-	var c = document.getElementById('textEditor').childNodes;
-	var prev = null;
-	var arr = [];
-	var current;
-	for (var i=0; i<c.length; i++){
-		current='';
-		// check current and see what to do
-		if (c[i].nodeName=='H1') prev = null;
-		if (c[i].nodeName=='H3'){
-			arr = c[i].childNodes
-			for (var j=0; j<arr.length; j++){
-				if (arr[j].nodeName=='#text') current = current+arr[j].nodeValue;
-			}
-			current = current.toUpperCase();
-			current = current.replace(" (O.S.)", '').replace(" (V.O.)", '').replace(" (O.C.)", '').toUpperCase();
-
-			if(prev=='&more&'){
-				c[i].innerHTML = c[i].innerHTML +" (CONT'D)";
-				prev = current;
-			}
-			else if(c[i].className == 'more'){
-				prev = '&more&';
-			}
-			else if (current==prev){
-				c[i].innerHTML = c[i].innerHTML +" (CONT'D)";
-				prev = current;
-			}
-			else prev = current;
-			
-		}
-	}
+function characterInit(){
+    for(var i=0; i<lines.length;i++){
+        if (lines[i][1]==2){
+            characterIndex(lines[i][0]);
+        }
+    }
+}
+function characterIndex(v){
+    var chara = v.toUpperCase();
+    var found=false;
+    for(var i=0;i<characters.length;i++){
+        if(characters[i][0]==chara){
+            characters[i][1]=characters[i][1]+1;
+            found=true;
+        }
+    }
+    if (!found){
+        characters.push([chara,1]);
+    }
+}
+function sceneIndex(){
+    scenes=[];
+    var num = 0;
+    for (var i=0; i<lines.length; i++){
+        if(lines[i][1]==0){
+            num++;
+            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
+        }
+    }
+    var c = document.getElementById('sidebar');
+    c.innerHTML="";
+    
+    for (var i=0; i<scenes.length; i++){
+        var elem = c.appendChild(document.createElement('p'))
+        elem.appendChild(document.createTextNode(scenes[i][0]));
+        elem.className='sceneItem';
+        elem.id="row"+scenes[i][1];
+    }
+    $('.sceneItem').click(function(){$(this).css("background-color", "#999ccc");jumpTo(this.id)});
+    $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
+	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
+    
 }
 
- 
+//Menu
+// function to hand the file like menu
 
-function printPrompt(){
-	var notesCounter = notesIndex();
-	if (notesCounter==0) printScript(0);
-	else document.getElementById('printpopup').style.visibility = 'visible';
-	}
-function hidePrintPrompt(){
-	document.getElementById('printpopup').style.visibility = 'hidden';
-	}
-//---- HTML style printing with and without notes----
-//----- Done Local so doenst need server connection----
-function printScript(bool){
-	pagination();
-	document.getElementById('wholeShebang').style.display = 'none';
-	var printDiv = document.body.appendChild(document.createElement('div'));
-	printDiv.id = 'printDiv';
-	printDiv.style.width = '600px';
-	printDiv.style.margin = 'auto';
-	var content = '<div>';
-	var script = document.getElementById('textEditor').innerHTML;
-	script = script.replace(/<hr class="pb">/gi, '<p style="display:none"></p>');
-	script = script.replace(/class="pn"/gi, 'class="printPageBreak"');
-	script = script.replace(/<h3 class="more">/gi, '<h3 class="printMore">');
-	script = script.replace(/<span class="notes"/gi, '<span class="printNotes"');
-	script = script.replace(/<span class="sharedNotes"/gi, '<span class="printNotes"');
-	printDiv.innerHTML = script;
-	var c = printDiv.childNodes;
-	for (var i=0; i<c.length; i++){
-		if(c[i].className!='printPageBreak' && c[i].className!='printMore' && c[i].className!='printPageBreak')c[i].className = 'print';
-	}
-	// Printing Notes
-	if(bool==1){
-		var notesHeader = printDiv.appendChild(document.createElement('p'));
-		notesHeader.appendChild(document.createTextNode('Notes for '+ document.getElementById('title').firstChild.nodeValue.toUpperCase() +':'));
-		notesHeader.style.pageBreakBefore = 'always';
-		var orderedList = printDiv.appendChild(document.createElement('ol'));
-		var notesCounter = 1;
-		var notes = document.getElementsByTagName('span');
-		for(var i=0; i<notes.length;i++){
-			if (notes[i].className=='printNotes'){
-				notes[i].removeAttribute('style');
-				notes[i].innerHTML = notesCounter;
-				// figure out what page it's on
-				var prevSib = notes[i].parentNode;
-				var findPage = 0;
-				while(findPage==0){
-					if(prevSib = prevSib.previousSibling){
-						if(prevSib.className=='printPageBreak'){
-							var pageSpan = prevSib.nextSibling;
-							pageSpan = (pageSpan.nodeName=='#text' ? pageSpan.nextSibling : pageSpan);
-							var pageNumber = prevSib.innerHTML.replace('.','');
-							findPage=1;
-						}
-					}
-					else{
-						var pageNumber = 1;
-						findPage=1;
-					}
-				}
-				var splitVar = notes[i].title.split('?comment=')[1].split('?user=');
-				var noteText = 'Page ' + pageNumber + ' -- ' + splitVar[0].replace(/HTMLLINEBREAK/g, '<br>');
-				if (splitVar.length>1){
-					noteText=noteText+"<br><br>--"+splitVar[1];
-				}
-				var footnote = orderedList.appendChild(document.createElement('li'));
-				footnote.className = 'footnote';
-				footnote.innerHTML = noteText;
-				notesCounter++;
-			}
-		}
-	}
-	// end routine for printing notes
-	else $('.printNotes').css('display', 'none');
-	$('.printPageBreak').css('page-break-before', 'always');
-	window.print() ;
-	hidePrintPrompt();
-	document.getElementById('wholeShebang').style.display = 'block'; 
-	printDiv.parentNode.removeChild(printDiv);
-	
+function openMenu(v){
+    document.getElementById(v).style.backgroundColor='#6484df';
+    document.getElementById(v).style.color='white';
+    document.getElementById(v+'Menu').style.display='block';
+    var c = document.getElementsByTagName('td');
+    for(var i=0; i<c.length; i++){
+        if(c[i].className=='formatTD'){
+            if(c[i].id=='check'+lines[pos.row][1]){
+                c[i].innerHTML='';
+                c[i].appendChild(document.createTextNode('✓'));
+            }
+            else{
+                c[i].innerHTML='';
+            }
+        }
+    }
+}
+function topMenuOver(v){
+    var open=false;
+    var c = document.getElementsByTagName('div');
+    for(var i=0; i<c.length; i++){
+        if(c[i].className=='menuItem'){
+            c[i].style.backgroundColor='#A2BAE9';
+            c[i].style.color='black';
+        }
+        if(c[i].className=='topMenu'){
+            if(c[i].style.display=='block'){
+                c[i].style.display='none';
+                open=true;
+            }
+        }
+    }
+    if(open){
+        document.getElementById(v+'Menu').style.display='block';
+    }
+    document.getElementById(v).style.backgroundColor='#6484df';
+    document.getElementById(v).style.color='white';
+    var c = document.getElementsByTagName('td');
+    for(var i=0; i<c.length; i++){
+        if(c[i].className=='formatTD'){
+            if(c[i].id=='check'+lines[pos.row][1]){
+                c[i].innerHTML='';
+                c[i].appendChild(document.createTextNode('✓'));
+            }
+            else{
+                c[i].innerHTML='';
+            }
+        }
+    }
+}
+function topMenuOut(v){
+    if(document.getElementById(v+'Menu').style.display=='none'){
+        document.getElementById(v).style.backgroundColor='#A2BAE9';
+        document.getElementById(v).style.color='black';
+    }
 }
 
-//
-//----------------------------------------------
-//---------Backend Processes-------------------
-//
-//
-//
-///// Rename functions
+//menu options and stuff
+//rename
 function renamePrompt(){
-	document.getElementById('renamepopup').style.visibility = 'visible';
-	}
+    typeToScript=false;
+    document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
+    document.getElementById('renameField').value = document.getElementById('title').innerHTML;
+    document.getElementById('renamepopup').style.visibility = 'visible';
+}
+
 function hideRenamePrompt(){
 	document.getElementById('renameField').value = "";
 	document.getElementById('renamepopup').style.visibility = 'hidden';
-	}
+    typeToScript=true;
+}
+	
 function renameScript(){
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	var url = window.location.href;
-	var resource_id = url.split('=')[1];
 	var rename = document.getElementById('renameField').value;
 	if (rename==""){return;}
 	document.getElementById('title').innerHTML = rename;
-	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'editor'});
+	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
 	hideRenamePrompt()
-	}
+}
 	
-	
-	
-//// export functions
-function hideExportPrompt(){
-	document.getElementById('exportpopup').style.visibility = 'hidden';
-	}
-function exportPrompt(){
-	save();
-	document.getElementById('exportpopup').style.visibility = 'visible';
-	}
-function exportScripts(){
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	var url = window.location.href;
-	var resource_id = url.split('=')[1];
-	var format;
-	var exports = document.getElementsByTagName('input');
-	for (var i=0; i<exports.length; i++){
-		if (exports[i].checked==true){
-			if (exports[i].className=='exportList'){
-				format = exports[i].name;
-				url = '/export?resource_id=' + resource_id + '&export_format=' + format + '&fromPage=editor';
-				window.open(url);
-				}
-			}
-	}
-	hideExportPrompt();
-}
-//------------- Sharing fucntions
-function removeAccess(v){
-	var bool = confirm("Are you sure you want to take away access from "+v+"?");
-	if (bool==true){
-		var resource_id = window.location.href.split('=')[1];
-		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'editor', removePerson : v}, function(data){removeShareUser(data)})
-		document.getElementById(v.toLowerCase()).style.opacity = '0.5';
-		document.getElementById(v.toLowerCase()).style.backgroundColor = '#ddd';
-	}
-}
-function removeShareUser(data){
-	document.getElementById(data).parentNode.removeChild(document.getElementById(data));
-}
-function refreshShareList(v){
-	var data = v.slice(6);
-	var collabs = data.split('?user=')
-	var hasAccess = document.getElementById('hasAccess');
-	hasAccess.innerHTML='';
-	for (var i=0; i<collabs.length; i++){
-		if(collabs[i]!=''){
-			var collabTr = hasAccess.appendChild(document.createElement('tr'));
-			collabTr.id=collabs[i].toLowerCase();
-			var emailTd = collabTr.appendChild(document.createElement('td'));
-			emailTd.appendChild(document.createTextNode(collabs[i]));
-			var remove = collabTr.appendChild(document.createElement('td'));
-			remove.align = 'right';
-			var newA = remove.appendChild(document.createElement('a'));
-			newA.appendChild(document.createTextNode('Remove Access'));
-			var href = "javascript:removeAccess('"+collabs[i]+"')";
-			newA.href = href;
-		}
-	}
-}
-function sharePrompt(){
-	var resource_id = window.location.href.split('?resource_id=')[1];
-	$.post('/getsharelist', {resource_id:resource_id , fromPage :'scriptlist'}, function(data){refreshShareList(data)});
-	document.getElementById('sharepopup').style.visibility = 'visible';
-	document.getElementById('shareTitle').innerHTML = document.getElementById('title').innerHTML;
-	}
-function hideSharePrompt(){
-document.getElementById('sharepopup').style.visibility = 'hidden';
-document.getElementById('collaborator').value = "";
-document.getElementById('collaborators').innerHTML = "";
-}
-function shareScript(){
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	tokenize('collaborator');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
-	var collaborators = arr.join(',');
-	var url = window.location.href;
-	var resource_id = url.split('=')[1];
-	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'editor'});
-	hideSharePrompt();
-    sharePrompt();
-}
 
-	
-//------------Emailing fucntions
-function emailComplete(e){
-	document.getElementById('emailS').disabled = false;
-	document.getElementById('emailS').value = 'Send';
-	if (e=='sent'){
-		alert("Email Sent")
-		hideDiv();
-	}
-	else{
-		alert("There was a problem sending your email. Please try again later.")
-	}
-}
-	
-function emailScript(){
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	tokenize('recipient');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
-	var recipients = arr.join(',');
-	var subject = document.getElementById('subject').value;
-	var body_message = document.getElementById('message').innerHTML;
-	var url = window.location.href;
-	var resource_id = url.split('=')[1];
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor'}, function(e){emailComplete(e)});
-	document.getElementById('emailS').disabled = true;
-	document.getElementById('emailS').value = 'Sending...';
-}
-function emailPrompt(v){
-	
-	$.post('/contactlist', {fromPage : 'editorEmail'}, function(data){var contacts = data.split(';');});
-	save();
-	if(document.getElementById('demo').innerHTML=='demo'){
-		return;
-	}
-	document.getElementById('hideshow').style.visibility = 'visible';
-}
-function hideDiv(){
-document.getElementById('hideshow').style.visibility = 'hidden';
-document.getElementById('recipient').value = "";
-document.getElementById('subject').value = "";
-document.getElementById('message').innerHTML = "";
-document.getElementById('recipients').innerHTML = "";
-}
 
-//----------Saving---------//
-function save() {
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	try{
-		$('.sm').removeClass('sm');
-		var node = window.getSelection().anchorNode;
-		var startNode = (node.nodeName == "#text" ? node.parentNode : node);
-		if (startNode.parentNode.id=='textEditor') startNode.className = 'sm';
-	}
-	catch(err){;}
-	if(document.getElementById('suggest')!=null){return;}
-	var s = document.getElementById('save');
-	var ex = document.getElementById('exportS');
-	var em = document.getElementById('emailS');
-	if (s.value != "Saved"){
-	  s.disabled = true;
-	  em.disabled = true;
-	  ex.disabled = true;
-	  s.value = 'Remove Attributes...';
-	  removeAttribute ();
-	  em.value = 'Setting pages...';
-	  ex.value = 'Setting pages...';
-	  s.value = 'Setting pages...';
-	  pagination();
-	  em.value = "Saving...";
-	  ex.value = "Saving...";
-	  s.value = "Saving...";
-	  var url = window.location.href;
-	  var resourceId = url.split('=')[1];
-	  var content = document.getElementById('textEditor').innerHTML;
-	  $.post("/save", {resource_id : resourceId, content : content, fromPage : 'editor'}, function(data){s.value='Saved';em.disabled=false; ex.disabled=false; em.value='Send'; ex.value='Export'; insertSharedNotes(data)});
-	  //var chara = window.getSelection();
-	  //try{
-		//chara.extend(startNode, 1);
-		//chara.collapseToEnd();
-		//}
-	  //catch(err){;}
-	  sceneIndex();
-	}
+//drawing functions
+// like the scroll arrows
+function scrollArrows(ctx){
+    var height = document.getElementById('canvas').height;
+    //up arrow
+    ctx.fillStyle="#333";
+    ctx.fillRect(editorWidth-22, height-39, 20,20);
+    ctx.fillStyle='#ddd';
+    ctx.fillRect(editorWidth-20, height-37, 16, 16);
+    ctx.beginPath();
+    ctx.moveTo(editorWidth-18, height-24);
+    ctx.lineTo(editorWidth-12, height-35);
+    ctx.lineTo(editorWidth-6, height-24);
+    ctx.closePath();
+    ctx.fillStyle="#333";
+    ctx.fill();
+    //down arrow
+    ctx.fillStyle="#333";
+    ctx.fillRect(editorWidth-22, height-19, 20,20);
+    ctx.fillStyle='#ddd';
+    ctx.fillRect(editorWidth-20, height-18, 16, 16);
+    ctx.beginPath();
+    ctx.moveTo(editorWidth-18, height-15);
+    ctx.lineTo(editorWidth-12, height-4);
+    ctx.lineTo(editorWidth-6, height-15);
+    ctx.closePath();
+    ctx.fillStyle="#333";
+    ctx.fill();
 }
-function saveClose(){
-	if(document.getElementById('demo').innerHTML=='demo'){
-		nope();
-		return;
-	}
-	removeAttribute ();
-	var save = document.getElementById('save');
-	save.disabled = true;
-	save.value = 'Setting pages...';
-	pasteEdit();
-	pagination();
-	save.value = "Saving...";
-	var url = window.location.href;
-	var resourceId = url.split('=')[1];
-	var content = document.getElementById('textEditor').innerHTML;
-	$.post("/save", {resource_id : resourceId, content : content}, function(){window.close();});
-	
-	
+function scrollBar(ctx, y){
+    var height = document.getElementById('canvas').height;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+    var barHeight = ((height)/pagesHeight)*(height-39);
+    if (barHeight<20)barHeight=20;
+    if (barHeight>=height-39)barHeight=height-39;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight);
+    ctx.fillRect(editorWidth-22, topPixel, 20,barHeight);
+}
+function drawRange(ctx){
+    if(pos.row>anch.row){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else if(pos.row==anch.row && pos.col>anch.col){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else{
+        var startRange = {row:pos.row, col:pos.col};
+        var endRange = {row:anch.row, col:anch.col};
+    }
+    
+    //get the starting position
+    var startHeight = lineheight*9+3;
+    var count=0;
+    for (var i=0; i<startRange.row;i++){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            startHeight-=(pageBreaks[count][2])*lineheight;
+            if(lines[i][1]==3)startHeight+=lineheight;
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        startHeight+=lineheight*linesNLB[i].length;
+    }
+    var i=0;
+    var startRangeCol=linesNLB[startRange.row][i]+1;
+    while(startRange.col>startRangeCol){
+        startHeight+=lineheight;
+        if(pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[startRange.row][1]==3)startHeight+=lineheight;
+        }
+        else if(pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[startRange.row][1]==3)startHeight+=lineheight;
+        }
+        i++;
+        startRangeCol+=linesNLB[startRange.row][i]+1;
+    }
+    startRangeCol-=linesNLB[startRange.row][i]+1;
+    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
+    startWidth+=((startRange.col-startRangeCol)*fontWidth);
+    startHeight+=lineheight;
+
+    //getting the ending position
+
+    var endHeight = lineheight*9+3;
+    count=0;
+    for (var j=0; j<endRange.row;j++){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==j){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            endHeight-=(pageBreaks[count][2])*lineheight;
+            if(lines[j][1]==3)endHeight+=lineheight;
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        endHeight+=lineheight*linesNLB[j].length;
+    }
+    var j=0;
+    var endRangeCol=linesNLB[endRange.row][j]+1;
+    while(endRange.col>endRangeCol){
+        endHeight+=lineheight;
+        if(pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[endRange.row][1]==3)endHeight+=lineheight;
+        }
+        else if(pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            if(lines[endRange.row][1]==3)endHeight+=lineheight;
+        }
+        j++;
+        endRangeCol+=linesNLB[endRange.row][j]+1;
+    }
+    endRangeCol-=linesNLB[endRange.row][j]+1;
+    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
+    endWidth+=((endRange.col-endRangeCol)*fontWidth);
+    endHeight+=lineheight;
+    
+    // Now compare stuff and draw blue Box
+    ctx.fillStyle='lightBlue';
+    if(endHeight==startHeight){
+        var onlyBlueLine = startWidth;
+        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
+        ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
+    }
+    else{
+        var firstLineBlue = startWidth;
+         if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+        ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+        while(startHeight+lineheight<endHeight){
+            for(var counter=0; counter<pageBreaks.length; counter++){
+                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
+                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+                }
+                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
+                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
+                }
+            }
+            i++;
+            startHeight+=lineheight;
+            if(linesNLB[startRange.row].length<=i){
+                startRange.row++;
+                i=0;
+            }
+            var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+            if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+            ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+            
+        }
+        //ctx.fillStyle="blue";
+        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
+        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
+        ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+    }
+}
+function paint(e, anchE, forceCalc, forceScroll){
+    //console.log('pos.col='+pos.col+' pos.row='+pos.row);
+    var canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
+	ctx.clearRect(0,0, 2000,2500);
+	ctx.fillStyle = '#ccc';
+	ctx.fillRect(0, 0, editorWidth, document.getElementById('canvas').height);
+    ctx.fillStyle = foreground;
+    
+    
+    //draw pages
+    var pageStartX = 45;
+    var pageStartY = lineheight;
+    for(var i=0; i<=pageBreaks.length;i++){
+        ctx.fillStyle = background;
+        ctx.fillRect(pageStartX, pageStartY-vOffset, editorWidth*0.85, lineheight*70);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(editorWidth*0.85), lineheight*70);
+        ctx.strokeStyle='#999';
+        ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(editorWidth*0.85)+4, lineheight*70+4);
+        ctx.fillStyle=foreground;
+        if(i>0)ctx.fillText(String(i+1)+'.', 645, pageStartY-vOffset+85);
+        pageStartY+= lineheight*72;
+    }
+    
+    // use this opportunity to put in the grey backing
+    var greyHeight = lineheight*9+2;
+    var wrapVars=WrapVariableArray[0];
+    ctx.fillStyle='#ddd';
+    if(!forceCalc){
+        var count=0;
+        for (var i=0;i<lines.length;i++){
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+                greyHeight=72*lineheight*(count+1)+9*lineheight+2;
+                if(pageBreaks[count][2]!=0){
+                    greyHeight-=pageBreaks[count][2]*lineheight;
+                    if(lines[i][1]==3)greyHeight+=lineheight;
+                }
+                count++;
+                if(count==pageBreaks.length)count--;
+            }
+            if(i<linesNLB.length){
+                for(var j=0; j<linesNLB[i].length; j++){
+                    greyHeight+=lineheight;
+                    if (lines[i][1]==0){
+                       if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3,greyHeight-vOffset,61*fontWidth+6, 14);
+                       if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3,greyHeight-vOffset,61*fontWidth+6, 14);
+                    }
+                }
+            }
+        }
+    }
+    ctx.fillStyle=foreground;
+    
+    //Draw in range if there is one
+    if(pos.row!=anch.row || anch.col!=pos.col){
+        drawRange(ctx);
+    }
+    ctx.fillStyle=foreground;
+    
+    ctx.font=font;
+	var y = lineheight*11;
+    var cos=[];
+    //Stary Cycling through lines
+    var latestCharacter = '';
+    var count = 0;
+	for (var i=0; i<lines.length; i++){
+        //make sure there are parenthesese for parenthetics
+        if(lines[i][1]==4){
+            if(lines[i][0].charAt(0)!='(')lines[i][0]='('+lines[i][0];
+            if(lines[i][0].charAt(lines[i][0].length-1)!=')')lines[i][0]=lines[i][0]+')';
+        }
+        //set correct line height
+        //on page breaks
+        var bb=false;
+        if(!forceCalc){
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+                if(pageBreaks[count][2]==0){
+                    y=72*lineheight*(count+1)+11*lineheight;
+                    count++;
+                    if(count==pageBreaks.length)count--;
+                }
+                else{
+                    bb=true;
+                }
+            }
+        }
+        //Don't render things way outside the screen
+        if(!forceCalc && !bb && (y-vOffset>1200||y-vOffset<-200)){
+            y+=(lineheight*linesNLB[i].length);
+        }
+        
+        else{
+            var type = lines[i][1];
+            //Cursor position
+            var anchOrFocus = (anchE ? anch.row : pos.row);
+            if (i==pos.row){
+                var cursorY = y-lineheight;
+                if (type == 1)var cursorX =WrapVariableArray[1][1];
+                else if (type == 0)var cursorX =WrapVariableArray[0][1];
+                else if (type == 3)var cursorX =WrapVariableArray[3][1];
+                else if (type == 2)var cursorX =WrapVariableArray[2][1];
+                else if (type == 4)var cursorX =WrapVariableArray[4][1];
+                else if (type == 5)var cursorX =WrapVariableArray[5][1];
+                var thisRow = true;
+                var wrappedText = [];
+            }
+            if (i==anch.row){
+                var anchorY = y-lineheight;
+                var anchorThisRow = true;
+                var anchorWrappedText = []
+            }
+            
+            var lineContent = lines[i][0];
+            
+            // Use the same wrapping procedure over and over
+            // just define an array to pass into it
+            //wrapVars[0]=character length before wrap
+            //wrapVars[1]= distace from edge it should be placed ay
+            //wrapVars[2]= bool, align right
+            //wrapVars[3]= bool, uppercase
+            //wrapVars[4]=number of line breaks after
+            if (type==0)var wrapVars=WrapVariableArray[0];
+            else if(type==1) var wrapVars = WrapVariableArray[1];
+            else if(type==2) var wrapVars = WrapVariableArray[2];
+            else if(type==3) var wrapVars =  WrapVariableArray[3];
+            else if(type==4) var wrapVars = WrapVariableArray[4];
+            else if(type==5) var wrapVars = WrapVariableArray[5];
+            
+            var wordsArr = lineContent.split(' ');
+            var word = 0;
+            if(e||anchE)var wrapCounterOnClick=[];
+            linesNLB[i]=[];
+            while(word<wordsArr.length){
+                var itr=0;
+                if (wordsArr.slice(word).join().length<wrapVars[0]){
+                    var printString = wordsArr.slice(word).join(' ');
+                    if(lines[i][1]==2 && latestCharacter!='' && lines[i][0].toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
+                    if(lines[i][1]==0)latestCharacter='';
+                    if (wrapVars[3]==1)printString= printString.toUpperCase();
+                    if (wrapVars[2]==1)ctx.textAlign='right';
+                    if(printString!='')ctx.fillText(printString, wrapVars[1] , y-vOffset);
+                    ctx.textAlign='left';
+                    word=wordsArr.length;
+                    linesNLB[i].push(printString.length);
+                    y+=lineheight;
+                    if(wrapVars[4]==2){
+                        linesNLB[i].push(0);
+                        y+=lineheight;
+                    }
+                    if(e||anchE)wrapCounterOnClick.push(printString.length);
+                    if(thisRow)wrappedText.push(printString.length);
+                    if(anchorThisRow)anchorWrappedText.push(printString.length);
+                }
+                else{
+                    var itr=0;
+                    while(wordsArr.slice(word, word+itr).join(' ').length<wrapVars[0]){
+                        newLineToPrint=wordsArr.slice(word, word+itr).join(' ');
+                        itr++;
+                        if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
+                    }
+                    ctx.fillText(newLineToPrint, wrapVars[1], y-vOffset);
+                    linesNLB[i].push(newLineToPrint.length);
+                    y+=lineheight;
+                    word+=itr-1;
+                    itr =0;
+                    if(e||anchE)wrapCounterOnClick.push(newLineToPrint.length);
+                    if (thisRow)wrappedText.push(newLineToPrint.length);
+                    if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
+                }
+                //remve a line if it's dialog
+                //followed by parenthetics
+                if(lines[i][1]==3 && i+1!=lines.length && lines[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
+                    linesNLB[i].pop();
+                    y-=lineheight;
+                }
+                // changing cursor position
+                // on click
+                // Bad place to put it. See if can be done
+                // better in mouseClick function
+                if(e && e.clientY-headerHeight<y-vOffset-lineheight && e.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
+                    pos.row=i;
+                    pos.col=0;
+                    var itr=0;
+                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
+                    while(e.clientY-headerHeight>lbMeasure){
+                        pos.col+=linesNLB[i][itr]+1;
+                        lbMeasure+=lineheight;
+                        itr++;
+                    }
+                    if(type!=5){
+                        var remainder = Math.round(((e.clientX-wrapVars[1])/fontWidth));
+                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
+                        if(remainder<0)remainder=0;
+                        pos.col+=remainder;
+                    }
+                    else{
+                        var remainder = Math.round(((wrapVars[1]-e.clientX)/fontWidth));
+                        if(remainder<0)remainder = 0;
+                        pos.col-=remainder;
+                        pos.col+=lines[i][0].length;
+                    }
+                    var onClickLengthLimit=0;
+                    for(var integ=0; integ<wrapCounterOnClick.length; integ++){
+                        onClickLengthLimit+=wrapCounterOnClick[integ]+1;
+                    }
+                    if(pos.col<0)pos.col=0;
+                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                    
+                }
+                // Now setting anchor position
+                
+                if(anchE && anchE.clientY-headerHeight<y-vOffset-lineheight && anchE.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
+                    anch.row=i;
+                    anch.col=0;
+                    var itr=0;
+                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
+                    while(anchE.clientY-headerHeight>lbMeasure){
+                        anch.col+=linesNLB[i][itr]+1;
+                        lbMeasure+=lineheight;
+                        itr++;
+                    }
+                    if(type!=5){
+                        var remainder = Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
+                        if(remainder<0)remainder=0;
+                        anch.col+=remainder;
+                    }
+                    else{
+                        var remainder = Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
+                        if(remainder<0)remainder = 0;
+                        anch.col-=remainder;
+                        anch.col+=lines[i][0].length;
+                    }
+                    var onClickLengthLimit=0;
+                    for(var integ=0; integ<wrapCounterOnClick.length; integ++){
+                        onClickLengthLimit+=wrapCounterOnClick[integ]+1;
+                    }
+                    if(anch.col<0)anch.col=0;
+                    if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
+                }
+                if(bb && linesNLB[i].length==pageBreaks[count][2]){
+                    if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1], y-vOffset);
+                    y=72*lineheight*(count+1)+11*lineheight;
+                    if(lines[i][1]==3){
+                        ctx.fillText(latestCharacter.toUpperCase()+"(CONT'D)", WrapVariableArray[2][1], y-vOffset);
+                        y+=lineheight;
+                    }
+                    count++;
+                    bb=false;
+                    if(pos.row==i){cos.push(count);}
+                }
+            }
+            var thisRow=false;
+            var anchorThisRow=false;
+        }
+    //setup stuff of Con't
+    if(lines[i][1]==2)var latestCharacter = lines[i][0];
+        
+    }
+      // End Looping through lines
+	  // delete extra data in linesNLB
+      while(lines.length<linesNLB.length){
+        linesNLB.pop();
+      }
+	  // Cursor
+	  var d= new Date();
+	  var newMilli = d.getMilliseconds();
+	  var diff = newMilli-milli;
+	  var cursor = false;
+	  if (diff>0 && diff<500){
+		  cursor = true;
+	  }
+	  if (diff<0 && diff<-500){
+		  cursor = true;
+	  }
+	  if(cursor&&wrappedText){
+          var wrapCounter=0;
+          var lrPosDiff = pos.col;
+          var totalCharacters=wrappedText[wrapCounter];
+          while (pos.col>totalCharacters){
+                wrapCounter++;
+                totalCharacters+=1+wrappedText[wrapCounter];
+          }
+          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+                cursorY=72*cos[0]*lineheight+7*lineheight;
+                if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==3)cursorY+=lineheight*2;
+                else if(lines[pos.row][1]==3)cursorY+=lineheight;
+                else if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==1)cursorY+=lineheight;
+          }
+          //console.log(cos);
+          totalCharacters-=wrappedText[wrapCounter];
+		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
+          if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
+		  var ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+          try{
+            ctx.fillRect(lr,ud,2,17);
+          }
+          catch(err){console.log(lines[pos.row][0]);}
+	  }
+      
+      /*
+      //Make the scene list
+      var sceneY=50;
+      for(var i=0; i<scenes.length; i++){
+        ctx.fillText(scenes[i], editorWidth+20,sceneY);
+        sceneY+=lineheight;
+      }
+      */
+    //Start work on frame and buttons and stuff
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ddd';
+    ctx.beginPath();
+    ctx.moveTo(2,2);
+    ctx.lineTo(2,document.getElementById('canvas').height-1);
+    ctx.lineTo(editorWidth, document.getElementById('canvas').height-1);
+    ctx.lineTo(editorWidth,2);
+    ctx.lineTo(2,2);
+    ctx.stroke();
+    ctx.fillStyle = '#6484df';
+      //Make ScrollBar
+      scrollArrows(ctx);
+      scrollBar(ctx, y);
+      if(anchE){
+        pos.row=anch.row;
+        pos.col=anch.col;
+      }
+      if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
+      if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
+      if(forceScroll){
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-50)scroll(45);
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
+      }
+      if(forceCalc)pagination();
+      document.getElementById('format').selectedIndex=lines[pos.row][1];
 	}

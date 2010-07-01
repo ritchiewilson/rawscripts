@@ -5,18 +5,13 @@
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
+<script type="text/javascript" src="js/scriptlist.js"></script>
 <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
 $(document).ready(function(){
-	window.addEventListener("message", uploadWindow, false); 
+	//window.addEventListener("message", uploadWindow, false); 
 	refreshList();
-	$.post('/contactlist', {fromPage : 'scriptlist'}, function(data){
-		var contacts = data.split(';');
-		$("input#recipient").autocomplete({source: contacts});
-		$("input#collaborator").autocomplete({source: contacts});
-		});
 	$('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
 	$('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
 	$('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
@@ -183,7 +178,6 @@ $(document).ready(function(){
                     <td style="width:120px" align="center">Shared With</td>
               		<td style="width:120px" align="center">Email</td>
                     <td style="width:110px" align="center">Last Viewed</td>
-                    <td style="width:70px" align="center">GDocs</td>
                   </tr>
                 </table>
 		    </div>
