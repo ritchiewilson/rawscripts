@@ -1453,8 +1453,9 @@ function paint(e, anchE, forceCalc, forceScroll){
           }
           if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
                 cursorY=72*cos[0]*lineheight+7*lineheight;
-                if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==3)cursorY+=lineheight;
-                if(pageBreaks[cos[0]-1][1]==56 && lines[pos.row][1]==1)cursorY-=lineheight;
+                if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==3)cursorY+=lineheight*2;
+                else if(lines[pos.row][1]==3)cursorY+=lineheight;
+                else if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==1)cursorY+=lineheight;
           }
           //console.log(cos);
           totalCharacters-=wrappedText[wrapCounter];

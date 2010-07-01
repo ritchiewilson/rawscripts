@@ -3,7 +3,7 @@ import StringIO
 from collections import deque
 
 def Text(data):
-  widths=[[62,15,1],[62,15,1],[40,35,0],[36,25,1],[35,30,0],[62,61,1]]
+  widths=[[62,15,1],[62,15,1],[40,35,0],[35,25,1],[35,30,0],[62,61,1]]
   txt = json.loads(data)
   
   s = StringIO.StringIO()
@@ -25,14 +25,14 @@ def Text(data):
               diff+=len(j)+1
           spaces=77-diff
       k=0
-      while k<=spaces:
+      while k<spaces:
           s.write(' ')
           k+=1
           
       linewidth=0
       
       for j in words:
-          if linewidth>widths[i[1]][0]:
+          if linewidth+len(j)>widths[i[1]][0]:
               linewidth=0
               s.write('\n')
               k=0
