@@ -138,6 +138,53 @@ class List (webapp.RequestHandler):
                    "AND permission='owner'")
     results = q.fetch(1000)
 
+    now = datetime.datetime.today()
+    for i in results:
+      t=str(i.updated)
+      date=t.split(' ')[0]
+      time=t.split(' ')[1]
+      year=date.split('-')[0]
+      month=date.split('-')[1]
+      day=date.split('-')[2]
+      if not int(year)<now.year:
+        if not int(month)<now.month:
+          if not int(day)<now.day:
+            hour=time.split(':')[0]
+            minute=time.split(':')[1]
+            if not int(hour)<now.hour:
+              if not int(minute)<now.minute:
+                i.updated="Seconds Ago"
+              else:
+                diff=now.minute-int(minute)
+                if diff==1:
+                  i.updated="1 minute ago"
+                else:
+                  i.updated=str(diff)+" minutes ago"
+            else:
+              diff=now.hour-int(hour)
+              if diff==1:
+                i.updated="1 hour ago"
+              else:
+                i.updated=str(diff)+" hours ago"
+          else:
+            diff=now.day-int(day)
+            if diff==1:
+              i.updated="Yesterday"
+            else:
+              i.updated=diff+" days ago"
+        else:
+          diff=now.month-int(month)
+          if diff==1:
+            i.updated="1 month ago"
+          else:
+            i.updated=diff+" months ago"
+      else:
+        diff=now.year-int(year)
+        if diff==1:
+          i.updated="last year"
+        else:
+          i.updated=diff+" years ago"
+
     pl = []
     for i in results:
       pl.append([i.resource_id, i.title, i.updated])
@@ -363,6 +410,7 @@ class NewScript (webapp.RequestHandler):
     u = UsersScripts(user=user,
                      title=filename,
                      resource_id=resource_id,
+                     updated = str(datetime.datetime.today()),
                      permission='owner')
     u.put()
     self.response.headers['Content-Type'] = 'text/plain'
