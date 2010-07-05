@@ -32,29 +32,16 @@ da = api.DaApi()
 tree = da.getTreeFromFile(TREEFILE)
 
 
-def get_auth_token(request):
-  current_user = users.get_current_user()
-  if current_user is None or current_user.user_id() is None:
-    return False
-  # Look for the token string in the current page's URL.
-  token_string, token_scopes = gdata.gauth.auth_sub_string_from_url(
-     request.url)
-  if token_string is None:
-    # Try to find a previously obtained session token.
-    return gdata.gauth.ae_load('docsandcontacts' + current_user.user_id())
-  # If there was a new token in the current page's URL, convert it to
-  # to a long lived session token and persist it to be used in future
-  # requests.
-  single_use_token = gdata.gauth.AuthSubToken(token_string, token_scopes)
-  # Create a client to make the HTTP request to upgrade the single use token
-  # to a long lived session token.
-  client = gdata.client.GDClient()
-  try:
-    session_token = client.upgrade_token(single_use_token)
-  except gdata.client.UnableToUpgradeToken, error:
-    return gdata.gauth.ae_load('docsandcontacts' + current_user.user_id())
-  gdata.gauth.ae_save(session_token, 'docsandcontacts' + current_user.user_id())
-  return session_token
+def permission (resource_id):
+  q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+  results = q.fetch(1000)
+  p=False
+  for i in results:
+    if i.permission=='owner':
+      if i.user==users.get_current_user().email().lower():
+        p=i.title
+  return p
 
 class ShareDB (db.Model):
   name = db.StringProperty()
@@ -254,7 +241,6 @@ class Export (webapp.RequestHandler):
           if i.permission=='owner':
             p=True
             title=i.title
-            logging.info(title)
       if p==True:
         q=db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE resource_id='"+resource_id+"' "+
@@ -264,75 +250,47 @@ class Export (webapp.RequestHandler):
         
         if export_format =='txt':
           newfile = export.Text(data)
-          filename = 'filename=' + str(title) + '.txt'
-          logging.info(filename)  
+          filename = 'filename=' + str(title) + '.txt'  
           self.response.headers['Content-Type'] = 'text/plain'
-          self.response.headers['Content-Disposition'] = 'attachment; ' +filename
-          self.response.out.write(newfile.getvalue())
+        elif export_format=='pdf':
+          newfile = export.Pdf(data, str(title))
+          filename = 'filename=' + str(title) + '.pdf'
+          self.response.headers['Content-Type'] = 'application/pdf'
+
+        self.response.headers['Content-Disposition'] = 'attachment; ' +filename
+        self.response.out.write(newfile.getvalue())
   
 class EmailScript (webapp.RequestHandler):
   def post(self):
     fromPage = self.request.get('fromPage')
-    token = get_auth_token(self.request)
     resource_id = self.request.get('resource_id')
-    subject=self.request.get('subject')
-    body_message=self.request.get('body_message')
-    result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
-    htmlbody = result.content
-    html = htmlbody.replace("FILLERTEXT", body_message)
-    body = body_message + """
+
+    p=permission(resource_id)
+    if p==False:
+      return
+    else:      
+      subject=self.request.get('subject')
+      body_message=self.request.get('body_message')
+      result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
+      htmlbody = result.content
+      html = htmlbody.replace("FILLERTEXT", body_message)
+      body = body_message + """
 
 
---- This Script written and sent from RawScripts.com. Check it out---"""
+  --- This Script written and sent from RawScripts.com. Check it out---"""
     
     # Make Recipient list instead of just one
     recipients=self.request.get('recipients').split(',')
-    client = gdata.docs.client.DocsClient()
-    entry = client.GetDoc(resource_id, auth_token=token)
-    title = entry.title.text + '.pdf'
-    exportFormat = '&exportFormat=pdf'
+    title = p
+    q=db.GqlQuery("SELECT * FROM ScriptData "+
+                  "WHERE resource_id='"+resource_id+"' "+
+                  "ORDER BY version DESC")
+    results = q.fetch(1000)
+    data=results[0].data
+    newfile = export.Pdf(data, str(title))
+    filename=title+'.pdf'
 
-    #This is where I get all the problems, on GetFileContent. 
-    #Loop three times to reduce errors
-    k=0
-    while k<3:
-      try:
-        script = client.GetFileContent(uri=entry.content.src + exportFormat, auth_token=token)
-        k=5
-      except:
-        k=k+1
-        if k==3:
-          self.response.headers['Content-Type'] = 'text/plain'
-          self.response.out.write('0')
-          # record who's doing what
-          a = Activity(name=users.get_current_user().email(),
-                       scriptName = entry.title.text,
-                       resource_id = resource_id,
-                       recipients = recipients,
-                       numberRecipients = len(recipients),
-                       error = 'getFileContent fail',
-                       fromPage = fromPage,
-                       activity="email")
-          a.put()
-          self.response.headers['Content-Type'] = 'text/plain'
-          self.response.out.write('not sent')
-          return
-        
-    #Reformat PDF so It looks nice, goes out smaller and stuff
-    #
-    data = StringIO.StringIO(script)
-    output = PdfFileWriter()
-    input1 = PdfFileReader(data)
-
-    i=0
-    pages = input1.getNumPages()
-    while i<pages:
-      output.addPage(input1.getPage(i))
-      i=i+1
-
-    outputStream = StringIO.StringIO()
-    output.write(outputStream)
-    size = len(outputStream.getvalue())
+    
 
     #Mail the damn thing. Itereating to reduce userside errors
     j=0
@@ -343,38 +301,15 @@ class EmailScript (webapp.RequestHandler):
                        subject=subject,
                        body = body,
                        html = html,
-                       attachments=[(title, outputStream.getvalue())])
+                       attachments=[(filename, newfile.getvalue())])
         j=5
       except:
         j=j+1
         if j==3:
           self.response.headers['Content-Type'] = 'text/plain'
-          self.response.out.write('0')
-          # record who's doing what
-          a = Activity(name=users.get_current_user().email(),
-                       scriptName = entry.title.text,
-                       resource_id = resource_id,
-                       scriptSize = size,
-                       fromPage = fromPage,
-                       recipients = recipients,
-                       numberRecipients = len(recipients),
-                       error = 'emailing fail',
-                       activity="email")
-          a.put()
-          self.response.headers['Content-Type'] = 'text/plain'
           self.response.out.write('not sent')
           return
-    # record who's doing what
-    a = Activity(name=users.get_current_user().email(),
-                 scriptName = entry.title.text,
-                 resource_id = resource_id,
-                 scriptSize = size,
-                 recipients = recipients,
-                 triesBeforeSuccess = k,
-                 fromPage = fromPage,
-                 numberRecipients = len(recipients),
-                 activity="email")
-    a.put()
+   
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write('sent')
     
@@ -466,6 +401,8 @@ class ConvertProcess (webapp.RequestHandler):
     t = t.replace('\r\n', " ")
     t = t.replace('&nbsp;','')
     t = t.replace(' (cont)', '')
+    t = t.replace(' (CONT)', '')
+    t = t.replace(' (Cont)', '')
     parts = t.split('</p>')
     parts.pop()
 
@@ -502,6 +439,7 @@ class ConvertProcess (webapp.RequestHandler):
     u = UsersScripts(user=user,
                      title=filename,
                      resource_id=resource_id,
+                     updated = str(datetime.datetime.today()),
                      permission='owner')
     u.put()
     

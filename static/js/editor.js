@@ -176,6 +176,7 @@ function mouseDown(e){
         if(id=='save')save();
         else if(id=='undo')undo();
         else if(id=='rename')renamePrompt();
+        else if(id=='exportas')exportPrompt();
         a.style.display='none';
     }
     else{
@@ -1005,6 +1006,35 @@ function renameScript(){
 	document.getElementById('title').innerHTML = rename;
 	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
 	hideRenamePrompt()
+}
+//exporting
+function exportPrompt(){
+    save();
+    document.getElementById("exportpopup").style.visibility="visible"
+}
+function hideExportPrompt(){
+    document.getElementById("exportpopup").style.visibility="hidden";
+}
+function exportScripts(){
+    var b=window.location.href;
+    var resource_id=b.split("=")[1];
+    if (resource_id=='demo'){
+        nope();
+        return;
+    }
+    else{
+        var d;
+        var a=document.getElementsByTagName("input");
+        for(var c=0;c<a.length;c++){
+            if(a[c].checked==true){
+                if(a[c].className=="exportList"){
+                    d=a[c].name;
+                    b="/export?resource_id="+resource_id+"&export_format="+d+"&fromPage=editor";
+                    window.open(b)
+                }
+            }
+        }
+    }
 }
 	
 
