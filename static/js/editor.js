@@ -151,7 +151,8 @@ function setup(){
     });
 }
 function changeFormat(v){
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1]]);
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
+    redoQue=[];
     lines[pos.row][1]=v;
     anch.col=pos.col;
     anch.row=pos.row;
@@ -519,6 +520,7 @@ function rightArrow(){
 
 function backspace(e){
     if(typeToScript){
+		redoQue=[];
         e.preventDefault();
         var forceCalc=false;
         var slug=false;
@@ -599,6 +601,7 @@ function backspace(e){
 }
 function deleteButton(){
     if(typeToScript){
+	redoQue=[];
         var slug=false;
         var forceCalc=false;
         if(pos.row==anch.row&&pos.col==anch.col){
@@ -667,6 +670,7 @@ function deleteButton(){
 function enter(){
     if(typeToScript){
         undoQue.push(['enter', pos.row, pos.col]);
+		redoQue=[];
         if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
             
         var j = lines[pos.row][0].slice(0,pos.col);
@@ -692,7 +696,9 @@ function enter(){
 }
 
 function tab(){
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1]]);
+if(typeToScript){
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
+    redoQue=[];
     var slug=false;
     if (lines[pos.row][1]==0)var slug=true;
 	var type = lines[pos.row][1];
@@ -726,10 +732,12 @@ function tab(){
         if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
     }
 }
+}
 	
 function handlekeypress(event) {
     if(typeToScript){
         event.preventDefault();
+		redoQue=[];
         var d= new Date();
         milli = d.getMilliseconds();
         if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
@@ -750,8 +758,11 @@ function handlekeypress(event) {
 function undo(){
     if (undoQue.length==0)return;
     var dir = undoQue.pop();
-    redoQue.push(dir);
-    console.log(dir[2]);
+	var tmp=[];
+	for(x in dir){
+		tmp.push(dir[x]);
+	}
+    redoQue.push(tmp);
     var forceCalc=false;
     if(dir[0]=='enter'){
         var j = lines[dir[1]+1][0];
@@ -795,11 +806,15 @@ function undo(){
         if(lines[dir[1]][0].charAt(0)=='(')lines[dir[1]][0]=lines[dir[1]][0].substr(1);
         if(lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
     }
-    else if(dir[0]=='br'){
+    else if(dir[0]=='br' || dir[0]=="dr"){
         var n=dir[1];
         for(var i=0; i<n; i++){
             var dir = undoQue.pop();
-            redoQue.splice(redoQue.length-2,0,dir);
+			tmp=[];
+			for(x in dir){
+				tmp.push(dir[x]);
+			}
+            redoQue.splice(redoQue.length-1,0,tmp);
             if(dir[3]=='line'){
                 var j = lines[dir[1]][0].slice(0,dir[2]);
                 var k = lines[dir[1]][0].slice(dir[2]);
@@ -816,25 +831,6 @@ function undo(){
             }
         }
     }
-    else if(dir[0]=='dr'){  
-        var n= dir[1];
-        for(var i=0; i<n; i++){
-            var dir = undoQue.pop();
-            redoQue.splice(redoQue.length-2,0,dir);
-            if(dir[3]=='line'){
-                var j = lines[dir[1]][0].slice(0,dir[2]);
-                var k = lines[dir[1]][0].slice(dir[2]);
-                if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-                lines[dir[1]][0] = j;
-                var newArr = [k,dir[4]];
-                lines.splice(dir[1]+1,0,newArr);
-                forceCalc=true;
-            }
-            else{
-                lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
-            }
-        }
-    }
     else{
         lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
         if(lines[dir[1]][1]==4 && lines[dir[1]][0][dir[2]-1]==')'){
@@ -842,7 +838,6 @@ function undo(){
             dir[2]=dir[2]-1;
         }
     }
-    console.log(redoQue);
     pos.row=dir[1];
     pos.col=dir[2];
     anch.row = pos.row;
@@ -852,10 +847,12 @@ function undo(){
 }
 function redo(){
     if (redoQue.length==0)return;
-    
     var dir = redoQue.pop();
-    var undoAdd=dir;
-    console.log(dir);
+	var tmp =[];
+	for (x in dir){
+		tmp.push(dir[x]);
+	}
+    undoQue.push(tmp);
     var forceCalc=false;
     if(dir[0]=='enter'){
         var j = lines[dir[1]][0].slice(0,dir[2]);
@@ -869,36 +866,89 @@ function redo(){
         else if (lines[dir[1]][1] == 5)var newElem = 0;
         var newArr = [k,newElem];
         lines.splice(dir[1]+1,0,newArr);
+		dir[1]=dir[1]+1;
+		dir[2]=0;
     }
     else if(dir[0]=='back'){
-        console.log(dir[2]);
         if(dir[3]!='line'){
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
             dir[2]=dir[2]-1;
         }
         else{
             
-            var j = lines[dir[1]][0];
-            lines.splice(dir[1],1);
-            var newPos = lines[dir[1]-1][0].length;
-            lines[dir[1]-1][0] = lines[dir[1]-1][0]+j;
-            dir[1]=dir[1]-1;
-            dir[2]=lines[dir[1]][0].length;
+            var j = lines[dir[1]+1][0];
+            lines.splice(dir[1]+1,1);
+            lines[dir[1]][0] = lines[dir[1]][0]+j;
         }
     }
     else if(dir[0]=='delete'){
+		if(dir[3]!='line'){
+			lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
+		}
+		else{
+			var j =lines[dir[1]+1][0];
+			lines.splice(dir[1]+1,1);
+			lines[dir[1]][0]=lines[dir[1]][0]+j;
+		}
     }
     else if(dir[0]=='format'){
+		if (dir[4]!='tab'){
+			lines[dir[1]][1]=dir[4];
+		}
+		else{
+			var j = dir[3];
+			if (j==0) lines[dir[1]][1]=2;
+			else if(j==1)lines[dir[1]][1]=0;
+			else if(j==2)lines[dir[1]][1]=1;
+			else if(j==3)lines[dir[1]][1]=4;
+			else if(j==4)lines[dir[1]][1]=3;
+			else if(j==5)lines[dir[1]][1]=0;
+		}
     }
     else if(dir[0]=='br'){
+		var n=dir[1];
+        for(var i=0; i<n; i++){
+            var dir = redoQue.pop();
+			tmp=[];
+			for(x in dir){
+				tmp.push(dir[x]);
+			}
+            undoQue.splice(undoQue.length-1,0,tmp);
+            if(dir[3]=='line'){
+				var j=lines[dir[1]+1][0]
+				lines.splice(dir[1]+1,1);
+				lines[dir[1]][0]=lines[dir[1]][0]+j;
+			}
+			else{
+				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+			}
+		}
+		dir[2]=dir[2]-1;
     }
     else if(dir[0]=='dr'){
+		var n=dir[1];
+        for(var i=0; i<n; i++){
+            var dir = redoQue.pop();
+			tmp=[];
+			for(x in dir){
+				tmp.push(dir[x]);
+			}
+            undoQue.splice(undoQue.length-1,0,tmp);
+            if(dir[3]=='line'){
+				var j=lines[dir[1]+1][0]
+				lines.splice(dir[1]+1,1);
+				lines[dir[1]][0]=lines[dir[1]][0]+j;
+			}
+			else{
+				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+			}
+		}
+		dir[2]=dir[2]-1;
     }
     else{
         lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
         dir[2]=dir[2]+1;
     }
-    undoQue.push(undoAdd);
     pos.row=anch.row=dir[1]
     pos.col=anch.col=dir[2]
 }
