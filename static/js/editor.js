@@ -51,7 +51,16 @@
     //if ($.browser.mozilla)fontWidth=9;
     var editorWidth = 850;
     var headerHeight=65;
-    var lines=[];
+	var lines = [];
+	/*
+	 * Notes notation
+	 * notes[x] refers to thread
+	 * notes[x][0], notes[x][1] is row and col
+	 * notes[x][2] is content
+	 * notes[x][2].length is number of messages in thread
+	 * notes[x][2][0] ,[1], [2] =content, user, timestamp
+	 * */
+	var notes = [[1,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789]];
     
     
 $(document).ready(function(){
@@ -146,6 +155,7 @@ function setup(){
     var ctx = canvas.getContext('2d');
     characterInit();
     sceneIndex();
+	noteIndex();
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
@@ -195,6 +205,7 @@ function mouseDown(e){
         else if(id=='redo')redo();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
+		else if(id=='insertNote')newThread();
         a.style.display='none';
     }
     else{
@@ -1030,7 +1041,7 @@ function sceneIndex(){
             scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
         }
     }
-    var c = document.getElementById('sidebar');
+    var c = document.getElementById('sceneBox');
     c.innerHTML="";
     
     for (var i=0; i<scenes.length; i++){
@@ -1043,6 +1054,40 @@ function sceneIndex(){
     $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
 	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
     
+}
+function noteIndex(){
+	var c = document.getElementById('noteBox');
+	c.innerHTML="";
+	for (x in notes){
+		var newDiv=c.appendChild(document.createElement('div'));
+		newDiv.className='thread';
+		for (y in notes[x][2]){
+			var msgDiv = newDiv.appendChild(document.createElement('div'));
+			msgDiv.appendChild(document.createTextNode(notes[x][2][y][0]));
+			msgDiv.className='msg';
+			if (notes[x][2][y][1]=='ritchie')msgDiv.style.backgroundColor='red';
+		}
+		var cont=newDiv.appendChild(document.createElement('div'));
+		cont.className='respond';
+		cont.appendChild(document.createTextNode('respond'));
+		cont.id=notes[x][3];
+	}
+	$('.respond').click(function(){newMessage(this.id)});
+}
+function newThread(){
+	id=Math.round(Math.random()*1000000000);
+	var tmp=[pos.row, pos.col, [['new thread', 'ritchie', 'timestamp']],id];
+	notes.push(tmp);
+	noteIndex();
+}
+function newMessage(v){
+	for (x in notes){
+		if (notes[x][3]==v){
+			var n=x;
+		}
+	}
+	notes[n][2].push(['response to that thing you said', 'other ritchie', 'timestamp']);
+	noteIndex();
 }
 
 //Menu
