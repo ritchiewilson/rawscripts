@@ -1,3 +1,8 @@
+   var OSName="Unknown OS";
+   if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
+   if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
+   if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
+   if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
    var typeToScript=true;
    var undoQue = [];
    var redoQue = [];
@@ -7,6 +12,7 @@
    var shiftDown=false;
    var mouseDownBool=false;
    var scrollBarBool=false;
+   var commandDownBool=false;
    var characters =[];
    var scenes=[];
    var canvas;
@@ -64,22 +70,36 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.width = ($('#container').width()-850)+'px';
   });
   $('*').keydown(function(e){
-  var d= new Date();
-  milli = d.getMilliseconds();
-  if(e.which==13)enter();
-  else if(e.which==38)upArrow();
-  else if(e.which==40)downArrow();
-  else if(e.which==39)rightArrow();
-  else if(e.which==37)leftArrow();
-  else if(e.which==8)backspace(e);
-  else if(e.which==46)deleteButton();
-  else if(e.which==9){e.preventDefault(); tab();}
-  else if(e.which==16)shiftDown=true;
-  //console.log(e.which);
+  if (commandDownBool && e.which!=16){
+        e.preventDefault();
+        keyboardShortcut(e)
+    }
+   else{
+      var d= new Date();
+      milli = d.getMilliseconds();
+      if(e.which==13)enter();
+      else if(e.which==38)upArrow();
+      else if(e.which==40)downArrow();
+      else if(e.which==39)rightArrow();
+      else if(e.which==37)leftArrow();
+      else if(e.which==8)backspace(e);
+      else if(e.which==46)deleteButton();
+      else if(e.which==9){e.preventDefault(); tab();}
+      else if(e.which==16)shiftDown=true;
+      else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
+      //console.log(e.which);
+    }
   });
+  
   $('*').keyup(function(e){
   if(e.which==16)shiftDown=false;
+  else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   });
+  
+  $('*').keypress(function(e){
+    handlekeypress(e)
+  });
+  
   $('*').mousedown(function(e){
     mouseDown(e);
   });
@@ -90,17 +110,15 @@ $(document).ready(function(){
     mouseMove(e);
   });
     
-function save(){
-    var data=JSON.stringify(lines);
-    $.post('/save', {data : data, resource_id : resource_id}, function(d){
-        console.log(d);
-    });
+function keyboardShortcut(e){
+    if(shiftDown && e.which==90)redo();
+    else if (e.which==90)undo();
+    else if (e.which==83)save();
+    else if (e.which==82)window.location.href=window.location.href;
 }
-
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
-    //console.log(data);
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(false,false,true,false);
@@ -124,10 +142,8 @@ function setup(){
         pos.col=lines[1][0].length
         anch.col=pos.col;
     }
-    console.log(lines.length);
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
-    document.onkeypress = handlekeypress;
     characterInit();
     sceneIndex();
     paint(false,false,true,false);
@@ -175,6 +191,7 @@ function mouseDown(e){
         }
         if(id=='save')save();
         else if(id=='undo')undo();
+        else if(id=='redo')redo();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
         a.style.display='none';
@@ -734,7 +751,7 @@ function undo(){
     if (undoQue.length==0)return;
     var dir = undoQue.pop();
     redoQue.push(dir);
-    console.log(dir);
+    console.log(dir[2]);
     var forceCalc=false;
     if(dir[0]=='enter'){
         var j = lines[dir[1]+1][0];
@@ -782,7 +799,7 @@ function undo(){
         var n=dir[1];
         for(var i=0; i<n; i++){
             var dir = undoQue.pop();
-            redoQue.push(dir);
+            redoQue.splice(redoQue.length-2,0,dir);
             if(dir[3]=='line'){
                 var j = lines[dir[1]][0].slice(0,dir[2]);
                 var k = lines[dir[1]][0].slice(dir[2]);
@@ -803,7 +820,7 @@ function undo(){
         var n= dir[1];
         for(var i=0; i<n; i++){
             var dir = undoQue.pop();
-            redoQue.push(dir);
+            redoQue.splice(redoQue.length-2,0,dir);
             if(dir[3]=='line'){
                 var j = lines[dir[1]][0].slice(0,dir[2]);
                 var k = lines[dir[1]][0].slice(dir[2]);
@@ -825,12 +842,65 @@ function undo(){
             dir[2]=dir[2]-1;
         }
     }
+    console.log(redoQue);
     pos.row=dir[1];
     pos.col=dir[2];
     anch.row = pos.row;
     anch.col=pos.col;
     paint(false,false,true,false);
     
+}
+function redo(){
+    if (redoQue.length==0)return;
+    
+    var dir = redoQue.pop();
+    var undoAdd=dir;
+    console.log(dir);
+    var forceCalc=false;
+    if(dir[0]=='enter'){
+        var j = lines[dir[1]][0].slice(0,dir[2]);
+        var k = lines[dir[1]][0].slice(dir[2]);
+        lines[dir[1]][0] = j;
+        if (lines[dir[1]][1] == 0)var newElem = 1;
+        else if (lines[dir[1]][1] == 1)var newElem = 2;
+        else if (lines[dir[1]][1] == 2)var newElem = 3;
+        else if (lines[dir[1]][1] == 4)var newElem = 3;
+        else if (lines[dir[1]][1] == 3)var newElem = 2;
+        else if (lines[dir[1]][1] == 5)var newElem = 0;
+        var newArr = [k,newElem];
+        lines.splice(dir[1]+1,0,newArr);
+    }
+    else if(dir[0]=='back'){
+        console.log(dir[2]);
+        if(dir[3]!='line'){
+            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+            dir[2]=dir[2]-1;
+        }
+        else{
+            
+            var j = lines[dir[1]][0];
+            lines.splice(dir[1],1);
+            var newPos = lines[dir[1]-1][0].length;
+            lines[dir[1]-1][0] = lines[dir[1]-1][0]+j;
+            dir[1]=dir[1]-1;
+            dir[2]=lines[dir[1]][0].length;
+        }
+    }
+    else if(dir[0]=='delete'){
+    }
+    else if(dir[0]=='format'){
+    }
+    else if(dir[0]=='br'){
+    }
+    else if(dir[0]=='dr'){
+    }
+    else{
+        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
+        dir[2]=dir[2]+1;
+    }
+    undoQue.push(undoAdd);
+    pos.row=anch.row=dir[1]
+    pos.col=anch.col=dir[2]
 }
 
 
@@ -986,6 +1056,12 @@ function topMenuOut(v){
 }
 
 //menu options and stuff
+// save
+function save(){
+    var data=JSON.stringify(lines);
+    $.post('/save', {data : data, resource_id : resource_id}, function(d){
+    });
+}
 //rename
 function renamePrompt(){
     typeToScript=false;
@@ -1108,11 +1184,11 @@ function drawRange(ctx){
     var startRangeCol=linesNLB[startRange.row][i]+1;
     while(startRange.col>startRangeCol){
         startHeight+=lineheight;
-        if(pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
             startHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[startRange.row][1]==3)startHeight+=lineheight;
         }
-        else if(pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
             startHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[startRange.row][1]==3)startHeight+=lineheight;
         }
@@ -1142,11 +1218,11 @@ function drawRange(ctx){
     var endRangeCol=linesNLB[endRange.row][j]+1;
     while(endRange.col>endRangeCol){
         endHeight+=lineheight;
-        if(pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
+        if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
             endHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[endRange.row][1]==3)endHeight+=lineheight;
         }
-        else if(pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
             endHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[endRange.row][1]==3)endHeight+=lineheight;
         }
@@ -1487,7 +1563,6 @@ function paint(e, anchE, forceCalc, forceScroll){
                 else if(lines[pos.row][1]==3)cursorY+=lineheight;
                 else if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==1)cursorY+=lineheight;
           }
-          //console.log(cos);
           totalCharacters-=wrappedText[wrapCounter];
 		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
           if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
