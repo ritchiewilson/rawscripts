@@ -4,13 +4,16 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <script src="js/jquery.min.js" type="text/javascript"></script>
   <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
-  <script src="js/editor.js" type="text/javascript"></script>
+  <script src="js/min/editor-min.js" type="text/javascript"></script>
   <script src="js/scripts.js" type="text/javascript"></script>
-  <script src="js/mm.js" type="text/javascript"></script>
   <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/dom.js" type="text/javascript"></script>
   <style>
   body{padding:0; margin:0;height:100%;}
   html{height:99%; margin:0; padding:0;}
+  .TEXT{
+    background-color:white;
+  }
   .toolBar{
     font-family:sans-serif; 
     font-size:10pt;
@@ -58,11 +61,23 @@
     background-color:#eeeeef;
     display:none;
   }
-  #helpMenu{
+  #shareMenu{
     width:150px;
     position:fixed; 
     top:63px; 
     left:113px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid;
+    background-color:#eeeeef;
+    display:none;
+  }
+  #helpMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:161px; 
     border-right:1px #333 solid; 
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
@@ -109,13 +124,65 @@
     padding:6px;
     text-shadow: 1px 1px 1px #999;
   }
+  .thread{
+    border:1px #666 solid;
+    padding:5px;
+    margin:5px;
+    background-color:#efeff1;
+  }
   .msg{
 	  background-color:blue;
+      padding:5px;
+      margin:3px;
+      font-size:11pt;
+  }
+  .msgInfo{
+    padding-top:10px;
+    font-size:11pt;
+  }
+  .respondControls{
+	  background-color:green;
+	  cursor:pointer;
+      padding:5px;
+      margin:3px;
   }
   .respond{
 	  background-color:green;
 	  cursor:pointer;
+      padding:5px;
+      margin:3px;
   }
+  #nmi{
+    padding:5px;
+    margin:3px;
+    background-color:white;
+  }
+  .TEXT{  
+  font-size:10pt;  
+  background-color:white; 
+  border-style:inset; 
+  border-width:2px;
+  font-family:Verdana, Geneva, sans-serif;
+  width:400px;
+}
+.token{
+	background-color:#ddd;
+	padding:3px;
+	margin:3px;
+	float:none;
+	font:Verdana, Geneva, sans-serif;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	float:left;
+	}
+.token a{
+	text-decoration:none;
+	color:#000;
+}
+.mailto{
+	display:none;
+}
+
   </style
   </head>
 <body onload="setup()">
@@ -211,6 +278,7 @@
           <div id='file' class="menuItem">File</div>
           <div id='edit' class="menuItem">Edit</div>
           <div id='view' class="menuItem">View</div>
+          <div id='share' class="menuItem">Share</div>
           <div id='help' class="menuItem">Help</div>
         </div>
           <select id="format" onchange="changeFormat(this.selectedIndex)" style="margin-top:2px; margin-left:50px;float:left">
@@ -225,12 +293,13 @@
     </div>
   </div>
   <canvas id='canvas' width="850" style="float:left">Your browser isn't going to handle this. Try Chrome. It's Awseome.</canvas>
-  <div id="sidebar" style="bgcolor:#333333; float:left;overflow:auto;">
-	<div id="sceneBox" style="height=50%">
-	</div>
-	<div id="noteBox" style="height=50%">
-		notes
-	</div>
+  <div id="sidebar" style="width:400px; float:left; border:1px black solid;">
+    <div id="scenes">
+        <div id="sceneBox" style="position:relative; top:0; right:0; height=50%;overflow:auto;"></div>
+    </div>
+    <div id="notes">
+        <div id="noteBox" style="height=50%;overflow:auto;"></div>
+    </div>
   </div>
   </div>
   <div class="topMenu" id="fileMenu" style="display:none">
@@ -266,6 +335,10 @@
   <div class="topMenu" id="viewMenu" style="display:none">
     <div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Font Size</td></tr></table></div>
     <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Notes</td></tr></table></div>
+  </div>
+  <div class="topMenu" id="shareMenu" style="display:none">
+    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>
+    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
     <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>FAQs</td></tr></table></div>

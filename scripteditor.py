@@ -9,22 +9,13 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import gdata.gauth
-import gdata.auth
-import gdata.data
-import gdata.docs.client
 import datetime
-import atom
-import gdata.contacts
-import gdata.contacts.client
 import api
 import random
 import zipfile
 import export
-from pyPdf import PdfFileWriter, PdfFileReader
-import gdata.acl.data
 import logging
-import json
+from django.utils import simplejson
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -176,7 +167,7 @@ class List (webapp.RequestHandler):
     for i in results:
       pl.append([i.resource_id, i.title, i.updated])
 
-    j = json.dumps(pl)
+    j = simplejson.dumps(pl)
     self.response.out.write(j)
 
 class Delete (webapp.RequestHandler):
@@ -429,7 +420,7 @@ class ConvertProcess (webapp.RequestHandler):
                 unit.append(5)
         jl.append(unit)
         
-    contents=json.dumps(jl)
+    contents=simplejson.dumps(jl)
 
     s = ScriptData(resource_id=resource_id,
                    data=contents,

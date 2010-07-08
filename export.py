@@ -1,4 +1,4 @@
-import json
+from django.utils import simplejson
 import StringIO
 from collections import deque
 import sys, os
@@ -8,7 +8,7 @@ import logging
 
 def Text(data):
   widths=[[62,15,1],[62,15,1],[40,35,0],[35,25,1],[35,30,0],[62,61,1]]
-  txt = json.loads(data)
+  txt = simplejson.loads(data)
   
   s = StringIO.StringIO()
   s.write('\n\n\n')
@@ -65,7 +65,7 @@ def Text(data):
 
 def Pdf(data, title):
   widths=[[61,7,1],[61,7,1],[40,32,0],[35,22,1],[35,27,0],[61,61,1]]
-  txt = json.loads(data)
+  txt = simplejson.loads(data)
   more="                                   (MORE)\n"
   cont="(CONT'D)"
   lines=[]

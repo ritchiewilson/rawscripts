@@ -60,14 +60,19 @@
 	 * notes[x][2].length is number of messages in thread
 	 * notes[x][2][0] ,[1], [2] =content, user, timestamp
 	 * */
-	var notes = [[1,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789]];
+	var notes = [[6,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[10,5,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
+    notes=[];
     
     
 $(document).ready(function(){
     document.getElementById('canvas').height = $('#container').height()-65;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-850)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
+    $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
+    $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
+	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
+	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -76,7 +81,7 @@ $(document).ready(function(){
   $(window).resize(function(){
     document.getElementById('canvas').height = $('#container').height()-65;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-850)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
   });
   $('*').keydown(function(e){
   if (commandDownBool && e.which!=16){
@@ -206,6 +211,7 @@ function mouseDown(e){
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
 		else if(id=='insertNote')newThread();
+        else if(id=='email')emailPrompt();
         a.style.display='none';
     }
     else{
@@ -540,6 +546,16 @@ function backspace(e){
         if(pos.row==anch.row && pos.col==anch.col){
             if(pos.col==0 && pos.row==0) return;
             else if(lines[pos.row][1]==4 && pos.col==1){
+                for(x in notes){
+                    if(pos.row<notes[x][0]){
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    else if(pos.row==notes[x][0]){
+                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    if (notes[x][1]<0)notes[x][1]=0;
+                }
                 var j=lines[pos.row][0];
                 if(j.charAt(0)=='(')j=j.substr(1);
                 if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
@@ -551,6 +567,17 @@ function backspace(e){
                 undoQue.push(['back',pos.row, pos.col,'line',4]);
             }
             else if(pos.col==0){
+                //shift notes
+                for(x in notes){
+                    if(pos.row<notes[x][0]){
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    else if(pos.row==notes[x][0]){
+                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    if (notes[x][1]<0)notes[x][1]=0;
+                }
                 var elem = lines[pos.row][1];
                 var j = lines[pos.row][0];
                 lines.splice(pos.row,1);
@@ -565,6 +592,12 @@ function backspace(e){
                 undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
                 lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
                 pos.col--;
+                //shift notes
+                for(x in notes){
+                    if(pos.row==notes[x][0]){
+                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                    }
+                }
             }
             anch.col=pos.col;
             anch.row=pos.row;
@@ -589,6 +622,17 @@ function backspace(e){
                 undoCount++;
                 if(lines[pos.row][1]==0)slug=true;
                 if(pos.col==0){
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row<notes[x][0]){
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        else if(pos.row==notes[x][0]){
+                            notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        if (notes[x][1]<0)notes[x][1]=0;
+                    }
                     var elem = lines[pos.row][1];
                     var j = lines[pos.row][0];
                     lines.splice(pos.row,1);
@@ -602,6 +646,12 @@ function backspace(e){
                     undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
                     lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
                     pos.col--;
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row==notes[x][0]){
+                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                        }
+                    }
                 }
             }
             undoQue.push(['br',undoCount]);
@@ -625,6 +675,18 @@ function deleteButton(){
                 anch.col=0;
             }
             else if(pos.col==(lines[pos.row][0].length)){
+                //shift notes
+                for(x in notes){
+                    if(pos.row+1==notes[x][0]){
+                        notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    else if(pos.row<notes[x][0]){
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    
+                    if (notes[x][1]<0)notes[x][1]=0;
+                }
                 undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
                 if (lines[pos.row+1][1]==0)slug=true;
                 var j = lines[pos.row+1][0];
@@ -635,6 +697,12 @@ function deleteButton(){
             else{
                 undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
                 lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+                //shift notes
+                for(x in notes){
+                    if(pos.row==notes[x][0]){
+                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                    }
+                }
             }
         }
         // This is for deleting a range
@@ -657,6 +725,18 @@ function deleteButton(){
                 undoCount++;
                 if(lines[pos.row][1]==0)slug=true;
                 if(pos.col==0){
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row+1==notes[x][0]){
+                            notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        else if(pos.row<notes[x][0]){
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        
+                        if (notes[x][1]<0)notes[x][1]=0;
+                    }
                     undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
                     var j = lines[pos.row][0];
                     lines.splice(pos.row,1);
@@ -669,6 +749,12 @@ function deleteButton(){
                     undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
                     lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
                     pos.col--;
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row==notes[x][0]){
+                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                        }
+                    }
                 }
             }
             undoQue.push(['dr',undoCount]);
@@ -680,6 +766,16 @@ function deleteButton(){
 	
 function enter(){
     if(typeToScript){
+        //shift notes
+        for(x in notes){
+            if(pos.row<notes[x][0]){
+                notes[x][0]=notes[x][0]+1;
+            }
+            if(pos.row==notes[x][0] && pos.col<notes[x][1]){
+                notes[x][1]=notes[x][1]-pos.col;
+                notes[x][0]=notes[x][0]+1;
+            }
+        }
         undoQue.push(['enter', pos.row, pos.col]);
 		redoQue=[];
         if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
@@ -758,6 +854,12 @@ function handlekeypress(event) {
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
             if (lines[pos.row][1]==0)sceneIndex();
+            //shift notes
+            for(x in notes){
+                if(pos.row==notes[x][0]){
+                    if (pos.col<=notes[x][1])notes[x][1]=notes[x][1]+1;
+                }
+            }
         }
         anch.col=pos.col;
         anch.row=pos.row;
@@ -784,6 +886,16 @@ function undo(){
     }
     else if(dir[0]=='back'){
         if(dir[3]=='line'){
+            //shift notes
+            for(x in notes){
+                if(dir[1]==notes[x][0]){
+                    if (dir[2]<=notes[x][1]){
+                        notes[x][0]=notes[x][0]+1;
+                        notes[x][1]=notes[x][1]-dir[2];
+                    }
+                }
+                else if(dir[1]<notes[x][0])notes[x][0]=notes[x][0]+1;
+            }
             var j = lines[dir[1]][0].slice(0,dir[2]);
             var k = lines[dir[1]][0].slice(dir[2]);
             if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
@@ -796,6 +908,12 @@ function undo(){
         }
         else{
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+            //shift notes
+            for(x in notes){
+                if(dir[1]==notes[x][0]){
+                    if (dir[2]<=notes[x][1])notes[x][1]=notes[x][1]+1;
+                }
+            }
         }
     }
     else if(dir[0]=='delete'){
@@ -847,6 +965,12 @@ function undo(){
         if(lines[dir[1]][1]==4 && lines[dir[1]][0][dir[2]-1]==')'){
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
             dir[2]=dir[2]-1;
+        }
+        //shift notes
+        for(x in notes){
+            if(dir[1]==notes[x][0]){
+                if (dir[2]<notes[x][1])notes[x][1]=notes[x][1]-1;
+            }
         }
     }
     pos.row=dir[1];
@@ -1063,30 +1187,59 @@ function noteIndex(){
 		newDiv.className='thread';
 		for (y in notes[x][2]){
 			var msgDiv = newDiv.appendChild(document.createElement('div'));
-			msgDiv.appendChild(document.createTextNode(notes[x][2][y][0]));
+            var contentDiv = msgDiv.appendChild(document.createElement('div'));
+			contentDiv.innerHTML = notes[x][2][y][0];
+            var infoDiv = msgDiv.appendChild(document.createElement('div'));
+            infoDiv.appendChild(document.createTextNode("-"+notes[x][2][y][1]));
+            infoDiv.align='right';
+            infoDiv.className="msgInfo";
 			msgDiv.className='msg';
-			if (notes[x][2][y][1]=='ritchie')msgDiv.style.backgroundColor='red';
 		}
 		var cont=newDiv.appendChild(document.createElement('div'));
 		cont.className='respond';
 		cont.appendChild(document.createTextNode('respond'));
 		cont.id=notes[x][3];
 	}
+    typeToScript=true;
 	$('.respond').click(function(){newMessage(this.id)});
 }
 function newThread(){
+    return;
 	id=Math.round(Math.random()*1000000000);
 	var tmp=[pos.row, pos.col, [['new thread', 'ritchie', 'timestamp']],id];
 	notes.push(tmp);
 	noteIndex();
 }
 function newMessage(v){
+    noteIndex();
+    typeToScript=false;
+    var c=document.getElementById(v);
+    var n=c.parentNode.insertBefore(document.createElement('div'),c);
+    n.className='respondControls';
+    var i=n.appendChild(document.createElement('div'));
+    i.contentEditable=true;
+    i.id='nmi';
+    var sb = n.appendChild(document.createElement('input'));
+    sb.type='button';
+    sb.value='Save';
+    sb.id='noteSave';
+    var cb = n.appendChild(document.createElement('input'));
+    cb.type='button';
+    cb.value='Cancel';
+    cb.id="noteCancel"
+    c.parentNode.removeChild(c);
+    $('#noteSave').click(function(){submitMessage(v)});
+    $('#noteCancel').click(function(){noteIndex()});
+}
+
+function submitMessage(v){
 	for (x in notes){
 		if (notes[x][3]==v){
 			var n=x;
 		}
 	}
-	notes[n][2].push(['response to that thing you said', 'other ritchie', 'timestamp']);
+    var content = document.getElementById('nmi').innerHTML
+	notes[n][2].push([content, 'other ritchie', 'timestamp']);
 	noteIndex();
 }
 
@@ -1207,6 +1360,53 @@ function exportScripts(){
         }
     }
 }
+// emailing
+function emailPrompt(){
+    save();
+    console.log(typeToScript);
+    typeToScript=false;
+    console.log(typeToScript);
+    document.getElementById("emailpopup").style.visibility='visible'
+}
+function hideEmailPrompt(){
+    document.getElementById("emailpopup").style.visibility='hidden';
+    document.getElementById('recipient').value='';
+    document.getElementById('recipients').innerHTML='';
+    document.getElementById('message').innerHTML='';
+    typeToScript=true;
+}
+
+function emailComplete(e){
+	document.getElementById('emailS').disabled = false;
+	document.getElementById('emailS').value = 'Send';
+	if (e=='sent'){
+		alert("Email Sent")
+		hideEmailPrompt();
+	}
+	else{
+		alert("There was a problem sending your email. Please try again later.")
+	}
+}
+function emailScript(){
+	tokenize('recipient');
+	var arr = new Array();
+	var c = document.getElementsByTagName('span');
+	for(var i=0;i<c.length; i++){
+		if (c[i].className=='mailto'){
+			arr.push(c[i].innerHTML);
+			}
+		}
+	var recipients = arr.join(',');
+	var subject = document.getElementById('subject').value;
+	var body_message = document.getElementById('message').innerHTML;
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor'}, function(e){emailComplete(e)});
+	document.getElementById('emailS').disabled = true;
+	document.getElementById('emailS').value = 'Sending...';
+}
+
+
+
+
 	
 
 
@@ -1367,6 +1567,50 @@ function drawRange(ctx){
         ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
     }
 }
+
+function drawNotes(ctx){
+    for (x in notes){
+        var startHeight = lineheight*9+3;
+        var count=0;
+        for (var i=0; i<notes[x][0];i++){
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+                startHeight=72*lineheight*(count+1)+9*lineheight+4;
+                startHeight-=(pageBreaks[count][2])*lineheight;
+                if(lines[i][1]==3)startHeight+=lineheight;
+                count++;
+                if(count==pageBreaks.length)count--;
+            }
+            startHeight+=lineheight*linesNLB[i].length;
+        }
+        var i=0;
+        var startRangeCol=linesNLB[notes[x][0]][i]+1;
+        while(notes[x][1]>startRangeCol){
+            startHeight+=lineheight;
+            if(pageBreaks.length!=0 && pageBreaks[count][0]==notes[x][0] && pageBreaks[count][2]==i+1){
+                startHeight=72*lineheight*(count+1)+9*lineheight+4;
+                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
+            }
+            else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==notes[x][0] && pageBreaks[count][2]==i){
+                startHeight=72*lineheight*(count+1)+9*lineheight+4;
+                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
+            }
+            i++;
+            startRangeCol+=linesNLB[notes[x][0]][i]+1;
+        }
+        startRangeCol-=linesNLB[notes[x][0]][i]+1;
+        var startWidth = WrapVariableArray[lines[notes[x][0]][1]][1];
+        startWidth+=((notes[x][1]-startRangeCol)*fontWidth);
+        startWidth-=(fontWidth/2);
+        startHeight+=lineheight;
+        ctx.moveTo(startWidth,startHeight-vOffset);
+        ctx.fillStyle='red';
+        ctx.fillRect(startWidth,startHeight-vOffset,5,5);
+        ctx.strokeStyle='black';
+        ctx.stroke();
+    }
+}
+
+
 function paint(e, anchE, forceCalc, forceScroll){
     //console.log('pos.col='+pos.col+' pos.row='+pos.row);
     var canvas = document.getElementById('canvas');
@@ -1426,6 +1670,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     if(pos.row!=anch.row || anch.col!=pos.col){
         drawRange(ctx);
     }
+    
     ctx.fillStyle=foreground;
     
     ctx.font=font;
@@ -1448,7 +1693,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                 if(pageBreaks[count][2]==0){
                     y=72*lineheight*(count+1)+11*lineheight;
                     count++;
-                    if(count==pageBreaks.length)count--;
+                    if(count>=pageBreaks.length)count=pageBreaks.length-2;
                 }
                 else{
                     bb=true;
@@ -1626,6 +1871,7 @@ function paint(e, anchE, forceCalc, forceScroll){
         }
     //setup stuff of Con't
     if(lines[i][1]==2)var latestCharacter = lines[i][0];
+    if(count>=pageBreaks.length)count=pageBreaks.length-2;
         
     }
       // End Looping through lines
@@ -1668,14 +1914,10 @@ function paint(e, anchE, forceCalc, forceScroll){
           catch(err){console.log(lines[pos.row][0]);}
 	  }
       
-      /*
-      //Make the scene list
-      var sceneY=50;
-      for(var i=0; i<scenes.length; i++){
-        ctx.fillText(scenes[i], editorWidth+20,sceneY);
-        sceneY+=lineheight;
-      }
-      */
+      //Draw Notes if any
+    if(notes.length!=0 && !forceCalc){
+        drawNotes(ctx);
+    }
     //Start work on frame and buttons and stuff
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ddd';
@@ -1702,4 +1944,5 @@ function paint(e, anchE, forceCalc, forceScroll){
       }
       if(forceCalc)pagination();
       document.getElementById('format').selectedIndex=lines[pos.row][1];
+      console.log(typeToScript);
 	}

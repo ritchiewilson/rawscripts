@@ -9,51 +9,19 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import gdata.gauth
-import gdata.auth
-import gdata.data
-import gdata.docs.client
 import datetime
-import atom
-import gdata.contacts
-import gdata.contacts.client
 import api
 import random
 import zipfile
 import export
-from pyPdf import PdfFileWriter, PdfFileReader
-import gdata.acl.data
 import logging
-import json
+from django.utils import simplejson
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
 da = api.DaApi()
 tree = da.getTreeFromFile(TREEFILE)
 
-def get_auth_token(request):
-  current_user = users.get_current_user()
-  if current_user is None or current_user.user_id() is None:
-    return False
-  # Look for the token string in the current page's URL.
-  token_string, token_scopes = gdata.gauth.auth_sub_string_from_url(
-     request.url)
-  if token_string is None:
-    # Try to find a previously obtained session token.
-    return gdata.gauth.ae_load('docsandcontacts' + current_user.user_id())
-  # If there was a new token in the current page's URL, convert it to
-  # to a long lived session token and persist it to be used in future
-  # requests.
-  single_use_token = gdata.gauth.AuthSubToken(token_string, token_scopes)
-  # Create a client to make the HTTP request to upgrade the single use token
-  # to a long lived session token.
-  client = gdata.client.GDClient()
-  try:
-    session_token = client.upgrade_token(single_use_token)
-  except gdata.client.UnableToUpgradeToken, error:
-    return gdata.gauth.ae_load('docsandcontacts' + current_user.user_id())
-  gdata.gauth.ae_save(session_token, 'docsandcontacts' + current_user.user_id())
-  return session_token
 
 class Notes (db.Model):
   user = db.StringProperty()
@@ -80,9 +48,10 @@ class Welcome (webapp.RequestHandler):
     template_values = { 'user': 'user',}
     referer = os.environ.get("HTTP_REFERER")
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
-    if referer == 'http://www.rawscripts.com/scriptlist':
-      self.response.headers['Content-Type'] = 'text/html'
-      self.response.out.write(template.render(path, template_values))
+    #if referer == 'http://www.rawscripts.com/scriptlist':
+    self.response.headers['Content-Type'] = 'text/html'
+    self.response.out.write(template.render(path, template_values))
+'''
     else:
       token = get_auth_token(self.request)
       if not token:
@@ -90,6 +59,7 @@ class Welcome (webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
       else:
         self.redirect('/scriptlist')
+        '''
 
 class Editor (webapp.RequestHandler):
   def get(self):
