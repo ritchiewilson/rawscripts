@@ -149,19 +149,19 @@ class List (webapp.RequestHandler):
             if diff==1:
               i.updated="Yesterday"
             else:
-              i.updated=diff+" days ago"
+              i.updated=str(diff)+" days ago"
         else:
           diff=now.month-int(month)
           if diff==1:
             i.updated="1 month ago"
           else:
-            i.updated=diff+" months ago"
+            i.updated=str(diff)+" months ago"
       else:
         diff=now.year-int(year)
         if diff==1:
           i.updated="last year"
         else:
-          i.updated=diff+" years ago"
+          i.updated=str(diff)+" years ago"
 
     pl = []
     for i in results:

@@ -4,6 +4,7 @@
    if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
    if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
    var typeToScript=true;
+   var pasting=false;
    var undoQue = [];
    var redoQue = [];
    var pageBreaks=[];
@@ -85,7 +86,6 @@ $(document).ready(function(){
   });
   $('*').keydown(function(e){
   if (commandDownBool && e.which!=16){
-        e.preventDefault();
         keyboardShortcut(e)
     }
    else{
@@ -103,11 +103,15 @@ $(document).ready(function(){
       else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
       //console.log(e.which);
     }
+    document.getElementById('ccp').focus();
+    document.getElementById('ccp').select();
   });
   
   $('*').keyup(function(e){
   if(e.which==16)shiftDown=false;
   else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=false;
+  document.getElementById('ccp').focus();
+  document.getElementById('ccp').select();
   });
   
   $('*').keypress(function(e){
@@ -116,19 +120,155 @@ $(document).ready(function(){
   
   $('*').mousedown(function(e){
     mouseDown(e);
+    document.getElementById('ccp').focus();
+    document.getElementById('ccp').select();
   });
   $('*').mouseup(function(e){
     mouseUp(e);
+    document.getElementById('ccp').focus();
+    document.getElementById('ccp').select();
   });
   $('*').mousemove(function(e){
     mouseMove(e);
   });
     
 function keyboardShortcut(e){
-    if(shiftDown && e.which==90)redo();
-    else if (e.which==90)undo();
-    else if (e.which==83)save();
-    else if (e.which==82)window.location.href=window.location.href;
+    if(e.which==67){
+        copy();
+    }
+    else if(e.which==86){
+        pasting=true;
+        var t=setTimeout("paste()",50);
+    }
+    else if(e.which==88){
+        var t=setTimeout("cut()",50);
+    }
+    else{
+        e.preventDefault();
+        if(shiftDown && e.which==90)redo();
+        else if (e.which==90)undo();
+        else if (e.which==83)save();
+        else if (e.which==82)window.location.href=window.location.href;
+    }
+}
+function cut(){
+    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+}
+function copy(){
+}
+function paste(){
+    redoQue=[];
+    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+    var j=false;
+    var data=document.getElementById('ccp').value;
+    var r = new RegExp( "\\n", "g" );
+    if (data.split(r).length>1) {
+        var tmp=data.split(r);
+        var tmpArr=[];
+        for (x in tmp){
+            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
+        }
+        data=JSON.stringify(tmpArr);
+    }
+    undoQue.push(['paste',pos.row,pos.col,data]);
+    //undoQue[x][0] ==paste
+    //[1]=pos.row
+    //[2]=pos.col
+    //[3]=data
+    //[4]=added to line
+    //[5]=deleted empty line at end
+    if(data[0]=='[' && data[1]=='[')j=true;
+    if(!j){
+        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
+        pos.col+=document.getElementById('ccp').value.length;
+        anch.col=pos.col;
+    }
+    else{
+        var arr=JSON.parse(data);
+        if (lines[pos.row][0]==''){
+            lines[pos.row][1]=arr[0][1];
+        }
+        if (lines[pos.row][1]==arr[0][1]){
+            undoQue[undoQue.length-1].push(1);
+            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
+            var i=1;
+            var p=pos.row+1;
+            while(i<arr.length){
+                lines.splice(p,0,arr[i]);
+                p++;
+                i++;
+            }
+            lines.splice(p,0,tmp);
+            if(lines[p][0]=='' || lines[p][0]==' '){
+                lines.splice(p,1);
+                undoQue[undoQue.length-1].push(0);
+            }
+            else{undoQue[undoQue.length-1].push(1)}
+        }
+        else{
+            undoQue[undoQue.length-1].push(0);
+            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
+            pos.row++;
+            lines.splice(pos.row,0,arr[0]);
+            var i=1;
+            var p=pos.row+1;
+            while(i<arr.length){
+                lines.splice(p,0,arr[i]);
+                p++;
+                i++;
+            }
+            lines.splice(p,0,tmp);
+            if(lines[p][0]=='' || lines[p][0]==' '){
+                lines.splice(p,1);
+                undoQue[undoQue.length-1].push(0);
+            }
+            else{undoQue[undoQue.length-1].push(1)}
+        }
+        pos.row=anch.row=p;
+        pos.col=anch.col=0;
+    }
+    pasting=false;
+    sceneIndex();
+    document.getElementById('canvas').height = $('#container').height()-65;
+    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
+    paint(false,false,true,false);
+}
+function selection(){
+    //order stuff
+    if(pos.row>anch.row){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else if(pos.row==anch.row && pos.col>anch.col){
+        var startRange = {row:anch.row, col:anch.col};
+        var endRange = {row:pos.row, col:pos.col};
+    }
+    else{
+        var startRange = {row:pos.row, col:pos.col};
+        var endRange = {row:anch.row, col:anch.col};
+    }
+    // figure and copy range
+    if (startRange.row==endRange.row){
+        var sel = lines[startRange.row][0].slice(startRange.col, endRange.col);
+    }
+    else{
+        arr=[];
+        arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
+        startRange.row+=1;
+        while(startRange.row<endRange.row){
+            arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
+            startRange.row+=1;
+        }
+        arr.push([lines[endRange.row][0].slice(0,endRange.col),lines[endRange.row][1]]);
+        var sel=JSON.stringify(arr);
+    }
+    var c = document.getElementById('ccp');
+    c.value=sel;
+    c.focus();
+    c.select();
 }
 function setup(){
     resource_id=window.location.href.split('=')[1];
@@ -161,6 +301,8 @@ function setup(){
     characterInit();
     sceneIndex();
 	noteIndex();
+    document.getElementById('ccp').focus();
+    document.getElementById('ccp').select();
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
@@ -205,12 +347,21 @@ function mouseDown(e){
             changeFormat(id.slice(-1));
 
         }
+        //FILE
         if(id=='save')save();
-        else if(id=='undo')undo();
-        else if(id=='redo')redo();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
-		else if(id=='insertNote')newThread();
+        //Edit
+        else if(id=='undo')undo();
+        else if(id=='redo')redo();
+        else if(id=='cut')var t=setTimeout("cut()",50);
+        else if(id=='copy')copy();
+        else if(id=='paste'){
+            pasting=true;
+            var t=setTimeout("paste()",50);
+        }
+        else if(id=='insertNote')newThread();
+        //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';
     }
@@ -253,7 +404,6 @@ function scroll(v){
     if(vOffset>pagesHeight)vOffset=pagesHeight;
 }
 function jumpTo(v){
-    console.log(v);
     if(v!=''){
         var e = parseInt(v.replace('row',''));
         pos.row=e;
@@ -538,7 +688,7 @@ function rightArrow(){
 function backspace(e){
     if(typeToScript){
 		redoQue=[];
-        e.preventDefault();
+        if(e)e.preventDefault();
         var forceCalc=false;
         var slug=false;
         if (lines[pos.row][1]==0)var slug=true;
@@ -849,7 +999,6 @@ function handlekeypress(event) {
         milli = d.getMilliseconds();
         if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
         if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
-            //console.log(event.which);
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
@@ -863,6 +1012,8 @@ function handlekeypress(event) {
         }
         anch.col=pos.col;
         anch.row=pos.row;
+        document.getElementById('ccp').focus();
+        document.getElementById('ccp').select();
     }
 }
 
@@ -958,6 +1109,37 @@ function undo(){
             else{
                 lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
             }
+        }
+    }
+    else if(dir[0]=='paste'){
+        console.log(dir);
+        // if string and not json
+        if(dir[3][0]!='[' && dir[3][1]!='['){
+            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+lines[dir[1]][0].slice(dir[2]+dir[3].length);
+        }
+        // if json
+        else{
+            var d=JSON.parse(dir[3]);
+            //if did not text to first line at paste
+            if(dir[4]==0){
+                lines.splice(dir[1]+1,d.length);
+                //if deleted extra blank line from bad programing
+                if(dir[5]==1){
+                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
+                    lines.splice(dir[1]+1,1);
+                }
+            }
+            //iff added text to first line at paste
+            else{
+                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
+                lines.splice(dir[1]+1,d.length-1);
+                //if deleted extra blank line from bad programing
+                if(dir[5]==1){
+                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
+                    lines.splice(dir[1]+1,1);
+                }
+            }
+            
         }
     }
     else{
@@ -1080,6 +1262,53 @@ function redo(){
 		}
 		dir[2]=dir[2]-1;
     }
+    else if(dir[0]=='paste'){
+        //for single line, no json
+        if(dir[3][0]!='[' && dir[3][1]!='['){
+            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+dir[3]+lines[dir[1]][0].slice(dir[2]);
+        }
+        //for json
+        else{
+            var arr=JSON.parse(dir[3]);
+            if (lines[dir[1]][0]==''){
+                lines[dir[1]][1]=arr[0][1];
+            }
+            if (lines[dir[1]][1]==arr[0][1]){
+                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
+                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2])+arr[0][0];
+                var i=1;
+                var p=dir[1]+1;
+                while(i<arr.length){
+                    lines.splice(p,0,arr[i]);
+                    p++;
+                    i++;
+                }
+                lines.splice(p,0,tmp);
+                if(lines[p][0]=='' || lines[p][0]==' '){
+                    lines.splice(p,1);
+                }
+            }
+            else{
+                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
+                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
+                dir[1]++;
+                lines.splice(dir[1],0,arr[0]);
+                var i=1;
+                var p=dir[1]+1;
+                while(i<arr.length){
+                    lines.splice(p,0,arr[i]);
+                    p++;
+                    i++;
+                }
+                lines.splice(p,0,tmp);
+                if(lines[p][0]=='' || lines[p][0]==' '){
+                    lines.splice(p,1);
+                }
+            }
+            paint(false,false,true,false);
+        }
+        
+    }
     else{
         lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
         dir[2]=dir[2]+1;
@@ -1127,7 +1356,6 @@ function pagination(){
         }
         else{
             while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
-                //console.log(lines[i-1][0]);
                 i--;
                 lineCount-=linesNLB[i].length;
             }
@@ -1363,9 +1591,7 @@ function exportScripts(){
 // emailing
 function emailPrompt(){
     save();
-    console.log(typeToScript);
     typeToScript=false;
-    console.log(typeToScript);
     document.getElementById("emailpopup").style.visibility='visible'
 }
 function hideEmailPrompt(){
@@ -1612,7 +1838,6 @@ function drawNotes(ctx){
 
 
 function paint(e, anchE, forceCalc, forceScroll){
-    //console.log('pos.col='+pos.col+' pos.row='+pos.row);
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -1669,6 +1894,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
         drawRange(ctx);
+        if(!pasting)selection();
     }
     
     ctx.fillStyle=foreground;
@@ -1944,5 +2170,4 @@ function paint(e, anchE, forceCalc, forceScroll){
       }
       if(forceCalc)pagination();
       document.getElementById('format').selectedIndex=lines[pos.row][1];
-      console.log(typeToScript);
-	}
+    }
