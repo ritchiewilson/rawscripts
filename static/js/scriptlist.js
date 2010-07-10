@@ -248,6 +248,30 @@ document.getElementById('message').innerHTML = "";
 document.getElementById('recipients').innerHTML = "";
 }
 
+function duplicate(){
+    var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var resource_id = listItems[i].value;
+					counter++;
+				}
+			}
+		}
+	}
+	if(counter>1)alert("select one at a time");
+	else if (counter==1){
+        $.post('/duplicate',
+         {resource_id : resource_id, fromPage : 'editor'}, 
+         function(d){
+            if (d=='fail')return;
+            else{window.open(d),refreshList();}
+         });
+    }
+}
+
 function renamePrompt(){
 	var counter = 0;
 	var listItems = document.getElementsByTagName('input');
