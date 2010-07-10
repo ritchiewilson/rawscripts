@@ -67,6 +67,10 @@ class UsersScripts (db.Model):
   updated = db.StringProperty()
   permission = db.StringProperty()
 
+class DuplicateScripts (db.Model):
+  new_script = db.StringProperty()
+  from_script = db.StringProperty()
+
 class ScriptList(webapp.RequestHandler):
   """Requests the list of the user's Screenplays in the RawScripts folder."""
 
@@ -322,7 +326,7 @@ class NewScript (webapp.RequestHandler):
 
     while len(results)>0:
       resource_id=''
-      for x in random.sample(alphabet,10):
+      for x in random.sample(alphabet,20):
         resource_id+=x
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
                     "WHERE resource_id='"+resource_id+"'")
@@ -342,7 +346,52 @@ class NewScript (webapp.RequestHandler):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write(resource_id)
 
+class Duplicate (webapp.RequestHandler):
+  def post(self):
+    resource_id = self.request.get('resource_id')
+    title = permission(resource_id)
+    if not title==False:
+      q=db.GqlQuery("SELECT * FROM ScriptData "+
+                    "WHERE resource_id='"+resource_id+"' "+
+                    "ORDER BY version DESC")
+      results = q.fetch(1000)
+      data=results[0].data
+      version=results[0].version
+      user=users.get_current_user().email()
+      alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      new_resource_id=''
+      for x in random.sample(alphabet,20):
+        new_resource_id+=x
 
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+new_resource_id+"'")
+      results=q.fetch(2)
+
+      while len(results)>0:
+        new_resource_id=''
+        for x in random.sample(alphabet,20):
+          new_resource_id+=x
+        q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+new_resource_id+"'")
+        results=q.fetch(2)
+      
+      s = ScriptData(resource_id=new_resource_id,
+                     data=data,
+                     version=version+1)
+      s.put()
+      d= DuplicateScripts(new_script = new_resource_id,
+                          from_script = resource_id)
+      d.put()
+      u = UsersScripts(user=user,
+                       title='Copy of '+title,
+                       resource_id=new_resource_id,
+                       updated = str(datetime.datetime.today()),
+                       permission='owner')
+      u.put()
+      self.response.headers['Content-Type'] = 'text/plain'
+      self.response.out.write('/editor?resource_id='+new_resource_id)
+      
+    
 class ConvertProcess (webapp.RequestHandler):
   def post(self):
 
@@ -538,6 +587,7 @@ def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
                                         ('/delete', Delete),
                                         ('/newscript', NewScript),
+                                        ('/duplicate', Duplicate),
                                         ('/export', Export),
                                         ('/rename', Rename),
 					('/emailscript', EmailScript),

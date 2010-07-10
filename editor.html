@@ -213,6 +213,23 @@
 		</div>
 	</div>
 </div>
+<div id="newscriptpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
+		<div class="popup"> 
+			<a href="javascript:hideNewScriptPrompt()" style="color:#333">Close</a> 
+			<br /> 
+            
+			<p>New Script Title</p> 
+			<br /> 
+			<input class="TEXT" type='text' name='newScript' id='newScript' style="width:350px" /> 
+			<br /> 
+			<input type='button' onClick='createScript()' value='Create' /> 
+			
+            <br /> 
+		</div> 
+	</div> 
+</div> 
 <div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
@@ -308,7 +325,7 @@
     
     <div id='rename' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Rename</td></tr></table></div>
     <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save</td></tr></table></div>
-    <div id='saveas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save As...</td></tr></table></div>
+    <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Duplicate</td></tr></table></div>
 
     <div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>
     <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Export As</td></tr></table></div>

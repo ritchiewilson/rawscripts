@@ -348,8 +348,11 @@ function mouseDown(e){
         }
         //FILE
         if(id=='save')save();
+        else if(id=='new')newScriptPrompt();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
+        else if(id=='duplicate')duplicate();
+        else if(id=='close')closeScript();
         //Edit
         else if(id=='undo')undo();
         else if(id=='redo')redo();
@@ -1531,6 +1534,42 @@ function topMenuOut(v){
 }
 
 //menu options and stuff
+// closing the window
+function closeScript(){
+    var data=JSON.stringify(lines);
+    $.post('/save', {data : data, resource_id : resource_id}, function(d){self.close()});
+}
+// new script
+function newScriptPrompt(){
+    typeToScript=false;
+	document.getElementById('newscriptpopup').style.visibility = 'visible';
+}
+
+function hideNewScriptPrompt(){
+    typeToScript=true;
+	document.getElementById('newScript').value = "";
+	document.getElementById('newscriptpopup').style.visibility = 'hidden';
+}
+
+function createScript (){
+	var filename = document.getElementById('newScript').value;
+	if (filename!=''){
+		$.post('/newscript', {filename:filename}, function(data){
+            window.open('/editor?resource_id='+data);
+        });
+            
+	}
+	hideNewScriptPrompt();
+}
+// duplicate
+function duplicate(){
+    $.post('/duplicate',
+     {resource_id : resource_id, fromPage : 'editor'}, 
+     function(d){
+        if (d=='fail')return;
+        else{window.open(d)}
+     });
+}
 // save
 function save(){
     var data=JSON.stringify(lines);
