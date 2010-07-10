@@ -103,15 +103,19 @@ $(document).ready(function(){
       else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
       //console.log(e.which);
     }
-    document.getElementById('ccp').focus();
-    document.getElementById('ccp').select();
+    if(typeToScript){
+        document.getElementById('ccp').focus();
+        document.getElementById('ccp').select();
+    }
   });
   
   $('*').keyup(function(e){
   if(e.which==16)shiftDown=false;
   else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=false;
-  document.getElementById('ccp').focus();
-  document.getElementById('ccp').select();
+  if(typeToScript){
+      document.getElementById('ccp').focus();
+      document.getElementById('ccp').select();
+  }
   });
   
   $('*').keypress(function(e){
@@ -119,31 +123,26 @@ $(document).ready(function(){
   });
   
   $('*').mousedown(function(e){
-    mouseDown(e);
-    document.getElementById('ccp').focus();
-    document.getElementById('ccp').select();
+    if(typeToScript){
+        mouseDown(e);
+        document.getElementById('ccp').focus();
+        document.getElementById('ccp').select();
+    }
   });
   $('*').mouseup(function(e){
-    mouseUp(e);
-    document.getElementById('ccp').focus();
-    document.getElementById('ccp').select();
+    if(typeToScript){
+        mouseUp(e);
+        document.getElementById('ccp').focus();
+        document.getElementById('ccp').select();
+    }
   });
   $('*').mousemove(function(e){
     mouseMove(e);
   });
     
 function keyboardShortcut(e){
-    if(e.which==67){
-        copy();
-    }
-    else if(e.which==86){
-        pasting=true;
-        var t=setTimeout("paste()",50);
-    }
-    else if(e.which==88){
-        var t=setTimeout("cut()",50);
-    }
-    else{
+    // don't do anything if cut, copy or paste
+    if (e.which!=67 && e.which!=86 && e.which!=88){
         e.preventDefault();
         if(shiftDown && e.which==90)redo();
         else if (e.which==90)undo();
@@ -1838,6 +1837,7 @@ function drawNotes(ctx){
 
 
 function paint(e, anchE, forceCalc, forceScroll){
+    if(typeToScript){
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -2171,3 +2171,4 @@ function paint(e, anchE, forceCalc, forceScroll){
       if(forceCalc)pagination();
       document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
+}
