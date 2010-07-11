@@ -145,14 +145,23 @@ $(document).ready(function(){
 // Character and Scene Suggest
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
 
-function createSuggestBox(v){
+function createSuggestBox(d){
 	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
-	if(v=='c')v=characters;
+	if(d=='c'){
+        v=characters;
+        var left=WrapVariableArray[2][1]+'px';
+    }
+    else{
+        v=scenes;
+        for(i in v){
+            v[i][0]=v[i][0].split(') ').splice(1).join(') ');
+        }
+        var left=WrapVariableArray[0][1]+'px';
+    }
 	var l=lines[pos.row][0].length;
 	for (x in v){
 		var part=lines[pos.row][0].toUpperCase();
 		var s = v[x][0].substr(0,l).toUpperCase();
-		console.log(part, s)
 		if (part==s && part!=v[x][0]){
 			//create box now if doens't exist
 			if(document.getElementById('suggestBox')==null){
@@ -160,13 +169,22 @@ function createSuggestBox(v){
 				box.id='suggestBox';
 				box.style.position='fixed';
 				box.style.top=ud+70+lineheight+"px";
-				box.style.left=WrapVariableArray[2][1]+"px";
+				box.style.left=left;
 			}
-			var item = box.appendChild(document.createElement('div'));
-			item.className="suggestItem";
-			item.appendChild(document.createTextNode(v[x][0]))
-			item.value=v[x][0]
-			document.getElementById('suggestBox').firstChild.id='focus';
+            var found=false;
+            if(d=='s'){
+                var c = box.childNodes;
+                for (i in c){
+                    if(v[x][0]==c[i].value)found=true;
+                }
+            }
+            if(!found){
+                var item = box.appendChild(document.createElement('div'));
+                item.className="suggestItem";
+                item.appendChild(document.createTextNode(v[x][0]))
+                item.value=v[x][0]
+                document.getElementById('suggestBox').firstChild.id='focus';
+            }
 		}
 	}
 	$('.suggestItem').mouseover(function(){
@@ -986,6 +1004,7 @@ function deleteButton(){
 	
 function enter(){
     if(typeToScript && document.getElementById('suggestBox')==null){
+        lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
         //shift notes
         for(x in notes){
             if(pos.row<notes[x][0]){
@@ -1021,9 +1040,12 @@ function enter(){
         if(lines[pos.row][1]==1)sceneIndex();
     }
 	else if(document.getElementById('suggestBox')!=null){
+        var len = lines[pos.row][0].length;
 		lines[pos.row][0]=document.getElementById('focus').value;
+        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
 		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
 		pos.col=anch.col=lines[pos.row][0].length;
+        sceneIndex();
 	}
 }
 
@@ -1077,10 +1099,13 @@ function handlekeypress(event) {
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
+            if (lines[pos.row][1]==0)sceneIndex();
 			if (lines[pos.row][1]==2){
 				createSuggestBox('c');
 			}
-            if (lines[pos.row][1]==0)sceneIndex();
+            if(lines[pos.row][1]==0){
+                createSuggestBox('s');
+            }
             //shift notes
             for(x in notes){
                 if(pos.row==notes[x][0]){
@@ -1190,7 +1215,6 @@ function undo(){
         }
     }
     else if(dir[0]=='paste'){
-        console.log(dir);
         // if string and not json
         if(dir[3][0]!='[' && dir[3][1]!='['){
             lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+lines[dir[1]][0].slice(dir[2]+dir[3].length);
@@ -1450,7 +1474,7 @@ function characterInit(){
     }
 }
 function characterIndex(v){
-    var chara = v.toUpperCase();
+    var chara = v.toUpperCase().replace(/\s+$/,"");
     var found=false;
     for(var i=0;i<characters.length;i++){
         if(characters[i][0]==chara){
