@@ -104,7 +104,7 @@ $(document).ready(function(){
       else if(e.which==16)shiftDown=true;
       else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
       console.log(ud, vOffset);
-      if(ud<0 || ud>document.getElementById('canvas').height-30 && typeToScript && e.which!= 13)scroll(ud-150);
+      if((ud<0 || ud>document.getElementById('canvas').height-30) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8)scroll(ud-150);
       //console.log(e.which);
     }
     if(typeToScript){
