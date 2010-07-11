@@ -103,6 +103,8 @@ $(document).ready(function(){
       else if(e.which==9){e.preventDefault(); tab();}
       else if(e.which==16)shiftDown=true;
       else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
+      console.log(ud, vOffset);
+      if(ud<0 || ud>document.getElementById('canvas').height-30 && typeToScript && e.which!= 13)scroll(ud-150);
       //console.log(e.which);
     }
     if(typeToScript){
@@ -2090,6 +2092,10 @@ function paint(e, anchE, forceCalc, forceScroll){
         //Don't render things way outside the screen
         if(!forceCalc && !bb && (y-vOffset>1200||y-vOffset<-200)){
             y+=(lineheight*linesNLB[i].length);
+            if(i==pos.row){
+                cursorY=y;
+                wrappedText=[];
+            }
         }
         
         else{
