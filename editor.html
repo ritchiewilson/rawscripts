@@ -293,7 +293,7 @@
             <p>To be added: (comma seperated)</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br /><br><br><br>
+			<br><br><br><br>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
             <input type="hidden" value="blank" id="shareResource_id" />
 		</div>
@@ -320,7 +320,7 @@
             <option>Parenthetical</option>
             <option>Transition</option>
           </select>
-        <input type="button" value="Save" style="margin-top:2px; margin-left:500px;float:left" onclick="save()" />
+        <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-left:500px;float:left" onclick="save(0)" />
     </div>
   </div>
   <canvas id='canvas' width="850" style="float:left">Your browser isn't going to handle this. Try Chrome. It's Awseome.</canvas>

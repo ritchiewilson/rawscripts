@@ -4,6 +4,7 @@
    if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
    if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
    var ud=0;
+   var timer;
    var typeToScript=true;
    var pasting=false;
    var undoQue = [];
@@ -192,13 +193,20 @@ function createSuggestBox(d){
 		this.id='focus';})
 }
 
+function saveTimer(){
+    document.getElementById('saveButton').disabled=false;
+    document.getElementById('saveButton').value='Save';
+    clearTimeout(timer);
+    timer = setTimeout('save(1)',7000);
+}
+
 function keyboardShortcut(e){
     // don't do anything if cut, copy or paste
     if (e.which!=67 && e.which!=86 && e.which!=88){
         e.preventDefault();
         if(shiftDown && e.which==90)redo();
         else if (e.which==90)undo();
-        else if (e.which==83)save();
+        else if (e.which==83)save(0);
         else if (e.which==82)window.location.href=window.location.href;
     }
 }
@@ -208,6 +216,7 @@ function cut(){
 function copy(){
 }
 function paste(){
+    saveTimer();
     redoQue=[];
     if(pos.row!=anch.row || pos.col!=anch.col)backspace();
     var j=false;
@@ -359,6 +368,7 @@ function setup(){
     });
 }
 function changeFormat(v){
+    saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
     redoQue=[];
     lines[pos.row][1]=v;
@@ -399,7 +409,7 @@ function mouseDown(e){
 
         }
         //FILE
-        if(id=='save')save();
+        if(id=='save')save(0);
         else if(id=='new')newScriptPrompt();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
@@ -775,6 +785,7 @@ function rightArrow(){
 
 function backspace(e){
     if(typeToScript){
+        saveTimer();
 		redoQue=[];
         if(e)e.preventDefault();
         var forceCalc=false;
@@ -900,6 +911,7 @@ function backspace(e){
 }
 function deleteButton(){
     if(typeToScript){
+    saveTimer();
 	redoQue=[];
         var slug=false;
         var forceCalc=false;
@@ -1004,6 +1016,7 @@ function deleteButton(){
 	
 function enter(){
     if(typeToScript && document.getElementById('suggestBox')==null){
+        saveTimer();
         lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
         //shift notes
         for(x in notes){
@@ -1040,6 +1053,7 @@ function enter(){
         if(lines[pos.row][1]==1)sceneIndex();
     }
 	else if(document.getElementById('suggestBox')!=null){
+        saveTimer();
         var len = lines[pos.row][0].length;
 		lines[pos.row][0]=document.getElementById('focus').value;
         undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
@@ -1051,6 +1065,7 @@ function enter(){
 
 function tab(){
 if(typeToScript){
+    saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
     redoQue=[];
     var slug=false;
@@ -1112,6 +1127,7 @@ function handlekeypress(event) {
                     if (pos.col<=notes[x][1])notes[x][1]=notes[x][1]+1;
                 }
             }
+            saveTimer();
         }
         anch.col=pos.col;
         anch.row=pos.row;
@@ -1123,6 +1139,7 @@ function handlekeypress(event) {
 // Managining arrays
 // calcing data
 function undo(){
+    saveTimer();
     if (undoQue.length==0)return;
     var dir = undoQue.pop();
 	var tmp=[];
@@ -1265,6 +1282,7 @@ function undo(){
     
 }
 function redo(){
+    saveTimer();
     if (redoQue.length==0)return;
     var dir = redoQue.pop();
 	var tmp =[];
@@ -1671,9 +1689,13 @@ function duplicate(){
      });
 }
 // save
-function save(){
+function save(v){
+    clearTimeout(timer);
     var data=JSON.stringify(lines);
-    $.post('/save', {data : data, resource_id : resource_id}, function(d){
+    document.getElementById('saveButton').value='Saving...';
+    $.post('/save', {data : data, resource_id : resource_id, autosave : v}, function(d){
+        document.getElementById('saveButton').value='Saved';
+        document.getElementById('saveButton').disabled=true;
     });
 }
 //rename
@@ -1699,7 +1721,7 @@ function renameScript(){
 }
 //exporting
 function exportPrompt(){
-    save();
+    save(0);
     document.getElementById("exportpopup").style.visibility="visible"
 }
 function hideExportPrompt(){
@@ -1728,7 +1750,7 @@ function exportScripts(){
 }
 // emailing
 function emailPrompt(){
-    save();
+    save(0);
     typeToScript=false;
     document.getElementById("emailpopup").style.visibility='visible'
 }

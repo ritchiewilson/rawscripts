@@ -59,6 +59,7 @@ class ScriptData (db.Model):
   data = db.TextProperty()
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
+  autosave = db.IntegerProperty()
 
 class UsersScripts (db.Model):
   user = db.StringProperty()
@@ -334,7 +335,8 @@ class NewScript (webapp.RequestHandler):
     
     s = ScriptData(resource_id=resource_id,
                    data='[["Fade In:",1],["Int. ",0]]',
-                   version=1)
+                   version=1,
+                   autosave=0)
     s.put()
 
     u = UsersScripts(user=user,
@@ -377,7 +379,8 @@ class Duplicate (webapp.RequestHandler):
       
       s = ScriptData(resource_id=new_resource_id,
                      data=data,
-                     version=version+1)
+                     version=version+1,
+                     autosave=0)
       s.put()
       d= DuplicateScripts(new_script = new_resource_id,
                           from_script = resource_id)
@@ -430,7 +433,8 @@ class ConvertProcess (webapp.RequestHandler):
 
     s = ScriptData(resource_id=resource_id,
                    data=contents,
-                   version=1)
+                   version=1,
+                   autosave=0)
     s.put()
 
     u = UsersScripts(user=user,

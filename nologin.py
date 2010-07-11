@@ -35,6 +35,7 @@ class ScriptData (db.Model):
   data = db.TextProperty()
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
+  autosave = db.IntegerProperty()
 
 class UsersScripts (db.Model):
   user = db.StringProperty()
@@ -120,7 +121,11 @@ class Save (webapp.RequestHandler):
     if resource_id == None:
       return
     data=self.request.get('data')
-
+    autosave = self.request.get('autosave')
+    if autosave=='0':
+      b=0
+    else:
+      b=1
     q = db.GqlQuery("SELECT * FROM UsersScripts "+
                     "WHERE resource_id='"+resource_id+"'")
     results = q.fetch(1000)
@@ -150,7 +155,8 @@ class Save (webapp.RequestHandler):
       a = ScriptData(resource_id=resource_id,
                      title='title',
                      data=data,
-                     version=v)
+                     version=v,
+                     autosave=b)
       a.put()
 
       q = db.GqlQuery("SELECT * FROM UsersScripts "+
