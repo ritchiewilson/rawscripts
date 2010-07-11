@@ -12,8 +12,8 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 import datetime
 import api
 import random
-import zipfile
 import export
+import convert
 import logging
 from django.utils import simplejson
 
@@ -397,6 +397,8 @@ class ConvertProcess (webapp.RequestHandler):
 
     # New Script Setup
     filename = "Untitled"
+    ff = self.request.get('ff')
+    logging.info(ff)
     capture = self.request.get('filename')
     if capture:
       filename = capture.replace('%20', ' ')
@@ -418,58 +420,13 @@ class ConvertProcess (webapp.RequestHandler):
                     "WHERE resource_id='"+resource_id+"'")
       results=q.fetch(2)
 
-    # Format Celtx file
-    celtx = StringIO.StringIO(self.request.get('script'))
-    z = zipfile.ZipFile(celtx)
-    zlist = z.namelist()
-    i=0
-    while i< len(zlist):
-        b = zlist[i].split('ript')
-        if len(b) > 1:
-            script = zlist[i]
-        i=i+1
-    txt = z.read(script)
-    headless= txt.split('<body>')[1]
-    t=headless.split('</body>')[0]
-    pattern = re.compile(r'<span.*?">', re.DOTALL)
-    t = re.sub(pattern, '', t)
-    t = t.replace("</span>","")
-    t = t.replace(" <br>",'')
-    t = t.replace("<br> ",'')
-    t = t.replace("<br>",'')
-    t = t.replace('\n', ' ')
-    t = t.replace('\r\n', " ")
-    t = t.replace('&nbsp;','')
-    t = t.replace(' (cont)', '')
-    t = t.replace(' (CONT)', '')
-    t = t.replace(' (Cont)', '')
-    parts = t.split('</p>')
-    parts.pop()
-
-    jl=[]
-    count=0
-    for i in parts:
-        unit=[]
-        i=i.replace('"',"'")
-        unit.append
-        if i[4]=='i':
-            unit.append(i.split('>')[1])
-            unit.append(0)
-        else:
-            unit.append(i.split('>')[1])
-            if i[11]=='a':
-                unit.append(1)
-            if i[11]=='c':
-                unit.append(2)
-            if i[11]=='d':
-                unit.append(3)
-            if i[11]=='p':
-                unit.append(4)
-            if i[11]=='t':
-                unit.append(5)
-        jl.append(unit)
-        
-    contents=simplejson.dumps(jl)
+    # Format file
+    data = StringIO.StringIO(self.request.get('script'))
+    if ff=='txt':
+      contents = convert.Text(data)
+    else:
+      contents = convert.Celtx(data)
+    
 
     s = ScriptData(resource_id=resource_id,
                    data=contents,

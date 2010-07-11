@@ -8,7 +8,7 @@ function post(){
 function titleChange(){
 	var filename = document.getElementById('file').value;
 	var arr = filename.split('.');
-	if (arr[arr.length-1]!='celtx'){
+	if (arr[arr.length-1]!='celtx' && arr[arr.length-1]!='txt'){
 		document.getElementById('warning').style.display = 'block';
 		document.getElementById('submit').disabled = true;
 		return;
@@ -16,7 +16,10 @@ function titleChange(){
 	document.getElementById('warning').style.display = 'none';
 	document.getElementById('submit').disabled = false;
 	var title = filename.replace('.celtx', '');
+    title = title.replace('.txt', '');
 	document.getElementById('hidden').value = title;
+    var ff = arr[arr.length-1];
+    document.getElementById('ff').value = ff;
 	}
 
 </script>
@@ -40,6 +43,7 @@ function titleChange(){
 <form onSubmit="post()" id='target' method="post" enctype="multipart/form-data" action="/convertprocess">
 
 <input id="hidden" type="hidden" value="blank" name="filename">
+<input id='ff' type="hidden" value="blank" name="ff">
 
 <input id="file" name="script" type="file" accept="text/html" onChange="titleChange()">
 
