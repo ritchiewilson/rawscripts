@@ -3,6 +3,7 @@
    if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
    if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
    if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
+   var ud=0;
    var typeToScript=true;
    var pasting=false;
    var undoQue = [];
@@ -140,6 +141,39 @@ $(document).ready(function(){
     mouseMove(e);
   });
     
+	
+// Character and Scene Suggest
+//Build it in the dom. Easier. Stick actual data in value, not in innerhtml
+
+function createSuggestBox(v){
+	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+	if(v=='c')v=characters;
+	var l=lines[pos.row][0].length;
+	for (x in v){
+		var part=lines[pos.row][0].toUpperCase();
+		var s = v[x][0].substr(0,l).toUpperCase();
+		console.log(part, s)
+		if (part==s && part!=v[x][0]){
+			//create box now if doens't exist
+			if(document.getElementById('suggestBox')==null){
+				var box = document.body.appendChild(document.createElement('div'));
+				box.id='suggestBox';
+				box.style.position='fixed';
+				box.style.top=ud+70+lineheight+"px";
+				box.style.left=WrapVariableArray[2][1]+"px";
+			}
+			var item = box.appendChild(document.createElement('div'));
+			item.className="suggestItem";
+			item.appendChild(document.createTextNode(v[x][0]))
+			item.value=v[x][0]
+			document.getElementById('suggestBox').firstChild.id='focus';
+		}
+	}
+	$('.suggestItem').mouseover(function(){
+		document.getElementById('focus').removeAttribute('id');
+		this.id='focus';})
+}
+
 function keyboardShortcut(e){
     // don't do anything if cut, copy or paste
     if (e.which!=67 && e.which!=86 && e.which!=88){
@@ -367,6 +401,13 @@ function mouseDown(e){
         else if(id=='email')emailPrompt();
         a.style.display='none';
     }
+	else if(document.getElementById('suggestBox')!=null){
+		if (e.target.className=='suggestItem'){
+			lines[pos.row][0]=e.target.value;
+			pos.col=anch.col=lines[pos.row][0].length;
+		}
+		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+	}
     else{
         var height = document.getElementById('canvas').height;
         var pagesHeight = (pageBreaks.length+1)*72*lineheight;
@@ -404,6 +445,7 @@ function scroll(v){
     if (vOffset<0)vOffset=0;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
     if(vOffset>pagesHeight)vOffset=pagesHeight;
+	//if(document.getElementById('suggestBox')!=null)createSuggestBox('c');
 }
 function jumpTo(v){
     if(v!=''){
@@ -428,7 +470,7 @@ function jumpTo(v){
     if(vOffset>pagesHeight)vOffset=pagesHeight;
 }
 function upArrow(){
-    if(typeToScript){
+    if(typeToScript && document.getElementById('suggestBox')==null){
         if (pos.row==0 && pos.col==0)return;
         var type = lines[pos.row][1];
         if (type==0) var wrapVars=WrapVariableArray[0];
@@ -577,10 +619,19 @@ function upArrow(){
         }
         paint(false,false,false,true);
     }
+	else if(document.getElementById('suggestBox')!=null){
+		var f=document.getElementById('focus');
+		f.removeAttribute('id');
+		f=f.previousSibling;
+		if(f==null)f=document.getElementById('suggestBox').lastChild;
+		if(f.nodeType=="#text")f=f.previousSibling;
+		if(f==null)f=document.getElementById('suggestBox').lastChild;
+		f.id='focus';
+	}
 }
 	
 function downArrow(){
-    if(typeToScript){
+    if(typeToScript && document.getElementById('suggestBox')==null){
         if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
         var type = lines[pos.row][1];
         if (type==0)var wrapVars=WrapVariableArray[0];
@@ -651,14 +702,25 @@ function downArrow(){
         }
         paint(false,false,false,true);
     }
+	else if(document.getElementById('suggestBox')!=null){
+		var f=document.getElementById('focus');
+		f.removeAttribute('id');
+		f=f.nextSibling;
+		if(f==null)f=document.getElementById('suggestBox').firstChild;
+		if(f.nodeType=="#text")f=f.nextSibling;
+		if(f==null)f=document.getElementById('suggestBox').firstChild;
+		f.id='focus';
+	}
 }
 
 function leftArrow(){
     if(typeToScript){
+		var change=false;
         if(pos.row==0 && pos.col==0) return;
         if(pos.col==0){
             pos.row--;
             pos.col=lines[pos.row][0].length;
+			var change=true;
         }
         else{
             pos.col = pos.col-1;
@@ -668,15 +730,19 @@ function leftArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
+		var c =document.getElementById('suggestBox');
+		if(change && c!=null)c.parentNode.removeChild(c);
     }
 }
 	
 function rightArrow(){
     if(typeToScript){
+		var change=false;
         if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
         if(pos.col==lines[pos.row][0].length){
             pos.row++;
             pos.col=0;
+			change=true;
         }
         else pos.col = pos.col+1;
         
@@ -684,6 +750,8 @@ function rightArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
+		var c =document.getElementById('suggestBox');
+		if(change && c!=null)c.parentNode.removeChild(c);
     }
 }
 
@@ -917,7 +985,7 @@ function deleteButton(){
 }
 	
 function enter(){
-    if(typeToScript){
+    if(typeToScript && document.getElementById('suggestBox')==null){
         //shift notes
         for(x in notes){
             if(pos.row<notes[x][0]){
@@ -952,6 +1020,11 @@ function enter(){
         paint(false,false,true,false);
         if(lines[pos.row][1]==1)sceneIndex();
     }
+	else if(document.getElementById('suggestBox')!=null){
+		lines[pos.row][0]=document.getElementById('focus').value;
+		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+		pos.col=anch.col=lines[pos.row][0].length;
+	}
 }
 
 function tab(){
@@ -1004,6 +1077,9 @@ function handlekeypress(event) {
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
+			if (lines[pos.row][1]==2){
+				createSuggestBox('c');
+			}
             if (lines[pos.row][1]==0)sceneIndex();
             //shift notes
             for(x in notes){
@@ -2172,7 +2248,7 @@ function paint(e, anchE, forceCalc, forceScroll){
           totalCharacters-=wrappedText[wrapCounter];
 		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
           if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
-		  var ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+		  ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
           try{
             ctx.fillRect(lr,ud,2,17);
           }
