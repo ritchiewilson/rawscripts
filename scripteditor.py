@@ -171,8 +171,9 @@ class List (webapp.RequestHandler):
     pl = []
     for i in results:
       pl.append([i.resource_id, i.title, i.updated])
-
+    
     j = simplejson.dumps(pl)
+    self.response.headers['Content-Type']='text/plain'
     self.response.out.write(j)
 
 class Delete (webapp.RequestHandler):
