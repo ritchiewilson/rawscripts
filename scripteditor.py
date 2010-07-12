@@ -358,6 +358,7 @@ class Export (webapp.RequestHandler):
     fromPage = self.request.get('fromPage')
     resource_id = self.request.get('resource_id')
     export_format = self.request.get('export_format')
+    title_page = self.request.get('title_page')
     user=users.get_current_user().email().lower()
     if resource_id:
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -377,11 +378,11 @@ class Export (webapp.RequestHandler):
         data=results[0].data
         
         if export_format =='txt':
-          newfile = export.Text(data)
+          newfile = export.Text(data, str(title), title_page, resource_id)
           filename = 'filename=' + str(title) + '.txt'  
           self.response.headers['Content-Type'] = 'text/plain'
         elif export_format=='pdf':
-          newfile = export.Pdf(data, str(title))
+          newfile = export.Pdf(data, str(title), title_page, resource_id)
           filename = 'filename=' + str(title) + '.pdf'
           self.response.headers['Content-Type'] = 'application/pdf'
 
@@ -392,6 +393,7 @@ class EmailScript (webapp.RequestHandler):
   def post(self):
     fromPage = self.request.get('fromPage')
     resource_id = self.request.get('resource_id')
+    title_page = self.request.get('title_page')
 
     p=permission(resource_id)
     if p==False:
@@ -415,7 +417,7 @@ class EmailScript (webapp.RequestHandler):
                   "ORDER BY version DESC")
     results = q.fetch(1000)
     data=results[0].data
-    newfile = export.Pdf(data, str(title))
+    newfile = export.Pdf(data, str(title), title_page, resource_id)
     filename=title+'.pdf'
 
     

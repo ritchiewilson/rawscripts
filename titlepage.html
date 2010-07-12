@@ -54,9 +54,12 @@
                     if (c[i].id=="address_checkbox" || c[i].id=="based_on_checkbox"){
                         var re = new RegExp( "\\n", "g" );
                         data=data.replace(re,'<br>');
+                        document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML=data;
                     }
-                    document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML="";
-                    document.getElementById(c[i].id.replace('_checkbox',"")).appendChild(document.createTextNode(data));
+                    else{
+                        document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML="";
+                        document.getElementById(c[i].id.replace('_checkbox',"")).appendChild(document.createTextNode(data));
+                    }
                     if(check){
                         document.getElementById(c[i].id.replace('_checkbox',"_input")).disabled=false;
                         document.getElementById(c[i].id.replace('_checkbox',"")).style.visibility='visible';
@@ -78,13 +81,22 @@
         font-size:10pt;
     }
     #controls{
-        float:left;
-        border:ridge;
+        position:absolute;
+        top:40px;
+        left:0;
+        bottom:0;
+        width:200px;
+        border-right:ridge;
         padding:20px;
         background-color:#ddd;
         font-family:serif;
     }
     #pageContainer{
+        position: absolute;
+        top:40px;
+        bottom:0;
+        right:0;
+        left: 202px;
         
     }
     #page{
@@ -99,6 +111,7 @@
     #header{
         background-color:#6484DF;
         padding:5px;
+        height:29px;
     }
     #title{
         width:200px;
@@ -113,7 +126,7 @@
         margin-top:60px;
     }
     .left{
-        margin-left:30px;
+        margin-left:60px;
     }
     </style>
 </head>

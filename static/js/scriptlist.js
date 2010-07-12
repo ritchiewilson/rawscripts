@@ -231,7 +231,8 @@ function emailScript(){
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	var body_message = document.getElementById('message').innerHTML;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist'}, function(e){emailComplete(e)});
+    var title_page = document.getElementById('emailtitle').selectedIndex;
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
 }
@@ -239,6 +240,7 @@ var resource_id="";
 function emailPrompt(v){
 	resource_id=v;
 	document.getElementById('emailpopup').style.visibility = 'visible';
+    document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id
 }
 function hideEmailPrompt(){
 document.getElementById('emailpopup').style.visibility = 'hidden';
@@ -375,7 +377,18 @@ function exportPrompt(){
 					var option = select.appendChild(document.createElement('option'));
 					option.appendChild(document.createTextNode('Adobe PDF'));
 					option = select.appendChild(document.createElement('option'));
-					option.appendChild(document.createTextNode('.txt (for Celtx or FD)'));
+					option.appendChild(document.createTextNode('txt (for Celtx or FD)'));
+                    newData = newRow.appendChild(document.createElement('td'));
+                    newSelect = newData.appendChild(document.createElement('select'));
+                    newSelect.name="export_format";
+                    option = newSelect.appendChild(document.createElement('option'));
+                    option.appendChild(document.createTextNode('Without Title Page'));
+                    option = newSelect.appendChild(document.createElement('option'));
+                    option.appendChild(document.createTextNode('With Title Page'));
+                    var a = newRow.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
+                    a.appendChild(document.createTextNode('Edit Title page'));
+                    a.href="/titlepage?resource_id="+listItems[i].value;
+                    a.target="_blank"
 					counter++;
 				}
 			}
@@ -390,12 +403,22 @@ function exportScripts(){
 	var format;
 	var exports = document.getElementsByTagName('select');
 	for (var i=0; i<exports.length; i++){
-		id = exports[i].name;
-		if (exports[i].selectedIndex == 0) format = 'pdf';
-		else format = 'txt';
-		url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist';
-		window.open(url);
-	}
+        if(exports[i].name!='export_format' && exports[i].name!=''){
+            console.log(exports[i].name);
+            id = exports[i].name;
+            if (exports[i].selectedIndex == 0){format = 'pdf';}
+            else{format = 'txt';}
+            var n = exports[i].parentNode;
+            console.log(n.nodeName);
+            n = n.nextSibling;
+            if(n.nodeName=="#text")n=n.nextSibling;
+            n=n.firstChild;
+            if(n.nodeName=="#text")n=n.nextSibling;
+            var title = "&title_page="+n.selectedIndex;
+            url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist'+title;
+            window.open(url);
+        }
+    }
 	hideExportPrompt();
 }
 //-----------------Done Export Functions------

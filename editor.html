@@ -219,7 +219,13 @@
 			<label for="message">Message (optional)</label>
 			<br />
 			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
-			<br />
+            <br>
+            <select id="emailTitle">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+			<br /><br>
 			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
             <br />
 			<b>Note:</b> you will automatically get a copy yourself
@@ -269,8 +275,14 @@
 			<br /> 
 			<p>Export as...</p> 
 			<input class='exportList' type="checkbox" checked='true' name="pdf" style="margin-left:5px; margin-right:10px" />   Adobe Pdf<br> 
-			<input class='exportList' type="checkbox" name='txt' style="margin-left:5px; margin-right:10px" />   .txt for Celtx or FD
-			<br /> 
+			<input class='exportList' type="checkbox" name='txt' style="margin-left:5px; margin-right:10px" />   txt file for Celtx or FD
+			<br /> <br>
+            <select id="et">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+            <br><br>
 			<input type='button' id="exportS" onClick='exportScripts()' value='Export' /> 
 			
             <br /> 

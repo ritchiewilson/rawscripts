@@ -58,7 +58,13 @@ $(document).ready(function(){
 			<label for="message">Message (optional)</label>
 			<br />
 			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
-			<br />
+			<br>
+            <select id="emailTitle">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+			<br /><br>
 			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
             <br />
 			<b>Note:</b> you will automatically get a copy yourself
@@ -111,12 +117,12 @@ $(document).ready(function(){
 </div>
 <div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+	<div class="popup_block" style="background:#7694D8; width:500px; position:relative; margin:auto; top:20%; padding:10px; border:double">
 		<div class="popup">
 			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a>
 			<br />
 			<p>Export as...</p>
-			<table cellspacing='0' cellpadding='0' style='border:none; width:350px' id="exportList"></table>
+			<table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
 			<br />
 			<input type='button' onClick='exportScripts()' value='Export' />
 			
