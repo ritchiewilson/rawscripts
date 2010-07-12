@@ -332,6 +332,7 @@ function selection(){
     c.focus();
     c.select();
 }
+
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
@@ -354,12 +355,13 @@ function setup(){
     }
     if(lines.length==2){
         pos.row=1;
-        anch.row=1
-        pos.col=lines[1][0].length
+        anch.row=1;
+        pos.col=lines[1][0].length;
         anch.col=pos.col;
     }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
+    document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
     characterInit();
     sceneIndex();
 	noteIndex();
@@ -427,6 +429,7 @@ function mouseDown(e){
             var t=setTimeout("paste()",50);
         }
         else if(id=='insertNote')newThread();
+        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
         //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';
@@ -1724,9 +1727,11 @@ function renameScript(){
 //exporting
 function exportPrompt(){
     save(0);
+    typeToScript=false;
     document.getElementById("exportpopup").style.visibility="visible"
 }
 function hideExportPrompt(){
+    typeToScript=true;
     document.getElementById("exportpopup").style.visibility="hidden";
 }
 function exportScripts(){
@@ -1738,12 +1743,13 @@ function exportScripts(){
     }
     else{
         var d;
+        var title="&title_page="+document.getElementById('et').selectedIndex;
         var a=document.getElementsByTagName("input");
         for(var c=0;c<a.length;c++){
             if(a[c].checked==true){
                 if(a[c].className=="exportList"){
                     d=a[c].name;
-                    b="/export?resource_id="+resource_id+"&export_format="+d+"&fromPage=editor";
+                    b="/export?resource_id="+resource_id+"&export_format="+d+"&fromPage=editor"+title;
                     window.open(b)
                 }
             }
@@ -1787,7 +1793,7 @@ function emailScript(){
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	var body_message = document.getElementById('message').innerHTML;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor'}, function(e){emailComplete(e)});
+	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
 }
