@@ -61,18 +61,28 @@ class ScriptData (db.Model):
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
 
-class TitlePage (db.Model):
+class TitlePageData (db.Model):
   resource_id = db.StringProperty()
+  title = db.StringProperty()
   authorOne = db.StringProperty()
   authorTwo = db.StringProperty()
+  authorTwoChecked = db.StringProperty()
   authorThree  = db.StringProperty()
+  authorThreeChecked  = db.StringProperty()
   based_on  = db.StringProperty()
-  address =  = db.StringProperty()
-  phone = = db.StringProperty()
-  fax = db.StringProperty()
+  based_onChecked  = db.StringProperty()
+  address = db.StringProperty()
+  addressChecked = db.StringProperty()
+  phone = db.StringProperty()
+  phoneChecked = db.StringProperty()
+  cell = db.StringProperty()
+  cellChecked = db.StringProperty()
   email = db.StringProperty()
+  emailChecked = db.StringProperty()
   registered = db.StringProperty()
+  registeredChecked = db.StringProperty()
   other = db.StringProperty()
+  otherChecked = db.StringProperty()
 
 class UsersScripts (db.Model):
   user = db.StringProperty()
@@ -117,6 +127,115 @@ class ScriptList(webapp.RequestHandler):
     if k == 0:
       newUser = Users(name=users.get_current_user().email())
       newUser.put()
+
+class TitlePage(webapp.RequestHandler):
+  def get(self):
+    resource_id=self.request.get('resource_id')
+    p = permission(resource_id)
+    if p==False:
+      return
+    template_values = { 'sign_out': users.create_logout_url('/') }
+    template_values['user'] = users.get_current_user().email()
+
+    q= db.GqlQuery("SELECT * FROM TitlePageData "+
+                   "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(5)
+    logging.info(resource_id)
+    
+    if not len(results)==0:
+      r=results[0]
+      template_values = {'title' : r.title,
+                         'authorOne' : r.authorOne,
+                         'authorTwo' : r.authorTwo,
+                         'authorTwoChecked' : r.authorTwoChecked,
+                         'authorThree' : r.authorThree,
+                         'authorThreeChecked': r.authorThreeChecked,
+                         'based_on' : r.based_on.replace("LINEBREAK", '\n'),
+                         'based_onChecked' : r.based_onChecked,
+                         'address' : r.address.replace("LINEBREAK", '\n'),
+                         'addressChecked' : r.addressChecked,
+                         'phone' : r.phone,
+                         'phoneChecked' : r.phoneChecked,
+                         'cell' : r.cell,
+                         'cellChecked' : r.cellChecked,
+                         'email' : r.email,
+                         'emailChecked' :r.emailChecked,
+                         'registered': r.registered,
+                         'registeredChecked' : r.registeredChecked,
+                         'other' : r.other,
+                         'otherChecked' : r.otherChecked}
+    else:
+      q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+resource_id+"'")
+      results=q.fetch(5)
+
+      template_values = {'title' : results[0].title,
+                         'authorOne' : users.get_current_user().nickname(),
+                         'authorTwo' : "",
+                         'authorTwoChecked' : "",
+                         'authorThree' : "",
+                         'authorThreeChecked': "",
+                         'based_on' : "",
+                         'based_onChecked' : "",
+                         'address' : "",
+                         'addressChecked' : "",
+                         'phone' : "",
+                         'phoneChecked' : "",
+                         'cell' : "",
+                         'cellChecked' : "",
+                         'email' : users.get_current_user().email(),
+                         'emailChecked' : "checked",
+                         'registered': "",
+                         'registeredChecked' : "",
+                         'other' : "",
+                         'otherChecked' : ""}
+      
+
+    path = os.path.join(os.path.dirname(__file__), 'titlepage.html')
+
+    self.response.headers['Content-Type'] = 'text/html'
+    self.response.out.write(template.render(path, template_values))
+
+class SaveTitlePage (webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    logging.info(resource_id)
+    title = permission(resource_id)
+    if not title==False:
+      q= db.GqlQuery("SELECT * FROM TitlePageData "+
+                     "WHERE resource_id='"+resource_id+"'")
+      results = q.fetch(5)
+      if not len(results)==0:
+        i=results[0]
+
+      else:
+        i = TitlePageData()
+        
+      i.resource_id= resource_id
+      i.title = self.request.get('title')
+      i.authorOne = self.request.get('authorOne')
+      i.authorTwo = self.request.get('authorTwo')
+      i.authorTwoChecked = self.request.get('authorTwoChecked')
+      i.authorThree = self.request.get('authorThree')
+      i.authorThreeChecked = self.request.get('authorThreeChecked')
+      i.based_on = self.request.get('based_on')
+      i.based_onChecked = self.request.get('based_onChecked')
+      i.address = self.request.get('address')
+      i.addressChecked = self.request.get('addressChecked')
+      i.phone = self.request.get('phone')
+      i.phoneChecked = self.request.get('phoneChecked')
+      i.cell = self.request.get('cell')
+      i.cellChecked = self.request.get('cellChecked')
+      i.email = self.request.get('email')
+      i.emailChecked = self.request.get('emailChecked')
+      i.registered = self.request.get('registered')
+      i.registeredChecked = self.request.get('registeredChecked')
+      i.other = self.request.get('other')
+      i.otherChecked = self.request.get('otherChecked')
+      i.put()
+
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write('1')
 
 class List (webapp.RequestHandler):
   def post(self):
@@ -569,6 +688,8 @@ def main():
                                         ('/share', Share),
                                         ('/postnotes', PostNotes),
                                         ('/removeaccess', RemoveAccess),
+                                        ('/titlepage', TitlePage),
+                                        ('/titlepagesave', SaveTitlePage),
                                         ('/getsharelist', GetShareList),
                                         ('/list', List),],
                                        debug=True)

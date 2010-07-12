@@ -332,6 +332,7 @@ function selection(){
     c.focus();
     c.select();
 }
+
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
@@ -427,6 +428,7 @@ function mouseDown(e){
             var t=setTimeout("paste()",50);
         }
         else if(id=='insertNote')newThread();
+        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
         //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';

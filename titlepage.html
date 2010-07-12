@@ -1,14 +1,72 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <script src="static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="js/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
         $(':input').keyup(function(){update()});
         $(':checkbox').click(function(){update()});
         });
+        function closeTitlePage(){
+            window.close()
+        }
+        function save(){
+            var i =[];
+            var c = document.getElementsByTagName('input');
+            for(x in c){
+                if(c[x].type=='text')i.push(c[x].value)
+                else if(c[x].type=='checkbox'){
+                    if(c[x].checked==true)i.push('checked');
+                    else{i.push('')}
+                }
+            }
+            c = document.getElementsByTagName('textarea');
+            for(x in c){
+                if(c[x].value!=undefined){
+                    var data = c[x].value;
+                    var re = new RegExp( "\\n", "g" );
+                    data=data.replace(re,'LINEBREAK');
+                    i.push(data);
+                }
+            }
+            var resource_id=window.location.href.split('=')[1];
+            console.log(resource_id);
+            $.post("/titlepagesave", {title: i[0] , authorOne: i[1] , authorTwo : i[2], authorTwoChecked : i[3], authorThree : i[4], authorThreeChecked : i[5], based_onChecked : i[6], addressChecked : i[7], phone : i[8], phoneChecked : i[9],  cell : i[10], cellChecked : i[11], email : i[12], emailChecked : i[13], registered : i[14], registeredChecked : i[15], other : i[16], otherChecked : i[17], based_on : i[18], address : i[19], resource_id : resource_id}, function(data){});
+        }
+        
+        
         function update(){
-            alert('hey');
+            document.getElementById('title').innerHTML="";
+            document.getElementById('title').appendChild(document.createTextNode(document.getElementById("title_input").value));
+            document.getElementById('authorOne').innerHTML="";
+            document.getElementById('authorOne').appendChild(document.createTextNode(document.getElementById("authorOne_input").value));
+            var c=document.getElementsByTagName('input')
+            for(i in c){
+                if (c[i].type=='checkbox'){
+                    var check = (c[i].checked==true ? true : false);
+                    var n = c[i].parentNode;
+                    n=n.previousSibling;
+                    if(n.nodeName=='#text')n=n.previousSibling;
+                    n=n.firstChild;
+                    if(n.nodeName=='#text')n=n.nextSibling;
+                    if(n.value=="" && !check)n.value="none";
+                    var data = n.value;
+                    if (c[i].id=="address_checkbox" || c[i].id=="based_on_checkbox"){
+                        var re = new RegExp( "\\n", "g" );
+                        data=data.replace(re,'<br>');
+                    }
+                    document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML="";
+                    document.getElementById(c[i].id.replace('_checkbox',"")).appendChild(document.createTextNode(data));
+                    if(check){
+                        document.getElementById(c[i].id.replace('_checkbox',"_input")).disabled=false;
+                        document.getElementById(c[i].id.replace('_checkbox',"")).style.visibility='visible';
+                    }
+                    else{
+                        document.getElementById(c[i].id.replace('_checkbox',"_input")).disabled=true;
+                        document.getElementById(c[i].id.replace('_checkbox',"")).style.visibility='hidden';
+                    }
+                }
+            }
         }
     </script>
     <style>
@@ -39,7 +97,7 @@
         height:800px;
     }
     #header{
-        background-color:blue;
+        background-color:#6484DF;
         padding:5px;
     }
     #title{
@@ -59,65 +117,62 @@
     }
     </style>
 </head>
-<body>
+<body onload="update()">
 <div id="header">
-    <input type="button" value="Save">
-    <input type="button" value="Cancel">
+    <input type="button" value="Save" onclick='save()'>
+    <input type="button" value="Close" onclick="closeTitlePage()">
 </div>
 <div id="container">
     <div id="controls">
         <table cellpadding=0 cellspacing=0>
+            <tr><td colspan="2">Title</td></tr>
+            <tr><td><input id="title_input" value="{{ title }}"></td></tr>
             <tr><td colspan="2">Author</td></tr>
-            <tr><td><input value="Name"></td></tr>
+            <tr><td><input id="authorOne_input" value="{{ authorOne }}"></td></tr>
             <tr><td colspan="2">Second Author (optional)</td></tr>
             <tr>
-                <td><input value="Name"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="authorTwo_input" value="{{ authorTwo }}"></td>
+                <td><input id="authorTwo_checkbox" type="checkbox" {{ authorTwoChecked }}></td>
             <tr/>
             <tr><td colspan="2">Third Author (optional)</td></tr>
             <tr>
-                <td><input value="Name"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="authorThree_input" value="{{ authorThree }}"></td>
+                <td><input id="authorThree_checkbox" type="checkbox" {{ authorThreeChecked }}></td>
             <tr/>
             <tr><td colspan="2">Based On</td></tr>
             <tr>
-                <td><input value="Name"></td>
-                <td><input type="checkbox"></td>
+                <td><textarea id="based_on_input" rows=3>{{  based_on  }}</textarea></td>
+                <td><input id="based_on_checkbox" type="checkbox"{{  based_onChecked  }}></td>
             <tr/>
             <tr><td colspan="2">Address</td></tr>
             <tr>
-                <td><textarea value="Name" rows=5></textarea></td>
-                <td><input type="checkbox"></td>
+                <td><textarea id="address_input" rows=5>{{  address  }}</textarea></td>
+                <td><input id="address_checkbox" type="checkbox" {{  addressChecked  }}></td>
             <tr/>
             <tr><td colspan="2">Phone</td></tr>
             <tr>
-                <td><input value="Phone"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="phone_input" value="{{  phone  }}"></td>
+                <td><input id="phone_checkbox" type="checkbox"{{  phoneChecked  }}></td>
             <tr/>
             <tr><td colspan="2">Cell</td></tr>
             <tr>
-                <td><input value="Cell"></td>
-                <td><input type="checkbox"></td>
-            <tr/>
-            <tr><td colspan="2">Fax</td></tr>
-            <tr>
-                <td><input value="Phone"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="cell_input" value="{{  cell  }}"></td>
+                <td><input id="cell_checkbox" type="checkbox" {{  cellChecked  }}></td>
             <tr/>
             <tr><td colspan="2">Email</td></tr>
             <tr>
-                <td><input value="Phone"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="email_input" value="{{  email  }}"></td>
+                <td><input id="email_checkbox" type="checkbox" {{  emailChecked  }}></td>
             <tr/>
-            <tr><td colspan="2">Registry</td></tr>
+            <tr><td colspan="2">Registered</td></tr>
             <tr>
-                <td><input value="Phone"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="registered_input" value="{{  registered  }}"></td>
+                <td><input id="registered_checkbox" type="checkbox" {{  registeredChecked  }}></td>
             <tr/>
             <tr><td colspan="2">Other</td></tr>
             <tr>
-                <td><input value="Phone"></td>
-                <td><input type="checkbox"></td>
+                <td><input id="other_input" value="{{  other  }}"></td>
+                <td><input id="other_checkbox" type="checkbox" {{  otherChecked  }}></td>
             <tr/>
         </table>
     </div>
@@ -129,8 +184,7 @@
         <div id="authorOne" align="center">Ritchie Wilson</div>
         <div id="authorTwo" align="center">Other person</div>
         <div id="authorThree" align="center">Other Person</div>
-        <br><br>
-        <div id="basedOn" align="center">Based on</div>
+        <br>
         <br>
         <div id="based_on" align="center">Short Story</div>
         <div id="address" class="left">505 Main St.<br>Apt. 3<br>GreatBarrington, MA<br>Suite 9<br>01230<br>usa</div>
@@ -138,8 +192,8 @@
         <div id="phone" class="left">Phone: <span id="phoneS">6466579545</span></div>
         <div id="cell" class="left">Cell: <span id="cellS">6466579545</span></div>
         <br>
-        <div id="fax" class="left">Fax: <span id="faxS">6304551206</span></div>
         <div id="email" class="left">rawilon25@gmail.com</div>
+        <br>
         <div id="registered" class="left">WGAE: #6345</div>
         <div id="other" class="left">Other</div>
     </div>
