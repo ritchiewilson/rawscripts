@@ -61,6 +61,19 @@ class ScriptData (db.Model):
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
 
+class TitlePage (db.Model):
+  resource_id = db.StringProperty()
+  authorOne = db.StringProperty()
+  authorTwo = db.StringProperty()
+  authorThree  = db.StringProperty()
+  based_on  = db.StringProperty()
+  address =  = db.StringProperty()
+  phone = = db.StringProperty()
+  fax = db.StringProperty()
+  email = db.StringProperty()
+  registered = db.StringProperty()
+  other = db.StringProperty()
+
 class UsersScripts (db.Model):
   user = db.StringProperty()
   resource_id = db.StringProperty()
