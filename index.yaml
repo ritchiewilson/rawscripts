@@ -10,6 +10,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: DuplicateScripts
+  properties:
+  - name: from_script
+  - name: version
+    direction: desc
+
 - kind: ScriptData
   properties:
   - name: resource_id

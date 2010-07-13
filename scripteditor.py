@@ -94,6 +94,7 @@ class UsersScripts (db.Model):
 class DuplicateScripts (db.Model):
   new_script = db.StringProperty()
   from_script = db.StringProperty()
+  version = db.IntegerProperty()
 
 class ScriptList(webapp.RequestHandler):
   """Requests the list of the user's Screenplays in the RawScripts folder."""
@@ -518,7 +519,8 @@ class Duplicate (webapp.RequestHandler):
                      autosave=0)
       s.put()
       d= DuplicateScripts(new_script = new_resource_id,
-                          from_script = resource_id)
+                          from_script = resource_id,
+                          version=version)
       d.put()
       u = UsersScripts(user=user,
                        title='Copy of '+title,

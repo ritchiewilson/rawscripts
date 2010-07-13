@@ -62,6 +62,14 @@ handlers:
 - url: /save.*
   script: nologin.py
 
+- url: /searchfortrash.*
+  login: admin
+  script: cron.py
+
+- url: /deletetrash.*
+  login: admin
+  script: cron.py
+
 - url: /.*
   login: required
   script: scripteditor.py
