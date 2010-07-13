@@ -159,20 +159,34 @@ $(document).ready(function(){
 <div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div><br /><br />
 <div style="float:right; padding-right:8px;"><span style="color:red;">Problems?  </span><a href="/submitbug" target="_blank">Submit a bug</a> or <a href='mailto:ritchie@rawscripts.com'>Email Me</a></div>
 <div style="width:100%; clear:both; background-color:#7694D8; padding:3px 0; position:absolute; bottom:0; border-top:2px #ddd groove; border-bottom:2px #ddd ridge;">
-	<input type='button' onClick="newScriptPrompt()" value='New Script' />
-    <input type="button" onClick="uploadPrompt()" value="Upload" />
-    <input type="button" onClick="renamePrompt()" value="Rename"  style="margin-left:55px;" />
-    <input type='button' onClick="duplicate()" value='Duplicate' />
-	<input type='button' onClick="exportPrompt()" value='Export' />
-    <input type='button' onClick="batchProcess('delete')" value='Delete' style="margin-left:55px; margin-right:15px;" />
+    <div id="static_buttons" style="float:left">
+        <input type='button' onClick="newScriptPrompt()" value='New Script' />
+        <input type="button" onClick="uploadPrompt()" value="Upload" />
+    </div>
+    <div id="my_script_buttons" style="float:left; display:block;margin-left:55px;">
+        <input type="button" onClick="renamePrompt()" value="Rename" />
+        <input type='button' onClick="duplicate()" value='Duplicate' />
+        <input type='button' onClick="exportPrompt()" value='Export' />
+        <input type='button' onClick="batchProcess('delete')" value='Move to Trash' style="margin-left:55px; margin-right:15px;" />
+    </div>
+    <div id="friends_scripts_buttons" style="float:left; display:none;margin-left:55px;">
+        <input type='button' onClick="exportPrompt()" value='Export' />
+    </div>
+    <div id="trash_buttons" style="float:left; display:none;margin-left:55px;">
+        <input type='button' onClick="batchProcess('undelete')" value='Undelete' />
+        <input type='button' onClick="batchProcess('hardDelete')" value='Delete Permanantly' />
+        <input type='button' onClick="exportPrompt()" value='Empty trash' />
+        <span style="margin-left:10px">Trash will be permanantly deleted after thirty days</div>
+    </div>
 </div>
-</div>
+
 
 <div style="postion:absolute; right:0; left:0; bottom:0; top:80pt;">
 
 <div id="nav">
 	<div id="myScripts" class="tab">My Scripts</div>
     <div id="friendsScripts" class="tab">Friends' Scripts</div>
+    <div id="trashTab" class="tab" style="margin-top:20px;">Trash</div>
 </div>
 
 	<div style="background-color:#7694D8; position:absolute; right:0; left:160px; bottom:0; top:70pt;">
@@ -209,6 +223,20 @@ $(document).ready(function(){
             <div id="sharedContent"></div>
             <div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 			<div id="sharedNoEntries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">No one is sharing scripts with you.</div>
+		</div>
+        <div id="trash" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
+			<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+                <table width="100%">
+                  <tr>
+                <td style='width:15px;'><input onClick='selectAll(this, "trashListItems")' type='checkbox' value='all' /></td>
+                    <td>Trash</td>
+                    <td style="width:210px" align="left">Last Viewed</td>
+                  </tr>
+                </table>
+		    </div>
+            <div id="trashContent"></div>
+            <div id="trashLoading"><div style="" align="center">Loading...</div></div>
+			<div id="trashNoEntries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">No one is sharing scripts with you.</div>
 		</div>
 	</div>
 </div>

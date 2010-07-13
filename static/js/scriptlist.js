@@ -23,10 +23,30 @@ function tabs(v){
 	if(v=='myScripts'){
 		document.getElementById('owned').style.display='block';
 		document.getElementById('shared').style.display='none';
+        document.getElementById('trash').style.display='none';
+        //buttons
+        document.getElementById('my_script_buttons').style.display='block';
+        document.getElementById('friends_scripts_buttons').style.display='none';
+        document.getElementById('trash_buttons').style.display='none';
+        
 	}
+    else if(v=='trashTab'){
+        document.getElementById('owned').style.display='none';
+		document.getElementById('shared').style.display='none';
+        document.getElementById('trash').style.display='block';
+        //buttons
+        document.getElementById('my_script_buttons').style.display='none';
+        document.getElementById('friends_scripts_buttons').style.display='none';
+        document.getElementById('trash_buttons').style.display='block';
+    }
 	else{
 		document.getElementById('owned').style.display='none';
 		document.getElementById('shared').style.display='block';
+        document.getElementById('trash').style.display='none';
+        //buttons
+        document.getElementById('my_script_buttons').style.display='none';
+        document.getElementById('friends_scripts_buttons').style.display='block';
+        document.getElementById('trash_buttons').style.display='none';
 	}
 }
 
@@ -43,10 +63,11 @@ function refreshList(v){
     //update with new info
     var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
     listDiv.id = 'list';
-    var x = JSON.parse(data);
+    var j = JSON.parse(data);
+    var x=j[0];
+    var z=j[1];
     if(x.length==0){
         document.getElementById('noentries').style.display='block';
-        return;
     }
     for (var i=0; i<x.length; i++){
         var title = x[i][1];
@@ -118,59 +139,57 @@ function refreshList(v){
         updatedTd.align='center';
         updatedTd.appendChild(document.createTextNode(updated));
 	}
+    document.getElementById('trashLoading').style.display = 'none';
+    //remove old data
+    var childs = document.getElementById('trashContent').childNodes;
+    for (var i=0; i<childs.length; i++){
+        childs[i].parentNode.removeChild(childs[i]);
+        i--;
+    }
+    //update with new info
+    var listDiv = document.getElementById('trashContent').appendChild(document.createElement('div'));
+    listDiv.id = 'trashList';
+    for(i in z){
+        var title = z[i][1];
+        var resource_id = z[i][0];
+        var updated = z[i][2]
+        var entryDiv = listDiv.appendChild(document.createElement('div'));
+        entryDiv.id = resource_id;
+        entryDiv.className = 'entry';
+        var entryTable = entryDiv.appendChild(document.createElement('table'));
+        entryTable.width = '100%';
+        var entryTr = entryTable.appendChild(document.createElement('tr'));
+        //make checkbox
+        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+        checkboxTd.className='checkboxCell';
+        var input = checkboxTd.appendChild(document.createElement('input'));
+        input.type='checkbox';
+        input.name = 'trashListItems';
+        input.value = resource_id;
+        //make title
+        var titleCell = entryTr.appendChild(document.createElement('td'));
+        var titleLink = titleCell.appendChild(document.createElement('a'));
+        titleLink.id = 'name'+resource_id;
+        var href = 'javascript:script("'+resource_id+'")';
+        titleLink.href=href;
+        titleLink.appendChild(document.createTextNode(title));
+        //shared column
+        var sharedTd = entryTr.appendChild(document.createElement('td'));
+        sharedTd.className = 'sharedCell';
+        sharedTd.align = 'right';
+        
+        // Last updated
+        var updatedTd = entryTr.appendChild(document.createElement('td'));
+        updatedTd.className = 'updatedCell';
+        updatedTd.align='left';
+        updatedTd.style.width="215px";
+        updatedTd.appendChild(document.createTextNode(updated));
+    }
     if(v){
 		sharePrompt(v);
 	}
 							 });
 }
-function tokenize(kind){
-	var counter = 0;
-	var c = document.getElementsByTagName('div');
-		for(var i=0;i<c.length;i++){
-			if(c[i].className=='token'){
-				counter++;
-				}
-			}
-	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
-	var txtbox = document.getElementById(kind);
-	var data = txtbox.value.replace(',','');
-	var whitespace = data.replace(/ /g, "");
-	if (whitespace==""){return;}
-	var arr = data.split(' ');
-	var email = arr.pop();
-	var name = "";
-	if(arr.length == 0){name = email;}
-	else{name = arr.join(' ').replace(/"/g, '');}
-	// Create Token div
-	var newToken = document.createElement('div');
-	var insertedToken = document.getElementById(kind+'s').appendChild(newToken);
-	insertedToken.className='token';
-	insertedToken.id = email;
-	// Create Name Area
-	var newSpan = document.createElement('span');
-	var nameSpan = insertedToken.appendChild(newSpan);
-	var nameText = document.createTextNode(name);
-	nameSpan.appendChild(nameText);
-	//Create Mailto area
-	var newSpan = document.createElement('span');
-	var emailSpan = insertedToken.appendChild(newSpan);
-	var emailText = document.createTextNode(email);
-	emailSpan.className = 'mailto';
-	emailSpan.appendChild(emailText);
-	// create X button
-	var newA = document.createElement('a');
-	var xA = insertedToken.appendChild(newA);
-	var xText = document.createTextNode(" | X");
-	xA.appendChild(xText);
-	var js = 'javascript:removeToken("'+email+'")'
-	xA.setAttribute('href', js);
-	txtbox.value='';
-	
-}
-function removeToken(v){
-	var token = document.getElementById(v);
-	token.parentNode.removeChild(token);	
-	}
 function selectAll(obj, which){
 	var listItems = document.getElementsByTagName('input');
 	var bool = obj.checked
@@ -190,18 +209,73 @@ window.open(url);
 }
 
 function deleteScript(v){
-	var script = document.getElementById(v);
-	script.style.backgroundColor = '#ccc';
-	script.style.opacity = '0.5';
-	$.post("/delete", {resource_id : v}, function(){script.parentNode.removeChild(script);});
-	}
+	var scriptDiv = document.getElementById(v);
+	scriptDiv.style.backgroundColor = '#ccc';
+	scriptDiv.style.opacity = '0.5';
+	$.post("/delete", {resource_id : v}, function(){
+        scriptDiv.parentNode.removeChild(scriptDiv);
+        document.getElementById('trashList').appendChild(scriptDiv);
+        scriptDiv.style.backgroundColor='white';
+        scriptDiv.style.opacity='1';
+        var t=scriptDiv.firstChild;
+        t=(t.nodeName=='#text' ? t.nextSibling : t);
+        t.getElementsByTagName('input')[0].name='trashListItems';
+        var c = t.getElementsByTagName('td');
+        c[2].parentNode.removeChild(c[2]);
+        c[2].parentNode.removeChild(c[2]);
+        c[2].align='left';
+        c[2].style.width='215px';
+        });
+}
+
+function undelete(v){
+    var scriptDiv = document.getElementById(v);
+	scriptDiv.style.backgroundColor = '#ccc';
+	scriptDiv.style.opacity = '0.5';
+	$.post("/undelete", {resource_id : v}, function(){
+        scriptDiv.parentNode.removeChild(scriptDiv);
+        document.getElementById('list').appendChild(scriptDiv);
+        scriptDiv.style.backgroundColor='white';
+        scriptDiv.style.opacity='1';
+        var t=scriptDiv.firstChild;
+        t=(t.nodeName=='#text' ? t.nextSibling : t);
+        t=t.firstChild;
+        t=(t.nodeName=='#text' ? t.nextSibling : t);
+        var c = t.getElementsByTagName('td');
+        t.getElementsByTagName('input')[0].name='listItems';
+        c[c.length-1].align='center';
+        c[c.length-1].className='updatedCell';
+        c[c.length-1].removeAttribute('style');
+        var emailTd = c[0].parentNode.insertBefore(document.createElement('td'), c[c.length-1]);
+        emailTd.className = 'emailCell';
+        emailTd.align='center';
+        var emailLink = emailTd.appendChild(document.createElement('a'));
+        emailLink.className = 'emailLink';
+        href = 'javascript:emailPrompt("'+v+'")';
+        emailLink.href=href;
+        emailLink.appendChild(document.createTextNode('Email'));
+    });
+}
+
+function hardDelete(v){
+    var scriptDiv = document.getElementById(v);
+	scriptDiv.style.backgroundColor = '#ccc';
+	scriptDiv.style.opacity = '0.5';
+	$.post("/harddelete", {resource_id : v}, function(){
+        scriptDiv.parentNode.removeChild(scriptDiv);
+    });
+}
+
+
 function batchProcess(v){
 	var listItems = document.getElementsByTagName('input');
 	for (var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
 			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems'){
+				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
 					if(v=='delete')	deleteScript(listItems[i].value);
+                    if(v=='undelete')undelete(listItems[i].value);
+                    if(v=='hardDelete')hardDelete(listItems[i].value);
 				}			
 			}
 		}
@@ -485,4 +559,61 @@ function shareScript(){
 	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){refreshList(resource_id);});
 	document.getElementById('shareS').disabled = true;
 	document.getElementById('shareS').value = "Sending Invites...";
+}
+
+
+//
+//
+//
+//
+//
+//
+//tokenize
+function tokenize(kind){
+	var counter = 0;
+	var c = document.getElementsByTagName('div');
+		for(var i=0;i<c.length;i++){
+			if(c[i].className=='token'){
+				counter++;
+				}
+			}
+	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
+	var txtbox = document.getElementById(kind);
+	var data = txtbox.value.replace(',','');
+	var whitespace = data.replace(/ /g, "");
+	if (whitespace==""){return;}
+	var arr = data.split(' ');
+	var email = arr.pop();
+	var name = "";
+	if(arr.length == 0){name = email;}
+	else{name = arr.join(' ').replace(/"/g, '');}
+	// Create Token div
+	var newToken = document.createElement('div');
+	var insertedToken = document.getElementById(kind+'s').appendChild(newToken);
+	insertedToken.className='token';
+	insertedToken.id = email;
+	// Create Name Area
+	var newSpan = document.createElement('span');
+	var nameSpan = insertedToken.appendChild(newSpan);
+	var nameText = document.createTextNode(name);
+	nameSpan.appendChild(nameText);
+	//Create Mailto area
+	var newSpan = document.createElement('span');
+	var emailSpan = insertedToken.appendChild(newSpan);
+	var emailText = document.createTextNode(email);
+	emailSpan.className = 'mailto';
+	emailSpan.appendChild(emailText);
+	// create X button
+	var newA = document.createElement('a');
+	var xA = insertedToken.appendChild(newA);
+	var xText = document.createTextNode(" | X");
+	xA.appendChild(xText);
+	var js = 'javascript:removeToken("'+email+'")'
+	xA.setAttribute('href', js);
+	txtbox.value='';
+	
+}
+function removeToken(v){
+	var token = document.getElementById(v);
+	token.parentNode.removeChild(token);	
 }

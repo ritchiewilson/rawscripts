@@ -29,7 +29,7 @@ def permission (resource_id):
   results = q.fetch(1000)
   p=False
   for i in results:
-    if i.permission=='owner':
+    if i.permission=='owner' or i.permission=='ownerDeleted':
       if i.user==users.get_current_user().email().lower():
         p=i.title
   return p
@@ -252,7 +252,6 @@ class List (webapp.RequestHandler):
                    "WHERE user='"+users.get_current_user().email().lower()+"' "+
                    "AND permission='owner'")
     results = q.fetch(1000)
-
     now = datetime.datetime.today()
     for i in results:
       t=str(i.updated)
@@ -300,9 +299,65 @@ class List (webapp.RequestHandler):
         else:
           i.updated=str(diff)+" years ago"
 
-    pl = []
+    owned = []
     for i in results:
-      pl.append([i.resource_id, i.title, i.updated])
+      owned.append([i.resource_id, i.title, i.updated, i.permission])
+
+    q= db.GqlQuery("SELECT * FROM UsersScripts "+
+                   "WHERE user='"+users.get_current_user().email().lower()+"' "+
+                   "AND permission='ownerDeleted'")
+    results = q.fetch(1000)
+    now = datetime.datetime.today()
+    for i in results:
+      t=str(i.updated)
+      date=t.split(' ')[0]
+      time=t.split(' ')[1]
+      year=date.split('-')[0]
+      month=date.split('-')[1]
+      day=date.split('-')[2]
+      if not int(year)<now.year:
+        if not int(month)<now.month:
+          if not int(day)<now.day:
+            hour=time.split(':')[0]
+            minute=time.split(':')[1]
+            if not int(hour)<now.hour:
+              if not int(minute)<now.minute:
+                i.updated="Seconds Ago"
+              else:
+                diff=now.minute-int(minute)
+                if diff==1:
+                  i.updated="1 minute ago"
+                else:
+                  i.updated=str(diff)+" minutes ago"
+            else:
+              diff=now.hour-int(hour)
+              if diff==1:
+                i.updated="1 hour ago"
+              else:
+                i.updated=str(diff)+" hours ago"
+          else:
+            diff=now.day-int(day)
+            if diff==1:
+              i.updated="Yesterday"
+            else:
+              i.updated=str(diff)+" days ago"
+        else:
+          diff=now.month-int(month)
+          if diff==1:
+            i.updated="1 month ago"
+          else:
+            i.updated=str(diff)+" months ago"
+      else:
+        diff=now.year-int(year)
+        if diff==1:
+          i.updated="last year"
+        else:
+          i.updated=str(diff)+" years ago"
+    ownedDeleted=[]
+    for i in results:
+      ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission])
+
+    pl=[owned, ownedDeleted]
     
     j = simplejson.dumps(pl)
     self.response.headers['Content-Type']='text/plain'
@@ -325,7 +380,7 @@ class Delete (webapp.RequestHandler):
           i.permission='ownerDeleted'
           i.put()
         if i.permission=='collab':
-          i.permission='collabDeleted'
+          i.permission='collabDeletedByOwner'
           i.put()
       self.response.headers['Content-Type']='text/plain'
       self.response.out.write('1')
@@ -333,7 +388,39 @@ class Delete (webapp.RequestHandler):
       self.response.headers['Content-Type']='text/plain'
       self.response.out.write('0')
     
-    
+class Undelete(webapp.RequestHandler):
+  def post(self):
+    resource_id = self.request.get('resource_id')
+    title= permission(resource_id)
+    if not title==False:
+      q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+resource_id+"'")
+      results = q.fetch(1000)
+      for i in results:
+        if i.permission=='ownerDeleted':
+          i.permission='owner'
+          i.put()
+        elif i.permission=='collabDeletedByOwner':
+          i.permission='collab'
+          i.put()
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write('1')
+    else:
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write('0')
+
+class HardDelete(webapp.RequestHandler):
+  def post(self):
+    resource_id = self.request.get('resource_id')
+    title = permission(resource_id)
+    if not title==False:
+      q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+resource_id+"'")
+      r = q.fetch(500)
+
+      for i in r:
+        i.permission = 'hardDelete'
+        i.put()
 
 class Rename (webapp.RequestHandler):
   def post(self):
@@ -682,6 +769,8 @@ class PostNotes (webapp.RequestHandler):
 def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
                                         ('/delete', Delete),
+                                        ('/harddelete', HardDelete),
+                                        ('/undelete', Undelete),
                                         ('/newscript', NewScript),
                                         ('/duplicate', Duplicate),
                                         ('/export', Export),
