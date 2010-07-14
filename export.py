@@ -217,29 +217,53 @@ def Pdf(data, title, title_page, resource_id):
       linecount+=len(lines[i])
       i+=1
     else:
-      if linecount<53 and linecount+len(lines[i])>57 and txt[i][1]==3:
+      if linecount<54 and linecount+len(lines[i])>57 and txt[i][1]==3:
         char=lines[i-1][0]
         diff =55-linecount
         linecount=len(lines[i])-diff+1
         lines[i].insert(diff, more)
         
-        lines[i].insert(diff+1,'                                                                 '+str(pageN)+'.')
+        lines[i].insert(diff+1,'     c1                                                          '+str(pageN)+'.')
         pageN+=1
         lines[i].insert(diff+2,'')
         lines[i].insert(diff+3,'')
-        lines[i].insert(diff+4, char+"(CONT'D)")
+        lines[i].insert(diff+4, char+" (CONT'D)")
         i+=1
-      elif linecount<53 and len(lines[i])>4 and txt[i][1]==3:
+      elif linecount<54 and len(lines[i])>4 and txt[i][1]==3:
         char=lines[i-1][0]
         diff=len(lines[i])-3
         lines[i].insert(diff, more)
         lines[i].insert(diff+1,'')
-        lines[i].insert(diff+2,'                                                                 '+str(pageN)+'.')
+        if diff==2:
+          lines[i].insert(diff+1,'')
+          diff+=1
+        lines[i].insert(diff+2,'      c2                                                         '+str(pageN)+'.')
         pageN+=1
         lines[i].insert(diff+3,'')
         lines[i].insert(diff+4,'')
-        lines[i].insert(diff+5, char+"(CONT'D)")
+        lines[i].insert(diff+5, char+" (CONT'D)")
         linecount=4
+        i+=1
+      elif linecount<55 and linecount+len(lines[i])>57 and txt[i][1]==1:
+        diff=55-linecount
+        linecount=len(lines[i])-diff
+        lines[i].insert(diff,'')
+        lines[i].insert(diff+1,'')
+        lines[i].insert(diff+2,'     one                                                         '+str(pageN)+'.')
+        pageN+=1
+        lines[i].insert(diff+3,'')
+        lines[i].insert(diff+4,'')
+        i+=1
+      elif linecount<55 and len(lines[i])>4 and txt[i][1]==1:
+        diff=len(lines[i])-3
+        lines[i].insert(diff,'')
+        lines[i].insert(diff+1,'')
+        lines[i].insert(diff+2,'')
+        lines[i].insert(diff+3,'   two                                                           '+str(pageN)+'.')
+        pageN+=1
+        lines[i].insert(diff+4,'')
+        lines[i].insert(diff+5,'')
+        linecount=3
         i+=1
       else:
         i-=1
