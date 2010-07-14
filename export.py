@@ -374,9 +374,12 @@ def Pdf(data, title, title_page, resource_id):
       s.write("     "+r.other+"\n")
       count+=1
 
-    while count<=57:
+    while count<57:
       count+=1
       s.write("\n")
+
+  else:
+    s.write('\n')
   for i in lines:
     for t in i:
       s.write(t)
