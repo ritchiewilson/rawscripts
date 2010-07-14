@@ -2295,7 +2295,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                     if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1], y-vOffset);
                     y=72*lineheight*(count+1)+11*lineheight;
                     if(lines[i][1]==3){
-                        ctx.fillText(latestCharacter.toUpperCase()+"(CONT'D)", WrapVariableArray[2][1], y-vOffset);
+                        ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1], y-vOffset);
                         y+=lineheight;
                     }
                     count++;
@@ -2335,13 +2335,20 @@ function paint(e, anchE, forceCalc, forceScroll){
                 wrapCounter++;
                 totalCharacters+=1+wrappedText[wrapCounter];
           }
-          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
-                cursorY=72*cos[0]*lineheight+7*lineheight;
-                if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==3)cursorY+=lineheight*2;
-                else if(lines[pos.row][1]==3)cursorY+=lineheight;
-                else if(pageBreaks[cos[0]-1][1]!=56 && lines[pos.row][1]==1)cursorY+=lineheight;
-          }
           totalCharacters-=wrappedText[wrapCounter];
+          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+                cursorY=72*cos[0]*lineheight+9*lineheight;
+                if(lines[pos.row][1]==3){
+                    cursorY+=lineheight*2;
+                    wrapCounter-=pageBreaks[cos[0]-1][2];
+                    console.log(pageBreaks[cos[0]-1][2]);
+                }
+                else if(lines[pos.row][1]==1){
+                    wrapCounter-=pageBreaks[cos[0]-1][2];
+                    cursorY+=lineheight;
+                }
+          }
+          
 		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
           if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
 		  ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
