@@ -250,7 +250,8 @@ class List (webapp.RequestHandler):
 
     q= db.GqlQuery("SELECT * FROM UsersScripts "+
                    "WHERE user='"+users.get_current_user().email().lower()+"' "+
-                   "AND permission='owner'")
+                   "AND permission='owner' "+
+                   "ORDER BY updated DESC")
     results = q.fetch(1000)
     now = datetime.datetime.today()
     for i in results:
@@ -305,7 +306,8 @@ class List (webapp.RequestHandler):
 
     q= db.GqlQuery("SELECT * FROM UsersScripts "+
                    "WHERE user='"+users.get_current_user().email().lower()+"' "+
-                   "AND permission='ownerDeleted'")
+                   "AND permission='ownerDeleted' "+
+                   "ORDER BY updated DESC")
     results = q.fetch(1000)
     now = datetime.datetime.today()
     for i in results:

@@ -21,3 +21,10 @@ indexes:
   - name: resource_id
   - name: version
     direction: desc
+
+- kind: UsersScripts
+  properties:
+  - name: permission
+  - name: user
+  - name: updated
+    direction: desc

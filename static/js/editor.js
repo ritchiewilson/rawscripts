@@ -3,6 +3,9 @@
    if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
    if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
    if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
+   if($.browser.webkit)var browser='webkit';
+   if($.browser.mozilla)var browser='mozilla';
+   if($.browser.opera)var browser='opera';
    var ud=0;
    var timer;
    var typeToScript=true;
@@ -102,9 +105,9 @@ $(document).ready(function(){
       else if(e.which==46)deleteButton();
       else if(e.which==9){e.preventDefault(); tab();}
       else if(e.which==16)shiftDown=true;
-      else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=true;
-      console.log(ud, vOffset);
-      if((ud<0 || ud>document.getElementById('canvas').height-30) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8)scroll(ud-150);
+      else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
+      //console.log(ud, vOffset);
+      if((ud<0 || ud>document.getElementById('canvas').height-120) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8)scroll(ud-400);
       //console.log(e.which);
     }
     if(typeToScript){
@@ -115,7 +118,7 @@ $(document).ready(function(){
   
   $('*').keyup(function(e){
   if(e.which==16)shiftDown=false;
-  else if((OSName=='MacOS' && (e.which==91 || e.which==93)) || (OSName!='MacOS' && e.which==17))commandDownBool=false;
+  else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   if(typeToScript){
       document.getElementById('ccp').focus();
       document.getElementById('ccp').select();
@@ -415,6 +418,7 @@ function mouseDown(e){
         //FILE
         if(id=='save')save(0);
         else if(id=='new')newScriptPrompt();
+        else if(id=='open')openPrompt();
         else if(id=='rename')renamePrompt();
         else if(id=='exportas')exportPrompt();
         else if(id=='duplicate')duplicate();
@@ -1114,8 +1118,9 @@ function handlekeypress(event) {
 		redoQue=[];
         var d= new Date();
         milli = d.getMilliseconds();
-        if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
-        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
+        
+        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8 && !commandDownBool){
+            if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
@@ -1133,9 +1138,10 @@ function handlekeypress(event) {
                 }
             }
             saveTimer();
+            anch.col=pos.col;
+            anch.row=pos.row;
         }
-        anch.col=pos.col;
-        anch.row=pos.row;
+        
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
     }
@@ -1703,6 +1709,38 @@ function save(v){
         document.getElementById('saveButton').disabled=true;
     });
 }
+// open other script
+function openPrompt(){
+    typeToScript=false;
+    var d=document.getElementById('openTable');
+    d.innerHTML = "Loading... ";
+    document.getElementById('openpopup').style.visibility = 'visible';
+    $.post('/list', function(data){
+        d.innerHTML="";
+        var j = JSON.parse(data);
+        var x=j[0];
+        var TR = d.appendChild(document.createElement('tr'));
+        var TD = TR.appendChild(document.createElement('td'))
+        TD.appendChild(document.createTextNode('Title'));
+        TD.style.textDecoration='underline';
+        TD = TR.appendChild(document.createElement('td'))
+        TD.appendChild(document.createTextNode('Updated'));
+        TD.style.textDecoration='underline';
+        for (i in x){
+            var TR = d.appendChild(document.createElement('tr'));
+            var newA=TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
+            newA.appendChild(document.createTextNode(x[i][1]));
+            newA.href="/editor?resource_id="+x[i][0];
+            newA.target="_blank";
+            TR.appendChild(document.createElement('td')).appendChild(document.createTextNode(x[i][2]));
+        }
+    });
+}
+function hideOpenPrompt(){
+    document.getElementById('openpopup').style.visibility = 'hidden';
+    typeToScript=true;
+}
+
 //rename
 function renamePrompt(){
     typeToScript=false;
@@ -2084,7 +2122,7 @@ function paint(e, anchE, forceCalc, forceScroll){
         //on page breaks
         var bb=false;
         if(!forceCalc){
-            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+            if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
                 if(pageBreaks[count][2]==0){
                     y=72*lineheight*(count+1)+11*lineheight;
                     count++;
@@ -2338,7 +2376,7 @@ function paint(e, anchE, forceCalc, forceScroll){
       if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
       if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
       if(forceScroll){
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-50)scroll(45);
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-100)scroll(45);
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
       }
       if(forceCalc)pagination();

@@ -31,11 +31,15 @@
             }
             var resource_id=window.location.href.split('=')[1];
             console.log(resource_id);
-            $.post("/titlepagesave", {title: i[0] , authorOne: i[1] , authorTwo : i[2], authorTwoChecked : i[3], authorThree : i[4], authorThreeChecked : i[5], based_onChecked : i[6], addressChecked : i[7], phone : i[8], phoneChecked : i[9],  cell : i[10], cellChecked : i[11], email : i[12], emailChecked : i[13], registered : i[14], registeredChecked : i[15], other : i[16], otherChecked : i[17], based_on : i[18], address : i[19], resource_id : resource_id}, function(data){});
+            $.post("/titlepagesave", {title: i[0] , authorOne: i[1] , authorTwo : i[2], authorTwoChecked : i[3], authorThree : i[4], authorThreeChecked : i[5], based_onChecked : i[6], addressChecked : i[7], phone : i[8], phoneChecked : i[9],  cell : i[10], cellChecked : i[11], email : i[12], emailChecked : i[13], registered : i[14], registeredChecked : i[15], other : i[16], otherChecked : i[17], based_on : i[18], address : i[19], resource_id : resource_id}, function(data){document.getElementById('saveButton').value="Saved"});
+            document.getElementById('saveButton').disabled=true;
+            document.getElementById('saveButton').value="Saving..."
         }
         
         
         function update(){
+            document.getElementById('saveButton').value="Save";
+            document.getElementById('saveButton').disabled=false;
             document.getElementById('title').innerHTML="";
             document.getElementById('title').appendChild(document.createTextNode(document.getElementById("title_input").value));
             document.getElementById('authorOne').innerHTML="";
@@ -132,7 +136,7 @@
 </head>
 <body onload="update()">
 <div id="header">
-    <input type="button" value="Save" onclick='save()'>
+    <input id="saveButton" type="button" value="Save" onclick='save()'>
     <input type="button" value="Close" onclick="closeTitlePage()">
 </div>
 <div id="container">

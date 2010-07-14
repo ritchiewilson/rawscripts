@@ -78,7 +78,7 @@
     width:150px;
     position:fixed; 
     top:63px; 
-    left:113px; 
+    left:71px; 
     border-right:1px #333 solid; 
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
@@ -289,6 +289,21 @@
 		</div> 
 	</div> 
 </div>
+<div id="openpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideOpenPrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Open Script:
+            <br /><br>
+			<table id="openTable" width="350px">
+            </table>
+            <br>
+			<br />
+		</div>
+	</div>
+</div>
 <div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
@@ -319,9 +334,9 @@
         <div id="menu">
           <div id='file' class="menuItem">File</div>
           <div id='edit' class="menuItem">Edit</div>
-          <div id='view' class="menuItem">View</div>
+          <!--<div id='view' class="menuItem">View</div>-->
           <div id='share' class="menuItem">Share</div>
-          <div id='help' class="menuItem">Help</div>
+          <!--<div id='help' class="menuItem">Help</div>-->
         </div>
           <select id="format" onchange="changeFormat(this.selectedIndex)" style="margin-top:2px; margin-left:50px;float:left">
             <option>Slugline</option>
@@ -352,7 +367,7 @@
     <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save</td></tr></table></div>
     <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Duplicate</td></tr></table></div>
 
-    <div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>
+    <!--<div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>-->
     <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Export As</td></tr></table></div>
 
     <div id='close' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Close</td></tr></table></div>
@@ -365,7 +380,7 @@
     <div id='copy' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Copy</td></tr></table></div>
     <div id='paste' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Paste</td></tr></table></div>
 	
-	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>
+	<!--<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>-->
     
     <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Edit Title Page</td></tr></table></div>
 
@@ -376,12 +391,12 @@
     <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:15px"></td><td>Parenthetical</td></tr></table></div>
     <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:15px"></td><td>Transition</td></tr></table></div>
   </div>
-  <div class="topMenu" id="viewMenu" style="display:none">
+  <!--<div class="topMenu" id="viewMenu" style="display:none">
     <div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Font Size</td></tr></table></div>
     <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Notes</td></tr></table></div>
-  </div>
+  </div>-->
   <div class="topMenu" id="shareMenu" style="display:none">
-    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>
+    <!--<div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>-->
     <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
