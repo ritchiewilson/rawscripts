@@ -377,7 +377,7 @@ def Pdf(data, title, title_page, resource_id):
     s.write("\n")
     count+=1
     if r.phoneChecked=="checked":
-      s.write("          "+r.phone+"\n")
+      s.write("     "+r.phone+"\n")
       count+=1
     if r.cellChecked=="checked":
       s.write("     "+r.cell+"\n")
