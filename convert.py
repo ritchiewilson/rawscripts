@@ -12,6 +12,52 @@ def Text(data):
     t = data.read()
     lines = t.split('\n')
     arr=[]
+    i=0
+    for i in lines:
+        i=i.rstrip()
+        j=0
+        
+        if not i=="":
+            while i[j]==' ':
+                j+=1
+            found=False
+            if not j==0:
+                if j<50:
+                    for a in arr:
+                        if a[1]==j:
+                            found=True
+                            a[0]=a[0]+1
+                    if not found:
+                        arr.append([1,j])
+    arr.sort()
+
+    m = []
+    while len(arr)>0:
+        m.append(arr.pop()[1])
+    m.sort()
+    i=0
+    while i<len(m)-1:
+        if m[i]+3>m[i+1]:
+            m.pop(i+1)
+        else:
+            i+=1
+    while len(m)>4:
+        m.pop()
+        
+    if len(m)==3:
+        m.insert(2, (m[1]+m[2])/2)
+
+    if len(m)==4:
+        slug = m[1]-2
+        dialog = m[2]-2
+        paren = m[3]-2
+        chara = m[3]+7
+    else:
+        slug = 30
+        dialog =30
+        paren = 30
+        chara = 50
+    
     for i in lines:
         i=i.rstrip()
         if i=="":
@@ -21,7 +67,7 @@ def Text(data):
             while i[j]==' ':
                 j+=1
             i=i.lstrip()
-            if j<24:
+            if j<slug:
                 test=False
                 if i[0]=='I' or i[0]=='i':
                     if i[1]=='N'or i[1]=='n':
@@ -40,11 +86,11 @@ def Text(data):
                     kind=0
                 else:
                     kind=1
-            elif j<29:
+            elif j<dialog:
                 kind=3
-            elif j<34:
+            elif j<paren:
                 kind=4
-            elif j<40:
+            elif j<chara:
                 kind=2
             else:
                 if i[0]=='0' or i[0]=='1' or i[0]=='2' or i[0]=='3' or i[0]=='4' or i[0]=='5' or i[0]=='6' or i[0]=='7' or i[0]=='8' or i[0]=='9':

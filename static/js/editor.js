@@ -344,17 +344,12 @@ function setup(){
         paint(false,false,true,false);
         return;
     }
-    var title=data.split('?title=')[0];
+    var p = JSON.parse(data);
+    var title=p[0];
     document.getElementById('title').innerHTML=title;
-    data=data.split('?title=')[1];
-    if(data==''){
-        lines = [["Fade In:",1],["Int. ",0]];
-    }
-    else{
-        var x = JSON.parse(data);
-        for(var i=0; i<x.length; i++){
-            lines.push([x[i][0], x[i][1]]);
-        }
+    var x = p[1];
+    for(var i=0; i<x.length; i++){
+        lines.push([x[i][0], x[i][1]]);
     }
     if(lines.length==2){
         pos.row=1;
@@ -370,6 +365,7 @@ function setup(){
 	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
+    console.log('hey');
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });

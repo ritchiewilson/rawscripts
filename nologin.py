@@ -108,10 +108,15 @@ class ScriptContent (webapp.RequestHandler):
                       "WHERE resource_id='"+resource_id+"' "+
                       "ORDER BY version DESC")
       results = q.fetch(1000)
+      ja=[]
+      ja.append(title)
+      ja.append(simplejson.loads(results[0].data))
+
+      content = simplejson.dumps(ja)
 
       
       self.response.headers["Content-Type"]='text/plain'
-      self.response.out.write(title+'?title='+results[0].data)
+      self.response.out.write(content)
 
 
 class Save (webapp.RequestHandler):
