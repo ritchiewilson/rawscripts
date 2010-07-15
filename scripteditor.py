@@ -677,6 +677,40 @@ class ConvertProcess (webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
     
 
+class RevisionHistory(webapp.RequestHandler):
+  def get(self):
+    resource_id = self.request.get('resource_id')
+    p = permission(resource_id)
+    if not p==False:
+      q = db.GqlQuery("SELECT * FROM ScriptData "+
+                   "WHERE resource_id='"+resource_id+"' "+
+                   "ORDER BY version DESC")
+      r = q.fetch(1000)
+      for i in r:
+        i.updated=str(i.timestamp)[0:16]
+        if i.autosave==0:
+          i.s='manualsave'
+        else:
+          i.s='autosave'
+      template_values={'r':r,
+                       'title':p,
+                       }
+      path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
+      self.response.out.write(template.render(path, template_values))
+    
+class GetVersion(webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p = permission(resource_id)
+    if not p==False:
+      version = self.request.get('version')
+      logging.info(version)
+      q = db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE version="+version+" "
+                      "AND resource_id='"+resource_id+"'")
+      r=q.fetch(2)
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write(r[0].data)
 
 class Share (webapp.RequestHandler):
   def post(self):
@@ -780,6 +814,8 @@ def main():
                                         ('/rename', Rename),
 					('/emailscript', EmailScript),
                                         ('/convertprocess', ConvertProcess),
+                                        ('/revisionhistory', RevisionHistory),
+                                        ('/getversion', GetVersion),
                                         ('/share', Share),
                                         ('/postnotes', PostNotes),
                                         ('/removeaccess', RemoveAccess),

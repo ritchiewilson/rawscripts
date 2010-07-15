@@ -1,0 +1,118 @@
+<!DOCTYPE html> 
+<html>
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script src="js/jquery.min.js" type="text/javascript"></script>
+  <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
+  <script src="js/rh.js" type="text/javascript"></script>
+  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/dom.js" type="text/javascript"></script>
+  <style>
+  body{padding:0; margin:0;height:100%;}
+  html{height:99%; margin:0; padding:0;}
+  .TEXT{
+    background-color:white;
+  }
+  .toolBar{
+    font-family:sans-serif; 
+    font-size:10pt;
+    float:left; 
+    background-color:#A2BAE9; 
+    width:100%;
+    border-top:2px #000 solid;
+  }
+  .sceneItem{font-family:Courier; font-size:10pt;margin: 0px 0px 0px 10px; cursor:pointer;}
+  #header{padding:0px;}
+  #titleBar{
+    height:40px;
+  }
+  #toolBar{
+  }
+  .menuItem{
+    float:left;
+    margin-top:0px;
+    padding: 4px 7px 4px 7px;
+    cursor:pointer;
+  }
+  .hl{
+    height:7px;
+    width:100%
+    border:1px #000 solid;
+    color:blue;
+  }
+  #title{
+    font-size:18pt;
+    padding:6px;
+    text-shadow: 1px 1px 1px #999;
+  }
+  .TEXT{  
+  font-size:10pt;  
+  background-color:white; 
+  border-style:inset; 
+  border-width:2px;
+  font-family:Verdana, Geneva, sans-serif;
+  width:400px;
+}
+    #sidebar{
+        background-color:#ccc;
+        border-right:2px ridge;
+    }
+    .autosave{
+        display:none;
+    }
+
+
+  </style
+  </head>
+<body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
+<div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
+		<div class="popup"> 
+			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a> 
+			<br /> 
+			<p>Export as...</p> 
+			<input class='exportList' type="checkbox" checked='true' name="pdf" style="margin-left:5px; margin-right:10px" />   Adobe Pdf<br> 
+			<input class='exportList' type="checkbox" name='txt' style="margin-left:5px; margin-right:10px" />   txt file for Celtx or FD
+			<br /> <br>
+            <select id="et">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+            <br><br>
+			<input type='button' id="exportS" onClick='exportScripts()' value='Export' /> 
+			
+            <br /> 
+		</div> 
+	</div> 
+</div>
+
+  <div id='container' style="width:100%; height:100%; margin:0; padding:0">
+  <div id='header' style="width:100%; height:65px; background-color:#6484df">
+    <div id="titleBar">
+      <div id="title">Screenplay Editor</div>
+    </div>
+  </div>
+  <div id="sidebar" style="position:absolute; top:65px; left:0; width:400px; float:left; overflow:auto">
+    <input id="at" type='checkbox' onchange="autosaveToggle()">Show autosaves<br><br>
+    <table id='ta'>
+            <tr>
+                <th></th>
+                <th>Ver.</th>
+                <th>Time Stamp</th>
+            </tr>
+            {% for i in r %}
+                <tr class="{{ i.s }}">
+                    <td align="center"><input value="{{  i.version  }}" type='radio'></td>
+                    <td align="center">{{  i.version  }}</td>
+                    <td align="center">{{  i.updated  }}</td>
+                </tr>
+            {% endfor %}
+            
+        </table>
+  </div>
+  <canvas id='canvas' width="850" style="float:right">Your browser isn't going to handle this. Try Chrome. It's Awseome.</canvas>
+  </div>
+</body>
+</html>

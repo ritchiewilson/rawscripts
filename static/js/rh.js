@@ -75,266 +75,34 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
-    $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
-    $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
-	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
-    //stuff for filelike menu
-    $('.menuItem').click(function(){openMenu(this.id)});
-    $('.menuItem').mouseover(function(){topMenuOver(this.id)});
-    $('.menuItem').mouseout(function(){topMenuOut(this.id)});
+    $(':radio').click(function(){
+        var c = document.getElementsByTagName('input');
+        for (i in c){
+            if(c[i].type=='radio')c[i].checked=false;
+        }
+        this.checked=true;
+        changeVersion(this.value);
+    });
+    var c = document.getElementsByTagName('input');
+    var found = false;
+    for(i in c){
+        if(!found){
+            if(c[i].type=='radio'){
+                c[i].checked=true;
+                found=true;
+            }
+        }
+    }
   });
   $(window).resize(function(){
     document.getElementById('canvas').height = $('#container').height()-65;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
   });
-  $('*').keydown(function(e){
-  if (commandDownBool && e.which!=16){
-        keyboardShortcut(e)
-    }
-   else{
-      var d= new Date();
-      milli = d.getMilliseconds();
-      if(e.which==13)enter();
-      else if(e.which==38)upArrow();
-      else if(e.which==40)downArrow();
-      else if(e.which==39)rightArrow();
-      else if(e.which==37)leftArrow();
-      else if(e.which==8)backspace(e);
-      else if(e.which==46)deleteButton();
-      else if(e.which==9){e.preventDefault(); tab();}
-      else if(e.which==16)shiftDown=true;
-      else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
-      //console.log(ud, vOffset);
-      if((ud<0 || ud>document.getElementById('canvas').height-120) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8)scroll(ud-400);
-      //console.log(e.which);
-    }
-    if(typeToScript){
-        document.getElementById('ccp').focus();
-        document.getElementById('ccp').select();
-    }
-  });
+  $('*').mousedown(function(e){mouseDown(e)});
+  $('*').mouseup(function(e){mouseUp(e)});
+  $('*').mousemove(function(e){mouseMove(e)});
   
-  $('*').keyup(function(e){
-  if(e.which==16)shiftDown=false;
-  else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
-  if(typeToScript){
-      document.getElementById('ccp').focus();
-      document.getElementById('ccp').select();
-  }
-  });
-  
-  $('*').keypress(function(e){
-    handlekeypress(e)
-  });
-  
-  $('*').mousedown(function(e){
-    if(typeToScript){
-        mouseDown(e);
-        document.getElementById('ccp').focus();
-        document.getElementById('ccp').select();
-    }
-  });
-  $('*').mouseup(function(e){
-    if(typeToScript){
-        mouseUp(e);
-        document.getElementById('ccp').focus();
-        document.getElementById('ccp').select();
-    }
-  });
-  $('*').mousemove(function(e){
-    mouseMove(e);
-  });
-    
-	
-// Character and Scene Suggest
-//Build it in the dom. Easier. Stick actual data in value, not in innerhtml
-
-function createSuggestBox(d){
-	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
-	if(d=='c'){
-        v=characters;
-        var left=WrapVariableArray[2][1]+'px';
-    }
-    else{
-        v=scenes;
-        for(i in v){
-            v[i][0]=v[i][0].split(') ').splice(1).join(') ');
-        }
-        var left=WrapVariableArray[0][1]+'px';
-    }
-	var l=lines[pos.row][0].length;
-	for (x in v){
-		var part=lines[pos.row][0].toUpperCase();
-		var s = v[x][0].substr(0,l).toUpperCase();
-		if (part==s && part!=v[x][0]){
-			//create box now if doens't exist
-			if(document.getElementById('suggestBox')==null){
-				var box = document.body.appendChild(document.createElement('div'));
-				box.id='suggestBox';
-				box.style.position='fixed';
-				box.style.top=ud+70+lineheight+"px";
-				box.style.left=left;
-			}
-            var found=false;
-            if(d=='s'){
-                var c = box.childNodes;
-                for (i in c){
-                    if(v[x][0]==c[i].value)found=true;
-                }
-            }
-            if(!found){
-                var item = box.appendChild(document.createElement('div'));
-                item.className="suggestItem";
-                item.appendChild(document.createTextNode(v[x][0]))
-                item.value=v[x][0]
-                document.getElementById('suggestBox').firstChild.id='focus';
-            }
-		}
-	}
-	$('.suggestItem').mouseover(function(){
-		document.getElementById('focus').removeAttribute('id');
-		this.id='focus';})
-}
-
-function saveTimer(){
-    document.getElementById('saveButton').disabled=false;
-    document.getElementById('saveButton').value='Save';
-    clearTimeout(timer);
-    timer = setTimeout('save(1)',7000);
-}
-
-function keyboardShortcut(e){
-    // don't do anything if cut, copy or paste
-    if (e.which!=67 && e.which!=86 && e.which!=88){
-        e.preventDefault();
-        if(shiftDown && e.which==90)redo();
-        else if (e.which==90)undo();
-        else if (e.which==83)save(0);
-        else if (e.which==82)window.location.href=window.location.href;
-    }
-}
-function cut(){
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-}
-function copy(){
-}
-function paste(){
-    saveTimer();
-    redoQue=[];
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-    var j=false;
-    var data=document.getElementById('ccp').value;
-    var r = new RegExp( "\\n", "g" );
-    if (data.split(r).length>1) {
-        var tmp=data.split(r);
-        var tmpArr=[];
-        for (x in tmp){
-            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
-        }
-        data=JSON.stringify(tmpArr);
-    }
-    undoQue.push(['paste',pos.row,pos.col,data]);
-    //undoQue[x][0] ==paste
-    //[1]=pos.row
-    //[2]=pos.col
-    //[3]=data
-    //[4]=added to line
-    //[5]=deleted empty line at end
-    if(data[0]=='[' && data[1]=='[')j=true;
-    if(!j){
-        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
-        pos.col+=document.getElementById('ccp').value.length;
-        anch.col=pos.col;
-    }
-    else{
-        var arr=JSON.parse(data);
-        if (lines[pos.row][0]==''){
-            lines[pos.row][1]=arr[0][1];
-        }
-        if (lines[pos.row][1]==arr[0][1]){
-            undoQue[undoQue.length-1].push(1);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        else{
-            undoQue[undoQue.length-1].push(0);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
-            pos.row++;
-            lines.splice(pos.row,0,arr[0]);
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        pos.row=anch.row=p;
-        pos.col=anch.col=0;
-    }
-    pasting=false;
-    sceneIndex();
-    document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
-    paint(false,false,true,false);
-}
-function selection(){
-    //order stuff
-    if(pos.row>anch.row){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else if(pos.row==anch.row && pos.col>anch.col){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else{
-        var startRange = {row:pos.row, col:pos.col};
-        var endRange = {row:anch.row, col:anch.col};
-    }
-    // figure and copy range
-    if (startRange.row==endRange.row){
-        var sel = lines[startRange.row][0].slice(startRange.col, endRange.col);
-    }
-    else{
-        arr=[];
-        arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
-        startRange.row+=1;
-        while(startRange.row<endRange.row){
-            arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
-            startRange.row+=1;
-        }
-        arr.push([lines[endRange.row][0].slice(0,endRange.col),lines[endRange.row][1]]);
-        var sel=JSON.stringify(arr);
-    }
-    var c = document.getElementById('ccp');
-    c.value=sel;
-    c.focus();
-    c.select();
-}
 
 function setup(){
     resource_id=window.location.href.split('=')[1];
@@ -359,26 +127,32 @@ function setup(){
     }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
-    document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
-    characterInit();
-    sceneIndex();
-	noteIndex();
-    document.getElementById('ccp').focus();
-    document.getElementById('ccp').select();
-    console.log('hey');
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
 }
-function changeFormat(v){
-    saveTimer();
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
-    redoQue=[];
-    lines[pos.row][1]=v;
-    anch.col=pos.col;
-    anch.row=pos.row;
-    sceneIndex();
+function changeVersion(v){
+    console.log(v);
+    $.post('/getversion', {resource_id : resource_id, version : v}, function(d){
+        var x = JSON.parse(d);
+        lines=[]
+        for (i in x){
+            lines.push([x[i][0], x[i][1]]);
+        }
+        paint(false,false,true,false);
+    });
 }
+
+function autosaveToggle(){
+    var d=(document.getElementById('at').checked==true ? 'block' : 'none');
+    var c = document.getElementsByTagName('tr');
+    for (i in c){
+        if (c[i].className=='manual')c[i].style.display=block3;
+        if (c[i].className=='autosave')c[i].style.display=d;
+    }
+    
+}
+
 
 function mouseUp(e){
     mouseDownBool=false;
@@ -392,79 +166,21 @@ function mouseUp(e){
         }
 }
 function mouseDown(e){
-    var menu = false;
-    var c = document.getElementsByTagName('div');
-    for(var i=0;i<c.length;i++){
-        if(c[i].className=='topMenu' && c[i].style.display=='block'){
-            menu=true;
-            var a=c[i];
-        }
-    }
-    if(menu){
-        var command = e.target;
-        while(command.nodeName!='DIV'){
-            command=command.parentNode
-        }
-        id=command.id;
-        var f = id.slice(0,-1);
-        if (f=='format'){
-            changeFormat(id.slice(-1));
-
-        }
-        //FILE
-        if(id=='save')save(0);
-        else if(id=='new')newScriptPrompt();
-        else if(id=='open')openPrompt();
-        else if(id=='rename')renamePrompt();
-        else if(id=='exportas')exportPrompt();
-        else if(id=='duplicate')duplicate();
-        else if(id=='close')closeScript();
-        //Edit
-        else if(id=='undo')undo();
-        else if(id=='redo')redo();
-        else if(id=='cut')var t=setTimeout("cut()",50);
-        else if(id=='copy')copy();
-        else if(id=='paste'){
-            pasting=true;
-            var t=setTimeout("paste()",50);
-        }
-        else if(id=='insertNote')newThread();
-        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
-        //View
-        else if(id=='revision')window.open('/revisionhistory?resource_id='+resource_id);
-        //Share
-        else if(id=='email')emailPrompt();
-        a.style.display='none';
-    }
-	else if(document.getElementById('suggestBox')!=null){
-		if (e.target.className=='suggestItem'){
-			lines[pos.row][0]=e.target.value;
-			pos.col=anch.col=lines[pos.row][0].length;
-		}
-		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
-	}
-    else{
-        var height = document.getElementById('canvas').height;
-        var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-        var barHeight = ((height)/pagesHeight)*(height-39);
-        if (barHeight<20)barHeight=20;
-        if (barHeight>=height-39)barHeight=height-39;
-        var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
-        
-        if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
-            mouseDownBool=true;
-            paint(false, e, false,false);
-        }
-        else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
-            scrollBarBool=true;
-        }
+    var height = document.getElementById('canvas').height;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+    var barHeight = ((height)/pagesHeight)*(height-39);
+    if (barHeight<20)barHeight=20;
+    if (barHeight>=height-39)barHeight=height-39;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+    if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
+        scrollBarBool=true;
     }
 }
+
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
     mouseX=e.clientX;
     mouseY=e.clientY;
-    if(mouseDownBool) paint(e, false, false,true);
 }
 function scrollBarDrag(e){
     var diff = mouseY-e.clientY;
@@ -1493,166 +1209,7 @@ function pagination(){
     }
 }
 
-function characterInit(){
-    for(var i=0; i<lines.length;i++){
-        if (lines[i][1]==2){
-            characterIndex(lines[i][0]);
-        }
-    }
-}
-function characterIndex(v){
-    var chara = v.toUpperCase().replace(/\s+$/,"");
-    var found=false;
-    for(var i=0;i<characters.length;i++){
-        if(characters[i][0]==chara){
-            characters[i][1]=characters[i][1]+1;
-            found=true;
-        }
-    }
-    if (!found){
-        characters.push([chara,1]);
-    }
-}
-function sceneIndex(){
-    scenes=[];
-    var num = 0;
-    for (var i=0; i<lines.length; i++){
-        if(lines[i][1]==0){
-            num++;
-            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
-        }
-    }
-    var c = document.getElementById('sceneBox');
-    c.innerHTML="";
-    
-    for (var i=0; i<scenes.length; i++){
-        var elem = c.appendChild(document.createElement('p'))
-        elem.appendChild(document.createTextNode(scenes[i][0]));
-        elem.className='sceneItem';
-        elem.id="row"+scenes[i][1];
-    }
-    $('.sceneItem').click(function(){$(this).css("background-color", "#999ccc");jumpTo(this.id)});
-    $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
-	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
-    
-}
-function noteIndex(){
-	var c = document.getElementById('noteBox');
-	c.innerHTML="";
-	for (x in notes){
-		var newDiv=c.appendChild(document.createElement('div'));
-		newDiv.className='thread';
-		for (y in notes[x][2]){
-			var msgDiv = newDiv.appendChild(document.createElement('div'));
-            var contentDiv = msgDiv.appendChild(document.createElement('div'));
-			contentDiv.innerHTML = notes[x][2][y][0];
-            var infoDiv = msgDiv.appendChild(document.createElement('div'));
-            infoDiv.appendChild(document.createTextNode("-"+notes[x][2][y][1]));
-            infoDiv.align='right';
-            infoDiv.className="msgInfo";
-			msgDiv.className='msg';
-		}
-		var cont=newDiv.appendChild(document.createElement('div'));
-		cont.className='respond';
-		cont.appendChild(document.createTextNode('respond'));
-		cont.id=notes[x][3];
-	}
-    typeToScript=true;
-	$('.respond').click(function(){newMessage(this.id)});
-}
-function newThread(){
-    return;
-	id=Math.round(Math.random()*1000000000);
-	var tmp=[pos.row, pos.col, [['new thread', 'ritchie', 'timestamp']],id];
-	notes.push(tmp);
-	noteIndex();
-}
-function newMessage(v){
-    noteIndex();
-    typeToScript=false;
-    var c=document.getElementById(v);
-    var n=c.parentNode.insertBefore(document.createElement('div'),c);
-    n.className='respondControls';
-    var i=n.appendChild(document.createElement('div'));
-    i.contentEditable=true;
-    i.id='nmi';
-    var sb = n.appendChild(document.createElement('input'));
-    sb.type='button';
-    sb.value='Save';
-    sb.id='noteSave';
-    var cb = n.appendChild(document.createElement('input'));
-    cb.type='button';
-    cb.value='Cancel';
-    cb.id="noteCancel"
-    c.parentNode.removeChild(c);
-    $('#noteSave').click(function(){submitMessage(v)});
-    $('#noteCancel').click(function(){noteIndex()});
-}
 
-function submitMessage(v){
-	for (x in notes){
-		if (notes[x][3]==v){
-			var n=x;
-		}
-	}
-    var content = document.getElementById('nmi').innerHTML
-	notes[n][2].push([content, 'other ritchie', 'timestamp']);
-	noteIndex();
-}
-
-//Menu
-// function to hand the file like menu
-
-function openMenu(v){
-    document.getElementById(v).style.backgroundColor='#6484df';
-    document.getElementById(v).style.color='white';
-    document.getElementById(v+'Menu').style.display='block';
-    var c = document.getElementsByTagName('td');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='formatTD'){
-            if(c[i].id=='check'+lines[pos.row][1]){
-                c[i].innerHTML='';
-                c[i].appendChild(document.createTextNode('✓'));
-            }
-            else{
-                c[i].innerHTML='';
-            }
-        }
-    }
-}
-function topMenuOver(v){
-    var open=false;
-    var c = document.getElementsByTagName('div');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='menuItem'){
-            c[i].style.backgroundColor='#A2BAE9';
-            c[i].style.color='black';
-        }
-        if(c[i].className=='topMenu'){
-            if(c[i].style.display=='block'){
-                c[i].style.display='none';
-                open=true;
-            }
-        }
-    }
-    if(open){
-        document.getElementById(v+'Menu').style.display='block';
-    }
-    document.getElementById(v).style.backgroundColor='#6484df';
-    document.getElementById(v).style.color='white';
-    var c = document.getElementsByTagName('td');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='formatTD'){
-            if(c[i].id=='check'+lines[pos.row][1]){
-                c[i].innerHTML='';
-                c[i].appendChild(document.createTextNode('✓'));
-            }
-            else{
-                c[i].innerHTML='';
-            }
-        }
-    }
-}
 function topMenuOut(v){
     if(document.getElementById(v+'Menu').style.display=='none'){
         document.getElementById(v).style.backgroundColor='#A2BAE9';
@@ -1663,31 +1220,9 @@ function topMenuOut(v){
 //menu options and stuff
 // closing the window
 function closeScript(){
-    var data=JSON.stringify(lines);
-    $.post('/save', {data : data, resource_id : resource_id}, function(d){self.close()});
-}
-// new script
-function newScriptPrompt(){
-    typeToScript=false;
-	document.getElementById('newscriptpopup').style.visibility = 'visible';
+    self.close()
 }
 
-function hideNewScriptPrompt(){
-    typeToScript=true;
-	document.getElementById('newScript').value = "";
-	document.getElementById('newscriptpopup').style.visibility = 'hidden';
-}
-
-function createScript (){
-	var filename = document.getElementById('newScript').value;
-	if (filename!=''){
-		$.post('/newscript', {filename:filename}, function(data){
-            window.open('/editor?resource_id='+data);
-        });
-            
-	}
-	hideNewScriptPrompt();
-}
 // duplicate
 function duplicate(){
     $.post('/duplicate',
@@ -1697,69 +1232,7 @@ function duplicate(){
         else{window.open(d)}
      });
 }
-// save
-function save(v){
-    clearTimeout(timer);
-    var data=JSON.stringify(lines);
-    document.getElementById('saveButton').value='Saving...';
-    $.post('/save', {data : data, resource_id : resource_id, autosave : v}, function(d){
-        document.getElementById('saveButton').value='Saved';
-        document.getElementById('saveButton').disabled=true;
-    });
-}
-// open other script
-function openPrompt(){
-    typeToScript=false;
-    var d=document.getElementById('openTable');
-    d.innerHTML = "Loading... ";
-    document.getElementById('openpopup').style.visibility = 'visible';
-    $.post('/list', function(data){
-        d.innerHTML="";
-        var j = JSON.parse(data);
-        var x=j[0];
-        var TR = d.appendChild(document.createElement('tr'));
-        var TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Title'));
-        TD.style.textDecoration='underline';
-        TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Updated'));
-        TD.style.textDecoration='underline';
-        for (i in x){
-            var TR = d.appendChild(document.createElement('tr'));
-            var newA=TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
-            newA.appendChild(document.createTextNode(x[i][1]));
-            newA.href="/editor?resource_id="+x[i][0];
-            newA.target="_blank";
-            TR.appendChild(document.createElement('td')).appendChild(document.createTextNode(x[i][2]));
-        }
-    });
-}
-function hideOpenPrompt(){
-    document.getElementById('openpopup').style.visibility = 'hidden';
-    typeToScript=true;
-}
 
-//rename
-function renamePrompt(){
-    typeToScript=false;
-    document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
-    document.getElementById('renameField').value = document.getElementById('title').innerHTML;
-    document.getElementById('renamepopup').style.visibility = 'visible';
-}
-
-function hideRenamePrompt(){
-	document.getElementById('renameField').value = "";
-	document.getElementById('renamepopup').style.visibility = 'hidden';
-    typeToScript=true;
-}
-	
-function renameScript(){
-	var rename = document.getElementById('renameField').value;
-	if (rename==""){return;}
-	document.getElementById('title').innerHTML = rename;
-	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
-	hideRenamePrompt()
-}
 //exporting
 function exportPrompt(){
     save(0);
@@ -1791,47 +1264,6 @@ function exportScripts(){
             }
         }
     }
-}
-// emailing
-function emailPrompt(){
-    save(0);
-    typeToScript=false;
-    document.getElementById("emailpopup").style.visibility='visible'
-}
-function hideEmailPrompt(){
-    document.getElementById("emailpopup").style.visibility='hidden';
-    document.getElementById('recipient').value='';
-    document.getElementById('recipients').innerHTML='';
-    document.getElementById('message').innerHTML='';
-    typeToScript=true;
-}
-
-function emailComplete(e){
-	document.getElementById('emailS').disabled = false;
-	document.getElementById('emailS').value = 'Send';
-	if (e=='sent'){
-		alert("Email Sent")
-		hideEmailPrompt();
-	}
-	else{
-		alert("There was a problem sending your email. Please try again later.")
-	}
-}
-function emailScript(){
-	tokenize('recipient');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
-	var recipients = arr.join(',');
-	var subject = document.getElementById('subject').value;
-	var body_message = document.getElementById('message').innerHTML;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
-	document.getElementById('emailS').disabled = true;
-	document.getElementById('emailS').value = 'Sending...';
 }
 
 
@@ -1878,167 +1310,8 @@ function scrollBar(ctx, y){
     var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight);
     ctx.fillRect(editorWidth-22, topPixel, 20,barHeight);
 }
-function drawRange(ctx){
-    if(pos.row>anch.row){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else if(pos.row==anch.row && pos.col>anch.col){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else{
-        var startRange = {row:pos.row, col:pos.col};
-        var endRange = {row:anch.row, col:anch.col};
-    }
-    
-    //get the starting position
-    var startHeight = lineheight*9+3;
-    var count=0;
-    for (var i=0; i<startRange.row;i++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            startHeight-=(pageBreaks[count][2])*lineheight;
-            if(lines[i][1]==3)startHeight+=lineheight;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        startHeight+=lineheight*linesNLB[i].length;
-    }
-    var i=0;
-    var startRangeCol=linesNLB[startRange.row][i]+1;
-    while(startRange.col>startRangeCol){
-        startHeight+=lineheight;
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[startRange.row][1]==3)startHeight+=lineheight;
-        }
-        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[startRange.row][1]==3)startHeight+=lineheight;
-        }
-        i++;
-        startRangeCol+=linesNLB[startRange.row][i]+1;
-    }
-    startRangeCol-=linesNLB[startRange.row][i]+1;
-    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
-    startWidth+=((startRange.col-startRangeCol)*fontWidth);
-    startHeight+=lineheight;
 
-    //getting the ending position
 
-    var endHeight = lineheight*9+3;
-    count=0;
-    for (var j=0; j<endRange.row;j++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==j){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            endHeight-=(pageBreaks[count][2])*lineheight;
-            if(lines[j][1]==3)endHeight+=lineheight;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        endHeight+=lineheight*linesNLB[j].length;
-    }
-    var j=0;
-    var endRangeCol=linesNLB[endRange.row][j]+1;
-    while(endRange.col>endRangeCol){
-        endHeight+=lineheight;
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[endRange.row][1]==3)endHeight+=lineheight;
-        }
-        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[endRange.row][1]==3)endHeight+=lineheight;
-        }
-        j++;
-        endRangeCol+=linesNLB[endRange.row][j]+1;
-    }
-    endRangeCol-=linesNLB[endRange.row][j]+1;
-    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
-    endWidth+=((endRange.col-endRangeCol)*fontWidth);
-    endHeight+=lineheight;
-    
-    // Now compare stuff and draw blue Box
-    ctx.fillStyle='lightBlue';
-    if(endHeight==startHeight){
-        var onlyBlueLine = startWidth;
-        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
-    }
-    else{
-        var firstLineBlue = startWidth;
-         if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
-        while(startHeight+lineheight<endHeight){
-            for(var counter=0; counter<pageBreaks.length; counter++){
-                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
-                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-                }
-                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
-                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-                }
-            }
-            i++;
-            startHeight+=lineheight;
-            if(linesNLB[startRange.row].length<=i){
-                startRange.row++;
-                i=0;
-            }
-            var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-            if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-            ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
-            
-        }
-        //ctx.fillStyle="blue";
-        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
-        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-        ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
-    }
-}
-
-function drawNotes(ctx){
-    for (x in notes){
-        var startHeight = lineheight*9+3;
-        var count=0;
-        for (var i=0; i<notes[x][0];i++){
-            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                startHeight-=(pageBreaks[count][2])*lineheight;
-                if(lines[i][1]==3)startHeight+=lineheight;
-                count++;
-                if(count==pageBreaks.length)count--;
-            }
-            startHeight+=lineheight*linesNLB[i].length;
-        }
-        var i=0;
-        var startRangeCol=linesNLB[notes[x][0]][i]+1;
-        while(notes[x][1]>startRangeCol){
-            startHeight+=lineheight;
-            if(pageBreaks.length!=0 && pageBreaks[count][0]==notes[x][0] && pageBreaks[count][2]==i+1){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
-            }
-            else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==notes[x][0] && pageBreaks[count][2]==i){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
-            }
-            i++;
-            startRangeCol+=linesNLB[notes[x][0]][i]+1;
-        }
-        startRangeCol-=linesNLB[notes[x][0]][i]+1;
-        var startWidth = WrapVariableArray[lines[notes[x][0]][1]][1];
-        startWidth+=((notes[x][1]-startRangeCol)*fontWidth);
-        startWidth-=(fontWidth/2);
-        startHeight+=lineheight;
-        ctx.moveTo(startWidth,startHeight-vOffset);
-        ctx.fillStyle='red';
-        ctx.fillRect(startWidth,startHeight-vOffset,5,5);
-        ctx.strokeStyle='black';
-        ctx.stroke();
-    }
-}
 
 
 function paint(e, anchE, forceCalc, forceScroll){
@@ -2046,7 +1319,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
-	ctx.fillStyle = '#ccc';
+	ctx.fillStyle = '#999';
 	ctx.fillRect(0, 0, editorWidth, document.getElementById('canvas').height);
     ctx.fillStyle = foreground;
     
@@ -2314,55 +1587,10 @@ function paint(e, anchE, forceCalc, forceScroll){
       while(lines.length<linesNLB.length){
         linesNLB.pop();
       }
-	  // Cursor
-	  var d= new Date();
-	  var newMilli = d.getMilliseconds();
-	  var diff = newMilli-milli;
-	  var cursor = false;
-	  if (diff>0 && diff<500){
-		  cursor = true;
-	  }
-	  if (diff<0 && diff<-500){
-		  cursor = true;
-	  }
-	  if(cursor&&wrappedText){
-          var wrapCounter=0;
-          var lrPosDiff = pos.col;
-          var totalCharacters=wrappedText[wrapCounter];
-          while (pos.col>totalCharacters){
-                wrapCounter++;
-                totalCharacters+=1+wrappedText[wrapCounter];
-          }
-          totalCharacters-=wrappedText[wrapCounter];
-          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
-                cursorY=72*cos[0]*lineheight+9*lineheight;
-                if(lines[pos.row][1]==3){
-                    cursorY+=lineheight*2;
-                    wrapCounter-=pageBreaks[cos[0]-1][2];
-                    console.log(pageBreaks[cos[0]-1][2]);
-                }
-                else if(lines[pos.row][1]==1){
-                    wrapCounter-=pageBreaks[cos[0]-1][2];
-                    cursorY+=lineheight;
-                }
-          }
-          
-		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
-          if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
-		  ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-          try{
-            ctx.fillRect(lr,ud,2,17);
-          }
-          catch(err){console.log(lines[pos.row][0]);}
-	  }
-      
-      //Draw Notes if any
-    if(notes.length!=0 && !forceCalc){
-        drawNotes(ctx);
-    }
+	  
     //Start work on frame and buttons and stuff
     ctx.lineWidth = 4;
-    ctx.strokeStyle = '#ddd';
+    ctx.strokeStyle = '#999';
     ctx.beginPath();
     ctx.moveTo(2,2);
     ctx.lineTo(2,document.getElementById('canvas').height-1);
@@ -2384,7 +1612,9 @@ function paint(e, anchE, forceCalc, forceScroll){
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-100)scroll(45);
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
       }
-      if(forceCalc)pagination();
-      document.getElementById('format').selectedIndex=lines[pos.row][1];
+      if(forceCalc){
+        pagination();
+        paint(false,false,false,false);
+      }
     }
 }
