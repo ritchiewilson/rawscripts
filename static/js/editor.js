@@ -365,18 +365,35 @@ function setup(){
 	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
-    console.log('hey');
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
 }
 function changeFormat(v){
+    console.log('hey');
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
     redoQue=[];
     lines[pos.row][1]=v;
     anch.col=pos.col;
     anch.row=pos.row;
+    if(lines[pos.row][1]==4){
+        console.log(v);
+        if(lines[pos.row][0].charAt(0)!='('){
+            lines[pos.row][0]='('+lines[pos.row][0];
+            pos.col++;
+            anch.col++;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+    }
+    if(lines[pos.row][1]==3){
+        if(lines[pos.row][0].charAt(0)=='('){
+            lines[pos.row][0]=lines[pos.row][0].substr(1);
+            pos.col--;
+            anch.col--;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+    }
     sceneIndex();
 }
 
