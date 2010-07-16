@@ -62,6 +62,10 @@ handlers:
 - url: /save.*
   script: nologin.py
 
+- url: /spellcheck.*
+  login: required
+  script: spellcheck.py
+
 - url: /.*
   login: required
   script: scripteditor.py

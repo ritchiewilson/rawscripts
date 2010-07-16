@@ -29,7 +29,12 @@ class Notes (db.Model):
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
 
-
+class SpellingData (db.Model):
+  resource_id = db.StringProperty()
+  wrong = db.TextProperty()
+  ignore = db.TextProperty()
+  timestamp = db.DateTimeProperty(auto_now_add=True)
+  
 class ScriptData (db.Model):
   resource_id = db.StringProperty()
   data = db.TextProperty()
@@ -108,9 +113,19 @@ class ScriptContent (webapp.RequestHandler):
                       "WHERE resource_id='"+resource_id+"' "+
                       "ORDER BY version DESC")
       results = q.fetch(1000)
+      
+      q = db.GqlQuery("SELECT * FROM SpellingData "+
+                      "WHERE resource_id='"+resource_id+"'")
+      spellresults = q.fetch(2)
+      sp = []
+      if len(spellresults)!=0:
+        sp.append(simplejson.loads(spellresults[0].wrong))
+        sp.append(simplejson.loads(spellresults[0].ignore))
+      
       ja=[]
       ja.append(title)
       ja.append(simplejson.loads(results[0].data))
+      ja.append(sp)
 
       content = simplejson.dumps(ja)
 

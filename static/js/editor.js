@@ -68,6 +68,9 @@
 	 * */
 	var notes = [[6,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[10,5,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
     notes=[];
+    var spellWrong=[];
+    var spellIgnore=[];
+    var checkSpell=false;
     
     
 $(document).ready(function(){
@@ -202,7 +205,42 @@ function saveTimer(){
     document.getElementById('saveButton').disabled=false;
     document.getElementById('saveButton').value='Save';
     clearTimeout(timer);
+    checkSpell=true;
     timer = setTimeout('save(1)',7000);
+}
+
+function ajaxSpell(v){
+    checkSpell=false;
+    var data = lines[v][0];
+    if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
+        data=data.toUpperCase();
+    }
+    var words = data.split(' ');
+    for (i=0; i<words.length; i++){
+        var found=false;
+        for (j in spellWrong){
+            if (words[i]==spellWrong[j][0]){
+                found=true;
+            }
+        }
+        for (j in spellIgnore){
+            if (words[i]==spellWrong[j][0]){
+                found=true;
+            }
+        }
+        if(found){
+            words.splice(i,1)
+            i--;
+        }
+    }
+    var j = JSON.stringify(words);
+    $.post('/spellcheck', {data : j, resource_id : resource_id}, function(d){
+        if(d=='correct')return;
+        var x=JSON.parse(d);
+        for (i in x){
+            spellWrong.push(x[i]);
+        }
+    });
 }
 
 function keyboardShortcut(e){
@@ -217,6 +255,7 @@ function keyboardShortcut(e){
 }
 function cut(){
     if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+    saveTimer();
 }
 function copy(){
 }
@@ -339,6 +378,7 @@ function selection(){
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
+    //console.log(data);
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(false,false,true,false);
@@ -356,6 +396,17 @@ function setup(){
         anch.row=1;
         pos.col=lines[1][0].length;
         anch.col=pos.col;
+    }
+    if(p[2].length!=0){
+        var wrong=p[2][0];
+        console.log(wrong)
+        var ignore =p[2][1];
+        for (w in wrong){
+            spellWrong.push(wrong[w])
+        }
+        for (i in ignore){
+            spellIgnore.push(ignore[i]);
+        }
     }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
@@ -409,6 +460,7 @@ function mouseUp(e){
         }
 }
 function mouseDown(e){
+    if(checkSpell)ajaxSpell(pos.row);
     var menu = false;
     var c = document.getElementsByTagName('div');
     for(var i=0;i<c.length;i++){
@@ -447,6 +499,7 @@ function mouseDown(e){
         }
         else if(id=='insertNote')newThread();
         else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
+        else if(id=="spellCheck")launchSpellCheck();
         //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';
@@ -567,6 +620,7 @@ function upArrow(){
             
             //if this is the first line in a block of wrapped text
             if(integ==0){
+                if(checkSpell)ajaxSpell(pos.row);
                 var prevLineType = lines[pos.row-1][1];
                 if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
                 else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
@@ -620,6 +674,7 @@ function upArrow(){
                 pos.col=0;
             }
             else{
+                if(checkSpell)ajaxSpell(pos.row);
                 var prevLineType = lines[pos.row-1][1];
                 if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
                 else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
@@ -719,6 +774,7 @@ function downArrow(){
             }
             //if this is the last line in a block of wrapped text
             if(integ+1==lineLengths.length){
+                if(checkSpell)ajaxSpell(pos.row);
                 for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
                     pos.col-=lineLengths[newinteg];
                 }
@@ -768,6 +824,7 @@ function leftArrow(){
 		var change=false;
         if(pos.row==0 && pos.col==0) return;
         if(pos.col==0){
+            if(checkSpell)ajaxSpell(pos.row);
             pos.row--;
             pos.col=lines[pos.row][0].length;
 			var change=true;
@@ -790,6 +847,7 @@ function rightArrow(){
 		var change=false;
         if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
         if(pos.col==lines[pos.row][0].length){
+            if(checkSpell)ajaxSpell(pos.row);
             pos.row++;
             pos.col=0;
 			change=true;
@@ -1039,6 +1097,7 @@ function deleteButton(){
 function enter(){
     if(typeToScript && document.getElementById('suggestBox')==null){
         saveTimer();
+        if(checkSpell)ajaxSpell(pos.row);
         lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
         //shift notes
         for(x in notes){
@@ -1849,6 +1908,118 @@ function emailScript(){
 	document.getElementById('emailS').value = 'Sending...';
 }
 
+// spellCheck
+function launchSpellCheck(){
+    typeToScript=false;
+    ajaxSpell(pos.row)
+    var firstLine = (pos.row==0 ? true : false);
+    document.getElementById('spellcheckpopup').style.visibility = 'visible';
+    spellCheckCycle(firstLine, 0, 0)
+    
+}
+function spellCheckCycle(firstLine, r, w){
+    var line=lines[r][0].split(' ');
+    var found = false;
+    while (found==false){
+        var word = line[w];
+        for (i in spellWrong){
+            if (spellWrong[i][0].toUpperCase()==word.toUpperCase()){
+                found=[r,w,i,];
+                for(v in spellIgnore){
+                    if (spellIgnore[v].toUpperCase()==word.toUpperCase())found=false;
+                }
+            }
+        }
+        if (!found){
+            w++;
+            if (w==line.length){
+                w=0;
+                r++;
+                if (r==lines.length){
+                    found='finished';
+                }
+                else{
+                    line = lines[r][0].split(' ');
+                }
+            }
+        }
+    }
+    if (found=='finished'){
+        document.getElementById('sSuggest').innerHTML="";
+        document.getElementById('sSentance').innerHTML = "";
+        alert("Spell Check Complete");
+        hideSpellCheck()
+    }
+    else{
+        var sen =lines[r][0];
+        var reg = new RegExp(word,'i');
+        var rep = "<span id='sFocus' title='"+word+"' style='color:red'>"+word+"</span>"
+        sen = sen.replace(reg, rep);
+        document.getElementById('sSentance').innerHTML = sen;
+        document.getElementById('sSentance').title = r;
+        var sug = spellWrong[found[2]][1];
+        var d=document.getElementById('sSuggest')
+        d.innerHTML="";
+        for (i in sug){
+            var item =d.appendChild(document.createElement('div'))
+            item.className='spellcheckitem';
+            item.appendChild(document.createTextNode(sug[i]));
+            item.title=sug[i];
+        }
+        w++;
+        if (w==line.length){
+            w=0;
+            r++;
+            if (r==lines.length){
+                found='finished';
+            }
+            else{
+                line = lines[r][0].split(' ');
+            }
+        }
+        var h = (found=='finished' ? found : [r,w].join(','))
+        document.getElementById('sHidden').value=h;
+        $(".spellcheckitem").click(function(){
+            var f = document.getElementById('spellcheckfocus');
+            if (f!=undefined){
+                f.removeAttribute('id');
+            }
+            this.id='spellcheckfocus'
+            document.getElementById('sFocus').innerHTML=this.title;
+        });
+    }
+}
+
+function hideSpellCheck(){
+    document.getElementById('spellcheckpopup').style.visibility='hidden';
+    typeToScript=true;
+}
+function s_ignore(){
+    var tmp = document.getElementById('sHidden').value;
+    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
+}
+function s_ignore_all(){
+    spellIgnore.push(document.getElementById('sFocus').title);
+    var tmp = document.getElementById('sHidden').value;
+    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
+}
+function s_change(){
+    var s=document.getElementById('sSentance');
+    var r = s.title;
+    lines[r][0]="";
+    for (i in s.childNodes){
+        if(s.childNodes[i].nodeName=="#text")lines[r][0]=lines[r][0]+s.childNodes[i].nodeValue;
+        else{
+            var c = s.childNodes[i].childNodes;
+            for (j in c){
+                if (c[j].nodeName=="#text")lines[r][0]=lines[r][0]+c[j].nodeValue;
+            }
+        }
+    }
+    var tmp = document.getElementById('sHidden').value;
+    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
+    paint(false,false,true,false);
+}
 
 
 

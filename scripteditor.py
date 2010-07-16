@@ -34,6 +34,12 @@ def permission (resource_id):
         p=i.title
   return p
 
+class SpellingData (db.Model):
+  resource_id = db.StringProperty()
+  wrong = db.TextProperty()
+  ignore = db.TextProperty()
+  timestamp = db.DateTimeProperty(auto_now_add=True)
+
 class ShareDB (db.Model):
   name = db.StringProperty()
   resource_id = db.StringProperty()
@@ -562,6 +568,11 @@ class NewScript (webapp.RequestHandler):
                    data='[["Fade In:",1],["Int. ",0]]',
                    version=1,
                    autosave=0)
+    s.put()
+
+    s = SpellingData(resource_id=resource_id,
+                   wrong='[]',
+                   ignore="[]")
     s.put()
 
     u = UsersScripts(user=user,
