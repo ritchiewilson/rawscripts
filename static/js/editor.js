@@ -1918,6 +1918,11 @@ function launchSpellCheck(){
     
 }
 function spellCheckCycle(firstLine, r, w){
+    if(r=='finished'){
+        alert('Spell Check Complete');
+        hideSpellCheck();
+        return;
+    }
     var line=lines[r][0].split(' ');
     var found = false;
     while (found==false){
