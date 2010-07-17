@@ -7,6 +7,7 @@ from google.appengine.ext import webapp
 from django.utils import simplejson
 from google.appengine.ext import db
 import logging
+from google.appengine.api.labs import taskqueue
 
 class ScriptData (db.Model):
   resource_id = db.StringProperty()
@@ -17,8 +18,8 @@ class ScriptData (db.Model):
 
 class SpellingData (db.Model):
   resource_id = db.StringProperty()
-  wrong = db.StringProperty()
-  ignore = db.StringProperty()
+  wrong = db.TextProperty()
+  ignore = db.TextProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class UsersScripts (db.Model):
@@ -30,7 +31,8 @@ class UsersScripts (db.Model):
 
 class SpellDB(webapp.RequestHandler):
   def get(self):
-    q=db.GqlQuery("SELECT * FROM UsersScripts")
+    q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "where permission='owner'")
     results = q.fetch(1000)
     for i in results:
       q=db.GqlQuery("SELECT * FROM SpellingData "+
@@ -41,24 +43,20 @@ class SpellDB(webapp.RequestHandler):
                          wrong="[]",
                          ignore="[]")
         s.put()
-        q=db.GqlQuery("SELECT * FROM ScriptData "+
-                      "WHERE resource_id='"+i.resource_id+"' "+
-                      "ORDER BY version DESC")
-        j = q.fetch(2)
-        taskqueue.add(url="/spellcheckbigscript", params= {resource_id : i.resource_id})
+        taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : i.resource_id})
 
 
 class SpellCheckBigScript(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    q=GqlQuery("SELECT * FROM ScriptData "+
+    q=db.GqlQuery("SELECT * FROM ScriptData "+
                "WHERE resource_id='"+resource_id+"' "+
                "ORDER BY version DESC")
     r = q.fetch(2)
     j = simplejson.loads(r[0].data)
     w=[]
     for i in j:
-      word = i.split(" ")
+      word = i[0].split(" ")
       for t in word:
         w.append(t)
 
@@ -71,11 +69,11 @@ class SpellCheckBigScript(webapp.RequestHandler):
     while i<len(words):
       j=0
       arr=[]
-      while j<=50:
+      while j<=200:
         j+=1
         arr.append(words.pop())
-        if len(words)==0: j=60
-      taskqueue.add(url="/spellcheck", params={resource_id :resource_id, data : simplejson.dumps(arr)})
+        if len(words)==0: j=260
+      taskqueue.add(url="/spellcheck", params={'resource_id' :resource_id, 'data' : simplejson.dumps(arr)})
     
 
     
@@ -144,6 +142,7 @@ class SpellCheck(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication([('/spellcheck', SpellCheck),
+                                        ('/spellcheckbigscript', SpellCheckBigScript),
                                         ('/spelldb', SpellDB)],
                                        debug=True)
   

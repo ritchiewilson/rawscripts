@@ -66,6 +66,14 @@ handlers:
   login: required
   script: spellcheck.py
 
+- url: /spelldb.*
+  login: admin
+  script: spellcheck.py
+
+- url: /spellcheckbigscript.*
+  login: admin
+  script: spellcheck.py
+
 - url: /.*
   login: required
   script: scripteditor.py
