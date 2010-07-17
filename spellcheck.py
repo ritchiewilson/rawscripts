@@ -97,7 +97,6 @@ class SpellCheck(webapp.RequestHandler):
           arr=[]
           while i<=10:
               s = words.pop()
-              logging.info(s)
               arr.append(s)
               i+=1
               if len(words)==0:
@@ -116,7 +115,6 @@ class SpellCheck(webapp.RequestHandler):
           con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
           response = con.getresponse()
           r=response.read()
-          logging.info(r)
           dom = minidom.parse(StringIO.StringIO(r))
           con.close()
           for i in dom.getElementsByTagName('c'):
@@ -139,7 +137,10 @@ class SpellCheck(webapp.RequestHandler):
                          wrong="[]",
                          ignore='[]')
           s.put()
-          item="[]"
+          q = db.GqlQuery("SELECT * FROM SpellingData "+
+                        "WHERE resource_id='"+resource_id+"'")
+          r=q.fetch(2)
+          item=r[0]
         else:
           item=r[0]
         J = simplejson.loads(item.wrong)

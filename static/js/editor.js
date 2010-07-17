@@ -219,12 +219,12 @@ function ajaxSpell(v, r){
     for (i=0; i<words.length; i++){
         var found=false;
         for (j in spellWrong){
-            if (words[i]==spellWrong[j][0]){
+            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
                 found=true;
             }
         }
         for (j in spellIgnore){
-            if (words[i]==spellWrong[j][0]){
+            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
                 found=true;
             }
         }
@@ -1926,9 +1926,9 @@ function spellCheckCycle(firstLine, r, w){
     var line=lines[r][0].split(' ');
     var found = false;
     while (found==false){
-        var word = line[w];
+        var word = line[w].replace("?", "").replace(".","").replace(",","").replace("(","").replace(")","");
         for (i in spellWrong){
-            if (spellWrong[i][0].toUpperCase()==word.toUpperCase().replace(/[^a-zA-Z]/, "")){
+            if (spellWrong[i][0].toUpperCase()==word.toUpperCase()){
                 found=[r,w,i,];
                 for(v in spellIgnore){
                     if (spellIgnore[v].toUpperCase()==word.toUpperCase())found=false;
@@ -1960,7 +1960,13 @@ function spellCheckCycle(firstLine, r, w){
         var reg = new RegExp(word,'i');
         var rep = "<span id='sFocus' title='"+word+"' style='color:red'>"+word+"</span>"
         sen = sen.replace(reg, rep);
-        document.getElementById('sSentance').innerHTML = sen;
+        if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
+            document.getElementById('sSentance').innerHTML = sen.toUpperCase();
+            document.getElementById('sSentance').innerHTML =document.getElementById('sSentance').innerHTML.replace("SFOCUS","sFocus")
+        }
+        else{
+            document.getElementById('sSentance').innerHTML = sen;
+        }
         document.getElementById('sSentance').title = r;
         var sug = spellWrong[found[2]][1];
         var d=document.getElementById('sSuggest')
@@ -1968,7 +1974,12 @@ function spellCheckCycle(firstLine, r, w){
         for (i in sug){
             var item =d.appendChild(document.createElement('div'))
             item.className='spellcheckitem';
-            item.appendChild(document.createTextNode(sug[i]));
+            if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
+                item.appendChild(document.createTextNode(sug[i].toUpperCase()));
+            }
+            else{
+                item.appendChild(document.createTextNode(sug[i]));
+            }
             item.title=sug[i];
         }
         w++;
@@ -1998,6 +2009,7 @@ function spellCheckCycle(firstLine, r, w){
 function hideSpellCheck(){
     document.getElementById('spellcheckpopup').style.visibility='hidden';
     typeToScript=true;
+    //spellIgnore=[];
 }
 function s_ignore(){
     var tmp = document.getElementById('sHidden').value;

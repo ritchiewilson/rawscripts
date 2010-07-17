@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
@@ -60,10 +60,11 @@ handlers:
   script: nologin.py
 
 - url: /save.*
+  login: required
   script: nologin.py
 
 - url: /spellcheck.*
-  login: required
+  login: admin
   script: spellcheck.py
 
 - url: /spelldb.*
