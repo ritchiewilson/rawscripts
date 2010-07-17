@@ -82,6 +82,7 @@ class SpellCheck(webapp.RequestHandler):
     def post(self):
       resource_id=self.request.get('resource_id')
       data = self.request.get('data')
+      output=self.request.get('output')
       w = simplejson.loads(data)
       
       keys = {} 
@@ -114,12 +115,17 @@ class SpellCheck(webapp.RequestHandler):
           con = httplib.HTTPSConnection("www.google.com")
           con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
           response = con.getresponse()
-          dom = minidom.parse(StringIO.StringIO(response.read()))
+          r=response.read()
+          logging.info(r)
+          dom = minidom.parse(StringIO.StringIO(r))
           con.close()
           for i in dom.getElementsByTagName('c'):
             tmp=[]
             tmp.append(text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))])
-            tmp.append(i.firstChild.data.split('\t'))
+            if not len(i.childNodes)==0:
+              tmp.append(i.firstChild.data.split('\t'))
+            else:
+              tmp.append(["No Suggestions"])
             if not tmp==[]:
                 cr.append(tmp)
       if len(cr)==0:
@@ -128,7 +134,14 @@ class SpellCheck(webapp.RequestHandler):
         q = db.GqlQuery("SELECT * FROM SpellingData "+
                         "WHERE resource_id='"+resource_id+"'")
         r=q.fetch(2)
-        item=r[0]
+        if len(r)==0:
+          s=SpellingData(resource_id=resource_id,
+                         wrong="[]",
+                         ignore='[]')
+          s.put()
+          item="[]"
+        else:
+          item=r[0]
         J = simplejson.loads(item.wrong)
         for t in cr:
           J.append(t)
@@ -136,7 +149,7 @@ class SpellCheck(webapp.RequestHandler):
         item.wrong=P
         item.put()
         content = simplejson.dumps(cr)
-
+      
       self.response.headers['Content-type']='text/plain'
       self.response.out.write(content)
 

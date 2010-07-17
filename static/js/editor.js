@@ -209,7 +209,7 @@ function saveTimer(){
     timer = setTimeout('save(1)',7000);
 }
 
-function ajaxSpell(v){
+function ajaxSpell(v, r){
     checkSpell=false;
     var data = lines[v][0];
     if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
@@ -399,7 +399,7 @@ function setup(){
     }
     if(p[2].length!=0){
         var wrong=p[2][0];
-        console.log(wrong)
+        //console.log(wrong)
         var ignore =p[2][1];
         for (w in wrong){
             spellWrong.push(wrong[w])
@@ -421,7 +421,7 @@ function setup(){
     });
 }
 function changeFormat(v){
-    console.log('hey');
+    //console.log('hey');
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
     redoQue=[];
@@ -429,7 +429,7 @@ function changeFormat(v){
     anch.col=pos.col;
     anch.row=pos.row;
     if(lines[pos.row][1]==4){
-        console.log(v);
+        //console.log(v);
         if(lines[pos.row][0].charAt(0)!='('){
             lines[pos.row][0]='('+lines[pos.row][0];
             pos.col++;
@@ -1923,7 +1923,7 @@ function spellCheckCycle(firstLine, r, w){
     while (found==false){
         var word = line[w];
         for (i in spellWrong){
-            if (spellWrong[i][0].toUpperCase()==word.toUpperCase()){
+            if (spellWrong[i][0].toUpperCase()==word.toUpperCase().replace(/[^a-zA-Z]/, "")){
                 found=[r,w,i,];
                 for(v in spellIgnore){
                     if (spellIgnore[v].toUpperCase()==word.toUpperCase())found=false;
@@ -2525,7 +2525,6 @@ function paint(e, anchE, forceCalc, forceScroll){
                 if(lines[pos.row][1]==3){
                     cursorY+=lineheight*2;
                     wrapCounter-=pageBreaks[cos[0]-1][2];
-                    console.log(pageBreaks[cos[0]-1][2]);
                 }
                 else if(lines[pos.row][1]==1){
                     wrapCounter-=pageBreaks[cos[0]-1][2];
