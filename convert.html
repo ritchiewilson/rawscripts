@@ -8,7 +8,7 @@ function post(){
 function titleChange(){
 	var filename = document.getElementById('file').value;
 	var arr = filename.split('.');
-	if (arr[arr.length-1]!='celtx' && arr[arr.length-1]!='txt'){
+	if (arr[arr.length-1]!='celtx' && arr[arr.length-1]!='txt' && arr[arr.length-1]!='html'){
 		document.getElementById('warning').style.display = 'block';
 		document.getElementById('submit').disabled = true;
 		return;
@@ -17,6 +17,7 @@ function titleChange(){
 	document.getElementById('submit').disabled = false;
 	var title = filename.replace('.celtx', '');
     title = title.replace('.txt', '');
+    title = title.replace('.html', '');
 	document.getElementById('hidden').value = title;
     var ff = arr[arr.length-1];
     document.getElementById('ff').value = ff;

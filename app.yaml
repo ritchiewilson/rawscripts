@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 2
+version: 3
 runtime: python
 api_version: 1
 
@@ -10,6 +10,10 @@ handlers:
 - url: /convert
   static_files: convert.html
   upload: convert.html
+
+- url: /migration
+  static_files: migration.html
+  upload: migration.html
 
 - url: /rawscripts.manifest
   static_files: rawscripts.manifest

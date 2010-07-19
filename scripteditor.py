@@ -664,6 +664,26 @@ class ConvertProcess (webapp.RequestHandler):
     data = StringIO.StringIO(self.request.get('script'))
     if ff=='txt':
       contents = convert.Text(data)
+    elif ff=='html':
+      myparser = MyParser()
+      myparser.parse(data.read())
+      l = myparser.get_hyperlinks()
+      i=0
+      while i<len(l):
+        if l[i][0]=='':
+          l.pop(i)
+        else:
+          i+=1
+      i=0
+      while i<len(l):
+        if l[i][1]==7:
+          l.pop(i)
+          l.pop(i)
+          l[i-1][0]=l[i-1][0]+" "+l[i][0]
+          l.pop(i)
+        else:
+          i+=1
+      contents = simplejson.dumps(l)
     else:
       contents = convert.Celtx(data)
     
@@ -691,6 +711,54 @@ class ConvertProcess (webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
     
 
+import sgmllib
+
+class MyParser(sgmllib.SGMLParser):
+    "A simple parser class."
+    def parse(self, s):
+        "Parse the given string 's'."
+        self.feed(s)
+        self.close()
+
+    def __init__(self, verbose=0):
+        "Initialise an object, passing 'verbose' to the superclass."
+
+        sgmllib.SGMLParser.__init__(self, verbose)
+        self.hyperlinks = []
+        self.startT = None
+
+    def handle_data(self, data):
+        if self.startT is not None:
+            data = data.replace('\r\n','').replace('\n','')
+            data= data.strip()
+            self.hyperlinks.append([data, self.startT])
+        
+    def start_h1(self, attributes):
+        self.startT=0
+    def start_h2(self, attributes):
+        self.startT=1
+    def start_h3(self, attributes):
+        if len(attributes)!=0 and attributes[0][1]=='more':
+            self.startT=7
+        else:
+            self.startT=2
+    def start_h4(self, attributes):
+        self.startT=3
+    def start_h5(self, attributes):
+        if len(attributes)!=0 and attributes[0][1]=='pn':
+            self.startT=None
+        else:
+           self.startT=4 
+    def start_h6(self, attributes):
+        self.startT=5
+    def start_div(self, attributes):
+        self.startT=None
+    def start_span(self, attributes):
+        self.startT=None
+
+    def get_hyperlinks(self):
+        "Return the list of hyperlinks."
+        return self.hyperlinks
 
 class Share (webapp.RequestHandler):
   def post(self):
