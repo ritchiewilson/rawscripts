@@ -52,7 +52,6 @@ function tabs(v){
 
 function refreshList(v){
 	$.post('/list', function(data){
-    console.log(data);
 	document.getElementById('loading').style.display = 'none';
     //remove old data
     var childs = document.getElementById('content').childNodes;
@@ -305,7 +304,7 @@ function emailScript(){
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	var body_message = document.getElementById('message').innerHTML;
-    var title_page = document.getElementById('emailtitle').selectedIndex;
+    var title_page = document.getElementById("emailTitle").selectedIndex;
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
@@ -478,12 +477,10 @@ function exportScripts(){
 	var exports = document.getElementsByTagName('select');
 	for (var i=0; i<exports.length; i++){
         if(exports[i].name!='export_format' && exports[i].name!=''){
-            console.log(exports[i].name);
             id = exports[i].name;
             if (exports[i].selectedIndex == 0){format = 'pdf';}
             else{format = 'txt';}
             var n = exports[i].parentNode;
-            console.log(n.nodeName);
             n = n.nextSibling;
             if(n.nodeName=="#text")n=n.nextSibling;
             n=n.firstChild;
