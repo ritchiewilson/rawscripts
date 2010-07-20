@@ -62,6 +62,9 @@ handlers:
 - url: /save.*
   script: nologin.py
 
+- url: /revision.*
+  script: revisionhistory.py
+
 - url: /.*
   login: required
   script: scripteditor.py
