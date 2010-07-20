@@ -630,6 +630,13 @@ class Duplicate (webapp.RequestHandler):
                        updated = str(datetime.datetime.today()),
                        permission='owner')
       u.put()
+      q=db.GqlQuery("SELECT * FROM SpellingData "+
+                    "WHERE resource_id='"+resource_id+"'")
+      r=q.fetch(2)
+      s= SpellingData(resource_id=new_resource_id,
+                      wrong=r[0].wrong,
+                      ignore=r[0].ignore)
+      s.put()
       self.response.headers['Content-Type'] = 'text/plain'
       self.response.out.write('/editor?resource_id='+new_resource_id)
       

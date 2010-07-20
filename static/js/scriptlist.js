@@ -258,27 +258,34 @@ function undelete(v){
 
 function hardDelete(v){
     var scriptDiv = document.getElementById(v);
-	scriptDiv.style.backgroundColor = '#ccc';
-	scriptDiv.style.opacity = '0.5';
-	$.post("/harddelete", {resource_id : v}, function(){
+    scriptDiv.style.backgroundColor = '#ccc';
+    scriptDiv.style.opacity = '0.5';
+    $.post("/harddelete", {resource_id : v}, function(){
         scriptDiv.parentNode.removeChild(scriptDiv);
     });
 }
 
 
 function batchProcess(v){
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
-					if(v=='delete')	deleteScript(listItems[i].value);
-                    if(v=='undelete')undelete(listItems[i].value);
-                    if(v=='hardDelete')hardDelete(listItems[i].value);
-				}			
-			}
-		}
-	}
+    var con = true;
+    if(v=='hardDelete'){
+        con=false;
+        if (confirm("Are you sure you want to delete these scripts? This cannot be undone."))con=true;
+    }
+    if(con){
+        var listItems = document.getElementsByTagName('input');
+        for (var i=0; i<listItems.length; i++){
+            if(listItems[i].type == 'checkbox'){
+                if (listItems[i].checked == true){
+                    if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
+                        if(v=='delete')	deleteScript(listItems[i].value);
+                        if(v=='undelete')undelete(listItems[i].value);
+                        if(v=='hardDelete')hardDelete(listItems[i].value);
+                    }			
+                }
+            }
+        }
+    }
 }
 
 function emailComplete(e){

@@ -55,6 +55,12 @@ class DuplicateScripts (db.Model):
   from_script = db.StringProperty()
   from_version = db.IntegerProperty()
 
+class SpellingData (db.Model):
+  resource_id = db.StringProperty()
+  wrong = db.TextProperty()
+  ignore = db.TextProperty()
+  timestamp = db.DateTimeProperty(auto_now_add=True)
+
 class DuplicateOldRevision(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
@@ -99,6 +105,13 @@ class DuplicateOldRevision(webapp.RequestHandler):
                        updated = str(datetime.datetime.today()),
                        permission='owner')
       u.put()
+      q=db.GqlQuery("SELECT * FROM SpellingData "+
+                    "WHERE resource_id='"+resource_id+"'")
+      r=q.fetch(2)
+      s= SpellingData(resource_id=new_resource_id,
+                      wrong=r[0].wrong,
+                      ignore=r[0].ignore)
+      s.put()
       self.response.headers['Content-Type'] = 'text/plain'
       self.response.out.write('/editor?resource_id='+new_resource_id)
       
