@@ -8,6 +8,8 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import api
+import random
+import datetime
 import logging
 from django.utils import simplejson
 
@@ -51,6 +53,7 @@ class UsersScripts (db.Model):
 class DuplicateScripts (db.Model):
   new_script = db.StringProperty()
   from_script = db.StringProperty()
+  from_version = db.IntegerProperty()
 
 class DuplicateOldRevision(webapp.RequestHandler):
   def post(self):
@@ -58,6 +61,46 @@ class DuplicateOldRevision(webapp.RequestHandler):
     p = permission(resource_id)
     if not p==False:
       version = self.request.get('version')
+      q=db.GqlQuery("SELECT * FROM ScriptData "+
+                    "WHERE resource_id='"+resource_id+"' "+
+                    "AND version="+version)
+      results = q.fetch(2)
+      data=results[0].data
+      user=users.get_current_user().email()
+      alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      new_resource_id=''
+      for x in random.sample(alphabet,20):
+        new_resource_id+=x
+
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+new_resource_id+"'")
+      results=q.fetch(2)
+
+      while len(results)>0:
+        new_resource_id=''
+        for x in random.sample(alphabet,20):
+          new_resource_id+=x
+        q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+new_resource_id+"'")
+        results=q.fetch(2)
+      
+      s = ScriptData(resource_id=new_resource_id,
+                     data=data,
+                     version=int(version)+1,
+                     autosave=0)
+      s.put()
+      d= DuplicateScripts(new_script = new_resource_id,
+                          from_script = resource_id,
+                          from_version=int(version))
+      d.put()
+      u = UsersScripts(user=user,
+                       title='Copy of '+p,
+                       resource_id=new_resource_id,
+                       updated = str(datetime.datetime.today()),
+                       permission='owner')
+      u.put()
+      self.response.headers['Content-Type'] = 'text/plain'
+      self.response.out.write('/editor?resource_id='+new_resource_id)
       
 
 class RevisionHistory(webapp.RequestHandler):

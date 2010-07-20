@@ -93,6 +93,17 @@ function compareToggle(v){
     }
 }
 
+function copyThisVersion(){
+    var c = document.getElementsByTagName('input')
+    for (i in c){
+        if(c[i].type=='radio' && c[i].value.substr(0,1)==1 && c[i].checked)var w=c[i].value;
+    }
+    resource_id=window.location.href.split('=')[1];
+    $.post('/revisionduplicate', {resource_id:resource_id, version:w.substr(1)}, function(d){
+        window.open(d);
+    });
+}
+
 
 
 
