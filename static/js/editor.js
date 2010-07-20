@@ -1776,6 +1776,12 @@ function duplicate(){
 // save
 function save(v){
     clearTimeout(timer);
+    if(resource_id=='Demo'){
+        if(v==0){
+            alert("Sorry, but you'll have to login to start saving scripts!");
+        }
+        return;
+    }
     var data=JSON.stringify(lines);
     document.getElementById('saveButton').value='Saving...';
     $.post('/save', {data : data, resource_id : resource_id, autosave : v}, function(d){

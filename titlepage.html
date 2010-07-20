@@ -11,6 +11,11 @@
             window.close()
         }
         function save(){
+            var resource_id=window.location.href.split('=')[1];
+            if (resource_id=='Demo'){
+                alert("Sorry, but you'll have to login to use these functions!");
+                return;
+            }
             var i =[];
             var c = document.getElementsByTagName('input');
             for(x in c){
@@ -29,8 +34,6 @@
                     i.push(data);
                 }
             }
-            var resource_id=window.location.href.split('=')[1];
-            console.log(resource_id);
             $.post("/titlepagesave", {title: i[0] , authorOne: i[1] , authorTwo : i[2], authorTwoChecked : i[3], authorThree : i[4], authorThreeChecked : i[5], based_onChecked : i[6], addressChecked : i[7], phone : i[8], phoneChecked : i[9],  cell : i[10], cellChecked : i[11], email : i[12], emailChecked : i[13], registered : i[14], registeredChecked : i[15], other : i[16], otherChecked : i[17], based_on : i[18], address : i[19], resource_id : resource_id}, function(data){document.getElementById('saveButton').value="Saved"});
             document.getElementById('saveButton').disabled=true;
             document.getElementById('saveButton').value="Saving..."

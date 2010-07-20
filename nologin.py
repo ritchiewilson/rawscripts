@@ -88,12 +88,6 @@ class Editor (webapp.RequestHandler):
 class ScriptContent (webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    if resource_id == 'demo':
-      result = urlfetch.fetch("http://www.rawscripts.com/text/ducksoup.html")
-      htmlbody = result.content
-      self.response.headers['Content-Type'] = 'text/html'
-      self.response.out.write(htmlbody)
-      return
 
     q = db.GqlQuery("SELECT * FROM UsersScripts "+
                     "WHERE resource_id='"+resource_id+"'")
@@ -102,12 +96,16 @@ class ScriptContent (webapp.RequestHandler):
     if len(results)==0:
       self.response.headers["Content-Type"]='text/plain'
       self.response.out.write('not found')
-    for i in results:
-      if i.user==users.get_current_user().email().lower():
-        if i.permission=='owner':
-          p=True
-          title=i.title
-
+    if resource_id=='Demo':
+      p=True
+      title="Duck Soup"
+    else:
+      for i in results:
+        title=i.title
+        if i.user==users.get_current_user().email().lower():
+          if i.permission=='owner':
+            p=True
+    
     if p==True:
       q = db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE resource_id='"+resource_id+"' "+
@@ -139,6 +137,9 @@ class Save (webapp.RequestHandler):
     v=0
     resource_id = self.request.get('resource_id')
     if resource_id == None:
+      return
+    if resource_id=='Demo':
+      self.response.out.write('demo')
       return
     data=self.request.get('data')
     autosave = self.request.get('autosave')

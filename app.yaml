@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
@@ -76,12 +76,14 @@ handlers:
   script: spellcheck.py
 
 - url: /spellcheck.*
-  login: required
   script: spellcheck.py
 
-
 - url: /revision.*
+  login: required
   script: revisionhistory.py
+
+- url: /titlepage.*
+  script: scripteditor.py
 
 - url: /.*
   login: required

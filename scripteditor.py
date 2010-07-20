@@ -139,11 +139,16 @@ class ScriptList(webapp.RequestHandler):
 class TitlePage(webapp.RequestHandler):
   def get(self):
     resource_id=self.request.get('resource_id')
-    p = permission(resource_id)
+    if resource_id=="Demo":
+      p="Duck Soup"
+    else:
+      p = permission(resource_id)
     if p==False:
       return
-    template_values = { 'sign_out': users.create_logout_url('/') }
-    template_values['user'] = users.get_current_user().email()
+
+    if resource_id!="Demo":
+      template_values = { 'sign_out': users.create_logout_url('/') }
+      template_values['user'] = users.get_current_user().email()
 
     q= db.GqlQuery("SELECT * FROM TitlePageData "+
                    "WHERE resource_id='"+resource_id+"'")
