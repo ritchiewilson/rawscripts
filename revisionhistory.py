@@ -48,6 +48,17 @@ class UsersScripts (db.Model):
   updated = db.StringProperty()
   permission = db.StringProperty()
 
+class DuplicateScripts (db.Model):
+  new_script = db.StringProperty()
+  from_script = db.StringProperty()
+
+class DuplicateOldRevision(webapp.RequestHandler):
+  def post(self):
+    resource_id = self.request.get('resource_id')
+    p = permission(resource_id)
+    if not p==False:
+      version = self.request.get('version')
+      
 
 class RevisionHistory(webapp.RequestHandler):
   def get(self):
@@ -145,6 +156,7 @@ class CompareVersions(webapp.RequestHandler):
 def main():
   application = webapp.WSGIApplication([('/revisionhistory', RevisionHistory),
                                         ('/revisionget', GetVersion),
+                                        ('/revisionduplicate', DuplicateOldRevision),
                                         ('/revisioncompare', CompareVersions)],
                                        debug=True)
   
