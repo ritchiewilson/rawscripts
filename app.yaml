@@ -79,6 +79,9 @@ handlers:
   login: admin
   script: spellcheck.py
 
+- url: /revision.*
+  script: revisionhistory.py
+
 - url: /.*
   login: required
   script: scripteditor.py

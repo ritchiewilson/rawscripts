@@ -101,6 +101,7 @@ class UsersScripts (db.Model):
 class DuplicateScripts (db.Model):
   new_script = db.StringProperty()
   from_script = db.StringProperty()
+  from_version = db.IntegerProperty()
 
 class ScriptList(webapp.RequestHandler):
   """Requests the list of the user's Screenplays in the RawScripts folder."""
@@ -620,7 +621,8 @@ class Duplicate (webapp.RequestHandler):
                      autosave=0)
       s.put()
       d= DuplicateScripts(new_script = new_resource_id,
-                          from_script = resource_id)
+                          from_script = resource_id,
+                          from_version=version)
       d.put()
       u = UsersScripts(user=user,
                        title='Copy of '+title,
@@ -710,6 +712,7 @@ class ConvertProcess (webapp.RequestHandler):
     path = os.path.join(os.path.dirname(__file__), 'UploadComplete.html')
     self.response.out.write(template.render(path, template_values))
     
+<<<<<<< HEAD
 
 import sgmllib
 
@@ -759,6 +762,22 @@ class MyParser(sgmllib.SGMLParser):
     def get_hyperlinks(self):
         "Return the list of hyperlinks."
         return self.hyperlinks
+=======
+    
+class GetVersion(webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p = permission(resource_id)
+    if not p==False:
+      version = self.request.get('version')
+      logging.info(version)
+      q = db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE version="+version+" "
+                      "AND resource_id='"+resource_id+"'")
+      r=q.fetch(2)
+      self.response.headers['Content-Type']='text/plain'
+      self.response.out.write(r[0].data)
+>>>>>>> revision_history
 
 class Share (webapp.RequestHandler):
   def post(self):

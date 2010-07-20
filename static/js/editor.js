@@ -500,6 +500,8 @@ function mouseDown(e){
         else if(id=='insertNote')newThread();
         else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
         else if(id=="spellCheck")launchSpellCheck();
+        //View
+        else if(id=='revision')window.open('/revisionhistory?resource_id='+resource_id);
         //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';
