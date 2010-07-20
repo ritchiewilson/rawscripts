@@ -712,7 +712,6 @@ class ConvertProcess (webapp.RequestHandler):
     path = os.path.join(os.path.dirname(__file__), 'UploadComplete.html')
     self.response.out.write(template.render(path, template_values))
     
-<<<<<<< HEAD
 
 import sgmllib
 
@@ -762,7 +761,6 @@ class MyParser(sgmllib.SGMLParser):
     def get_hyperlinks(self):
         "Return the list of hyperlinks."
         return self.hyperlinks
-=======
     
 class GetVersion(webapp.RequestHandler):
   def post(self):
@@ -777,7 +775,6 @@ class GetVersion(webapp.RequestHandler):
       r=q.fetch(2)
       self.response.headers['Content-Type']='text/plain'
       self.response.out.write(r[0].data)
->>>>>>> revision_history
 
 class Share (webapp.RequestHandler):
   def post(self):

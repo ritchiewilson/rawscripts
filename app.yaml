@@ -67,10 +67,6 @@ handlers:
   login: required
   script: nologin.py
 
-- url: /spellcheck.*
-  login: admin
-  script: spellcheck.py
-
 - url: /spelldb.*
   login: admin
   script: spellcheck.py
@@ -78,6 +74,11 @@ handlers:
 - url: /spellcheckbigscript.*
   login: admin
   script: spellcheck.py
+
+- url: /spellcheck.*
+  login: required
+  script: spellcheck.py
+
 
 - url: /revision.*
   script: revisionhistory.py
