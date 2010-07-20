@@ -137,6 +137,43 @@ class RevisionHistory(webapp.RequestHandler):
       path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
       self.response.out.write(template.render(path, template_values))
 
+class RevisionList(webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p=permission(resource_id)
+    if not p==False:
+      begining=False
+      ids=[]
+      new_script=resource_id
+      while not begining:
+        q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
+                      "WHERE new_script='"+new_script+"'")
+        r=q.fetch(1)
+        if len(r)==0:
+          begining=True
+        else:
+          new_script=r[0].from_script
+          ids.append([new_script, r[0].version])
+
+      i=0
+      out=[]
+      version=self.request.get('version')
+      while i<len(ids)-1:
+        q=db.GqlQuery("SELECT * FROM ScriptData "+
+                      "WHERE resource_id='"+ids[i][0]"' "+
+                      "AND version>"+ids[i][1]+" "+
+                      "AND version<"+version+" "+
+                      "ORDER BY version DESC")
+        r=q.fetch(2)
+        for e in r:
+          e.updated=str(e.timestamp)[0:16]
+          if e.autosave==0:
+            e.s='manualsave'
+          else:
+            e.s='autosave'
+          out.append([ids[i][0], e.updated, e.version, e.autosave])
+        
+
 class GetVersion(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
