@@ -154,16 +154,21 @@ function copyThisVersion(){
 
 
 
-
-function topMenuOut(v){
-    if(document.getElementById(v+'Menu').style.display=='none'){
-        document.getElementById(v).style.backgroundColor='#A2BAE9';
-        document.getElementById(v).style.color='black';
+function toggleAutosave(v){
+    var c = document.getElementsByTagName('tr');
+    if(v){
+        for (i in c){
+            if (c[i].className=='autosave')c[i].style.display='none';
+        }
+    }
+    else{
+        for (i in c){
+            if (c[i].className=='autosave'){
+                c[i].style.display='table-row';
+            }
+        }
     }
 }
-
-//menu options and stuff
-// closing the window
 
 // duplicate
 function duplicate(){
@@ -177,7 +182,6 @@ function duplicate(){
 
 //exporting
 function exportPrompt(){
-    save(0);
     document.getElementById("exportpopup").style.visibility="visible"
 }
 function hideExportPrompt(){
