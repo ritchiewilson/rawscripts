@@ -3,26 +3,7 @@ $(document).ready(function(){
     document.getElementById('script').style.width = $('#container').width()-300+'px';
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     //document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
-    $(':radio').click(function(){
-        if(document.getElementById('sel').selectedIndex==0){
-            var c = document.getElementsByTagName('input');
-            for (i in c){
-                if(c[i].type=='radio' && c[i].value.substr(0,1)==1)c[i].checked=false;
-            }
-            this.checked=true;
-            changeVersion(this.value);
-        }
-        else{
-            var col = this.value.substr(0,1);
-            var c = document.getElementsByTagName('input');
-            for (i in c){
-                if(c[i].type=='radio' && c[i].value.substr(0,1)==col)c[i].checked=false;
-                if(c[i].type=='radio' && c[i].value.substr(0,1)!=col && c[i].checked)var vers=c[i].value;
-            }
-            this.checked=true;
-            compareVersions(this.value, vers);
-        }
-    });
+    $(':radio').click(function(){radioClick(this)});
     var c = document.getElementsByTagName('input');
     var found = false;
     for(i in c){
@@ -44,15 +25,79 @@ $(document).ready(function(){
 
 function setup(){
     resource_id=window.location.href.split('=')[1];
+    var c= document.getElementsByTagName('input');
+    var v=c[c.length-1].value.substr(1);
+    if(v!='1'){
+        $.post('/revisionlist', {resource_id:resource_id, version:v}, function(data){buildTable(data)});
+    }
     $.post('/revisionget', {resource_id:resource_id, version:'latest'}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
     });
 }
-function changeVersion(v){
-    resource_id=window.location.href.split('=')[1];
-    $.post('/revisionget', {resource_id:resource_id, version:String(v).substr(1)}, function(data){
+
+function radioClick(obj){
+    if(document.getElementById('sel').selectedIndex==0){
+        var c = document.getElementsByTagName('input');
+        for (i in c){
+            if(c[i].type=='radio' && c[i].parentNode.className=='viewScript')c[i].checked=false;
+        }
+        obj.checked=true;
+        c=obj;
+        while(c.nodeName!='TR'){
+            c=c.parentNode;
+        }
+        console.log(c.id);
+        changeVersion(obj.value, c.id);
+    }
+    else{
+        var col = this.value.substr(0,1);
+        var c = document.getElementsByTagName('input');
+        for (i in c){
+            if(c[i].type=='radio' && c[i].value.substr(0,1)==col)c[i].checked=false;
+            if(c[i].type=='radio' && c[i].value.substr(0,1)!=col && c[i].checked)var vers=c[i].value;
+        }
+        this.checked=true;
+        compareVersions(this.value, vers);
+    }
+}
+function buildTable(d){
+    var tb= document.getElementById('tb');
+    var data = JSON.parse(d);
+    for(i in data){
+        var TR = tb.appendChild(document.createElement('tr'));
+        TR.id=data[i][0];
+        TR.className = (data[i][3]==0 ? 'manualsave' : 'autosave')
+        //first radio
+        var cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        cell.className='viewScript';
+        var rad = cell.appendChild(document.createElement('input'));
+        rad.type='radio';
+        rad.value='1'+data[i][2];
+        //second radio
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        cell.className='compare';
+        rad = cell.appendChild(document.createElement('input'));
+        rad.type='radio';
+        rad.value='2'+data[i][2];
+        //version
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        cell.appendChild(document.createTextNode(data[i][2]));
+        //timestamp
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        cell.appendChild(document.createTextNode(data[i][1]));
+        
+    }
+    $(':radio').click(function(){radioClick(this)});
+}
+function changeVersion(v, r){
+    console.log(v,r)
+    $.post('/revisionget', {resource_id:r, version:String(v).substr(1)}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
@@ -96,10 +141,13 @@ function compareToggle(v){
 function copyThisVersion(){
     var c = document.getElementsByTagName('input')
     for (i in c){
-        if(c[i].type=='radio' && c[i].value.substr(0,1)==1 && c[i].checked)var w=c[i].value;
+        if(c[i].type=='radio' && c[i].value.substr(0,1)==1 && c[i].checked){
+            var w=c[i].value;
+            var d=c[i];
+            while(d.nodeName!="TR"){d=d.parentNode}
+        }
     }
-    resource_id=window.location.href.split('=')[1];
-    $.post('/revisionduplicate', {resource_id:resource_id, version:w.substr(1)}, function(d){
+    $.post('/revisionduplicate', {resource_id:d.id, version:w.substr(1)}, function(d){
         window.open(d);
     });
 }

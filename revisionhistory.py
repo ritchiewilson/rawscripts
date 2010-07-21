@@ -133,6 +133,7 @@ class RevisionHistory(webapp.RequestHandler):
           i.s='autosave'
       template_values={'r':r,
                        'title':p,
+                       'resource_id':resource_id,
                        }
       path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
       self.response.out.write(template.render(path, template_values))
@@ -153,18 +154,18 @@ class RevisionList(webapp.RequestHandler):
           begining=True
         else:
           new_script=r[0].from_script
-          ids.append([new_script, r[0].version])
+          ids.append([new_script, r[0].from_version])
 
       i=0
       out=[]
-      version=self.request.get('version')
-      while i<len(ids)-1:
+      version=str(ids[0][1]+1)
+      while i<len(ids):
+        logging.info(version)
         q=db.GqlQuery("SELECT * FROM ScriptData "+
-                      "WHERE resource_id='"+ids[i][0]"' "+
-                      "AND version>"+ids[i][1]+" "+
+                      "WHERE resource_id='"+ids[i][0]+"' "+
                       "AND version<"+version+" "+
                       "ORDER BY version DESC")
-        r=q.fetch(2)
+        r=q.fetch(1000)
         for e in r:
           e.updated=str(e.timestamp)[0:16]
           if e.autosave==0:
@@ -172,7 +173,12 @@ class RevisionList(webapp.RequestHandler):
           else:
             e.s='autosave'
           out.append([ids[i][0], e.updated, e.version, e.autosave])
-        
+        i+=1
+        if not i==len(ids):
+          version=str(ids[i][1]+1)
+      j=simplejson.dumps(out)
+      self.response.headers['Content-Type']= 'text/plain'
+      self.response.out.write(j)
 
 class GetVersion(webapp.RequestHandler):
   def post(self):
@@ -249,6 +255,7 @@ class CompareVersions(webapp.RequestHandler):
 def main():
   application = webapp.WSGIApplication([('/revisionhistory', RevisionHistory),
                                         ('/revisionget', GetVersion),
+                                        ('/revisionlist', RevisionList),
                                         ('/revisionduplicate', DuplicateOldRevision),
                                         ('/revisioncompare', CompareVersions)],
                                        debug=True)

@@ -3,8 +3,7 @@
   <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <script src="js/jquery.min.js" type="text/javascript"></script>
-  <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
-  <script src="js/rh.js" type="text/javascript"></script>
+  <script src="js/min/revisionhistory-min.js" type="text/javascript"></script>
   <script src="js/json2.js" type="text/javascript"></script>
   <script src="js/dom.js" type="text/javascript"></script>
   <style>
@@ -144,16 +143,18 @@
                 <th>Ver.</th>
                 <th>Time Stamp</th>
             </tr>
+            <tbody id='tb'>
             {% for i in r %}
-                <tr class="{{ i.s }}">
-                    <td align="center"><input value="1{{  i.version  }}" type='radio'></td>
+                <tr id="{{ resource_id }}" class="{{ i.s }}">
+                    <td align="center" class="viewScript"><input value="1{{  i.version  }}" type='radio'></td>
                     <td class="compare" align="center"><input value="2{{  i.version  }}" type='radio'></td>
                     <td align="center">{{  i.version  }}</td>
                     <td align="center">{{  i.updated  }}</td>
                 </tr>
             {% endfor %}
+            </tbody>
             
-        </table>
+    </table>
   </div>
   <div id="script" style="position:absolute; top:65px; right:0; width:250px; float:left; overflow:auto">
     <div id='scriptcontent' style="width:520px; margin:auto; margin-top:35px;"></div>
