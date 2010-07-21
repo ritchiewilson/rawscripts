@@ -896,6 +896,7 @@ function backspace(e){
                 pos.col=newPos;
                 lines[pos.row][0]=lines[pos.row][0]+j;
                 undoQue.push(['back',pos.row, pos.col,'line',4]);
+                slug=true;
             }
             else if(pos.col==0){
                 //shift notes
@@ -918,6 +919,7 @@ function backspace(e){
                 pos.row--;
                 undoQue.push(['back',pos.row, pos.col,'line',elem]);
                 forceCalc=true;
+                slug=true;
             }
             else{
                 undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
@@ -972,6 +974,7 @@ function backspace(e){
                     pos.col=newPos;
                     pos.row--;
                     undoQue.push(['back',pos.row, pos.col,'line',elem]);
+                    slug=true;
                 }
                 else{
                     undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
@@ -1076,6 +1079,7 @@ function deleteButton(){
                     lines[pos.row-1][0] = lines[pos.row-1][0]+j;
                     pos.col=newPos;
                     pos.row--;
+                    slug=true;
                 }
                 else{
                     undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
@@ -1142,8 +1146,8 @@ function enter(){
         undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
 		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
 		pos.col=anch.col=lines[pos.row][0].length;
-        sceneIndex();
 	}
+    sceneIndex();
 }
 
 function tab(){
@@ -1363,6 +1367,7 @@ function undo(){
     pos.col=dir[2];
     anch.row = pos.row;
     anch.col=pos.col;
+    sceneIndex();
     paint(false,false,true,false);
     
 }
@@ -1518,8 +1523,8 @@ function redo(){
         lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
         dir[2]=dir[2]+1;
     }
-    pos.row=anch.row=dir[1]
-    pos.col=anch.col=dir[2]
+    sceneIndex();
+    paint(false,false,true,false);
 }
 
 
