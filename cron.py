@@ -93,7 +93,7 @@ class SearchForTrash(webapp.RequestHandler):
     q=db.GqlQuery("SELECT * FROM UsersScripts "+
                   "WHERE permission='hardDelete'")
     r=q.fetch(100)
-    now = datetime.datetime.today()
+    logging.info(len(r))
     for i in r:
       taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
       
@@ -103,11 +103,10 @@ class DeleteTrash (webapp.RequestHandler):
     resource_id=self.request.get('resource_id')
 
     q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
-                  "WHERE from_script='"+resource_id+"' "+
-                  "ORDER BY version DESC")
+                  "WHERE from_script='"+resource_id+"'")
     f=q.fetch(1000)
-
-    #if nothing comes from this scripts
+    logging.info(len(f))
+    #if nothing comes from this script
     if len(f)==0:
       q=db.GqlQuery("SELECT * FROM ScriptData "+
                     "WHERE resource_id='"+resource_id+"'")

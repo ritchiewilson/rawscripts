@@ -24,7 +24,7 @@ def permission (resource_id):
   results = q.fetch(1000)
   p=False
   for i in results:
-    if i.permission=='owner' or i.permission=='ownerDeleted':
+    if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=="hardDelete":
       if i.user==users.get_current_user().email().lower():
         p=i.title
   return p
@@ -67,6 +67,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
     p = permission(resource_id)
     if not p==False:
       version = self.request.get('version')
+      logging.info(version)
       q=db.GqlQuery("SELECT * FROM ScriptData "+
                     "WHERE resource_id='"+resource_id+"' "+
                     "AND version="+version)
@@ -150,10 +151,15 @@ class RevisionList(webapp.RequestHandler):
         q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
                       "WHERE new_script='"+new_script+"'")
         r=q.fetch(1)
+        logging.info(r)
+        logging.info(len(r))
         if len(r)==0:
           begining=True
         else:
           new_script=r[0].from_script
+          logging.info(r[0].from_script)
+          logging.info(r[0].new_script)
+          #logging.info(r[0].from_version)
           ids.append([new_script, r[0].from_version])
 
       i=0

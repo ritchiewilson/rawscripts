@@ -54,7 +54,7 @@ function setup(){
             }
         }
     }
-    compareVersions(v_o, r_o, v_t, r_t)
+    compareVersions(v_o, r_o, v_t, r_t);
 }
 function radioSetup(){
     var c= document.getElementsByTagName('input');
@@ -159,6 +159,7 @@ function buildTable(d){
         var a=cell.appendChild(document.createElement('a'));
         a.appendChild(document.createTextNode('Copy to new script'));
         a.href="javascript:copyThisVersion("+data[i][2]+")";
+        a.id = data[i][2];
         
     }
     $(':radio').unbind('click');
@@ -299,8 +300,10 @@ function compareToggle(v){
 }
 
 function copyThisVersion(v){
+    console.log(v)
     var d = document.getElementById(v);
     while (d.nodeName!='TR')d=d.parentNode;
+    console.log(d.id);
     $.post('/revisionduplicate', {resource_id:d.id, version:v}, function(d){
         window.open(d);
     });
