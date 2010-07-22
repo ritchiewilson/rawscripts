@@ -81,22 +81,20 @@ class DuplicateScripts (db.Model):
   from_script = db.StringProperty()
   version = db.IntegerProperty()
 
+class SpellingData(db.Model):
+  resource_id = db.StringProperty()
+  wrong = db.TextProperty()
+  ignore = db.TextProperty()
+  birthdate = db.DateProperty()
+
 
 class SearchForTrash(webapp.RequestHandler):
   def get(self):
     q=db.GqlQuery("SELECT * FROM UsersScripts "+
-                  "WHERE permission='ownerDeleted'")
+                  "WHERE permission='hardDelete'")
     r=q.fetch(100)
     now = datetime.datetime.today()
     for i in r:
-      t=str(i.updated)
-      date=t.split(' ')[0]
-      time=t.split(' ')[1]
-      month=date.split('-')[1]
-      day=date.split('-')[2]
-      if now.month==1 and int(month)==12 and now.day> int(day):
-        taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
-      #elif now.month>month and now.day > int(day):
       taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
       
     
@@ -135,36 +133,11 @@ class DeleteTrash (webapp.RequestHandler):
         r=q.fetch(50)
         for i in r:
           i.delete()
-    #if things do branch off this
-    else:
-      v = f[0].version
-      q=db.GqlQuery("SELECT * FROM ScriptData "+
-                    "WHERE resource_id='"+resource_id+"' "+
-                    "ORDER BY version DESC")
-      r=q.fetch(50)
-
-      if not len(r)==0:
-        count=0
-        for i in r:
-          if i.version>v:
-            count+=1
-            i.delete()
-        if not count==0:
-          taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
-      if len(r)==0 or count==0:
-        q=db.GqlQuery("SELECT * FROM TitlePageData "+
+        q=db.GqlQuery("SELECT * FROM SpellingData "+
                       "WHERE resource_id='"+resource_id+"'")
         r=q.fetch(50)
         for i in r:
           i.delete()
-        q=db.GqlQuery("SELECT * FROM UsersScripts "+
-                      "WHERE resource_id='"+resource_id+"'")
-        r=q.fetch(50)
-        for i in r:
-          i.delete()
-      
-
-    
     
 def main():
   application = webapp.WSGIApplication([('/searchfortrash', SearchForTrash),
