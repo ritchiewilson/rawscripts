@@ -100,6 +100,9 @@ del{
     background-color:#ff7373;
     text-decoration:none;
 }
+hr{
+    margin: 100px 0;
+}
   </style
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -132,7 +135,7 @@ del{
       <div id="title">Revision History</div>
     </div>
   </div>
-  <div id="sidebar" style="position:absolute; top:65px; left:0; width:300px; float:left; overflow:auto">
+  <div id="sidebar" style="position:absolute; top:65px; left:0; width:350px; float:left; overflow:auto">
     <div>
         <select id="sel" onchange="compareToggle(this.selectedIndex)">
             <option>Compare Past Scripts</option>
@@ -162,7 +165,14 @@ del{
     </table>
   </div>
   <div id="script" style="position:absolute; top:65px; right:0; width:250px; float:left; overflow:auto">
-    <div id="key" style="position:fixed; right:20px; top:70px;"><span style="background-color:#67e667; font-family:Courier; font-size:10pt">Inserted Text</span><br><span style="background-color:#ff7373; font-family:Courier; font-size:10pt">Deleted Text</span></div>
+    <div id="key" style="position:fixed; right:20px; top:70px;">
+        <span style="background-color:#67e667; font-family:Courier; font-size:10pt">Inserted Text</span><br>
+        <span style="background-color:#ff7373; font-family:Courier; font-size:10pt">Deleted Text</span><br>
+        <select id="con" onchange="javascript:context()">
+            <option>Show Full Script</option>
+            <option>Only show Differences</option>
+        </select>
+    </div>
     <div id='scriptcontent' style="width:520px; margin:auto; margin-top:35px;"></div>
   </div>
   </div>
