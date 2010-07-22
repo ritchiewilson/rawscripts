@@ -56,9 +56,6 @@
         background-color:#ccc;
         border-right:2px ridge;
     }
-    .compare{
-        display:none;
-    }
 .s{
     font-family:Courier;
     font-size:10pt;
@@ -95,7 +92,14 @@
     margin:0 0 15px 450px;
     text-transform:uppercase;
 }
-
+ins{
+    background-color:#67e667;
+    text-decoration:none;
+}
+del{
+    background-color:#ff7373;
+    text-decoration:none;
+}
   </style
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -131,11 +135,10 @@
   <div id="sidebar" style="position:absolute; top:65px; left:0; width:300px; float:left; overflow:auto">
     <div>
         <select id="sel" onchange="compareToggle(this.selectedIndex)">
+            <option>Compare Past Scripts</option>
             <option>View Past Script</option>
-            <!--<option>Compare Past Scripts</option>-->
         </select>
-        <br>
-        <input type="button" value="Copy this version" onclick="copyThisVersion()"><br><br>
+        <br><br>
         <input type="checkbox" id="saveToggle" onchange="toggleAutosave(this.checked)" /> Hide AutoSaves<br><br>
     </div>
     <table id='ta'>
@@ -151,6 +154,7 @@
                     <td class="compare" align="center"><input value="2{{  i.version  }}" type='radio'></td>
                     <td align="center">{{  i.version  }}</td>
                     <td align="center">{{  i.updated  }}</td>
+                    <td id="{{  i.version  }}" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -158,6 +162,7 @@
     </table>
   </div>
   <div id="script" style="position:absolute; top:65px; right:0; width:250px; float:left; overflow:auto">
+    <div id="key" style="position:fixed; right:20px; top:70px;"><span style="background-color:#67e667; font-family:Courier; font-size:10pt">Inserted Text</span><br><span style="background-color:#ff7373; font-family:Courier; font-size:10pt">Deleted Text</span></div>
     <div id='scriptcontent' style="width:520px; margin:auto; margin-top:35px;"></div>
   </div>
   </div>

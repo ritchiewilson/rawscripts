@@ -4,16 +4,6 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     //document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
     $(':radio').click(function(){radioClick(this)});
-    var c = document.getElementsByTagName('input');
-    var found = false;
-    for(i in c){
-        if(!found){
-            if(c[i].type=='radio'){
-                c[i].checked=true;
-                found=true;
-            }
-        }
-    }
   });
   $(window).resize(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
@@ -35,31 +25,98 @@ function setup(){
     }
     document.getElementById('scriptcontent').innerHTML = data;
     });
+    var c = document.getElementsByTagName('input');
+    var found1 = 0;
+    var found2 = false;
+    for(i in c){
+        console.log(found1);
+        if(c[i].type=='radio' && c[i].value.substr(0,1)==2){
+            if(!found2){
+                c[i].checked=true;
+                found2=true;
+            }
+            else{
+                c[i].disabled=true;
+                c[i].style.visibility='hidden';
+            }
+        }
+        else if(c[i].type=='radio' && c[i].value.substr(0,1)==1){
+            if(found1==0){
+                c[i].disabled=true;
+                c[i].style.visibility='hidden';
+                found1++
+            }
+            else if(found1==1){
+                c[i].checked=true;
+                found1++;
+            }
+        }
+    }
 }
-
+function radioSetup(){
+    var c= document.getElementsByTagName('input');
+    var one_checked=false;
+    var two_checked=false;
+    var one=false;
+    for(i in c){
+        if(c[i].type=='radio'){
+            if(c[i].checked && c[i].value.substr(0,1)==1)one_checked=true;
+            if(c[i].checked && c[i].value.substr(0,1)==2)two_checked=true;
+            if(!one){
+                c[i].disabled=true;
+                c[i].style.visibility='hidden';
+                one=true
+            }
+            else if((!one_checked && c[i].value.substr(0,1)==2)){
+                c[i].disabled=false;
+                c[i].style.visibility='visible';
+                
+            }
+            else if(two_checked && c[i].value.substr(0,1)==1){
+                c[i].disabled=false;
+                c[i].style.visibility='visible';
+                
+            }
+            else{
+                c[i].disabled=true;
+                c[i].style.visibility='hidden';
+            }
+        }
+    }
+}
 function radioClick(obj){
-    if(document.getElementById('sel').selectedIndex==0){
+    if(document.getElementById('sel').selectedIndex==1){
         var c = document.getElementsByTagName('input');
         for (i in c){
-            if(c[i].type=='radio' && c[i].parentNode.className=='viewScript')c[i].checked=false;
+            if(c[i].type=='radio'){
+                if(c[i].parentNode.className=='viewScript')c[i].checked=false;
+            }
         }
         obj.checked=true;
         c=obj;
         while(c.nodeName!='TR'){
             c=c.parentNode;
         }
-        console.log(c.id);
         changeVersion(obj.value, c.id);
     }
     else{
-        var col = this.value.substr(0,1);
+        var col = obj.value.substr(0,1);
         var c = document.getElementsByTagName('input');
         for (i in c){
             if(c[i].type=='radio' && c[i].value.substr(0,1)==col)c[i].checked=false;
-            if(c[i].type=='radio' && c[i].value.substr(0,1)!=col && c[i].checked)var vers=c[i].value;
+            if(c[i].type=='radio' && c[i].value.substr(0,1)!=col && c[i].checked){
+                var version_two=c[i].value;
+                var tmp=c[i];
+                while(tmp.nodeName!="TR")tmp=tmp.parentNode;
+                version_two_id=tmp.id;
+            }
         }
-        this.checked=true;
-        compareVersions(this.value, vers);
+        obj.checked=true;
+        tmp=obj
+        while(tmp.nodeName!="TR")tmp=tmp.parentNode;
+        version_one_id=tmp.id;
+        compareVersions(obj.value,version_one_id, version_two, version_two_id);
+        radioSetup()
     }
 }
 function buildTable(d){
@@ -83,6 +140,8 @@ function buildTable(d){
         rad = cell.appendChild(document.createElement('input'));
         rad.type='radio';
         rad.value='2'+data[i][2];
+        rad.disabled=true;
+        rad.style.visibility='hidden';
         //version
         cell=TR.appendChild(document.createElement('td'));
         cell.align='center';
@@ -91,24 +150,31 @@ function buildTable(d){
         cell=TR.appendChild(document.createElement('td'));
         cell.align='center';
         cell.appendChild(document.createTextNode(data[i][1]));
+        //copy
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        var a=cell.appendChild(document.createElement('a'));
+        a.appendChild(document.createTextNode('Copy to new script'));
+        a.href="javascript:copyThisVersion("+data[i][2]+")";
         
     }
+    $(':radio').unbind('click');
     $(':radio').click(function(){radioClick(this)});
 }
 function changeVersion(v, r){
-    console.log(v,r)
     $.post('/revisionget', {resource_id:r, version:String(v).substr(1)}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
     });
 }
-function compareVersions(one, two){
-    var arr = [one, two].sort();
-    version_one=arr[0].substr(1),
-    version_two=arr[1].substr(1)
-    resource_id=window.location.href.split('=')[1];
-    $.post('/revisioncompare', {resource_id:resource_id, version_one:version_one, version_two:version_two}, function(data){
+
+function compareVersions(v_one, v_one_id, v_two, v_two_id){
+    var v_o = (v_one>v_two ? v_two : v_one);
+    var v_t = (v_one<v_two ? v_two : v_one);
+    var v_o_id = (v_one>v_two ? v_two_id : v_one_id);
+    var v_t_id = (v_one<v_two ? v_two_id : v_one_id);
+    $.post('/revisioncompare', {v_o:v_o.substr(1), v_o_id:v_o_id, v_t:v_t.substr(1), v_t_id:v_t_id}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
@@ -116,38 +182,56 @@ function compareVersions(one, two){
 }
 
 function compareToggle(v){
-    console.log(v);
-    if(v==1){
-        $('.compare').css('display' , 'block');
-        /*var c = document.getElementsByTagName('input');
-        var arr=[];
-        for (i in c){
-            if(c[i].type=='radio' && c[i].checked)arr.push(c[i].value);
-        }
-        compareVersions(arr[0],arr[1])*/
-    }
     if(v==0){
+        $('.compare').css('display' , 'block');
+        radioSetup();
+        var c = document.getElementsByTagName('input');
+        for (i in c){
+            if(c[i].type=='radio'){
+                if(c[i].type=='radio' && c[i].checked){
+                    if(c[i].value.substr(0,1)==1){
+                        var v_o=c[i].value;
+                        var d= c[i];
+                        while(d.nodeName!="TR")d=d.parentNode;
+                        var r_o=d.id;
+                    }
+                    if(c[i].value.substr(0,1)==2){
+                        var v_t=c[i].value;
+                        var d= c[i];
+                        while(d.nodeName!="TR")d=d.parentNode;
+                        var r_t=d.id;
+                    }
+                }
+            }
+        }
+        compareVersions(v_o, r_o, v_t, r_t);
+        document.getElementById('key').style.display='block';
+    }
+    if(v==1){
         $('.compare').css('display' , 'none');
         var c = document.getElementsByTagName('input');
-        var arr=[];
         for (i in c){
-            if(c[i].type=='radio' && c[i].checked)arr.push(c[i].value);
+            if(c[i].type=='radio'){
+                c[i].disabled=false;
+                c[i].style.visibility='visible';
+                if(c[i].type=='radio' && c[i].checked && c[i].value.substr(0,1)==1){
+                    var v=c[i].value;
+                    var d= c[i];
+                    while(d.nodeName!="TR")d=d.parentNode;
+                    var r=d.id;
+                }
+            }
         }
-        arr = arr.sort();
-        changeVersion(arr[0])
+        changeVersion(v,r)
+        document.getElementById('key').style.display='none';
     }
 }
 
-function copyThisVersion(){
-    var c = document.getElementsByTagName('input')
-    for (i in c){
-        if(c[i].type=='radio' && c[i].value.substr(0,1)==1 && c[i].checked){
-            var w=c[i].value;
-            var d=c[i];
-            while(d.nodeName!="TR"){d=d.parentNode}
-        }
-    }
-    $.post('/revisionduplicate', {resource_id:d.id, version:w.substr(1)}, function(d){
+function copyThisVersion(v){
+    var d = document.getElementById(v);
+    console.log(d)
+    while (d.nodeName!='TR')d=d.parentNode;
+    $.post('/revisionduplicate', {resource_id:d.id, version:v}, function(d){
         window.open(d);
     });
 }

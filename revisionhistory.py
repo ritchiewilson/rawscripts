@@ -126,7 +126,7 @@ class RevisionHistory(webapp.RequestHandler):
                    "ORDER BY version DESC")
       r = q.fetch(1000)
       for i in r:
-        i.updated=str(i.timestamp)[0:16]
+        i.updated=str(i.timestamp)[5:16]
         if i.autosave==0:
           i.s='manualsave'
         else:
@@ -160,14 +160,13 @@ class RevisionList(webapp.RequestHandler):
       out=[]
       version=str(ids[0][1]+1)
       while i<len(ids):
-        logging.info(version)
         q=db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE resource_id='"+ids[i][0]+"' "+
                       "AND version<"+version+" "+
                       "ORDER BY version DESC")
         r=q.fetch(1000)
         for e in r:
-          e.updated=str(e.timestamp)[0:16]
+          e.updated=str(e.timestamp)[5:16]
           if e.autosave==0:
             e.s='manualsave'
           else:
@@ -208,18 +207,20 @@ class CompareVersions(webapp.RequestHandler):
   def post(self):
     import difflib
 
-    resource_id=self.request.get('resource_id')
-    title=permission(resource_id)
-    if not title==False:
-      version_one = self.request.get('version_one')
-      version_two = self.request.get('version_two')
+    v_o_id=self.request.get('v_o_id')
+    v_t_id=self.request.get('v_t_id')
+    title=permission(v_o_id)
+    p = permission(v_t_id)
+    if title!=False and p!=False:
+      version_one = self.request.get('v_o')
+      version_two = self.request.get('v_t')
       q = db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE version="+version_one+" "+
-                      "AND resource_id='"+resource_id+"'")
+                      "AND resource_id='"+v_o_id+"'")
       r_one=q.fetch(2)
       q = db.GqlQuery("SELECT * FROM ScriptData "+
                       "WHERE version="+version_two+" "+
-                      "AND resource_id='"+resource_id+"'")
+                      "AND resource_id='"+v_t_id+"'")
       r_two=q.fetch(2)
 
       v = ['s','a','c','d','p','t']
@@ -227,30 +228,64 @@ class CompareVersions(webapp.RequestHandler):
       j_one = simplejson.loads(r_one[0].data)
       s_one=StringIO.StringIO()
       for i in j_one:
-        s_one.write('<p class="'+v[i[1]]+'">'+i[0]+"</p>\n")
+        s_one.write("<p class='"+v[i[1]]+"'>"+i[0]+"</p>\n")
       j_two = simplejson.loads(r_two[0].data)
       s_two=StringIO.StringIO()
       for i in j_two:
-        s_two.write('<p class="'+v[i[1]]+'">'+i[0]+"</p>\n")
+        s_two.write("<p class='"+v[i[1]]+"'>"+i[0]+"</p>\n")
 
-      text1=s_one.splitLines()
-      text2=s_two.splitlines()
-      s_one.close()
-      s_two.close()
-
-      d=difflib.Differ()
-      result = list(d.compare(text1,text2))
-      content=StringIO.StringIO()
-      for i in result:
-          if i[0]=='+':
-              content.write(i[2:14]+'<ins>'+i[14:len(i)-5]+'</ins>'+i[len(i)-5:len(i)])
-          elif i[0]=='-':
-              content.write(i[2:14]+'<del>'+i[14:len(i)-5]+'</del>'+i[len(i)-5:len(i)])
-          elif not i[0]=='?':
-              content.write(i[2:len(i)])
-      logging.info(content.getvalue())
+      content = textDiff(s_one.getvalue(), s_two.getvalue())
       self.response.headers['Content-Type']='text/html'
-      self.response.out.write(text1)
+      self.response.out.write(content)
+
+import difflib, string
+
+def isTag(x): return x[0] == "<" and x[-1] == ">"
+
+def textDiff(a, b):
+	"""Takes in strings a and b and returns a human-readable HTML diff."""
+
+	out = []
+	a, b = html2list(a), html2list(b)
+	s = difflib.SequenceMatcher(None, a, b)
+	for e in s.get_opcodes():
+		if e[0] == "replace":
+			# @@ need to do something more complicated here
+			# call textDiff but not for html, but for some html... ugh
+			# gonna cop-out for now
+			out.append('<del class="diff modified">'+''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + '</del><ins class="diff modified">'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>")+"</ins>")
+		elif e[0] == "delete":
+			out.append('<del class="diff">'+ ''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + "</del>")
+		elif e[0] == "insert":
+			out.append('<ins class="diff">'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>") + "</ins>")
+		elif e[0] == "equal":
+			out.append(''.join(b[e[3]:e[4]]))
+		else: 
+			raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
+	return ''.join(out)
+
+def html2list(x, b=0):
+	mode = 'char'
+	cur = ''
+	out = []
+	for c in x:
+		if mode == 'tag':
+			if c == '>': 
+				if b: cur += ']'
+				else: cur += c
+				out.append(cur); cur = ''; mode = 'char'
+			else: cur += c
+		elif mode == 'char':
+			if c == '<': 
+				out.append(cur)
+				if b: cur = '['
+				else: cur = c
+				mode = 'tag'
+			elif c in string.whitespace: out.append(cur+c); cur = ''
+			else: cur += c
+	out.append(cur)
+	return filter(lambda x: x is not '', out)
+
 
 def main():
   application = webapp.WSGIApplication([('/revisionhistory', RevisionHistory),
