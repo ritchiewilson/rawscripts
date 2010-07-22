@@ -85,6 +85,14 @@ handlers:
 - url: /titlepage.*
   script: scripteditor.py
 
+- url: /searchfortrash.*
+  login: admin
+  script: cron.py
+
+- url: /deletetrash.*
+  login: admin
+  script: cron.py
+
 - url: /.*
   login: required
   script: scripteditor.py

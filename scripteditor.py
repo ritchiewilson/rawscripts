@@ -628,6 +628,7 @@ class Duplicate (webapp.RequestHandler):
       d= DuplicateScripts(new_script = new_resource_id,
                           from_script = resource_id,
                           from_version=version)
+
       d.put()
       u = UsersScripts(user=user,
                        title='Copy of '+title,
