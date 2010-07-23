@@ -79,7 +79,7 @@ class UsersScripts (db.Model):
 class DuplicateScripts (db.Model):
   new_script = db.StringProperty()
   from_script = db.StringProperty()
-  version = db.IntegerProperty()
+  from_version = db.IntegerProperty()
 
 class SpellingData(db.Model):
   resource_id = db.StringProperty()
