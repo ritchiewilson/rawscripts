@@ -75,8 +75,8 @@
     
 $(document).ready(function(){
     document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
+    document.getElementById('sidebar').style.height = ($('#container').height()-68)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
     $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
@@ -88,9 +88,9 @@ $(document).ready(function(){
     $('.menuItem').mouseout(function(){topMenuOut(this.id)});
   });
   $(window).resize(function(){
-    document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
+    document.getElementById('canvas').height = $('#container').height()-63;
+    document.getElementById('sidebar').style.height = ($('#container').height()-68)+'px';
+    document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
   });
   $('*').keydown(function(e){
   if (commandDownBool && e.which!=16){
@@ -542,14 +542,14 @@ function scrollBarDrag(e){
     var pagesHeight = (pageBreaks.length+1)*72*lineheight;
     vOffset-=pagesHeight/height*diff;
     if (vOffset<0)vOffset=0;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
-    if(vOffset>pagesHeight)vOffset=pagesHeight;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height+20;
+    if(vOffset>pagesHeight)vOffset=pagesHeight+20;
 }
 function scroll(v){
     vOffset+=v;
     if (vOffset<0)vOffset=0;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
-    if(vOffset>pagesHeight)vOffset=pagesHeight;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height+20;
+    if(vOffset>pagesHeight)vOffset=pagesHeight+20;
 	//if(document.getElementById('suggestBox')!=null)createSuggestBox('c');
 }
 function jumpTo(v){
@@ -2323,9 +2323,10 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.font=font;
 	var y = lineheight*11;
     var cos=[];
-    //Stary Cycling through lines
     var latestCharacter = '';
     var count = 0;
+    var currentPage=false;
+    //Stary Cycling through lines
 	for (var i=0; i<lines.length; i++){
         //make sure there are parenthesese for parenthetics
         if(lines[i][1]==4){
@@ -2340,7 +2341,10 @@ function paint(e, anchE, forceCalc, forceScroll){
                 if(pageBreaks[count][2]==0){
                     y=72*lineheight*(count+1)+11*lineheight;
                     count++;
-                    if(count>=pageBreaks.length)count=pageBreaks.length-2;
+                    if(count>=pageBreaks.length){
+                        if(!currentPage)currentPage=count+1;
+                        count=pageBreaks.length-2;
+                    }
                 }
                 else{
                     bb=true;
@@ -2520,9 +2524,14 @@ function paint(e, anchE, forceCalc, forceScroll){
             var thisRow=false;
             var anchorThisRow=false;
         }
-    //setup stuff of Con't
-    if(lines[i][1]==2)var latestCharacter = lines[i][0];
-    if(count>=pageBreaks.length)count=pageBreaks.length-2;
+        //setup stuff of Con't
+        if(lines[i][1]==2)var latestCharacter = lines[i][0];
+        if(i==pos.row && currentPage==false) currentPage=count+1;
+        if(count>=pageBreaks.length){
+            if (currentPage==false)currentPage=count+20;
+            count=pageBreaks.length-2;
+        }
+
         
     }
       // End Looping through lines
@@ -2541,7 +2550,7 @@ function paint(e, anchE, forceCalc, forceScroll){
 	  if (diff<0 && diff<-500){
 		  cursor = true;
 	  }
-	  if(cursor&&wrappedText){
+	  if(wrappedText){
           var wrapCounter=0;
           var lrPosDiff = pos.col;
           var totalCharacters=wrappedText[wrapCounter];
@@ -2551,6 +2560,7 @@ function paint(e, anchE, forceCalc, forceScroll){
           }
           totalCharacters-=wrappedText[wrapCounter];
           if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+                currentPage+=1;
                 cursorY=72*cos[0]*lineheight+9*lineheight;
                 if(lines[pos.row][1]==3){
                     cursorY+=lineheight*2;
@@ -2561,14 +2571,15 @@ function paint(e, anchE, forceCalc, forceScroll){
                     cursorY+=lineheight;
                 }
           }
-          
-		  var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
-          if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
-		  ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-          try{
-            ctx.fillRect(lr,ud,2,17);
-          }
-          catch(err){console.log(lines[pos.row][0]);}
+          if(cursor){
+              var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
+              if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
+              ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+              try{
+                ctx.fillRect(lr,ud,2,17);
+              }
+              catch(err){console.log(lines[pos.row][0]);}
+            }
 	  }
       
       //Draw Notes if any
@@ -2585,21 +2596,49 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.lineTo(editorWidth,2);
     ctx.lineTo(2,2);
     ctx.stroke();
-    ctx.fillStyle = '#6484df';
-      //Make ScrollBar
-      scrollArrows(ctx);
-      scrollBar(ctx, y);
-      if(anchE){
+    //
+    // bottom status bar
+    ctx.fillStyle = "#aaa";
+    ctx.fillRect(3,document.getElementById('canvas').height-24, editorWidth-25, 24);
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 1;
+    ctx.beginPath()
+    ctx.moveTo(2,document.getElementById('canvas').height-25);
+    ctx.lineTo(2,document.getElementById('canvas').height-2);
+    ctx.lineTo(editorWidth-23,document.getElementById('canvas').height-2);
+    ctx.lineTo(editorWidth-23,document.getElementById('canvas').height-25);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath()
+    ctx.moveTo(1,document.getElementById('canvas').height-24);
+    ctx.lineTo(1,document.getElementById('canvas').height-1);
+    ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-1);
+    ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-24);
+    ctx.closePath();
+    ctx.strokeStyle = "#333";
+    ctx.stroke();
+    var tp=pageBreaks.length+1;
+    var pages="Page "+currentPage+" of "+tp;
+    ctx.font="10pt sans-serif";
+    ctx.fillStyle="#000"
+    ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
+    var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"]
+    ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
+    ctx.font = font;
+    //Make ScrollBar
+    scrollArrows(ctx);
+    scrollBar(ctx, y);
+    if(anchE){
         pos.row=anch.row;
         pos.col=anch.col;
-      }
-      if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
-      if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
-      if(forceScroll){
+    }
+    if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
+    if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
+    if(forceScroll){
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-100)scroll(45);
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
-      }
-      if(forceCalc)pagination();
-      document.getElementById('format').selectedIndex=lines[pos.row][1];
+    }
+    if(forceCalc)pagination();
+    document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
 }
