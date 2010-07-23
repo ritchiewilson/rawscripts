@@ -87,11 +87,11 @@ handlers:
 
 - url: /searchfortrash.*
   login: admin
-  script: cron.py
+  script: deletetasks.py
 
 - url: /deletetrash.*
   login: admin
-  script: cron.py
+  script: deletetasks.py
 
 - url: /.*
   login: required
