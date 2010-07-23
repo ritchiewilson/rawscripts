@@ -74,8 +74,8 @@
     
     
 $(document).ready(function(){
-    document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-68)+'px';
+    document.getElementById('canvas').height = $('#container').height()-60;
+    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
@@ -88,8 +88,8 @@ $(document).ready(function(){
     $('.menuItem').mouseout(function(){topMenuOut(this.id)});
   });
   $(window).resize(function(){
-    document.getElementById('canvas').height = $('#container').height()-63;
-    document.getElementById('sidebar').style.height = ($('#container').height()-68)+'px';
+    document.getElementById('canvas').height = $('#container').height()-60;
+    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
   });
   $('*').keydown(function(e){
