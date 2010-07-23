@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 1
+version: 3
 runtime: python
 api_version: 1
 
@@ -85,11 +85,11 @@ handlers:
 - url: /titlepage.*
   script: scripteditor.py
 
-- url: /searchfortrash.*
+- url: /junkparse.*
   login: admin
   script: deletetasks.py
 
-- url: /deletetrash.*
+- url: /automateddelete.*
   login: admin
   script: deletetasks.py
 

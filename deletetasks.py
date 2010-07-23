@@ -88,17 +88,17 @@ class SpellingData(db.Model):
   birthdate = db.DateProperty()
 
 
-class SearchForTrash(webapp.RequestHandler):
+class JunkParse(webapp.RequestHandler):
   def get(self):
     q=db.GqlQuery("SELECT * FROM UsersScripts "+
                   "WHERE permission='hardDelete'")
     r=q.fetch(100)
-    logging.info(len(r))
     for i in r:
-      taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
+      taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
+    self.response.out.write('1')
       
     
-class DeleteTrash (webapp.RequestHandler):
+class AutomatedDelete (webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
 
@@ -115,7 +115,7 @@ class DeleteTrash (webapp.RequestHandler):
       if not len(r)==0:
         for i in r:
           i.delete()
-        taskqueue.add(url='/deletetrash', params={'resource_id':i.resource_id})
+        taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
       else:
         q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
                       "WHERE new_script='"+resource_id+"'")
@@ -139,8 +139,8 @@ class DeleteTrash (webapp.RequestHandler):
           i.delete()
     
 def main():
-  application = webapp.WSGIApplication([('/searchfortrash', SearchForTrash),
-                                        ('/deletetrash', DeleteTrash),],
+  application = webapp.WSGIApplication([('/junkparse', JunkParse),
+                                        ('/automateddelete', AutomatedDelete),],
                                        debug=True)
   
   wsgiref.handlers.CGIHandler().run(application)
@@ -148,4 +148,5 @@ def main():
 
 if __name__ == '__main__':
   main()
+
 
