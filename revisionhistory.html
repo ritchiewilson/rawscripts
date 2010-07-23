@@ -103,6 +103,14 @@ del{
 hr{
     margin: 100px 0;
 }
+.manualsave{
+    background-color:#A2BAE9;
+}
+.manualsave td{
+    border-top:1px #666 solid;
+    border-bottom:1px #666 solid;
+}
+
   </style
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -136,15 +144,18 @@ hr{
     </div>
   </div>
   <div id="sidebar" style="position:absolute; top:65px; left:0; width:350px; float:left; overflow:auto">
-    <div>
+    <div style="margin-left:15px;">
         <select id="sel" onchange="compareToggle(this.selectedIndex)">
             <option>Compare Past Scripts</option>
             <option>View Past Script</option>
         </select>
         <br><br>
+        <span style="background-color:#A2BAE9; width:110px; border-top:1px #666 solid; border-bottom:1px solid #666">Manual Saves</span><br>
+        
         <input type="checkbox" id="saveToggle" onchange="toggleAutosave(this.checked)" /> Hide AutoSaves<br><br>
+        
     </div>
-    <table id='ta'>
+    <table id='ta' cellspacing=0 cellpadding=2>
             <tr>
                 <th></th><th class='compare'></th>
                 <th>Ver.</th>
