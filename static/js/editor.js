@@ -1134,10 +1134,7 @@ function enter(){
         pos.col=0;
         anch.row=pos.row;
         anch.col=pos.col;
-        // This means it was a scene before
-        // so run scene index
-        paint(false,false,true,false);
-        if(lines[pos.row][1]==1)sceneIndex();
+        paint(false,false,true,true);
     }
 	else if(document.getElementById('suggestBox')!=null){
         saveTimer();
@@ -2640,13 +2637,15 @@ function paint(e, anchE, forceCalc, forceScroll){
         pos.row=anch.row;
         pos.col=anch.col;
     }
+    if(forceCalc)pagination();
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
     if(forceScroll){
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-100)scroll(45);
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
+        console.log(ud,document.getElementById('canvas').height-150);
+        if (ud>document.getElementById('canvas').height-150)scroll(500);
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-70)scroll(45);
+        else if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
     }
-    if(forceCalc)pagination();
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
 }
