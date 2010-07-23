@@ -2326,8 +2326,10 @@ function paint(e, anchE, forceCalc, forceScroll){
     var latestCharacter = '';
     var count = 0;
     var currentPage=false;
+    var sceneCount=0;
     //Stary Cycling through lines
 	for (var i=0; i<lines.length; i++){
+        if (lines[i][1]==0)sceneCount++;
         //make sure there are parenthesese for parenthetics
         if(lines[i][1]==4){
             if(lines[i][0].charAt(0)!='(')lines[i][0]='('+lines[i][0];
@@ -2527,8 +2529,9 @@ function paint(e, anchE, forceCalc, forceScroll){
         //setup stuff of Con't
         if(lines[i][1]==2)var latestCharacter = lines[i][0];
         if(i==pos.row && currentPage==false) currentPage=count+1;
+        if(i==pos.row)var currentScene=sceneCount;
         if(count>=pageBreaks.length){
-            if (currentPage==false)currentPage=count+20;
+            if (currentPage==false)currentPage=count+1;
             count=pageBreaks.length-2;
         }
 
@@ -2615,6 +2618,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-1);
     ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-24);
     ctx.closePath();
+    // write current page number
     ctx.strokeStyle = "#333";
     ctx.stroke();
     var tp=pageBreaks.length+1;
@@ -2622,8 +2626,12 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.font="10pt sans-serif";
     ctx.fillStyle="#000"
     ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
+    // write enter and tab directions
     var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"]
     ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
+    // write current scene number
+    var txt="Scene "+ currentScene + " of " + scenes.length;
+    ctx.fillText(txt, 400, document.getElementById('canvas').height-8);
     ctx.font = font;
     //Make ScrollBar
     scrollArrows(ctx);
