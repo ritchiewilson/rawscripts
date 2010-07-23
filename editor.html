@@ -8,7 +8,7 @@
   <script src="js/json2.js" type="text/javascript"></script>
   <script src="js/dom.js" type="text/javascript"></script>
   <style>
-  body{padding:0; margin:0;height:100%; background-color:#6484df}
+  body{padding:0; margin:0;height:100%; background-color:#ccc}
   html{height:99%; margin:0; padding:0;}
   #suggestBox{
 	background-color:#ccc;
@@ -382,7 +382,28 @@
         <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-left:500px;float:left" onclick="save(0)" />
     </div>
   </div>
-  <canvas id='canvas' width="850" style="float:left">Your browser isn't going to handle this. Try Chrome. It's Awseome.</canvas>
+  <canvas id='canvas' width="850" style="float:left">
+    <div style="background-color:white; width:400px; margin-left:75px; padding:100px; padding-top:50px;">
+        <h2>Grrr.... Internet!</h2>
+        <p>Hey, sorry for this, but basicly your browser isn't going to run this very well... at all. But you have options!</p>
+        <p>The latest versions of any of these browsers will work for you.</p>
+        <table cellspacing=15 style="margin:auto;">
+            <tr>
+                <td><a href="http://www.google.com/chrome" target="_blank"><img src="images/chrome.jpg" /></a></td>
+                <td><a href="http://www.apple.com/safari/" target="_blank"><img src="images/safari.png" /></a></td>
+                <td><a href="http://www.firefox.com" target="_blank"><img src="images/firefox.jpg" /></a></td>
+            </tr>
+            <tr>
+                <td align="center"><a href="http://www.google.com/chrome" target="_blank">Chrome</a></td>
+                <td align="center"><a href="http://www.apple.com/safari/" target="_blank">Safari</a></td>
+                <td align="center"><a href="http://www.firefox.com" target="_blank">Firefox</a></td>
+            </tr>
+        </table>
+        
+        <p>Or, if you really want to use Internet Explorer, you can use this plug-in to make it work</p>
+        <div style="margin-left:80px;"><a href="http://www.google.com/chromeframe/eula.html" target="_blank"><img src="images/chrome-frame.png" /></a></div>
+    </div>
+  </canvas>
   <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; overflow:auto; background-color:white;">
     <div id="scenes">
         <div id="sceneBox" style="height=50%;overflow:auto;"></div>
