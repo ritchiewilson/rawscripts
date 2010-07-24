@@ -3,7 +3,7 @@
   <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <script src="js/jquery.min.js" type="text/javascript"></script>
-  <script src="js/revisionhistory.js" type="text/javascript"></script>
+  <script src="js/min/revisionhistory-min.js" type="text/javascript"></script>
   <script src="js/json2.js" type="text/javascript"></script>
   <script src="js/dom.js" type="text/javascript"></script>
   <style>
@@ -104,11 +104,16 @@ hr{
     margin: 100px 0;
 }
 .manualsave{
-    background-color:#A2BAE9;
+    
 }
 .manualsave td{
     border-top:1px #666 solid;
     border-bottom:1px #666 solid;
+    background-color:#A2BAE9;
+}
+.copy{
+    display:none;
+    background-color:#ccc;
 }
 
   </style
@@ -145,17 +150,16 @@ hr{
   </div>
   <div id="sidebar" style="position:absolute; top:65px; left:0; width:350px; float:left; overflow:auto">
     <div style="margin-left:15px;">
-        <select id="sel" onchange="compareToggle(this.selectedIndex)">
-            <option>Compare Past Scripts</option>
-            <option>View Past Script</option>
-        </select>
-        <br><br>
+    <br>
         <span style="background-color:#A2BAE9; width:110px; border-top:1px #666 solid; border-bottom:1px solid #666">Manual Saves</span><br>
         
         <input type="checkbox" id="saveToggle" onchange="toggleAutosave(this.checked)" /> Hide AutoSaves<br><br>
-        
+        <select id="sel" onchange="compareToggle(this.selectedIndex)">
+            <option>Compare two past drafts</option>
+            <option>View one previous draft</option>
+        </select>
     </div>
-    <table id='ta' cellspacing=0 cellpadding=2>
+    <table id='ta' cellspacing=0 cellpadding=2 style="margin-left:20px;">
             <tr>
                 <th></th><th class='compare'></th>
                 <th>Ver.</th>
@@ -168,7 +172,7 @@ hr{
                     <td class="compare" align="center"><input value="2{{  i.version  }}" type='radio'></td>
                     <td align="center">{{  i.version  }}</td>
                     <td align="center">{{  i.updated  }}</td>
-                    <td id="{{  i.version  }}" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>
+                    <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>
                 </tr>
             {% endfor %}
             </tbody>

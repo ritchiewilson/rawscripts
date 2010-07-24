@@ -241,6 +241,11 @@ class CompareVersions(webapp.RequestHandler):
         s_two.write("<p class='"+v[i[1]]+"'>"+i[0]+"</p>\n")
 
       content = textDiff(s_one.getvalue(), s_two.getvalue())
+      content=content.replace("<del><p", "<p")
+      content=content.replace("<ins><p", "<p")
+      content=content.replace("</p></del>", "</p>")
+      content=content.replace("</p></ins>", "</p>")
+      logging.info(content)
       self.response.headers['Content-Type']='text/html'
       self.response.out.write(content)
 
@@ -259,11 +264,11 @@ def textDiff(a, b):
 			# @@ need to do something more complicated here
 			# call textDiff but not for html, but for some html... ugh
 			# gonna cop-out for now
-			out.append('<del class="diff modified">'+''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + '</del><ins class="diff modified">'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>")+"</ins>")
+			out.append('<del>'+''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + '</del><ins>'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>")+"</ins>")
 		elif e[0] == "delete":
-			out.append('<del class="diff">'+ ''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + "</del>")
+			out.append('<del>'+ ''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + "</del>")
 		elif e[0] == "insert":
-			out.append('<ins class="diff">'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>") + "</ins>")
+			out.append('<ins>'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>") + "</ins>")
 		elif e[0] == "equal":
 			out.append(''.join(b[e[3]:e[4]]))
 		else: 

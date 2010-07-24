@@ -4,6 +4,14 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     //document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
     $(':radio').click(function(){radioClick(this)});
+    $('.autosave,.manualsave').mouseover(function(){
+        this.getElementsByTagName('td')[4].style.display='block';
+        this.getElementsByTagName('td')[4].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[4].style.border='none';
+    });
+    $('.autosave,.manualsave').mouseout(function(){
+        this.getElementsByTagName('td')[4].style.display='none';
+    });
   });
   $(window).resize(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
@@ -156,6 +164,7 @@ function buildTable(d){
         //copy
         cell=TR.appendChild(document.createElement('td'));
         cell.align='center';
+        cell.className="copy";
         var a=cell.appendChild(document.createElement('a'));
         a.appendChild(document.createTextNode('Copy to new script'));
         a.href="javascript:copyThisVersion("+data[i][2]+")";
@@ -164,6 +173,15 @@ function buildTable(d){
     }
     $(':radio').unbind('click');
     $(':radio').click(function(){radioClick(this)});
+    
+    $('.autosave,.manualsave').mouseover(function(){
+        this.getElementsByTagName('td')[4].style.display='block';
+        this.getElementsByTagName('td')[4].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[4].style.border='none';
+    });
+    $('.autosave,.manualsave').mouseout(function(){
+        this.getElementsByTagName('td')[4].style.display='none';
+    });
 }
 function changeVersion(v, r){
     $.post('/revisionget', {resource_id:r, version:String(v).substr(1)}, function(data){
