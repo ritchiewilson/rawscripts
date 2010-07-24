@@ -120,6 +120,7 @@ $(document).ready(function(){
   });
   
   $('*').keyup(function(e){
+  //console.log(ud);
   if(e.which==16)shiftDown=false;
   else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   if(typeToScript){
@@ -2641,9 +2642,9 @@ function paint(e, anchE, forceCalc, forceScroll){
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
     if(forceScroll){
-        console.log(ud,document.getElementById('canvas').height-150);
-        if (ud>document.getElementById('canvas').height-150)scroll(500);
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-70)scroll(45);
+        console.log(ud,document.getElementById('canvas').height-300);
+        if (ud>document.getElementById('canvas').height-300)scroll(600);
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60)scroll(45);
         else if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
