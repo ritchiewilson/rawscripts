@@ -93,6 +93,10 @@ handlers:
   login: admin
   script: deletetasks.py
 
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
 - url: /.*
   login: required
   script: scripteditor.py
