@@ -115,7 +115,9 @@ hr{
     display:none;
     background-color:#ccc;
 }
-
+.data{
+    display:none;
+}
   </style
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -148,7 +150,7 @@ hr{
       <div id="title">Revision History</div>
     </div>
   </div>
-  <div id="sidebar" style="position:absolute; top:65px; left:0; width:350px; float:left; overflow:auto">
+  <div id="sidebar" style="position:absolute; top:65px; left:0; width:450px; float:left; overflow:auto">
     <div style="margin-left:15px;">
     <br>
         <span style="background-color:#A2BAE9; width:110px; border-top:1px #666 solid; border-bottom:1px solid #666">Manual Saves</span><br>
@@ -159,11 +161,17 @@ hr{
             <option>View one previous draft</option>
         </select>
     </div>
-    <table id='ta' cellspacing=0 cellpadding=2 style="margin-left:20px;">
+    <table id='ta' cellspacing=0 cellpadding=3 style="margin-left:20px;">
             <tr>
                 <th></th><th class='compare'></th>
                 <th>Ver.</th>
                 <th>Time Stamp</th>
+                <th>Emailed</th>
+                <th class="data">Emailed</th>
+                <th>Tag</th>
+                <th class="data">Tag</th>
+                <th class="data">Edit</th>
+                <th class="data">copy</th>
             </tr>
             <tbody id='tb'>
             {% for i in r %}
@@ -172,6 +180,11 @@ hr{
                     <td class="compare" align="center"><input value="2{{  i.version  }}" type='radio'></td>
                     <td align="center">{{  i.version  }}</td>
                     <td align="center">{{  i.updated  }}</td>
+                    <td class="emailedExported">{{  i.e  }}</td>
+                    <td class="data">{{  i.export  }}</td>
+                    <td class="tagCell">{{  i.t  }}</td>
+                    <td class="data">{{  i.tag  }}</td>
+                    <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:editTag({{  i.version  }})">Edit Tag</a></td>
                     <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>
                 </tr>
             {% endfor %}

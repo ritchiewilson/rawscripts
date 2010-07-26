@@ -67,6 +67,8 @@ class ScriptData (db.Model):
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
+  export = db.StringProperty()
+  tag = db.StringProperty()
 
 class TitlePageData (db.Model):
   resource_id = db.StringProperty()
@@ -490,6 +492,12 @@ class Export (webapp.RequestHandler):
           filename = 'filename=' + str(title) + '.pdf'
           self.response.headers['Content-Type'] = 'application/pdf'
 
+        J = simplejson.loads(results[0].export)
+        arr=[export_format, str(datetime.datetime.today())]
+        J[1].append(arr)
+        results[0].export=simplejson.dumps(J)
+        results[0].put()
+
         self.response.headers['Content-Disposition'] = 'attachment; ' +filename
         self.response.out.write(newfile.getvalue())
   
@@ -501,6 +509,7 @@ class EmailScript (webapp.RequestHandler):
 
     p=permission(resource_id)
     if p==False:
+      logging.info(resource_id)
       return
     else:      
       subject=self.request.get('subject')
@@ -543,6 +552,13 @@ class EmailScript (webapp.RequestHandler):
           self.response.headers['Content-Type'] = 'text/plain'
           self.response.out.write('not sent')
           return
+    J = simplejson.loads(results[0].export)
+    t=str(datetime.datetime.today())
+
+    for recipient in recipients:
+      J[0].append([recipient, t])
+    results[0].export=simplejson.dumps(J)
+    results[0].put()
    
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write('sent')
@@ -574,6 +590,8 @@ class NewScript (webapp.RequestHandler):
     s = ScriptData(resource_id=resource_id,
                    data='[["Fade In:",1],["Int. ",0]]',
                    version=1,
+                   export='[[],[]]',
+                   tag='',
                    autosave=0)
     s.put()
 

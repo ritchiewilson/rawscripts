@@ -42,6 +42,8 @@ class ScriptData (db.Model):
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
+  export = db.StringProperty()
+  tag = db.StringProperty()
 
 class UsersScripts (db.Model):
   user = db.StringProperty()
@@ -61,13 +63,27 @@ class SpellingData (db.Model):
   ignore = db.TextProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
 
+class RevisionTag(webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p = permission(resource_id)
+    if not p==False:
+      version=self.request.get('version')
+      tag = self.request.get('tag')
+      q=db.GqlQuery("SELECT * FROM ScriptData "+
+                     "WHERE resource_id='"+resource_id+"' "+
+                     "AND version="+version)
+      r=q.fetch(1)
+      r[0].tag=tag
+      r[0].put()
+      self.response.out.write('tagged')
+
 class DuplicateOldRevision(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
     p = permission(resource_id)
     if not p==False:
       version = self.request.get('version')
-      logging.info(version)
       q=db.GqlQuery("SELECT * FROM ScriptData "+
                     "WHERE resource_id='"+resource_id+"' "+
                     "AND version="+version)
@@ -128,6 +144,25 @@ class RevisionHistory(webapp.RequestHandler):
       r = q.fetch(1000)
       for i in r:
         i.updated=str(i.timestamp)[5:16]
+        J=simplejson.loads(i.export)
+        """
+        if len(J[0])==0 and len(J[1])==0:
+          i.e=""
+        if len(J[0])>0 and len(J[1])==0:
+          i.e="Emailed"
+        if len(J[0])>0 and len(J[1])>0:
+          i.e="Emailed/Exported"
+        if len(J[0])==0 and len(J[1])>0:
+          i.e="Exported"
+        """
+        if len(J[0])>0:
+          i.e="Emailed"
+        else:
+          i.e=""
+        if i.tag=="":
+          i.t=""
+        else:
+          i.t="Tag"
         if i.autosave==0:
           i.s='manualsave'
         else:
@@ -177,7 +212,7 @@ class RevisionList(webapp.RequestHandler):
             e.s='manualsave'
           else:
             e.s='autosave'
-          out.append([ids[i][0], e.updated, e.version, e.autosave])
+          out.append([ids[i][0], e.updated, e.version, e.autosave, e.export, e.tag])
         i+=1
         if not i==len(ids):
           version=str(ids[i][1]+1)
@@ -303,6 +338,7 @@ def main():
                                         ('/revisionget', GetVersion),
                                         ('/revisionlist', RevisionList),
                                         ('/revisionduplicate', DuplicateOldRevision),
+                                        ('/revisiontag' , RevisionTag),
                                         ('/revisioncompare', CompareVersions)],
                                        debug=True)
   
