@@ -93,6 +93,10 @@ handlers:
   login: admin
   script: deletetasks.py
 
+- url: /DB.*
+  login: admin
+  script: migration.py
+
 - url: /.*
   login: required
   script: scripteditor.py
