@@ -1,7 +1,7 @@
 $(document).ready(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
     document.getElementById('script').style.width = $('#container').width()-350+'px';
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+    document.getElementById('sidebar').style.height = ($('#container').height()-40)+'px';
     $(':radio').click(function(){radioClick(this)});
     $('.autosave,.manualsave').mouseover(function(){
         this.getElementsByTagName('td')[8].style.display='block';
@@ -45,7 +45,7 @@ $(document).ready(function(){
     });
   });
   $(window).resize(function(){
-    document.getElementById('script').style.height = $('#container').height()-65+'px';
+    document.getElementById('script').style.height = $('#container').height()-40+'px';
     document.getElementById('script').style.width = $('#container').width()-350+'px';
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
   });

@@ -23,7 +23,7 @@
   .sceneItem{font-family:Courier; font-size:10pt;margin: 0px 0px 0px 10px; cursor:pointer;}
   #header{padding:0px;}
   #titleBar{
-    height:40px;
+    height:30px;
   }
   #toolBar{
   }
@@ -43,6 +43,7 @@
     font-size:18pt;
     padding:6px;
     text-shadow: 1px 1px 1px #999;
+    float:left;
   }
   .TEXT{  
   font-size:10pt;  
@@ -145,12 +146,13 @@ hr{
 </div>
 
   <div id='container' style="width:100%; height:100%; margin:0; padding:0">
-  <div id='header' style="width:100%; height:65px; background-color:#6484df">
+  <div id='header' style="width:100%; height:40px; background-color:#6484df">
     <div id="titleBar">
-      <div id="title">Revision History</div>
+      <div id="title">Draft History: {{ title }}</div>
+      <div style="float:right; margin:5px 10px 0 0;" id="user">{{  user  }} | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
   </div>
-  <div id="sidebar" style="position:absolute; top:65px; left:0; width:450px; float:left; overflow:auto">
+  <div id="sidebar" style="position:absolute; top:40px; left:0; width:450px; float:left; overflow:auto">
     <div style="margin-left:15px;">
     <br>
         <span style="background-color:#A2BAE9; width:110px; border-top:1px #666 solid; border-bottom:1px solid #666">Manual Saves</span><br>

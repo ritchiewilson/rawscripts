@@ -167,9 +167,19 @@ class RevisionHistory(webapp.RequestHandler):
           i.s='manualsave'
         else:
           i.s='autosave'
+      user = users.get_current_user()
+      if user:
+        sign_out=users.create_logout_url('/')
+        user_email = users.get_current_user().email()
+      else:
+        sign_out="/"
+        user_email = "test@example.com"
+      path = os.path.join(os.path.dirname(__file__), 'editor.html')
       template_values={'r':r,
                        'title':p,
                        'resource_id':resource_id,
+                       'sign_out':sign_out,
+                       'user': user_email,
                        }
       path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
       self.response.out.write(template.render(path, template_values))
@@ -186,15 +196,10 @@ class RevisionList(webapp.RequestHandler):
         q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
                       "WHERE new_script='"+new_script+"'")
         r=q.fetch(1)
-        logging.info(r)
-        logging.info(len(r))
         if len(r)==0:
           begining=True
         else:
           new_script=r[0].from_script
-          logging.info(r[0].from_script)
-          logging.info(r[0].new_script)
-          #logging.info(r[0].from_version)
           ids.append([new_script, r[0].from_version])
 
       i=0
@@ -280,7 +285,6 @@ class CompareVersions(webapp.RequestHandler):
       content=content.replace("<ins><p", "<p")
       content=content.replace("</p></del>", "</p>")
       content=content.replace("</p></ins>", "</p>")
-      logging.info(content)
       self.response.headers['Content-Type']='text/html'
       self.response.out.write(content)
 

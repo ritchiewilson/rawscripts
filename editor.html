@@ -137,6 +137,7 @@
     font-size:18pt;
     padding:6px;
     text-shadow: 1px 1px 1px #999;
+    float:left;
   }
   .thread{
     border:1px #666 solid;
@@ -257,7 +258,7 @@
                     <input id="sIgnore" value="Ignore" type="button" style="width:100px;" onclick="s_ignore()"><br>
                     <input id="sIgnoreAll" value="Ignore All" type="button" style="width:100px;" onclick="s_ignore_all()"><br><br>
                     <input id="sChange" value="Change" type="button" style="width:100px;" onclick="s_change()"><br>
-                    <input id="sHidden" value = "" type="hidden">
+                    <input id="sHidden" value ="" type="hidden">
                    
                 </div>
             </div>
@@ -363,6 +364,7 @@
   <div id='header' style="width:100%; height:65px; background-color:#6484df">
     <div id="titleBar">
       <div id="title">Screenplay Editor</div>
+      <div style="float:right; margin:5px 10px 0 0;" id="user">{{ user }} | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
     <div class="toolBar" id="toolBar">
         <div id="menu">

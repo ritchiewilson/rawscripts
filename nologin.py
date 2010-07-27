@@ -53,26 +53,30 @@ class UsersScripts (db.Model):
 
 class Welcome (webapp.RequestHandler):
   def get(self):
-    template_values = { 'user': 'user',}
     referer = os.environ.get("HTTP_REFERER")
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
-    #if referer == 'http://www.rawscripts.com/scriptlist':
-    self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(template.render(path, template_values))
-'''
+    if referer == 'http://www.rawscripts.com/scriptlist':
+      self.response.headers['Content-Type'] = 'text/html'
+      self.response.out.write(template.render(path, template_values))
+      return
+    
+    user = users.get_current_user()
+    if not user:
+      self.response.headers['Content-Type'] = 'text/html'
+      self.response.out.write(template.render(path, template_values))
     else:
-      token = get_auth_token(self.request)
-      if not token:
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.out.write(template.render(path, template_values))
-      else:
         self.redirect('/scriptlist')
-        '''
+        
 
 class Editor (webapp.RequestHandler):
   def get(self):
-
-    template_values = {}
+    user = users.get_current_user()
+    if user:
+      template_values = { 'sign_out': users.create_logout_url('/') }
+      template_values['user'] = users.get_current_user().email()
+    else:
+      template_values = { 'sign_out': '/' }
+      template_values['user'] = "test@example.com"
     path = os.path.join(os.path.dirname(__file__), 'editor.html')
         
     mobile = 0
