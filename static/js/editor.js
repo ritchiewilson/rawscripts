@@ -417,6 +417,8 @@ function setup(){
 	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
+    document.getElementById('saveButton').value="Saved";
+    document.getElementById('saveButton').disabled=true;
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
@@ -1847,7 +1849,7 @@ function renameScript(){
 }
 //exporting
 function exportPrompt(){
-    save(0);
+    if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("exportpopup").style.visibility="visible"
 }
@@ -1879,7 +1881,7 @@ function exportScripts(){
 }
 // emailing
 function emailPrompt(){
-    save(0);
+    if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("emailpopup").style.visibility='visible'
 }

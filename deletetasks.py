@@ -45,6 +45,8 @@ class ScriptData (db.Model):
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
+  export = db.StringProperty()
+  tag = db.StringProperty()
 
 class TitlePageData (db.Model):
   resource_id = db.StringProperty()

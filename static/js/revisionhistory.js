@@ -2,22 +2,52 @@ $(document).ready(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
     document.getElementById('script').style.width = $('#container').width()-350+'px';
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    //document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
     $(':radio').click(function(){radioClick(this)});
     $('.autosave,.manualsave').mouseover(function(){
-        this.getElementsByTagName('td')[4].style.display='block';
-        this.getElementsByTagName('td')[4].style.backgroundColor='#ccc';
-        this.getElementsByTagName('td')[4].style.border='none';
+        this.getElementsByTagName('td')[8].style.display='block';
+        this.getElementsByTagName('td')[8].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[8].style.border='none';
+        this.getElementsByTagName('td')[9].style.display='block';
+        this.getElementsByTagName('td')[9].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[9].style.border='none';
     });
     $('.autosave,.manualsave').mouseout(function(){
-        this.getElementsByTagName('td')[4].style.display='none';
+        this.getElementsByTagName('td')[8].style.display='none';
+        this.getElementsByTagName('td')[9].style.display='none';
+    });
+    $('.emailedExported').unbind('mouseover');
+    $('.emailedExported').unbind('mouseout');
+    $('.emailedExported').mouseover(function(e){buildTooltip(e, this)});
+    $('.emailedExported').mouseout(function(){
+        var c =document.getElementById('exportTooltip');
+        if(c!=null)c.parentNode.removeChild(c)
+    });
+    $('.tagCell').unbind('mouseover');
+    $('.tagCell').unbind('mouseout');
+    $('.tagCell').mouseover(function(e){buildTagTooltip(e, this)});
+    $('.tagCell').mouseout(function(){
+        var c =document.getElementById('tagTooltip');
+        if(c!=null)c.parentNode.removeChild(c)
+    });
+    $('*').mousemove(function(e){
+        var c =document.getElementById('exportTooltip');
+        if(c!=null){
+            //console.log(e.pageX, e.pageY, c.style.left);
+            c.style.left=10+e.pageX+"px";
+            c.style.top=e.pageY+"px";
+        }
+        var c =document.getElementById('tagTooltip');
+        if(c!=null){
+            //console.log(e.pageX, e.pageY, c.style.left);
+            c.style.left=10+e.pageX+"px";
+            c.style.top=e.pageY+"px";
+        }
     });
   });
   $(window).resize(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
     document.getElementById('script').style.width = $('#container').width()-350+'px';
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    //document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
   });
   
 
@@ -130,6 +160,53 @@ function radioClick(obj){
         radioSetup()
     }
 }
+function buildTooltip(e, obj){
+    var c =obj.nextSibling;
+    while(c.nodeName!='TD')c=c.nextSibling;
+    var node = c.firstChild;
+    while(node.nodeName!='#text')node=node.nextSibling;
+    var data = node.nodeValue;
+    if(data!="[[],[]]"){
+        var j = JSON.parse(data)
+        var newDiv = document.body.appendChild(document.createElement('div'));
+        newDiv.id='exportTooltip';
+        newDiv.style.padding= "5px";
+        newDiv.style.border="2px saddleBrown solid";
+        newDiv.style.position='fixed';
+        newDiv.style.top=e.pageY+"px";
+        newDiv.style.left=e.pageX+"px";
+        newDiv.style.backgroundColor='yellow';
+        if(j[0].length>0){
+            newDiv.appendChild(document.createTextNode('Emailed to:'));
+            var u = newDiv.appendChild(document.createElement('ul'));
+            u.style.paddingTop="0";
+            u.style.marginTop="0";
+            u.style.paddingBottom="0";
+            u.style.marginBottom="0";
+            var c = j[0];
+            for (i in c){
+                u.appendChild(document.createElement('li')).appendChild(document.createTextNode(c[i][0]));
+            }
+        }
+    }
+}
+function buildTagTooltip(e,obj){
+    var c =obj.nextSibling;
+    while(c.nodeName!='TD')c=c.nextSibling;
+    var node = c.firstChild;
+    while(node.nodeName!='#text')node=node.nextSibling;
+    var data = node.nodeValue;
+    if(data=="")return;
+    var newDiv = document.body.appendChild(document.createElement('div'));
+    newDiv.id='tagTooltip';
+    newDiv.style.padding= "5px";
+    newDiv.style.border="2px saddleBrown solid";
+    newDiv.style.position='fixed';
+    newDiv.style.top=e.pageY+"px";
+    newDiv.style.left=e.pageX+"px";
+    newDiv.style.backgroundColor='yellow';
+    newDiv.appendChild(document.createTextNode(data));
+}
 function buildTable(d){
     var tb= document.getElementById('tb');
     var data = JSON.parse(d);
@@ -161,6 +238,39 @@ function buildTable(d){
         cell=TR.appendChild(document.createElement('td'));
         cell.align='center';
         cell.appendChild(document.createTextNode(data[i][1]));
+        //exported
+        var exports=JSON.parse(data[i][4]);
+        cell=TR.appendChild(document.createElement('td'));
+        var emails=exports[0];
+        var exports=exports[1];
+        //if(emails.length>0 && exports.length==0)var txt="Emailed";
+        //if(emails.length>0 && exports.length>0)var txt="Emailed/Exported";
+        //if(emails.length==0 && exports.length>0)var txt="Exported";
+        //if(emails.length==0 && exports.length==0)var txt="";
+        if(emails.length>0)var txt="Emailed";
+        else{var txt=""};
+        cell.appendChild(document.createTextNode(txt));
+        cell.className='emailedExported';
+        cell=TR.appendChild(document.createElement('td'));
+        cell.className='data';
+        cell.appendChild(document.createTextNode(data[i][4]));
+        //tag
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        txt = (data[i][5]=="" ? "" : "Tag");
+        cell.appendChild(document.createTextNode(txt));
+        cell.className='tagCell';
+        cell=TR.appendChild(document.createElement('td'));
+        cell.className='data';
+        cell.appendChild(document.createTextNode(data[i][5]));
+        // edit tag
+        cell=TR.appendChild(document.createElement('td'));
+        cell.align='center';
+        cell.className="copy";
+        var a=cell.appendChild(document.createElement('a'));
+        a.appendChild(document.createTextNode('Edit Tag'));
+        a.href="javascript:editTag("+data[i][2]+")";
+        a.id = data[i][2];
         //copy
         cell=TR.appendChild(document.createElement('td'));
         cell.align='center';
@@ -175,12 +285,30 @@ function buildTable(d){
     $(':radio').click(function(){radioClick(this)});
     
     $('.autosave,.manualsave').mouseover(function(){
-        this.getElementsByTagName('td')[4].style.display='block';
-        this.getElementsByTagName('td')[4].style.backgroundColor='#ccc';
-        this.getElementsByTagName('td')[4].style.border='none';
+        this.getElementsByTagName('td')[8].style.display='block';
+        this.getElementsByTagName('td')[8].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[8].style.border='none';
+        this.getElementsByTagName('td')[9].style.display='block';
+        this.getElementsByTagName('td')[9].style.backgroundColor='#ccc';
+        this.getElementsByTagName('td')[9].style.border='none';
     });
     $('.autosave,.manualsave').mouseout(function(){
-        this.getElementsByTagName('td')[4].style.display='none';
+        this.getElementsByTagName('td')[8].style.display='none';
+        this.getElementsByTagName('td')[9].style.display='none';
+    });
+    $('.emailedExported').unbind('mouseover');
+    $('.emailedExported').unbind('mouseout');
+    $('.emailedExported').mouseover(function(e){buildTooltip(e, this)});
+    $('.emailedExported').mouseout(function(){
+        var c =document.getElementById('exportTooltip');
+        if(c!=null)c.parentNode.removeChild(c)
+    });
+    $('.tagCell').unbind('mouseover');
+    $('.tagCell').unbind('mouseout');
+    $('.tagCell').mouseover(function(e){buildTagTooltip(e, this)});
+    $('.tagCell').mouseout(function(){
+        var c =document.getElementById('tagTooltip');
+        if(c!=null)c.parentNode.removeChild(c)
     });
 }
 function changeVersion(v, r){
@@ -317,11 +445,26 @@ function compareToggle(v){
     }
 }
 
+function editTag(v){
+    var tag = prompt("Give this version a tag name:")
+    if(tag!=null){
+        var d = document.getElementById(v);
+        while (d.nodeName!='TR')d=d.parentNode;
+        $.post('/revisiontag', {resource_id:d.id, version:v, tag:tag}, function(d){
+            if(d!="tagged"){
+                alert("There was a problem updating the tag. Please try again later.")
+            }
+        });
+        var c=d.getElementsByTagName('td')[7];
+        c.innerHTML="";
+        c.appendChild(document.createTextNode(tag));
+        d.getElementsByTagName('td')[6].innerHTML = "Tag"
+    }
+}
+
 function copyThisVersion(v){
-    console.log(v)
     var d = document.getElementById(v);
     while (d.nodeName!='TR')d=d.parentNode;
-    console.log(d.id);
     $.post('/revisionduplicate', {resource_id:d.id, version:v}, function(d){
         window.open(d);
     });

@@ -41,6 +41,8 @@ class ScriptData (db.Model):
   version = db.IntegerProperty()
   timestamp = db.DateTimeProperty(auto_now_add=True)
   autosave = db.IntegerProperty()
+  export = db.StringProperty()
+  tag = db.StringProperty()
 
 class UsersScripts (db.Model):
   user = db.StringProperty()
@@ -177,6 +179,8 @@ class Save (webapp.RequestHandler):
                      title='title',
                      data=data,
                      version=v,
+                     export='[[],[]]',
+                     tag='',
                      autosave=b)
       a.put()
 
