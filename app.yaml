@@ -19,14 +19,6 @@ handlers:
   static_files: rawscripts.manifest
   upload: rawscripts.manifest
 
-- url: /admin/.*
-  script: $PYTHON_LIB/google/appengine/ext/admin
-  login: admin
-
-- url: /loading.*
-  static_files: loading.html
-  upload: loading.html
-
 - url: /images
   static_dir: static/images
 
@@ -93,14 +85,9 @@ handlers:
   login: admin
   script: deletetasks.py
 
-- url: /DB.*
-  login: admin
-  script: migration.py
-
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
-
 
 - url: /.*
   login: required
