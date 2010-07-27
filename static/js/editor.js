@@ -2112,14 +2112,21 @@ function drawRange(ctx){
     var startHeight = lineheight*9+3;
     var count=0;
     for (var i=0; i<startRange.row;i++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
+        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==i){
             startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            startHeight-=(pageBreaks[count][2])*lineheight;
+            //startHeight-=(pageBreaks[count][2])*lineheight;
+            //if(lines[i][1]==3)startHeight+=lineheight;
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==i){
+            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+            startHeight+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
             if(lines[i][1]==3)startHeight+=lineheight;
             count++;
             if(count==pageBreaks.length)count--;
         }
-        startHeight+=lineheight*linesNLB[i].length;
+        else{startHeight+=lineheight*linesNLB[i].length;}
     }
     var i=0;
     var startRangeCol=linesNLB[startRange.row][i]+1;
@@ -2129,10 +2136,10 @@ function drawRange(ctx){
             startHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[startRange.row][1]==3)startHeight+=lineheight;
         }
-        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[startRange.row][1]==3)startHeight+=lineheight;
-        }
+        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+        //    startHeight=72*lineheight*(count+1)+9*lineheight+4;
+        //    if(lines[startRange.row][1]==3)startHeight+=lineheight;
+        //}
         i++;
         startRangeCol+=linesNLB[startRange.row][i]+1;
     }
@@ -2146,14 +2153,19 @@ function drawRange(ctx){
     var endHeight = lineheight*9+3;
     count=0;
     for (var j=0; j<endRange.row;j++){
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==j){
+        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
             endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            endHeight-=(pageBreaks[count][2])*lineheight;
+            count++;
+            if(count==pageBreaks.length)count--;
+        }
+        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
+            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+            endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
             if(lines[j][1]==3)endHeight+=lineheight;
             count++;
             if(count==pageBreaks.length)count--;
         }
-        endHeight+=lineheight*linesNLB[j].length;
+        else{endHeight+=lineheight*linesNLB[j].length;}
     }
     var j=0;
     var endRangeCol=linesNLB[endRange.row][j]+1;
@@ -2163,10 +2175,10 @@ function drawRange(ctx){
             endHeight=72*lineheight*(count+1)+9*lineheight+4;
             if(lines[endRange.row][1]==3)endHeight+=lineheight;
         }
-        else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[endRange.row][1]==3)endHeight+=lineheight;
-        }
+        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+        //    endHeight=72*lineheight*(count+1)+9*lineheight+4;
+        //    if(lines[endRange.row][1]==3)endHeight+=lineheight;
+        //}
         j++;
         endRangeCol+=linesNLB[endRange.row][j]+1;
     }
@@ -2174,6 +2186,7 @@ function drawRange(ctx){
     var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
     endWidth+=((endRange.col-endRangeCol)*fontWidth);
     endHeight+=lineheight;
+
     
     // Now compare stuff and draw blue Box
     ctx.fillStyle='lightBlue';
@@ -2202,9 +2215,11 @@ function drawRange(ctx){
                 startRange.row++;
                 i=0;
             }
-            var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-            if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-            ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+            if(startHeight!=endHeight){
+                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+                ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+            }
             
         }
         //ctx.fillStyle="blue";
@@ -2644,8 +2659,8 @@ function paint(e, anchE, forceCalc, forceScroll){
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
     if(forceScroll){
-        console.log(ud,document.getElementById('canvas').height-300);
-        if (ud>document.getElementById('canvas').height-300)scroll(600);
+        //console.log(ud,document.getElementById('canvas').height-300);
+        if (ud>document.getElementById('canvas').height)scroll(600);
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60)scroll(45);
         else if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
     }
