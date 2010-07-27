@@ -47,11 +47,15 @@ class DBMigrationWorker (webapp.RequestHandler):
                   "WHERE resource_id='"+resource_id+"' "+
                   "AND version="+version)
     f=q.fetch(1)
-    f[0].tag=""
-    f[0].export="[[],[]]"
-    logging.info(f[0].data)
-    f[0].put()
-    
+    s = ScriptData(resource_id=f[0].resource_id,
+                   data = f[0].data,
+                   version=f[0].version,
+                   export="[[],[]]",
+                   tag="",
+                   timestamp=f[0].timestamp,
+                   autosave = f[0].autosave)
+    s.put()
+    f[0].delete()
     
 def main():
   application = webapp.WSGIApplication([('/DBparse', dbparse),
