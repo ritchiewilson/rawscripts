@@ -642,7 +642,7 @@ class Duplicate (webapp.RequestHandler):
                      data=data,
                      version=version+1,
                      export="[[],[]]",
-                     tag=""
+                     tag="",
                      autosave=0)
       s.put()
       d= DuplicateScripts(new_script = new_resource_id,
