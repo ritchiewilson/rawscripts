@@ -54,6 +54,7 @@ class UsersScripts (db.Model):
 class Welcome (webapp.RequestHandler):
   def get(self):
     referer = os.environ.get("HTTP_REFERER")
+    template_values={}
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
     if referer == 'http://www.rawscripts.com/scriptlist':
       self.response.headers['Content-Type'] = 'text/html'
