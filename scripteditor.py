@@ -641,6 +641,8 @@ class Duplicate (webapp.RequestHandler):
       s = ScriptData(resource_id=new_resource_id,
                      data=data,
                      version=version+1,
+                     export="[[],[]]",
+                     tag=""
                      autosave=0)
       s.put()
       d= DuplicateScripts(new_script = new_resource_id,
@@ -724,6 +726,8 @@ class ConvertProcess (webapp.RequestHandler):
     s = ScriptData(resource_id=resource_id,
                    data=contents,
                    version=1,
+                   tag="",
+                   export="[[],[]]",
                    autosave=0)
     s.put()
 

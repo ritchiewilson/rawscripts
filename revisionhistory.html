@@ -104,7 +104,8 @@ del{
 hr{
     margin: 100px 0;
 }
-.manualsave{
+.autosave{
+    display:none;
     
 }
 .manualsave td{
@@ -113,7 +114,7 @@ hr{
     background-color:#A2BAE9;
 }
 .copy{
-    display:none;
+    visibility:hidden;
     background-color:#ccc;
 }
 .data{
@@ -152,12 +153,12 @@ hr{
       <div style="float:right; margin:5px 10px 0 0;" id="user">{{  user  }} | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
   </div>
-  <div id="sidebar" style="position:absolute; top:40px; left:0; width:450px; float:left; overflow:auto">
+  <div id="sidebar" style="position:absolute; top:40px; left:0; width:500px; float:left; overflow:auto">
     <div style="margin-left:15px;">
     <br>
         <span style="background-color:#A2BAE9; width:110px; border-top:1px #666 solid; border-bottom:1px solid #666">Manual Saves</span><br>
         
-        <input type="checkbox" id="saveToggle" onchange="toggleAutosave(this.checked)" /> Hide AutoSaves<br><br>
+        <input type="checkbox" id="saveToggle" checked onchange="toggleAutosave(this.checked)" /> Hide AutoSaves<br><br>
         <select id="sel" onchange="compareToggle(this.selectedIndex)">
             <option>Compare two past drafts</option>
             <option>View one previous draft</option>
@@ -165,7 +166,8 @@ hr{
     </div>
     <table id='ta' cellspacing=0 cellpadding=3 style="margin-left:20px;">
             <tr>
-                <th></th><th class='compare'></th>
+                <th></th>
+                <th class='compare'></th>
                 <th>Ver.</th>
                 <th>Time Stamp</th>
                 <th>Emailed</th>
@@ -186,7 +188,7 @@ hr{
                     <td class="data">{{  i.export  }}</td>
                     <td class="tagCell">{{  i.t  }}</td>
                     <td class="data">{{  i.tag  }}</td>
-                    <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:editTag({{  i.version  }})">Edit Tag</a></td>
+                    <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:editTag({{  i.version  }})">Edit Tag</a> | </td>
                     <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>
                 </tr>
             {% endfor %}

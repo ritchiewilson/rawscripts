@@ -109,6 +109,8 @@ class DuplicateOldRevision(webapp.RequestHandler):
       
       s = ScriptData(resource_id=new_resource_id,
                      data=data,
+                     tag="",
+                     export="[[],[]]",
                      version=int(version)+1,
                      autosave=0)
       s.put()
