@@ -191,11 +191,14 @@ function buildTooltip(e, obj){
     }
 }
 function buildTagTooltip(e,obj){
-    var c =obj.nextSibling;
-    while(c.nodeName!='TD')c=c.nextSibling;
-    var node = c.firstChild;
-    while(node.nodeName!='#text')node=node.nextSibling;
-    var data = node.nodeValue;
+    var c = obj.parentNode;
+    var node=c.getElementsByTagName('td')[7];
+    
+    //var c =obj.nextSibling;
+    //while(c.nodeName!='TD')c=c.nextSibling;
+    //var node = c.firstChild;
+    //while(node.nodeName!='#text')node=node.nextSibling;
+    var data = node.innerHTML;
     if(data=="")return;
     var newDiv = document.body.appendChild(document.createElement('div'));
     newDiv.id='tagTooltip';
@@ -205,6 +208,7 @@ function buildTagTooltip(e,obj){
     newDiv.style.top=e.pageY+"px";
     newDiv.style.left=e.pageX+"px";
     newDiv.style.backgroundColor='yellow';
+    newDiv.style.maxWidth="200px";
     newDiv.appendChild(document.createTextNode(data));
 }
 function buildTable(d){
@@ -446,7 +450,10 @@ function compareToggle(v){
 }
 
 function editTag(v){
-    var tag = prompt("Give this version a tag name:")
+    var d = document.getElementById(v);
+    while (d.nodeName!='TR')d=d.parentNode;
+    var o = d.getElementsByTagName('td')[7].innerHTML;
+    var tag = prompt("Give this version a tag name:", o)
     if(tag!=null){
         var d = document.getElementById(v);
         while (d.nodeName!='TR')d=d.parentNode;
