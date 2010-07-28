@@ -7,6 +7,7 @@
    if($.browser.mozilla)var browser='mozilla';
    if($.browser.opera)var browser='opera';
    var ud=0;
+   var viewNotes=true;
    var timer;
    var typeToScript=true;
    var pasting=false;
@@ -65,9 +66,28 @@
 	 * notes[x][2] is content
 	 * notes[x][2].length is number of messages in thread
 	 * notes[x][2][0] ,[1], [2] =content, user, timestamp
+     *
+     *<thread>
+     *  <row></row>
+     *  <col></col>
+     *  <content>
+     *      <messageOne>
+     *          <text></text>
+     *          <user></user>
+     *          <timestampt></timestamp>
+     *      </messageOne>
+     *      <messageTwo>
+     *          <text></text>
+     *          <user></user>
+     *          <timestampt></timestamp>
+     *      </messageTWo>
+     *  </content>
+     *  <id></id>
+     *</thread>
+     *
 	 * */
-	var notes = [[6,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[10,5,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
-    notes=[];
+	var notes = [[6,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[10,3,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
+    //notes=[];
     var spellWrong=[];
     var spellIgnore=[];
     var checkSpell=false;
@@ -406,7 +426,6 @@ function setup(){
     }
     if(p[2].length!=0){
         var wrong=p[2][0];
-        //console.log(wrong)
         var ignore =p[2][1];
         for (w in wrong){
             spellWrong.push(wrong[w])
@@ -430,7 +449,6 @@ function setup(){
     });
 }
 function changeFormat(v){
-    //console.log('hey');
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
     redoQue=[];
@@ -438,7 +456,6 @@ function changeFormat(v){
     anch.col=pos.col;
     anch.row=pos.row;
     if(lines[pos.row][1]==4){
-        //console.log(v);
         if(lines[pos.row][0].charAt(0)!='('){
             lines[pos.row][0]='('+lines[pos.row][0];
             pos.col++;
@@ -1649,7 +1666,6 @@ function noteIndex(){
 	$('.respond').click(function(){newMessage(this.id)});
 }
 function newThread(){
-    return;
 	id=Math.round(Math.random()*1000000000);
 	var tmp=[pos.row, pos.col, [['new thread', 'ritchie', 'timestamp']],id];
 	notes.push(tmp);
@@ -2272,12 +2288,21 @@ function drawNotes(ctx){
         startHeight+=lineheight;
         ctx.moveTo(startWidth,startHeight-vOffset);
         ctx.fillStyle='red';
-        ctx.fillRect(startWidth,startHeight-vOffset,5,5);
-        ctx.strokeStyle='black';
-        ctx.stroke();
+        ctx.fillText("✍", startWidth,startHeight-vOffset);
+        
     }
 }
 
+function drawNote(width, height, col, ctx){
+    ctx.fillStyle="orange";
+    ctx.fillRect(width+fontWidth*col, height-vOffset-lineheight+3, fontWidth, lineheight);
+    ctx.fillStyle=foreground;
+    ctx.fillText('X', width+fontWidth*col, height-vOffset)
+}
+
+function sortNumbers(a,b){
+    return b - a;
+}
 
 function paint(e, anchE, forceCalc, forceScroll){
     if(typeToScript){
@@ -2349,6 +2374,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     var count = 0;
     var currentPage=false;
     var sceneCount=0;
+    var notesOnThisLine=[];
     //Stary Cycling through lines
 	for (var i=0; i<lines.length; i++){
         if (lines[i][1]==0)sceneCount++;
@@ -2671,7 +2697,6 @@ function paint(e, anchE, forceCalc, forceScroll){
     else if(forceScroll){
         if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60){
             scroll(45);
-            console.log('one');
         }
         else if(ud<45){
             scroll(-45);
