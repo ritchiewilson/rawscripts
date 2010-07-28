@@ -110,7 +110,9 @@ $(document).ready(function(){
       else if(e.which==16)shiftDown=true;
       else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
       //console.log(ud, vOffset);
-      if((ud<0 || ud>document.getElementById('canvas').height-120) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8)scroll(ud-400);
+      if((ud<0 || ud>document.getElementById('canvas').height-80) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8){
+        scroll(ud-400);
+      }
       //console.log(e.which);
     }
     if(typeToScript){
@@ -333,6 +335,10 @@ function paste(){
         }
         pos.row=anch.row=p;
         pos.col=anch.col=0;
+        if(pos.row>=lines.length){
+            pos.row=anch.row=lines.length-1
+            pos.col=anch.col=lines[pos.row][0].length;
+        }
     }
     pasting=false;
     sceneIndex();
@@ -1137,7 +1143,8 @@ function enter(){
         pos.col=0;
         anch.row=pos.row;
         anch.col=pos.col;
-        paint(false,false,true,true);
+        paint(false,false,true,'enter');
+        paint(false,false,false,'enter');
     }
 	else if(document.getElementById('suggestBox')!=null){
         saveTimer();
@@ -2087,7 +2094,7 @@ function scrollArrows(ctx){
 }
 function scrollBar(ctx, y){
     var height = document.getElementById('canvas').height;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight+40;
     var barHeight = ((height)/pagesHeight)*(height-39);
     if (barHeight<20)barHeight=20;
     if (barHeight>=height-39)barHeight=height-39;
@@ -2372,7 +2379,7 @@ function paint(e, anchE, forceCalc, forceScroll){
         if(!forceCalc && !bb && (y-vOffset>1200||y-vOffset<-200)){
             y+=(lineheight*linesNLB[i].length);
             if(i==pos.row){
-                cursorY=y;
+                var cursorY=y;
                 wrappedText=[];
             }
         }
@@ -2642,7 +2649,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.fillStyle="#000"
     ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
     // write enter and tab directions
-    var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"]
+    var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"];
     ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
     // write current scene number
     var txt="Scene "+ currentScene + " of " + scenes.length;
@@ -2658,11 +2665,17 @@ function paint(e, anchE, forceCalc, forceScroll){
     if(forceCalc)pagination();
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
-    if(forceScroll){
-        //console.log(ud,document.getElementById('canvas').height-300);
+    if(forceScroll=="enter"){
         if (ud>document.getElementById('canvas').height)scroll(600);
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60)scroll(45);
-        else if((2+cursorY+(wrapCounter*lineheight)-vOffset)<45)scroll(-45);
+    }
+    else if(forceScroll){
+        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60){
+            scroll(45);
+            console.log('one');
+        }
+        else if(ud<45){
+            scroll(-45);
+        }
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
