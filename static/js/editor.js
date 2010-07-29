@@ -1750,8 +1750,7 @@ function submitNewThread(v){
         var arr = [pos.row, pos.col, [[content,u,d]], v];
         notes.push(arr);
         var data = [pos.row, pos.col, content, v]
-        console.log(data)
-        $.post("/notesnewthread", {resource_id:resource_id, data : JSON.stringify(data)}, function(d){if(d!='sent')alert("problem")})
+        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("problem")})
     }
     noteIndex();
 }
@@ -1789,7 +1788,8 @@ function submitMessage(v){
     if(content!=""){
         var arr=[content, u, d]
         notes[n][2].push(arr);
-        $.post("/notessubmitmessage", {resource_id:resource_id, data : content, thread_id : v}, function(d){alert("problem")})
+        console.log(content);
+        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("problem")})
     }
 	noteIndex();
 }

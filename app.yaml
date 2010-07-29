@@ -85,6 +85,10 @@ handlers:
   login: admin
   script: deletetasks.py
 
+- url: /notes.*
+  login: required
+  script: notes.py
+
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
