@@ -142,30 +142,37 @@
   .thread{
     border:1px #666 solid;
     padding:5px;
-    margin:5px;
+    margin:10px;
     background-color:#efeff1;
+    -moz-box-shadow: 3px 3px 3px #999;
+    -webkit-box-shadow: 3px 3px 3px #999;
   }
   .msg{
-	  background-color:blue;
+	  background-color:#6A97FF;
       padding:5px;
       margin:3px;
       font-size:11pt;
+      -moz-border-radius: 5px; 
+      -webkit-border-radius: 5px;
+      cursor:pointer;
   }
   .msgInfo{
-    padding-top:10px;
+    padding-top:2px;
     font-size:11pt;
   }
   .respondControls{
-	  background-color:green;
+	  background-color:#26972D;
 	  cursor:pointer;
       padding:5px;
       margin:3px;
   }
   .respond{
-	  background-color:green;
+	  background-color:#26972D;
 	  cursor:pointer;
       padding:5px;
       margin:3px;
+      -moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
   }
   #nmi{
     padding:5px;
@@ -372,7 +379,7 @@
   <div id='header' style="width:100%; height:65px; background-color:#6484df">
     <div id="titleBar">
       <div id="title">Screenplay Editor</div>
-      <div style="float:right; margin:5px 10px 0 0;" id="user">{{ user }} | <a href="{{  sign_out  }}">Sign Out</a></div>
+      <div style="float:right; margin:5px 10px 0 0;" id="user"><span id="user_email">{{ user }}</span> | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
     <div class="toolBar" id="toolBar">
         <div id="menu">

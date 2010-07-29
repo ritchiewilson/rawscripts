@@ -86,8 +86,8 @@
      *</thread>
      *
 	 * */
-	var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
-    //notes=[];
+	//var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
+    notes=[];
     var spellWrong=[];
     var spellIgnore=[];
     var checkSpell=false;
@@ -437,7 +437,7 @@ function setup(){
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
-    tabs(0);
+    tabs(1);
     characterInit();
     sceneIndex();
 	noteIndex();
@@ -1667,32 +1667,93 @@ function sceneIndex(){
 function noteIndex(){
 	var c = document.getElementById('noteBox');
 	c.innerHTML="";
+    var i = c.appendChild(document.createElement('input'));
+    i.type = 'button';
+    i.value = "Insert New Note";
+    i.addEventListener('click', newThread, false);
+    i.style.margin="5px";
+    //c.appendChild(document.createElement('br'));
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';
+        //var header = newDiv.appendChild(document.createElement('div'));
+        //header.style.backgroundColor="orange";
+        //header.appendChild(document.createTextNode('Delete'));
 		for (y in notes[x][2]){
 			var msgDiv = newDiv.appendChild(document.createElement('div'));
             var contentDiv = msgDiv.appendChild(document.createElement('div'));
 			contentDiv.innerHTML = notes[x][2][y][0];
             var infoDiv = msgDiv.appendChild(document.createElement('div'));
-            infoDiv.appendChild(document.createTextNode("-"+notes[x][2][y][1]));
+            infoDiv.appendChild(document.createTextNode(notes[x][2][y][1]));
             infoDiv.align='right';
             infoDiv.className="msgInfo";
 			msgDiv.className='msg';
+            msgDiv.id=notes[x][3]+"msg";
 		}
 		var cont=newDiv.appendChild(document.createElement('div'));
 		cont.className='respond';
-		cont.appendChild(document.createTextNode('respond'));
+		cont.appendChild(document.createTextNode('Respond'));
 		cont.id=notes[x][3];
 	}
     typeToScript=true;
 	$('.respond').click(function(){newMessage(this.id)});
+    $('.msg').click(function(){
+        for (i in notes){
+            if (String(notes[i][3])==String(this.id.replace("msg",""))){
+                pos.row=anch.row=notes[i][0];
+                pos.col=anch.col=notes[i][1];
+            }
+        }
+        paint(false, false, false, false);
+        if(ud>document.getElementById('canvas').height)scroll(ud-document.getElementById('canvas').height+200);
+        if(ud<0)scroll(ud-200);
+    });
 }
 function newThread(){
+    noteIndex();
+    typeToScript=false;
+    var c = document.getElementById('noteBox');
+    var newDiv=c.appendChild(document.createElement('div'));
+    newDiv.className='thread';
 	id=Math.round(Math.random()*1000000000);
-	var tmp=[pos.row, pos.col, [['new thread', 'ritchie', 'timestamp']],id];
-	notes.push(tmp);
-	noteIndex();
+    var found=true;
+    while (found==true){
+        found=false;
+        for (i in notes){
+            if (String(notes[i][3])==String(id)){
+                id=Math.round(Math.random()*1000000000);
+                found=true;
+            }
+        }
+    }
+    var n = newDiv.appendChild(document.createElement('div'));
+    n.className='respondControls';
+    var i=n.appendChild(document.createElement('div'));
+    i.contentEditable=true;
+    i.id='nmi';
+    var sb = n.appendChild(document.createElement('input'));
+    sb.type='button';
+    sb.value='Save';
+    sb.id='noteSave';
+    var cb = n.appendChild(document.createElement('input'));
+    cb.type='button';
+    cb.value='Cancel';
+    cb.id="noteCancel"
+    $('#noteSave').click(function(){submitNewThread(id)});
+    $('#noteCancel').click(function(){noteIndex()});
+}
+function submitNewThread(v){
+    var content = document.getElementById('nmi').innerHTML
+    var u =document.getElementById('user_email').innerHTML;
+    var d = new Date();
+    if (content!=""){
+        var arr = [pos.row, pos.col, [[content,u,d]], v];
+        notes.push(arr);
+        var data = [pos.row, pos.col, content, v]
+        console.log(data)
+        $.post("/notesnewthread", {resource_id:resource_id, data : JSON.stringify(data)}, function(d){if(d!='sent')alert("problem")})
+    }
+    noteIndex();
 }
 function newMessage(v){
     noteIndex();
@@ -1722,8 +1783,14 @@ function submitMessage(v){
 			var n=x;
 		}
 	}
+    var d = new Date();
     var content = document.getElementById('nmi').innerHTML
-	notes[n][2].push([content, 'other ritchie', 'timestamp']);
+    var u =document.getElementById('user_email').innerHTML;
+    if(content!=""){
+        var arr=[content, u, d]
+        notes[n][2].push(arr);
+        $.post("/notessubmitmessage", {resource_id:resource_id, data : content, thread_id : v}, function(d){alert("problem")})
+    }
 	noteIndex();
 }
 
