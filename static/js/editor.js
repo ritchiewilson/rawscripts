@@ -86,7 +86,7 @@
      *</thread>
      *
 	 * */
-	var notes = [[6,4,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[10,3,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
+	var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
     //notes=[];
     var spellWrong=[];
     var spellIgnore=[];
@@ -523,11 +523,17 @@ function mouseDown(e){
             pasting=true;
             var t=setTimeout("paste()",50);
         }
-        else if(id=='insertNote')newThread();
+        else if(id=='insertNote'){
+            viewNotes=true;
+            newThread();
+        }
         else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
         else if(id=="spellCheck")launchSpellCheck();
         //View
         else if(id=='revision')window.open('/revisionhistory?resource_id='+resource_id);
+        else if(id=='notes'){
+            viewNotes = (viewNotes ? false : true);
+        }
         //Share
         else if(id=='email')emailPrompt();
         a.style.display='none';
@@ -1236,7 +1242,7 @@ function handlekeypress(event) {
             //shift notes
             for(x in notes){
                 if(pos.row==notes[x][0]){
-                    if (pos.col<=notes[x][1])notes[x][1]=notes[x][1]+1;
+                    if (pos.col-1<=notes[x][1])notes[x][1]=notes[x][1]+1;
                 }
             }
             saveTimer();
@@ -2252,56 +2258,24 @@ function drawRange(ctx){
     }
 }
 
-function drawNotes(ctx){
-    for (x in notes){
-        var startHeight = lineheight*9+3;
-        var count=0;
-        for (var i=0; i<notes[x][0];i++){
-            if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                startHeight-=(pageBreaks[count][2])*lineheight;
-                if(lines[i][1]==3)startHeight+=lineheight;
-                count++;
-                if(count==pageBreaks.length)count--;
-            }
-            startHeight+=lineheight*linesNLB[i].length;
-        }
-        var i=0;
-        var startRangeCol=linesNLB[notes[x][0]][i]+1;
-        while(notes[x][1]>startRangeCol){
-            startHeight+=lineheight;
-            if(pageBreaks.length!=0 && pageBreaks[count][0]==notes[x][0] && pageBreaks[count][2]==i+1){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
-            }
-            else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==notes[x][0] && pageBreaks[count][2]==i){
-                startHeight=72*lineheight*(count+1)+9*lineheight+4;
-                if(lines[notes[x][0]][1]==3)startHeight+=lineheight;
-            }
-            i++;
-            startRangeCol+=linesNLB[notes[x][0]][i]+1;
-        }
-        startRangeCol-=linesNLB[notes[x][0]][i]+1;
-        var startWidth = WrapVariableArray[lines[notes[x][0]][1]][1];
-        startWidth+=((notes[x][1]-startRangeCol)*fontWidth);
-        startWidth-=(fontWidth/2);
-        startHeight+=lineheight;
-        ctx.moveTo(startWidth,startHeight-vOffset);
-        ctx.fillStyle='red';
-        ctx.fillText("✍", startWidth,startHeight-vOffset);
-        
+
+function drawNote(width, height, col, ctx, i){
+    if(lines[i][1]==5){
+        ctx.fillStyle="orange";
+        ctx.fillRect(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3, fontWidth, lineheight);
+        ctx.fillStyle=foreground;
+        ctx.fillText('X', width-fontWidth*(lines[i][0].length-col), height-vOffset)
+    }
+    else{
+        ctx.fillStyle="orange";
+        ctx.fillRect(width+fontWidth*col, height-vOffset-lineheight+3, fontWidth, lineheight);
+        ctx.fillStyle=foreground;
+        ctx.fillText('X', width+fontWidth*col, height-vOffset)
     }
 }
 
-function drawNote(width, height, col, ctx){
-    ctx.fillStyle="orange";
-    ctx.fillRect(width+fontWidth*col, height-vOffset-lineheight+3, fontWidth, lineheight);
-    ctx.fillStyle=foreground;
-    ctx.fillText('X', width+fontWidth*col, height-vOffset)
-}
-
 function sortNumbers(a,b){
-    return b - a;
+    return a - b;
 }
 
 function paint(e, anchE, forceCalc, forceScroll){
@@ -2374,7 +2348,6 @@ function paint(e, anchE, forceCalc, forceScroll){
     var count = 0;
     var currentPage=false;
     var sceneCount=0;
-    var notesOnThisLine=[];
     //Stary Cycling through lines
 	for (var i=0; i<lines.length; i++){
         if (lines[i][1]==0)sceneCount++;
@@ -2411,6 +2384,14 @@ function paint(e, anchE, forceCalc, forceScroll){
         }
         
         else{
+            // calc if there are notes in this line
+            var notesArr=[];
+            if(viewNotes){
+                for (note in notes){
+                    if(notes[note][0]==i)notesArr.push(notes[note][1]);
+                }
+            }
+            notesArr = notesArr.sort(sortNumbers);
             var type = lines[i][1];
             //Cursor position
             var anchOrFocus = (anchE ? anch.row : pos.row);
@@ -2451,6 +2432,11 @@ function paint(e, anchE, forceCalc, forceScroll){
             var word = 0;
             if(e||anchE)var wrapCounterOnClick=[];
             linesNLB[i]=[];
+            // tc = total characters, used
+            // mainly to put in notes
+            var tc = 0;
+            var anchEFound=false;
+            var eFound=false;
             while(word<wordsArr.length){
                 var itr=0;
                 if (wordsArr.slice(word).join().length<wrapVars[0]){
@@ -2459,7 +2445,18 @@ function paint(e, anchE, forceCalc, forceScroll){
                     if(lines[i][1]==0)latestCharacter='';
                     if (wrapVars[3]==1)printString= printString.toUpperCase();
                     if (wrapVars[2]==1)ctx.textAlign='right';
-                    if(printString!='')ctx.fillText(printString, wrapVars[1] , y-vOffset);
+                    var altPrintString = printString;
+                    var notesInThisLine=[];
+                    if(viewNotes){
+                        for(note in notesArr){
+                            if (notesArr[note]>=lines[i][0].length-printString.length){
+                                altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
+                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i);
+                                notesInThisLine.push(notesArr[note]);
+                            }
+                        }
+                    }
+                    if(printString!='')ctx.fillText(altPrintString, wrapVars[1] , y-vOffset);
                     ctx.textAlign='left';
                     word=wordsArr.length;
                     linesNLB[i].push(printString.length);
@@ -2479,7 +2476,19 @@ function paint(e, anchE, forceCalc, forceScroll){
                         itr++;
                         if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
                     }
-                    ctx.fillText(newLineToPrint, wrapVars[1], y-vOffset);
+                    var altNewLineToPrint = newLineToPrint;
+                    var notesInThisLine=[];
+                    if(viewNotes){
+                        for(note in notesArr){
+                            if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
+                                altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
+                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i);
+                                notesInThisLine.push(notesArr[note]);
+                            }
+                        }
+                    }
+                    tc+=newLineToPrint.length+1;
+                    ctx.fillText(altNewLineToPrint, wrapVars[1], y-vOffset);
                     linesNLB[i].push(newLineToPrint.length);
                     y+=lineheight;
                     word+=itr-1;
@@ -2498,7 +2507,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                 // on click
                 // Bad place to put it. See if can be done
                 // better in mouseClick function
-                if(e && e.clientY-headerHeight<y-vOffset-lineheight && e.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
+                if(e && !eFound && e.clientY-headerHeight<y-vOffset-lineheight && e.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
                     pos.row=i;
                     pos.col=0;
                     var itr=0;
@@ -2520,17 +2529,23 @@ function paint(e, anchE, forceCalc, forceScroll){
                         pos.col-=remainder;
                         pos.col+=lines[i][0].length;
                     }
+                    if(viewNotes){
+                        for (note in notesInThisLine){
+                            if (notesInThisLine[note]<pos.col)pos.col--;
+                        }
+                    }
                     var onClickLengthLimit=0;
                     for(var integ=0; integ<wrapCounterOnClick.length; integ++){
                         onClickLengthLimit+=wrapCounterOnClick[integ]+1;
                     }
                     if(pos.col<0)pos.col=0;
                     if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+                    eFound=true;
                     
                 }
                 // Now setting anchor position
                 
-                if(anchE && anchE.clientY-headerHeight<y-vOffset-lineheight && anchE.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
+                if(anchE && !anchEFound && anchE.clientY-headerHeight<y-vOffset-lineheight && anchE.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
                     anch.row=i;
                     anch.col=0;
                     var itr=0;
@@ -2552,12 +2567,18 @@ function paint(e, anchE, forceCalc, forceScroll){
                         anch.col-=remainder;
                         anch.col+=lines[i][0].length;
                     }
+                    if(viewNotes){
+                        for (note in notesInThisLine){
+                            if (notesInThisLine[note]<anch.col)anch.col--;
+                        }
+                    }
                     var onClickLengthLimit=0;
                     for(var integ=0; integ<wrapCounterOnClick.length; integ++){
                         onClickLengthLimit+=wrapCounterOnClick[integ]+1;
                     }
                     if(anch.col<0)anch.col=0;
                     if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
+                    anchEFound=true;
                 }
                 if(bb && linesNLB[i].length==pageBreaks[count][2]){
                     if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1], y-vOffset);
@@ -2577,66 +2598,79 @@ function paint(e, anchE, forceCalc, forceScroll){
         //setup stuff of Con't
         if(lines[i][1]==2)var latestCharacter = lines[i][0];
         if(i==pos.row && currentPage==false) currentPage=count+1;
-        if(i==pos.row)var currentScene=sceneCount;
+        if(i==pos.row){
+            var currentScene=sceneCount;
+            var notesOnThisLine=notesArr; 
+        }
         if(count>=pageBreaks.length){
             if (currentPage==false)currentPage=count+1;
             count=pageBreaks.length-2;
         }
-
-        
     }
       // End Looping through lines
 	  // delete extra data in linesNLB
       while(lines.length<linesNLB.length){
         linesNLB.pop();
       }
-	  // Cursor
-	  var d= new Date();
-	  var newMilli = d.getMilliseconds();
-	  var diff = newMilli-milli;
-	  var cursor = false;
-	  if (diff>0 && diff<500){
-		  cursor = true;
-	  }
-	  if (diff<0 && diff<-500){
-		  cursor = true;
-	  }
-	  if(wrappedText){
-          var wrapCounter=0;
-          var lrPosDiff = pos.col;
-          var totalCharacters=wrappedText[wrapCounter];
-          while (pos.col>totalCharacters){
-                wrapCounter++;
-                totalCharacters+=1+wrappedText[wrapCounter];
-          }
-          totalCharacters-=wrappedText[wrapCounter];
-          if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
-                currentPage+=1;
-                cursorY=72*cos[0]*lineheight+9*lineheight;
-                if(lines[pos.row][1]==3){
-                    cursorY+=lineheight*2;
-                    wrapCounter-=pageBreaks[cos[0]-1][2];
-                }
-                else if(lines[pos.row][1]==1){
-                    wrapCounter-=pageBreaks[cos[0]-1][2];
-                    cursorY+=lineheight;
-                }
-          }
-          if(cursor){
-              var lr = cursorX+((pos.col-totalCharacters)*fontWidth);
-              if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
-              ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-              try{
-                ctx.fillRect(lr,ud,2,17);
-              }
-              catch(err){console.log(lines[pos.row][0]);}
-            }
-	  }
-      
-      //Draw Notes if any
+        //Draw Notes if any
     if(notes.length!=0 && !forceCalc){
-        drawNotes(ctx);
+        //drawNotes(ctx);
     }
+    // Cursor
+	var d= new Date();
+	var newMilli = d.getMilliseconds();
+	var diff = newMilli-milli;
+	var cursor = false;
+	if (diff>0 && diff<500){
+        cursor = true;
+    }
+    if (diff<0 && diff<-500){
+        cursor = true;
+    }
+    if(wrappedText){
+        var wrapCounter=0;
+        var lrPosDiff = pos.col;
+        var totalCharacters=wrappedText[wrapCounter];
+        while (pos.col>totalCharacters){
+            wrapCounter++;
+            totalCharacters+=1+wrappedText[wrapCounter];
+        }
+        totalCharacters-=wrappedText[wrapCounter];
+        //count notes on this line
+        // and figure which is before the cursor
+        var notesSpacingDiff=0;
+        for (note in notesOnThisLine){
+            var n = notesOnThisLine[note];
+            console.log();
+            if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
+                notesSpacingDiff++;
+            }
+        }
+        //console.log(notesSpacingDiff);
+        if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+            currentPage+=1;
+            cursorY=72*cos[0]*lineheight+9*lineheight;
+            if(lines[pos.row][1]==3){
+                cursorY+=lineheight*2;
+                wrapCounter-=pageBreaks[cos[0]-1][2];
+            }
+            else if(lines[pos.row][1]==1){
+                wrapCounter-=pageBreaks[cos[0]-1][2];
+                cursorY+=lineheight;
+            }
+        }
+        if(cursor){
+            var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth);
+            if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
+            ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+            try{
+                ctx.fillRect(lr,ud,2,17);
+            }
+            catch(err){console.log(lines[pos.row][0]);}
+        }
+    }
+      
+    
     //Start work on frame and buttons and stuff
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ddd';
