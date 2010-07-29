@@ -2176,7 +2176,15 @@ function drawRange(ctx){
     var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
     startWidth+=((startRange.col-startRangeCol)*fontWidth);
     startHeight+=lineheight;
-
+    // calc notes
+    for (note in notes){
+        if(notes[note][0]==startRange.row){
+            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
+                if(notes[note][1]<startRange.col)startWidth+=fontWidth;
+            }
+        }
+    }
+    
     //getting the ending position
 
     var endHeight = lineheight*9+3;
@@ -2215,7 +2223,14 @@ function drawRange(ctx){
     var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
     endWidth+=((endRange.col-endRangeCol)*fontWidth);
     endHeight+=lineheight;
-
+    // calc notes
+    for (note in notes){
+        if(notes[note][0]==endRange.row){
+            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
+                if(notes[note][1]<endRange.col)endWidth+=fontWidth;
+            }
+        }
+    }
     
     // Now compare stuff and draw blue Box
     ctx.fillStyle='lightBlue';
@@ -2607,15 +2622,12 @@ function paint(e, anchE, forceCalc, forceScroll){
             count=pageBreaks.length-2;
         }
     }
-      // End Looping through lines
-	  // delete extra data in linesNLB
-      while(lines.length<linesNLB.length){
+    // End Looping through lines
+    // delete extra data in linesNLB
+    while(lines.length<linesNLB.length){
         linesNLB.pop();
-      }
-        //Draw Notes if any
-    if(notes.length!=0 && !forceCalc){
-        //drawNotes(ctx);
     }
+      
     // Cursor
 	var d= new Date();
 	var newMilli = d.getMilliseconds();
