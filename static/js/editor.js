@@ -437,6 +437,7 @@ function setup(){
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
+    tabs(0);
     characterInit();
     sceneIndex();
 	noteIndex();
@@ -447,6 +448,22 @@ function setup(){
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 40);
     });
+}
+function tabs(v){
+    var t = ["sceneTab","noteTab"]
+    for(i in t){
+        var c = document.getElementById(t[i]);
+        if(i==v){
+            c.style.backgroundColor="#1240AB";
+            c.style.color='white';
+            document.getElementById(t[i].replace("Tab","s")).style.display="block";
+        }
+        else{
+            c.style.backgroundColor="#6C8CD5";
+            c.style.color='black';
+            document.getElementById(t[i].replace("Tab","s")).style.display="none";
+        }
+    }
 }
 function changeFormat(v){
     saveTimer();

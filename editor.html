@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <script src="js/jquery.min.js" type="text/javascript"></script>
   <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
-  <script src="js/min/editor-min.js" type="text/javascript"></script>
+  <script src="js/editor.js" type="text/javascript"></script>
   <script src="js/json2.js" type="text/javascript"></script>
   <script src="js/dom.js" type="text/javascript"></script>
   <style>
@@ -204,6 +204,14 @@
 }
 #spellcheckfocus{
     background-color:lightBlue;
+}
+.tab{
+    background-color:#6C8CD5;
+    padding:2px;
+    font-family:sans-serif;
+    font-size:11pt;
+    border:2px #1240AB solid;
+    cursor:pointer;
 }
 
   </style
@@ -408,6 +416,14 @@
     </div>
   </canvas>
   <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; overflow:auto; background-color:white;">
+    <div id="tabBox">
+        <table width="100%" cellspacing=0>
+            <tr>
+                <td class="tab" align="center" style="width:50%" id="sceneTab" onclick="tabs(0)">Scenes</td>
+                <td class="tab" align="center" style="width:50%" id="noteTab" onclick="tabs(1)">Notes</td>
+            </tr>
+        </table>
+    </div>
     <div id="scenes">
         <div id="sceneBox" style="height=50%;overflow:auto;"></div>
     </div>
