@@ -903,6 +903,22 @@ class PostNotes (webapp.RequestHandler):
                      data=data,)
     newNotes.put()
 
+class OneScript (webapp.RequestHandler):
+  def get(self):
+    q=db.GqlQuery("SELECT * FROM ScriptData "+
+                  "Where resource_id='OlN1d0aCprBv4tEe3sZh' "+
+                  "ORDER BY version DESC")
+    
+    r=q.fetch(1)
+    J=simplejson.loads(r[0].data)
+    for i in J:
+      if len(i)!=2:
+        i.append(0)
+    content = simplejson.dumps(J)
+    r[0].data = content
+    r[0].put()
+    self.response.headers["Content-Type"]="text/plain"
+    self.response.out.write(content)
 
 def main():
   application = webapp.WSGIApplication([('/scriptlist', ScriptList),
@@ -921,6 +937,7 @@ def main():
                                         ('/titlepage', TitlePage),
                                         ('/titlepagesave', SaveTitlePage),
                                         ('/getsharelist', GetShareList),
+                                        ("/onescript", OneScript),
                                         ('/list', List),],
                                        debug=True)
   

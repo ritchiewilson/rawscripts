@@ -89,6 +89,10 @@ handlers:
   login: required
   script: notes.py
 
+- url: /onescript.*
+  login: admin
+  script: scripteditor.py
+
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
