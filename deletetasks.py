@@ -34,10 +34,12 @@ class Users (db.Model):
   firstUse = db.DateTimeProperty(auto_now_add=True)
 
 class Notes (db.Model):
-  user = db.StringProperty()
   resource_id = db.StringProperty()
+  thread_id=db.StringProperty()
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
+  row = db.IntegerProperty()
+  col = db.IntegerProperty()
 
 class ScriptData (db.Model):
   resource_id = db.StringProperty()
@@ -137,6 +139,11 @@ class AutomatedDelete (webapp.RequestHandler):
         q=db.GqlQuery("SELECT * FROM SpellingData "+
                       "WHERE resource_id='"+resource_id+"'")
         r=q.fetch(50)
+        for i in r:
+          i.delete()
+        q=db.GqlQuery("SELECT * FROM Notes "+
+                      "WHERE resource_id='"+resource_id+"'")
+        r=q.fetch(1000)
         for i in r:
           i.delete()
     

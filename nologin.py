@@ -24,10 +24,12 @@ tree = da.getTreeFromFile(TREEFILE)
 
 
 class Notes (db.Model):
-  user = db.StringProperty()
   resource_id = db.StringProperty()
+  thread_id=db.StringProperty()
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
+  row = db.IntegerProperty()
+  col = db.IntegerProperty()
 
 class SpellingData (db.Model):
   resource_id = db.StringProperty()
@@ -126,11 +128,23 @@ class ScriptContent (webapp.RequestHandler):
       if len(spellresults)!=0:
         sp.append(simplejson.loads(spellresults[0].wrong))
         sp.append(simplejson.loads(spellresults[0].ignore))
+
+      q=db.GqlQuery("SELECT * FROM Notes "+
+                    "WHERE resource_id='"+resource_id+"'")
+      noteresults = q.fetch(1000)
+      notes=[]
+      for i in noteresults:
+        logging.info(i.col)
+        logging.info(i.data)
+        logging.info(i.row)
+        arr = [i.row, i.col, simplejson.loads(i.data), i.thread_id]
+        notes.append(arr)
       
       ja=[]
       ja.append(title)
       ja.append(simplejson.loads(results[0].data))
       ja.append(sp)
+      ja.append(notes)
 
       content = simplejson.dumps(ja)
 

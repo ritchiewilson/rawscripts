@@ -34,6 +34,8 @@ class Notes (db.Model):
   thread_id=db.StringProperty()
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
+  row = db.IntegerProperty()
+  col = db.IntegerProperty()
 
 
 class ScriptData (db.Model):
@@ -74,11 +76,13 @@ class NewThread(webapp.RequestHandler):
       thread_id = self.request.get('thread_id')
       content = self.request.get('content')
       d = str(datetime.datetime.today())
-      arr = [row, col, [[content, user, d]],thread_id]
+      arr = [[content, user, d]]
       data = simplejson.dumps(arr)
       n=Notes(resource_id=resource_id,
               thread_id=thread_id,
-              data=data)
+              data=data,
+              row=int(row),
+              col=int(col))
       n.put()
       self.response.headers["Content-Type"]="text/plain"
       self.response.out.write('sent')
@@ -99,7 +103,7 @@ class SubmitMessage(webapp.RequestHandler):
                    "AND thread_id='"+thread_id+"'")
       r=q.fetch(1)
       J = simplejson.loads(r[0].data)
-      J[2].append([content,user,d])
+      J.append([content,user,d])
       r[0].data=simplejson.dumps(J)
       r[0].put()
 

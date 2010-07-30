@@ -434,6 +434,10 @@ function setup(){
             spellIgnore.push(ignore[i]);
         }
     }
+    //setupnotes
+    for(i in p[3]){
+        notes.push(p[3][i]);
+    }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
@@ -1741,6 +1745,7 @@ function newThread(){
     cb.id="noteCancel"
     $('#noteSave').click(function(){submitNewThread(id)});
     $('#noteCancel').click(function(){noteIndex()});
+    i.focus();
 }
 function submitNewThread(v){
     var content = document.getElementById('nmi').innerHTML
@@ -1750,7 +1755,7 @@ function submitNewThread(v){
         var arr = [pos.row, pos.col, [[content,u,d]], v];
         notes.push(arr);
         var data = [pos.row, pos.col, content, v]
-        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("problem")})
+        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
     }
     noteIndex();
 }
@@ -1774,6 +1779,7 @@ function newMessage(v){
     c.parentNode.removeChild(c);
     $('#noteSave').click(function(){submitMessage(v)});
     $('#noteCancel').click(function(){noteIndex()});
+    i.focus();
 }
 
 function submitMessage(v){
@@ -1788,8 +1794,7 @@ function submitMessage(v){
     if(content!=""){
         var arr=[content, u, d]
         notes[n][2].push(arr);
-        console.log(content);
-        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("problem")})
+        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
     }
 	noteIndex();
 }

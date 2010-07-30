@@ -56,10 +56,12 @@ class Users (db.Model):
   firstUse = db.DateTimeProperty(auto_now_add=True)
 
 class Notes (db.Model):
-  user = db.StringProperty()
   resource_id = db.StringProperty()
+  thread_id=db.StringProperty()
   updated = db.DateTimeProperty(auto_now_add=True)
   data = db.TextProperty()
+  row = db.IntegerProperty()
+  col = db.IntegerProperty()
 
 class ScriptData (db.Model):
   resource_id = db.StringProperty()
