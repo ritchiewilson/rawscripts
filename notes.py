@@ -29,6 +29,17 @@ def permission (resource_id):
         p=i.title
   return p
 
+def ownerPermission (resource_id):
+  q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+  results = q.fetch(1000)
+  p=False
+  for i in results:
+    if i.permission=='owner':
+      if i.user==users.get_current_user().email().lower():
+        p=i.title
+  return p
+
 class Notes (db.Model):
   resource_id = db.StringProperty()
   thread_id=db.StringProperty()
@@ -110,8 +121,38 @@ class SubmitMessage(webapp.RequestHandler):
       self.response.headers["Content-Type"]="text/plain"
       self.response.out.write('sent')
 
+class Position (webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p = ownerPermission(resource_id)
+    if not p==False:
+      positions = self.request.get('positions')
+      J = simplejson.loads(positions)
+      for i in J:
+        q=db.GqlQuery("SELECT * FROM Notes "+
+           "WHERE resource_id='"+resource_id+"' "+
+           "AND thread_id='"+i[2]+"'")
+        r=q.fetch(1)
+        r[0].row  = i[0]
+        r[0].col = i[1]
+        r[0].put()
+
+class DeleteThread (webapp.RequestHandler):
+  def post(self):
+    resource_id=self.request.get('resource_id')
+    p = ownerPermission(resource_id)
+    if not p==False:
+      thread_id = self.request.get('thread_id')
+      q=db.GqlQuery("SELECT * FROM Notes "+
+                    "WHERE resource_id='"+resource_id+"' "+
+                    "AND thread_id='"+thread_id+"'")
+      r=q.fetch(1)
+      r[0].delete()
+
 def main():
   application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
+                                        ('/notesposition', Position),
+                                        ('/notesdeletethread', DeleteThread),
                                         ('/notesnewthread', NewThread)],
                                        debug=True)
   

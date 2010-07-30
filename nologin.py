@@ -134,9 +134,6 @@ class ScriptContent (webapp.RequestHandler):
       noteresults = q.fetch(1000)
       notes=[]
       for i in noteresults:
-        logging.info(i.col)
-        logging.info(i.data)
-        logging.info(i.row)
         arr = [i.row, i.col, simplejson.loads(i.data), i.thread_id]
         notes.append(arr)
       

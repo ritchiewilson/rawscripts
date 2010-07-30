@@ -458,7 +458,7 @@ function tabs(v){
     for(i in t){
         var c = document.getElementById(t[i]);
         if(i==v){
-            c.style.backgroundColor="#1240AB";
+            c.style.backgroundColor="#3F5EA6";
             c.style.color='white';
             document.getElementById(t[i].replace("Tab","s")).style.display="block";
         }
@@ -1668,7 +1668,24 @@ function sceneIndex(){
 	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
     
 }
+//notes
+function sortNotes(a,b){
+    if (a[0]<b[0]) return -1;
+    if (a[0]>b[0]) return 1;
+    if (a[1]<b[1]) return -1;
+    if (a[1]>b[1]) return 1;
+    return 0;
+}
+function sortNotesCol(a,b){
+    if (a[1]<b[1]) return -1;
+    if (a[1]>b[1]) return 1;
+    return 0;
+}
 function noteIndex(){
+    //notes.sort(sortNotesCol);
+    //console.log(notes);
+    notes.sort(sortNotes);
+    console.log(notes);
 	var c = document.getElementById('noteBox');
 	c.innerHTML="";
     var i = c.appendChild(document.createElement('input'));
@@ -1680,9 +1697,19 @@ function noteIndex(){
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';
-        //var header = newDiv.appendChild(document.createElement('div'));
-        //header.style.backgroundColor="orange";
-        //header.appendChild(document.createTextNode('Delete'));
+        var header = newDiv.appendChild(document.createElement('table'));
+        header.width="100%";
+        var TR = header.appendChild(document.createElement('tr'));
+        var s = TR.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
+        s.appendChild(document.createTextNode(x*1+1*1));
+        var TD = TR.appendChild(document.createElement('td'));
+        TD.align="right";
+        var newA = TD.appendChild(document.createElement('a'));
+        newA.style.backgroundColor="orange";
+        newA.appendChild(document.createTextNode('Delete'));
+        newA.href="javascript:deleteThread('"+notes[x][3]+"')";
+        newA.style.textDecoration="none";
+        newA.style.color = "black";
 		for (y in notes[x][2]){
 			var msgDiv = newDiv.appendChild(document.createElement('div'));
             var contentDiv = msgDiv.appendChild(document.createElement('div'));
@@ -1799,6 +1826,19 @@ function submitMessage(v){
 	noteIndex();
 }
 
+function deleteThread(v){
+    var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
+    if(c==true){
+        $.post("/notesdeletethread", {resource_id:resource_id, thread_id:v})
+    for (i in notes){
+        if (notes[i][3]==v)var found = i;
+    }
+    console.log(found);
+    notes.splice(found,1);
+    noteIndex();
+    }
+}
+
 //Menu
 // function to hand the file like menu
 
@@ -1911,6 +1951,14 @@ function save(v){
         document.getElementById('saveButton').value='Saved';
         document.getElementById('saveButton').disabled=true;
     });
+    var arr = []
+    for (i in notes){
+        arr.push([notes[i][0], notes[i][1], notes[i][3]])
+    }
+    if(arr.length!=0){
+        $.post('/notesposition', {resource_id:resource_id, positions: JSON.stringify(arr)}, function(d){
+        });
+    }
 }
 // open other script
 function openPrompt(){
@@ -2365,17 +2413,56 @@ function drawRange(ctx){
 
 function drawNote(width, height, col, ctx, i){
     if(lines[i][1]==5){
-        ctx.fillStyle="orange";
-        ctx.fillRect(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3, fontWidth, lineheight);
-        ctx.fillStyle=foreground;
-        ctx.fillText('X', width-fontWidth*(lines[i][0].length-col), height-vOffset)
+        ctx.fillStyle="gold";
+        ctx.beginPath();
+        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle="#333";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(var j=1; j<6; j++){
+            ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+1, height-vOffset-lineheight+3+(2*j)+0.5);
+            ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1, height-vOffset-lineheight+3+(2*j)+0.5);
+            ctx.stroke();
+        }
+        ctx.strokeStyle="#999";
+        ctx.beginPath();
+        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.stroke();
     }
     else{
-        ctx.fillStyle="orange";
-        ctx.fillRect(width+fontWidth*col, height-vOffset-lineheight+3, fontWidth, lineheight);
-        ctx.fillStyle=foreground;
-        ctx.fillText('X', width+fontWidth*col, height-vOffset)
+        ctx.fillStyle="gold";
+        ctx.beginPath();
+        ctx.moveTo(width+fontWidth*col, height-vOffset-lineheight+3);
+        ctx.lineTo(width+fontWidth*col, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle="#333";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(var i=1; i<6; i++){
+            ctx.moveTo(width+fontWidth*col+1, height-vOffset-lineheight+3+(2*i)+0.5);
+            ctx.lineTo(width+fontWidth*col+fontWidth-1, height-vOffset-lineheight+3+(2*i)+0.5);
+            ctx.stroke();
+        }
+        ctx.strokeStyle="#999";
+        ctx.beginPath();
+        ctx.moveTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.lineTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.stroke();
     }
+    ctx.fillStyle=foreground;
 }
 
 function sortNumbers(a,b){
