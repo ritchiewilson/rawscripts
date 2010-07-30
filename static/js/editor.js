@@ -441,7 +441,7 @@ function setup(){
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
-    tabs(1);
+    tabs(0);
     characterInit();
     sceneIndex();
 	noteIndex();
@@ -1700,8 +1700,7 @@ function noteIndex(){
         var header = newDiv.appendChild(document.createElement('table'));
         header.width="100%";
         var TR = header.appendChild(document.createElement('tr'));
-        var s = TR.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
-        s.appendChild(document.createTextNode(x*1+1*1));
+        TR.appendChild(document.createElement('td'));
         var TD = TR.appendChild(document.createElement('td'));
         TD.align="right";
         var newA = TD.appendChild(document.createElement('a'));
@@ -1715,7 +1714,7 @@ function noteIndex(){
             var contentDiv = msgDiv.appendChild(document.createElement('div'));
 			contentDiv.innerHTML = notes[x][2][y][0];
             var infoDiv = msgDiv.appendChild(document.createElement('div'));
-            infoDiv.appendChild(document.createTextNode(notes[x][2][y][1]));
+            infoDiv.appendChild(document.createTextNode(notes[x][2][y][1].split("@")[0]));
             infoDiv.align='right';
             infoDiv.className="msgInfo";
 			msgDiv.className='msg';
