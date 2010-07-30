@@ -52,6 +52,7 @@ function tabs(v){
 
 function refreshList(v){
 	$.post('/list', function(data){
+    console.log(data);
 	document.getElementById('loading').style.display = 'none';
     //remove old data
     var childs = document.getElementById('content').childNodes;
@@ -65,6 +66,7 @@ function refreshList(v){
     var j = JSON.parse(data);
     var x=j[0];
     var z=j[1];
+    var ss=j[2]
     if(x.length==0){
         document.getElementById('noentries').style.display='block';
     }
@@ -72,6 +74,7 @@ function refreshList(v){
         var title = x[i][1];
         var resource_id = x[i][0];
         var updated = x[i][2]
+        var shared_with=x[i][4]
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -103,8 +106,8 @@ function refreshList(v){
         var sharedTd = entryTr.appendChild(document.createElement('td'));
         sharedTd.className = 'sharedCell';
         sharedTd.align = 'right';
-        /*
-        if (shared_with[0]=='none'){
+        
+        if (shared_with.length==0){
             var collabs = '';
         }
         else{
@@ -122,7 +125,7 @@ function refreshList(v){
         manage.appendChild(document.createTextNode('Manage'));
         manage.id = 'share'+resource_id;
         manage.title = shared_with.join('&');
-        */
+        
         //email column
         var emailTd = entryTr.appendChild(document.createElement('td'));
         emailTd.className = 'emailCell';
@@ -138,6 +141,49 @@ function refreshList(v){
         updatedTd.align='center';
         updatedTd.appendChild(document.createTextNode(updated));
 	}
+    // showing sharing scripts
+    document.getElementById('sharedLoading').style.display='none';
+    if (ss.length==0)document.getElementById('sharedNoEntries').style.display='block';
+    var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
+    listDiv.id = 'sharedList';
+    for (i in ss){
+        var resource_id=ss[i][0];
+        var title = ss[i][1];
+        var updated = ss[i][2];
+        var owner = ss[i][3];
+        var entryDiv = listDiv.appendChild(document.createElement('div'));
+        entryDiv.id = resource_id;
+        entryDiv.className = 'entry';
+        var entryTable = entryDiv.appendChild(document.createElement('table'));
+        entryTable.width = '100%';
+        var entryTr = entryTable.appendChild(document.createElement('tr'));
+        //make checkbox
+        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+        checkboxTd.className='checkboxCell';
+        var input = checkboxTd.appendChild(document.createElement('input'));
+        input.type='checkbox';
+        input.name = 'sharedListItems';
+        input.value = resource_id;
+        //make title
+        var titleCell = entryTr.appendChild(document.createElement('td'));
+        var titleLink = titleCell.appendChild(document.createElement('a'));
+        titleLink.id = 'name'+resource_id;
+        var href = 'javascript:script("'+resource_id+'")';
+        titleLink.href=href;
+        titleLink.appendChild(document.createTextNode(title));
+        //show owner
+        var ownerTd = entryTr.appendChild(document.createElement('td'));
+        ownerTd.appendChild(document.createTextNode(owner));
+        ownerTd.align="right";
+        ownerTd.className='ownerCell';
+        //updated
+        var updatedTd = entryTr.appendChild(document.createElement('td'));
+        updatedTd.className="updatedCell";
+        updatedTd.align="center";
+        updatedTd.appendChild(document.createTextNode(updated));
+    }
+    
+    
     document.getElementById('trashLoading').style.display = 'none';
     //remove old data
     var childs = document.getElementById('trashContent').childNodes;

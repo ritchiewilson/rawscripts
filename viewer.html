@@ -1,0 +1,484 @@
+<!DOCTYPE html> 
+<html>
+  <head>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script src="js/jquery.min.js" type="text/javascript"></script>
+  <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
+  <script src="js/viewer.js" type="text/javascript"></script>
+  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/dom.js" type="text/javascript"></script>
+  <style>
+  body{padding:0; margin:0;height:100%; background-color:#ccc}
+  html{height:99%; margin:0; padding:0;}
+  #suggestBox{
+	background-color:#ccc;
+	border:1px black solid;
+	min-width:70px;
+  }
+  .suggestItem{
+	padding:2px;
+	font-family:Courier;
+	font-size:12pt;
+	cursor:pointer;
+  }
+  #focus{
+	background-color:lightBlue;
+  }
+  .TEXT{
+    background-color:white;
+  }
+  .toolBar{
+    font-family:sans-serif; 
+    font-size:10pt;
+    float:left; 
+    background-color:#A2BAE9; 
+    width:100%;
+    border-top:2px #000 solid;
+  }
+  .sceneItem{font-family:Courier; font-size:10pt;margin: 0px 0px 0px 10px; cursor:pointer;}
+  #header{padding:0px;}
+  #menu{padding-top:0px;float:left}
+  #fileMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:0px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid; 
+    background-color:#eeeeef;
+    display:none;
+  }
+  #editMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:34px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid;
+    background-color:#eeeeef;
+    display:none;
+  }
+  #viewMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:71px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid;
+    background-color:#eeeeef;
+    display:none;
+  }
+  #shareMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:114px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid;
+    background-color:#eeeeef;
+    display:none;
+  }
+  #helpMenu{
+    width:150px;
+    position:fixed; 
+    top:63px; 
+    left:161px; 
+    border-right:1px #333 solid; 
+    border-bottom:1px #333 solid; 
+    border-top:1px #999 solid; 
+    border-left:1px #999 solid;
+    background-color:#eeeeef;
+    display:none;
+  }
+  .submenu{
+    padding:2px 2px 2px 6px;
+    font-family:sans-serif; 
+    font-size:10pt;
+    cursor:pointer;
+  }
+  .submenuSplit{
+    padding:2px 2px 4px 6px;
+    margin-bottom:4px;
+    border-bottom:1px #000000 solid;
+    font-family:sans-serif; 
+    font-size:10pt;
+    cursor:pointer;
+  }
+  .submenu:hover{background-color:lightBlue}
+  .submenuSplit:hover{background-color:lightBlue}
+  td{padding:0;}
+  #titleBar{
+    height:40px;
+  }
+  #toolBar{
+  }
+  .menuItem{
+    float:left;
+    margin-top:0px;
+    padding: 4px 7px 4px 7px;
+    cursor:pointer;
+  }
+  .hl{
+    height:7px;
+    width:100%
+    border:1px #000 solid;
+    color:blue;
+  }
+  #title{
+    font-size:18pt;
+    padding:6px;
+    text-shadow: 1px 1px 1px #999;
+    float:left;
+  }
+  .thread{
+    border:1px #666 solid;
+    padding:5px;
+    margin:10px;
+    background-color:#efeff1;
+    -moz-box-shadow: 3px 3px 3px #999;
+    -webkit-box-shadow: 3px 3px 3px #999;
+  }
+  .msg{
+	  background-color:#6A97FF;
+      padding:5px;
+      margin:3px;
+      font-size:11pt;
+      -moz-border-radius: 5px; 
+      -webkit-border-radius: 5px;
+      cursor:pointer;
+  }
+  .msgInfo{
+    padding-top:2px;
+    font-size:11pt;
+  }
+  .respondControls{
+	  background-color:#26972D;
+	  cursor:pointer;
+      padding:5px;
+      margin:3px;
+  }
+  .respond{
+	  background-color:#26972D;
+	  cursor:pointer;
+      padding:5px;
+      margin:3px;
+      -moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+  }
+  #nmi{
+    padding:5px;
+    margin:3px;
+    background-color:white;
+  }
+  .TEXT{  
+  font-size:10pt;  
+  background-color:white; 
+  border-style:inset; 
+  border-width:2px;
+  font-family:Verdana, Geneva, sans-serif;
+  width:400px;
+}
+.token{
+	background-color:#ddd;
+	padding:3px;
+	margin:3px;
+	float:none;
+	font:Verdana, Geneva, sans-serif;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	float:left;
+	}
+.token a{
+	text-decoration:none;
+	color:#000;
+}
+.mailto{
+	display:none;
+}
+.spellcheckitem{
+    font-family:Verdana, Geneva, sans-serif;
+    font-size:10pt;
+    cursor:pointer;
+}
+#spellcheckfocus{
+    background-color:lightBlue;
+}
+.tab{
+    background-color:#6C8CD5;
+    padding:2px;
+    font-family:sans-serif;
+    font-size:11pt;
+    border:2px #3F5EA6 solid;
+    cursor:pointer;
+}
+#scenes{margin-top:4px;}
+
+  </style
+  </head>
+<body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
+<div id="emailpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideEmailPrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Send Script
+            <br /><br />
+			<label for="recipient">Recipients (max 5, comma seperated)</label>
+			<br />
+            <div id="recipients"></div>
+			<input class="TEXT" type='text' name='recipient' id='recipient' style="width:400px" />
+			<br />
+			<label for="subject">Subject</label>
+			<br />
+			<input class="TEXT" type='text' name='subject' id='subject' style="width:400px" />
+			<br />
+			<label for="message">Message (optional)</label>
+			<br />
+			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
+            <br>
+            <select id="emailTitle">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+			<br /><br>
+			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
+            <br />
+			<b>Note:</b> you will automatically get a copy yourself
+		</div>
+	</div>
+</div>
+<div id="spellcheckpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:500px; height:220px; position:relative; margin:auto; top:15%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideSpellCheck()" style="color:#333">Close</a>
+			<br /><br />
+            Spell Check
+            <br />
+			<br />
+            <div id="spellCheck">
+                <div class="TEXT" contentEditable='true' name='sSentance' id='sSentance' style="width:235px; height:120px; overflow:auto; float:left"></div>
+                <div id="sSuggest" style="width:120px; height:120px; background-color:white; float:left; border:2px inset; margin-left:10px;"></div>
+                <div id="spellControls" style="float:left; margin-left:10px;">
+                    <input id="sIgnore" value="Ignore" type="button" style="width:100px;" onclick="s_ignore()"><br>
+                    <input id="sIgnoreAll" value="Ignore All" type="button" style="width:100px;" onclick="s_ignore_all()"><br><br>
+                    <input id="sChange" value="Change" type="button" style="width:100px;" onclick="s_change()"><br>
+                    <input id="sHidden" value ="" type="hidden">
+                   
+                </div>
+            </div>
+            <br>
+            
+		</div>
+	</div>
+</div>
+<div id="newscriptpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
+		<div class="popup"> 
+			<a href="javascript:hideNewScriptPrompt()" style="color:#333">Close</a> 
+			<br /> 
+            
+			<p>New Script Title</p> 
+			<br /> 
+			<input class="TEXT" type='text' name='newScript' id='newScript' style="width:350px" /> 
+			<br /> 
+			<input type='button' onClick='createScript()' value='Create' /> 
+			
+            <br /> 
+		</div> 
+	</div> 
+</div> 
+<div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
+			<br />
+            
+			<p id="renameTitle"></p>
+			<br />
+            <input type="hidden" value="blank" id="resource_id" />
+			<input class="TEXT" type='text' name='renameField' id='renameField' style="width:350px" />
+			<br />
+			<input type='button' onClick='renameScript()' value='Rename' />
+			
+            <br />
+		</div>
+	</div>
+</div>
+<div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
+	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
+		<div class="popup"> 
+			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a> 
+			<br /> 
+			<p>Export as...</p> 
+			<input class='exportList' type="checkbox" checked='true' name="pdf" style="margin-left:5px; margin-right:10px" />   Adobe Pdf<br> 
+			<input class='exportList' type="checkbox" name='txt' style="margin-left:5px; margin-right:10px" />   txt file for Celtx or FD
+			<br /> <br>
+            <select id="et">
+                <option>Without title Page</option>
+                <option>With title Page</option>
+            </select>
+            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
+            <br><br>
+			<input type='button' id="exportS" onClick='exportScripts()' value='Export' /> 
+			
+            <br /> 
+		</div> 
+	</div> 
+</div>
+<div id="openpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideOpenPrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Open Script:
+            <br /><br>
+			<table id="openTable" width="350px">
+            </table>
+            <br>
+			<br />
+		</div>
+	</div>
+</div>
+<div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
+	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup">
+			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+			<br /><br />
+            Share Script: <b id="shareTitle"></b>
+            <br /><br>
+			<table id="hasAccess" width="350px">
+            </table>
+            <br>
+			<br />
+            <p>To be added: (comma seperated)</p>
+            <div id="collaborators"></div>
+			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
+			<br><br><br><br>
+			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
+            <input type="hidden" value="blank" id="shareResource_id" />
+		</div>
+	</div>
+</div>
+  <div id='container' style="width:100%; height:100%; margin:0; padding:0">
+  <div id='header' style="width:100%; height:65px; background-color:#6484df">
+    <div id="titleBar">
+      <div id="title">Screenplay Editor</div>
+      <div style="float:right; margin:5px 10px 0 0;" id="user"><span id="user_email">{{ user }}</span> | <a href="{{  sign_out  }}">Sign Out</a></div>
+    </div>
+    <div class="toolBar" id="toolBar">
+        <div id="menu">
+          <div id='file' class="menuItem">File</div>
+          <div id='edit' class="menuItem">Edit</div>
+          <div id='view' class="menuItem">View</div>
+          <div id='share' class="menuItem">Share</div>
+          <!--<div id='help' class="menuItem">Help</div>-->
+        </div>
+    </div>
+  </div>
+  <canvas id='canvas' width="850" style="float:left">
+    <div style="background-color:white; width:400px; margin-left:75px; padding:100px; padding-top:50px;">
+        <h2>Grrr.... Internet!</h2>
+        <p>Hey, sorry for this, but basicly your browser isn't going to run this very well... at all. But you have options!</p>
+        <p>The latest versions of any of these browsers will work for you.</p>
+        <table cellspacing=15 style="margin:auto;">
+            <tr>
+                <td><a href="http://www.google.com/chrome" target="_blank"><img src="images/chrome.jpg" /></a></td>
+                <td><a href="http://www.apple.com/safari/" target="_blank"><img src="images/safari.png" /></a></td>
+                <td><a href="http://www.firefox.com" target="_blank"><img src="images/firefox.jpg" /></a></td>
+            </tr>
+            <tr>
+                <td align="center"><a href="http://www.google.com/chrome" target="_blank">Chrome</a></td>
+                <td align="center"><a href="http://www.apple.com/safari/" target="_blank">Safari</a></td>
+                <td align="center"><a href="http://www.firefox.com" target="_blank">Firefox</a></td>
+            </tr>
+        </table>
+        
+        <p>Or, if you really want to use Internet Explorer, you can use this plug-in to make it work</p>
+        <div style="margin-left:80px;"><a href="http://www.google.com/chromeframe/eula.html" target="_blank"><img src="images/chrome-frame.png" /></a></div>
+    </div>
+  </canvas>
+  <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; overflow:auto; background-color:white;">
+    <div id="tabBox">
+        <table width="100%" cellspacing=0>
+            <tr>
+                <td class="tab" align="center" style="width:50%" id="sceneTab" onclick="tabs(0)">Scenes</td>
+                <td class="tab" align="center" style="width:50%" id="noteTab" onclick="tabs(1)">Notes</td>
+            </tr>
+        </table>
+    </div>
+    <div id="scenes">
+        <div id="sceneBox" style="height=50%;overflow:auto;"></div>
+    </div>
+    <div id="notes">
+        <div id="noteBox" style="height=50%;overflow:auto;"></div>
+    </div>
+  </div>
+  </div>
+  <div class="topMenu" id="fileMenu" style="display:none">
+    <div id='new' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px"></td><td>New</td></tr></table></div>
+    <div id='open' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Open</td></tr></table></div>
+    
+    <div id='rename' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Rename</td></tr></table></div>
+    <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save</td></tr></table></div>
+    <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Duplicate</td></tr></table></div>
+
+    <!--<div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>-->
+    <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Export As</td></tr></table></div>
+
+    <div id='close' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Close</td></tr></table></div>
+  </div>
+  <div class="topMenu" id="editMenu" style="display:none">
+    <div id='undo' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Undo</td></tr></table></div>
+    <div id='redo' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Redo</td></tr></table></div>
+    
+    <div id='cut' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">✄</td><td>Cut</td></tr></table></div>
+    <div id='copy' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Copy</td></tr></table></div>
+    <div id='paste' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Paste</td></tr></table></div>
+	
+	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>
+    
+    <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Edit Title Page</td></tr></table></div>
+    
+    <div id='spellCheck' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Spell Check</td></tr></table></div>
+
+    <div id="format0" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check0' style="width:15px">✓</td><td>Slugline</td></tr></table></div>
+    <div id="format1" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check1' style="width:15px"></td><td>Action</td></tr></table></div>
+    <div id="format2" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check2' style="width:15px"></td><td>Character</td></tr></table></div>
+    <div id="format3" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check3' style="width:15px"></td><td>Dialog</td></tr></table></div>
+    <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:15px"></td><td>Parenthetical</td></tr></table></div>
+    <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:15px"></td><td>Transition</td></tr></table></div>
+  </div>
+  <div class="topMenu" id="viewMenu" style="display:none">
+    <!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Font Size</td></tr></table></div>-->
+    <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>View/Hide Notes</td></tr></table></div>
+    <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Revision History</td></tr></table></div>
+  </div>
+  <div class="topMenu" id="shareMenu" style="display:none">
+    <!--<div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>-->
+    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
+  </div>
+  <div class="topMenu" id="helpMenu" style="display:none">
+    <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>FAQs</td></tr></table></div>
+    <div id='videos' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Videos</td></tr></table></div>
+    <div id='contact' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Contact</td></tr></table></div>
+  </div>
+  <textarea id="ccp" style="position:fixed; top-9999px; left:-9999px;"></textarea>
+</body>
+</html>

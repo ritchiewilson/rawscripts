@@ -53,9 +53,9 @@ body{margin:0; padding:0;}
 	border-top:none;
 	*/
 }
-#nav {
+#nav{
 	position:absolute;
-	left:38px;
+	left:26px;
 	top:100px;
 }
 .tab{
@@ -89,7 +89,7 @@ body{margin:0; padding:0;}
 	right:10px;
 }
 .updatedCell{
-	width:110px;
+	width:140px;
 }
 .gdocsCell{
 	width:70px;
