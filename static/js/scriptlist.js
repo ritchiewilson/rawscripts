@@ -565,7 +565,7 @@ function removeShareUser(data){
 function sharePrompt(v){
 	document.getElementById('shareS').disabled = false;
 	document.getElementById('shareS').value = "Send Invitation";
-	var collabs = document.getElementById('share'+v).title.split('&');
+	var collabs = (document.getElementById('share'+v).title=="" ? [] : document.getElementById('share'+v).title.split("&"));
 	var hasAccess = document.getElementById('hasAccess');
 	document.getElementById('collaborator').value = "";
 	document.getElementById('collaborators').innerHTML = "";

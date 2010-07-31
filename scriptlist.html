@@ -6,7 +6,7 @@
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/scriptlist.js"></script>
+<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
 <script src="js/json2.js" type="text/javascript"></script>
 <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
@@ -147,7 +147,8 @@ $(document).ready(function(){
             <p>To be added: (comma seperated)</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br /><br><br><br>
+			<br />
+            <p>Note: for now you can only share with Gmail users</p>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
             <input type="hidden" value="blank" id="shareResource_id" />
             
