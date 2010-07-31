@@ -35,7 +35,6 @@
    var lineheight = 13;
    var milli = 0;
    var formatMenu = false;
-   var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
    var resource_id='random123456789';
    // Use the same wrapping procedure over and over
    // just define an array to pass into it
@@ -88,9 +87,6 @@
 	 * */
 	//var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
     notes=[];
-    var spellWrong=[];
-    var spellIgnore=[];
-    var checkSpell=false;
     
     
 $(document).ready(function(){
@@ -113,24 +109,18 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
   });
   $('*').keydown(function(e){
-  if (commandDownBool && e.which!=16){
-        keyboardShortcut(e)
-    }
-   else{
-      var d= new Date();
-      milli = d.getMilliseconds();
-      else if(e.which==38)upArrow();
-      else if(e.which==40)downArrow();
-      else if(e.which==39)rightArrow();
-      else if(e.which==37)leftArrow();
-      else if(e.which==16)shiftDown=true;
-      else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
-      //console.log(ud, vOffset);
-      if((ud<0 || ud>document.getElementById('canvas').height-80) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8){
-        scroll(ud-400);
-      }
-      //console.log(e.which);
-    }
+  var d= new Date();
+  milli = d.getMilliseconds();
+  if(e.which==38)upArrow();
+  else if(e.which==40)downArrow();
+  else if(e.which==39)rightArrow();
+  else if(e.which==37)leftArrow();
+  else if(e.which==16)shiftDown=true;
+  else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
+
+  if((ud<0 || ud>document.getElementById('canvas').height-80) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8){
+    scroll(ud-400);
+  }
     if(typeToScript){
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
@@ -140,7 +130,6 @@ $(document).ready(function(){
   $('*').keyup(function(e){
   //console.log(ud);
   if(e.which==16)shiftDown=false;
-  else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   if(typeToScript){
       document.getElementById('ccp').focus();
       document.getElementById('ccp').select();
@@ -170,196 +159,9 @@ $(document).ready(function(){
 // Character and Scene Suggest
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
 
-function createSuggestBox(d){
-	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
-	if(d=='c'){
-        v=characters;
-        var left=WrapVariableArray[2][1]+'px';
-    }
-    else{
-        v=scenes;
-        for(i in v){
-            v[i][0]=v[i][0].split(') ').splice(1).join(') ');
-        }
-        var left=WrapVariableArray[0][1]+'px';
-    }
-	var l=lines[pos.row][0].length;
-	for (x in v){
-		var part=lines[pos.row][0].toUpperCase();
-		var s = v[x][0].substr(0,l).toUpperCase();
-		if (part==s && part!=v[x][0]){
-			//create box now if doens't exist
-			if(document.getElementById('suggestBox')==null){
-				var box = document.body.appendChild(document.createElement('div'));
-				box.id='suggestBox';
-				box.style.position='fixed';
-				box.style.top=ud+70+lineheight+"px";
-				box.style.left=left;
-			}
-            var found=false;
-            if(d=='s'){
-                var c = box.childNodes;
-                for (i in c){
-                    if(v[x][0]==c[i].value)found=true;
-                }
-            }
-            if(!found){
-                var item = box.appendChild(document.createElement('div'));
-                item.className="suggestItem";
-                item.appendChild(document.createTextNode(v[x][0]))
-                item.value=v[x][0]
-                document.getElementById('suggestBox').firstChild.id='focus';
-            }
-		}
-	}
-	$('.suggestItem').mouseover(function(){
-		document.getElementById('focus').removeAttribute('id');
-		this.id='focus';})
-}
 
-function saveTimer(){
-    document.getElementById('saveButton').disabled=false;
-    document.getElementById('saveButton').value='Save';
-    clearTimeout(timer);
-    checkSpell=true;
-    timer = setTimeout('save(1)',7000);
-}
 
-function ajaxSpell(v, r){
-    checkSpell=false;
-    var data = lines[v][0];
-    if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
-        data=data.toUpperCase();
-    }
-    var words = data.split(' ');
-    for (i=0; i<words.length; i++){
-        var found=false;
-        for (j in spellWrong){
-            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
-                found=true;
-            }
-        }
-        for (j in spellIgnore){
-            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
-                found=true;
-            }
-        }
-        if(found){
-            words.splice(i,1)
-            i--;
-        }
-    }
-    var j = JSON.stringify(words);
-    $.post('/spellcheck', {data : j, resource_id : resource_id}, function(d){
-        if(d=='correct')return;
-        var x=JSON.parse(d);
-        for (i in x){
-            spellWrong.push(x[i]);
-        }
-    });
-}
 
-function keyboardShortcut(e){
-    // don't do anything if cut, copy or paste
-    if (e.which!=67 && e.which!=86 && e.which!=88){
-        e.preventDefault();
-        if(shiftDown && e.which==90)redo();
-        else if (e.which==90)undo();
-        else if (e.which==83)save(0);
-        else if (e.which==82)window.location.href=window.location.href;
-    }
-}
-function cut(){
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-    saveTimer();
-}
-function copy(){
-}
-function paste(){
-    saveTimer();
-    redoQue=[];
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-    var j=false;
-    var data=document.getElementById('ccp').value;
-    var r = new RegExp( "\\n", "g" );
-    if (data.split(r).length>1) {
-        var tmp=data.split(r);
-        var tmpArr=[];
-        for (x in tmp){
-            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
-        }
-        data=JSON.stringify(tmpArr);
-    }
-    undoQue.push(['paste',pos.row,pos.col,data]);
-    //undoQue[x][0] ==paste
-    //[1]=pos.row
-    //[2]=pos.col
-    //[3]=data
-    //[4]=added to line
-    //[5]=deleted empty line at end
-    if(data[0]=='[' && data[1]=='[')j=true;
-    if(!j){
-        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
-        pos.col+=document.getElementById('ccp').value.length;
-        anch.col=pos.col;
-    }
-    else{
-        var arr=JSON.parse(data);
-        if (lines[pos.row][0]==''){
-            lines[pos.row][1]=arr[0][1];
-        }
-        if (lines[pos.row][1]==arr[0][1]){
-            undoQue[undoQue.length-1].push(1);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        else{
-            undoQue[undoQue.length-1].push(0);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
-            pos.row++;
-            lines.splice(pos.row,0,arr[0]);
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        pos.row=anch.row=p;
-        pos.col=anch.col=0;
-        if(pos.row>=lines.length){
-            pos.row=anch.row=lines.length-1
-            pos.col=anch.col=lines[pos.row][0].length;
-        }
-    }
-    pasting=false;
-    sceneIndex();
-    document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
-    paint(false,false,true,false);
-}
 function selection(){
     //order stuff
     if(pos.row>anch.row){
@@ -417,16 +219,6 @@ function setup(){
         pos.col=lines[1][0].length;
         anch.col=pos.col;
     }
-    if(p[2].length!=0){
-        var wrong=p[2][0];
-        var ignore =p[2][1];
-        for (w in wrong){
-            spellWrong.push(wrong[w])
-        }
-        for (i in ignore){
-            spellIgnore.push(ignore[i]);
-        }
-    }
     //setupnotes
     for(i in p[3]){
         notes.push(p[3][i]);
@@ -435,7 +227,6 @@ function setup(){
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
     tabs(0);
-    characterInit();
     sceneIndex();
 	noteIndex();
     document.getElementById('ccp').focus();
@@ -460,31 +251,7 @@ function tabs(v){
         }
     }
 }
-function changeFormat(v){
-    saveTimer();
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
-    redoQue=[];
-    lines[pos.row][1]=v;
-    anch.col=pos.col;
-    anch.row=pos.row;
-    if(lines[pos.row][1]==4){
-        if(lines[pos.row][0].charAt(0)!='('){
-            lines[pos.row][0]='('+lines[pos.row][0];
-            pos.col++;
-            anch.col++;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-    }
-    if(lines[pos.row][1]==3){
-        if(lines[pos.row][0].charAt(0)=='('){
-            lines[pos.row][0]=lines[pos.row][0].substr(1);
-            pos.col--;
-            anch.col--;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-    }
-    sceneIndex();
-}
+
 
 function mouseUp(e){
     mouseDownBool=false;
@@ -498,7 +265,6 @@ function mouseUp(e){
         }
 }
 function mouseDown(e){
-    if(checkSpell)ajaxSpell(pos.row);
     var menu = false;
     var c = document.getElementsByTagName('div');
     for(var i=0;i<c.length;i++){
@@ -909,667 +675,6 @@ function rightArrow(){
     }
 }
 
-function backspace(e){
-    if(typeToScript){
-        saveTimer();
-		redoQue=[];
-        if(e)e.preventDefault();
-        var forceCalc=false;
-        var slug=false;
-        if (lines[pos.row][1]==0)var slug=true;
-        // simple case, one letter backspace
-        if(pos.row==anch.row && pos.col==anch.col){
-            if(pos.col==0 && pos.row==0) return;
-            else if(lines[pos.row][1]==4 && pos.col==1){
-                for(x in notes){
-                    if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                var j=lines[pos.row][0];
-                if(j.charAt(0)=='(')j=j.substr(1);
-                if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
-                var newPos = lines[pos.row-1][0].length;
-                lines.splice(pos.row,1);
-                pos.row--
-                pos.col=newPos;
-                lines[pos.row][0]=lines[pos.row][0]+j;
-                undoQue.push(['back',pos.row, pos.col,'line',4]);
-                slug=true;
-            }
-            else if(pos.col==0){
-                //shift notes
-                for(x in notes){
-                    if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                var elem = lines[pos.row][1];
-                var j = lines[pos.row][0];
-                lines.splice(pos.row,1);
-                var newPos = lines[pos.row-1][0].length;
-                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                pos.col=newPos;
-                pos.row--;
-                undoQue.push(['back',pos.row, pos.col,'line',elem]);
-                forceCalc=true;
-                slug=true;
-            }
-            else{
-                undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                pos.col--;
-                //shift notes
-                for(x in notes){
-                    if(pos.row==notes[x][0]){
-                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                    }
-                }
-            }
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
-        // This is for deleting a range
-        else{
-            forceCalc=true;
-            //put the focus after the anchor
-            var switchPos =false;
-            if(anch.row>pos.row)switchPos=true;
-            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-            if(switchPos){
-                var coor = anch.row;
-                anch.row = pos.row;
-                pos.row = coor;
-                coor = anch.col;
-                anch.col = pos.col;
-                pos.col = coor;
-            }
-            var undoCount=0;
-            while(pos.col!=anch.col || pos.row!=anch.row){
-                undoCount++;
-                if(lines[pos.row][1]==0)slug=true;
-                if(pos.col==0){
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row<notes[x][0]){
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        else if(pos.row==notes[x][0]){
-                            notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        if (notes[x][1]<0)notes[x][1]=0;
-                    }
-                    var elem = lines[pos.row][1];
-                    var j = lines[pos.row][0];
-                    lines.splice(pos.row,1);
-                    var newPos = lines[pos.row-1][0].length;
-                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                    pos.col=newPos;
-                    pos.row--;
-                    undoQue.push(['back',pos.row, pos.col,'line',elem]);
-                    slug=true;
-                }
-                else{
-                    undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                    pos.col--;
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row==notes[x][0]){
-                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                        }
-                    }
-                }
-            }
-            undoQue.push(['br',undoCount]);
-        }
-        paint(false,false,forceCalc,false);
-        if (slug)sceneIndex();
-    }
-}
-function deleteButton(){
-    if(typeToScript){
-    saveTimer();
-	redoQue=[];
-        var slug=false;
-        var forceCalc=false;
-        if(pos.row==anch.row&&pos.col==anch.col){
-            if (lines[pos.row][1]==0)var slug=true;
-            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
-                undoQue.push(['delete',pos.row,pos.col,'line',4]);
-                lines.splice(pos.row,1);
-                pos.col=0;
-                anch.col=0;
-            }
-            else if(pos.col==(lines[pos.row][0].length)){
-                //shift notes
-                for(x in notes){
-                    if(pos.row+1==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
-                if (lines[pos.row+1][1]==0)slug=true;
-                var j = lines[pos.row+1][0];
-                lines.splice((pos.row+1),1);
-                lines[pos.row][0]+=j;
-                forceCalc=true;
-            }
-            else{
-                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
-                //shift notes
-                for(x in notes){
-                    if(pos.row==notes[x][0]){
-                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                    }
-                }
-            }
-        }
-        // This is for deleting a range
-        else{
-            forceCalc=true;
-            //put the focus after the anchor
-            var switchPos =false;
-            if(anch.row>pos.row)switchPos=true;
-            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-            if(switchPos){
-                var coor = anch.row;
-                anch.row = pos.row;
-                pos.row = coor;
-                coor = anch.col;
-                anch.col = pos.col;
-                pos.col = coor;
-            }
-            var undoCount=0;
-            while(pos.col!=anch.col || pos.row!=anch.row){
-                undoCount++;
-                if(lines[pos.row][1]==0)slug=true;
-                if(pos.col==0){
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row+1==notes[x][0]){
-                            notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        else if(pos.row<notes[x][0]){
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        
-                        if (notes[x][1]<0)notes[x][1]=0;
-                    }
-                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
-                    var j = lines[pos.row][0];
-                    lines.splice(pos.row,1);
-                    var newPos = lines[pos.row-1][0].length;
-                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                    pos.col=newPos;
-                    pos.row--;
-                    slug=true;
-                }
-                else{
-                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
-                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                    pos.col--;
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row==notes[x][0]){
-                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                        }
-                    }
-                }
-            }
-            undoQue.push(['dr',undoCount]);
-        }
-        paint(false,false,forceCalc,false);
-        if (slug)sceneIndex();
-    }
-}
-	
-function enter(){
-    if(typeToScript && document.getElementById('suggestBox')==null){
-        saveTimer();
-        if(checkSpell)ajaxSpell(pos.row);
-        lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
-        //shift notes
-        for(x in notes){
-            if(pos.row<notes[x][0]){
-                notes[x][0]=notes[x][0]+1;
-            }
-            if(pos.row==notes[x][0] && pos.col<notes[x][1]){
-                notes[x][1]=notes[x][1]-pos.col;
-                notes[x][0]=notes[x][0]+1;
-            }
-        }
-        undoQue.push(['enter', pos.row, pos.col]);
-		redoQue=[];
-        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
-            
-        var j = lines[pos.row][0].slice(0,pos.col);
-        var k = lines[pos.row][0].slice(pos.col);
-        lines[pos.row][0] = j;
-        if (lines[pos.row][1] == 0)var newElem = 1;
-        else if (lines[pos.row][1] == 1)var newElem = 2;
-        else if (lines[pos.row][1] == 2)var newElem = 3;
-        else if (lines[pos.row][1] == 4)var newElem = 3;
-        else if (lines[pos.row][1] == 3)var newElem = 2;
-        else if (lines[pos.row][1] == 5)var newElem = 0;
-        var newArr = [k,newElem];
-        lines.splice(pos.row+1,0,newArr);
-        pos.row++;
-        pos.col=0;
-        anch.row=pos.row;
-        anch.col=pos.col;
-        paint(false,false,true,'enter');
-        paint(false,false,false,'enter');
-    }
-	else if(document.getElementById('suggestBox')!=null){
-        saveTimer();
-        var len = lines[pos.row][0].length;
-		lines[pos.row][0]=document.getElementById('focus').value;
-        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
-		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
-		pos.col=anch.col=lines[pos.row][0].length;
-	}
-    sceneIndex();
-}
-
-function tab(){
-if(typeToScript){
-    saveTimer();
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
-    redoQue=[];
-    var slug=false;
-    if (lines[pos.row][1]==0)var slug=true;
-	var type = lines[pos.row][1];
-	if (type==1){
-        lines[pos.row][1]=0;
-        slug=true;
-    }
-	else if (type==0)lines[pos.row][1]=2;
-	else if (type==2)lines[pos.row][1]=1;
-	else if (type==3)lines[pos.row][1]=4;
-	else if (type==4)lines[pos.row][1]=3;
-	else if (type==5){
-        lines[pos.row][1]=0;
-        slug=true;
-    }
-    if(slug)sceneIndex();
-    if(lines[pos.row][1]==4){
-        if(lines[pos.row][0].charAt(0)!='('){
-            lines[pos.row][0]='('+lines[pos.row][0];
-            pos.col++;
-            anch.col++;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-    }
-    if(lines[pos.row][1]==3){
-        if(lines[pos.row][0].charAt(0)=='('){
-            lines[pos.row][0]=lines[pos.row][0].substr(1);
-            pos.col--;
-            anch.col--;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-    }
-}
-}
-	
-function handlekeypress(event) {
-    if(typeToScript){
-        event.preventDefault();
-		redoQue=[];
-        var d= new Date();
-        milli = d.getMilliseconds();
-        
-        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8 && !commandDownBool){
-            if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
-            undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
-            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
-            pos.col++;
-            if (lines[pos.row][1]==0)sceneIndex();
-			if (lines[pos.row][1]==2){
-				createSuggestBox('c');
-			}
-            if(lines[pos.row][1]==0){
-                createSuggestBox('s');
-            }
-            //shift notes
-            for(x in notes){
-                if(pos.row==notes[x][0]){
-                    if (pos.col-1<=notes[x][1])notes[x][1]=notes[x][1]+1;
-                }
-            }
-            saveTimer();
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
-        
-        document.getElementById('ccp').focus();
-        document.getElementById('ccp').select();
-    }
-}
-
-// Managining arrays
-// calcing data
-function undo(){
-    saveTimer();
-    if (undoQue.length==0)return;
-    var dir = undoQue.pop();
-	var tmp=[];
-	for(x in dir){
-		tmp.push(dir[x]);
-	}
-    redoQue.push(tmp);
-    var forceCalc=false;
-    if(dir[0]=='enter'){
-        var j = lines[dir[1]+1][0];
-        lines.splice((dir[1]+1),1);
-        if(lines[dir[1]][1]==4 && lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
-        lines[dir[1]][0]+=j;
-        forceCalc=true;
-    }
-    else if(dir[0]=='back'){
-        if(dir[3]=='line'){
-            //shift notes
-            for(x in notes){
-                if(dir[1]==notes[x][0]){
-                    if (dir[2]<=notes[x][1]){
-                        notes[x][0]=notes[x][0]+1;
-                        notes[x][1]=notes[x][1]-dir[2];
-                    }
-                }
-                else if(dir[1]<notes[x][0])notes[x][0]=notes[x][0]+1;
-            }
-            var j = lines[dir[1]][0].slice(0,dir[2]);
-            var k = lines[dir[1]][0].slice(dir[2]);
-            if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-            lines[dir[1]][0] = j;
-            var newArr = [k,dir[4]];
-            lines.splice(dir[1]+1,0,newArr);
-            dir[1]=dir[1]+1;
-            dir[2]=0;
-            forceCalc=true;
-        }
-        else{
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
-            //shift notes
-            for(x in notes){
-                if(dir[1]==notes[x][0]){
-                    if (dir[2]<=notes[x][1])notes[x][1]=notes[x][1]+1;
-                }
-            }
-        }
-    }
-    else if(dir[0]=='delete'){
-        if(dir[3]=='line'){
-            var j = lines[dir[1]][0].slice(0,dir[2]);
-            var k = lines[dir[1]][0].slice(dir[2]);
-            if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-            lines[dir[1]][0] = j;
-            var newArr = [k,dir[4]];
-            lines.splice(dir[1]+1,0,newArr);
-            forceCalc=true;
-        }
-        else{
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[3] +lines[dir[1]][0].slice(dir[2]);
-        }
-    }
-    else if(dir[0]=='format'){
-        lines[dir[1]][1]=dir[3];
-        if(lines[dir[1]][0].charAt(0)=='(')lines[dir[1]][0]=lines[dir[1]][0].substr(1);
-        if(lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
-    }
-    else if(dir[0]=='br' || dir[0]=="dr"){
-        var n=dir[1];
-        for(var i=0; i<n; i++){
-            var dir = undoQue.pop();
-			tmp=[];
-			for(x in dir){
-				tmp.push(dir[x]);
-			}
-            redoQue.splice(redoQue.length-1,0,tmp);
-            if(dir[3]=='line'){
-                var j = lines[dir[1]][0].slice(0,dir[2]);
-                var k = lines[dir[1]][0].slice(dir[2]);
-                if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-                lines[dir[1]][0] = j;
-                var newArr = [k,dir[4]];
-                lines.splice(dir[1]+1,0,newArr);
-                dir[1]=dir[1]+1;
-                dir[2]=0;
-                forceCalc=true;
-            }
-            else{
-                lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
-            }
-        }
-    }
-    else if(dir[0]=='paste'){
-        // if string and not json
-        if(dir[3][0]!='[' && dir[3][1]!='['){
-            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+lines[dir[1]][0].slice(dir[2]+dir[3].length);
-        }
-        // if json
-        else{
-            var d=JSON.parse(dir[3]);
-            //if did not text to first line at paste
-            if(dir[4]==0){
-                lines.splice(dir[1]+1,d.length);
-                //if deleted extra blank line from bad programing
-                if(dir[5]==1){
-                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
-                    lines.splice(dir[1]+1,1);
-                }
-            }
-            //iff added text to first line at paste
-            else{
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
-                lines.splice(dir[1]+1,d.length-1);
-                //if deleted extra blank line from bad programing
-                if(dir[5]==1){
-                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
-                    lines.splice(dir[1]+1,1);
-                }
-            }
-            
-        }
-    }
-    else{
-        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
-        if(lines[dir[1]][1]==4 && lines[dir[1]][0][dir[2]-1]==')'){
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
-            dir[2]=dir[2]-1;
-        }
-        //shift notes
-        for(x in notes){
-            if(dir[1]==notes[x][0]){
-                if (dir[2]<notes[x][1])notes[x][1]=notes[x][1]-1;
-            }
-        }
-    }
-    pos.row=dir[1];
-    pos.col=dir[2];
-    anch.row = pos.row;
-    anch.col=pos.col;
-    sceneIndex();
-    paint(false,false,true,false);
-    
-}
-function redo(){
-    saveTimer();
-    if (redoQue.length==0)return;
-    var dir = redoQue.pop();
-	var tmp =[];
-	for (x in dir){
-		tmp.push(dir[x]);
-	}
-    undoQue.push(tmp);
-    var forceCalc=false;
-    if(dir[0]=='enter'){
-        var j = lines[dir[1]][0].slice(0,dir[2]);
-        var k = lines[dir[1]][0].slice(dir[2]);
-        lines[dir[1]][0] = j;
-        if (lines[dir[1]][1] == 0)var newElem = 1;
-        else if (lines[dir[1]][1] == 1)var newElem = 2;
-        else if (lines[dir[1]][1] == 2)var newElem = 3;
-        else if (lines[dir[1]][1] == 4)var newElem = 3;
-        else if (lines[dir[1]][1] == 3)var newElem = 2;
-        else if (lines[dir[1]][1] == 5)var newElem = 0;
-        var newArr = [k,newElem];
-        lines.splice(dir[1]+1,0,newArr);
-		dir[1]=dir[1]+1;
-		dir[2]=0;
-    }
-    else if(dir[0]=='back'){
-        if(dir[3]!='line'){
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
-            dir[2]=dir[2]-1;
-        }
-        else{
-            
-            var j = lines[dir[1]+1][0];
-            lines.splice(dir[1]+1,1);
-            lines[dir[1]][0] = lines[dir[1]][0]+j;
-        }
-    }
-    else if(dir[0]=='delete'){
-		if(dir[3]!='line'){
-			lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
-		}
-		else{
-			var j =lines[dir[1]+1][0];
-			lines.splice(dir[1]+1,1);
-			lines[dir[1]][0]=lines[dir[1]][0]+j;
-		}
-    }
-    else if(dir[0]=='format'){
-		if (dir[4]!='tab'){
-			lines[dir[1]][1]=dir[4];
-		}
-		else{
-			var j = dir[3];
-			if (j==0) lines[dir[1]][1]=2;
-			else if(j==1)lines[dir[1]][1]=0;
-			else if(j==2)lines[dir[1]][1]=1;
-			else if(j==3)lines[dir[1]][1]=4;
-			else if(j==4)lines[dir[1]][1]=3;
-			else if(j==5)lines[dir[1]][1]=0;
-		}
-    }
-    else if(dir[0]=='br'){
-		var n=dir[1];
-        for(var i=0; i<n; i++){
-            var dir = redoQue.pop();
-			tmp=[];
-			for(x in dir){
-				tmp.push(dir[x]);
-			}
-            undoQue.splice(undoQue.length-1,0,tmp);
-            if(dir[3]=='line'){
-				var j=lines[dir[1]+1][0]
-				lines.splice(dir[1]+1,1);
-				lines[dir[1]][0]=lines[dir[1]][0]+j;
-			}
-			else{
-				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
-			}
-		}
-		dir[2]=dir[2]-1;
-    }
-    else if(dir[0]=='dr'){
-		var n=dir[1];
-        for(var i=0; i<n; i++){
-            var dir = redoQue.pop();
-			tmp=[];
-			for(x in dir){
-				tmp.push(dir[x]);
-			}
-            undoQue.splice(undoQue.length-1,0,tmp);
-            if(dir[3]=='line'){
-				var j=lines[dir[1]+1][0]
-				lines.splice(dir[1]+1,1);
-				lines[dir[1]][0]=lines[dir[1]][0]+j;
-			}
-			else{
-				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
-			}
-		}
-		dir[2]=dir[2]-1;
-    }
-    else if(dir[0]=='paste'){
-        //for single line, no json
-        if(dir[3][0]!='[' && dir[3][1]!='['){
-            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+dir[3]+lines[dir[1]][0].slice(dir[2]);
-        }
-        //for json
-        else{
-            var arr=JSON.parse(dir[3]);
-            if (lines[dir[1]][0]==''){
-                lines[dir[1]][1]=arr[0][1];
-            }
-            if (lines[dir[1]][1]==arr[0][1]){
-                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2])+arr[0][0];
-                var i=1;
-                var p=dir[1]+1;
-                while(i<arr.length){
-                    lines.splice(p,0,arr[i]);
-                    p++;
-                    i++;
-                }
-                lines.splice(p,0,tmp);
-                if(lines[p][0]=='' || lines[p][0]==' '){
-                    lines.splice(p,1);
-                }
-            }
-            else{
-                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
-                dir[1]++;
-                lines.splice(dir[1],0,arr[0]);
-                var i=1;
-                var p=dir[1]+1;
-                while(i<arr.length){
-                    lines.splice(p,0,arr[i]);
-                    p++;
-                    i++;
-                }
-                lines.splice(p,0,tmp);
-                if(lines[p][0]=='' || lines[p][0]==' '){
-                    lines.splice(p,1);
-                }
-            }
-            paint(false,false,true,false);
-        }
-        
-    }
-    else{
-        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
-        dir[2]=dir[2]+1;
-    }
-    sceneIndex();
-    paint(false,false,true,false);
-}
-
-
 
 function pagination(){
     pageBreaks = [];
@@ -1616,26 +721,6 @@ function pagination(){
     }
 }
 
-function characterInit(){
-    for(var i=0; i<lines.length;i++){
-        if (lines[i][1]==2){
-            characterIndex(lines[i][0]);
-        }
-    }
-}
-function characterIndex(v){
-    var chara = v.toUpperCase().replace(/\s+$/,"");
-    var found=false;
-    for(var i=0;i<characters.length;i++){
-        if(characters[i][0]==chara){
-            characters[i][1]=characters[i][1]+1;
-            found=true;
-        }
-    }
-    if (!found){
-        characters.push([chara,1]);
-    }
-}
 function sceneIndex(){
     scenes=[];
     var num = 0;
@@ -1667,39 +752,14 @@ function sortNotes(a,b){
     if (a[1]>b[1]) return 1;
     return 0;
 }
-function sortNotesCol(a,b){
-    if (a[1]<b[1]) return -1;
-    if (a[1]>b[1]) return 1;
-    return 0;
-}
+
 function noteIndex(){
-    //notes.sort(sortNotesCol);
-    //console.log(notes);
     notes.sort(sortNotes);
-    console.log(notes);
 	var c = document.getElementById('noteBox');
 	c.innerHTML="";
-    var i = c.appendChild(document.createElement('input'));
-    i.type = 'button';
-    i.value = "Insert New Note";
-    i.addEventListener('click', newThread, false);
-    i.style.margin="5px";
-    //c.appendChild(document.createElement('br'));
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';
-        var header = newDiv.appendChild(document.createElement('table'));
-        header.width="100%";
-        var TR = header.appendChild(document.createElement('tr'));
-        TR.appendChild(document.createElement('td'));
-        var TD = TR.appendChild(document.createElement('td'));
-        TD.align="right";
-        var newA = TD.appendChild(document.createElement('a'));
-        newA.style.backgroundColor="orange";
-        newA.appendChild(document.createTextNode('Delete'));
-        newA.href="javascript:deleteThread('"+notes[x][3]+"')";
-        newA.style.textDecoration="none";
-        newA.style.color = "black";
 		for (y in notes[x][2]){
 			var msgDiv = newDiv.appendChild(document.createElement('div'));
             var contentDiv = msgDiv.appendChild(document.createElement('div'));
@@ -1731,6 +791,7 @@ function noteIndex(){
     });
 }
 function newThread(){
+    tabs(1);
     noteIndex();
     typeToScript=false;
     var c = document.getElementById('noteBox');
@@ -1814,19 +875,6 @@ function submitMessage(v){
         $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
     }
 	noteIndex();
-}
-
-function deleteThread(v){
-    var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
-    if(c==true){
-        $.post("/notesdeletethread", {resource_id:resource_id, thread_id:v})
-    for (i in notes){
-        if (notes[i][3]==v)var found = i;
-    }
-    console.log(found);
-    notes.splice(found,1);
-    noteIndex();
-    }
 }
 
 //Menu
@@ -1917,92 +965,8 @@ function createScript (){
 	}
 	hideNewScriptPrompt();
 }
-// duplicate
-function duplicate(){
-    $.post('/duplicate',
-     {resource_id : resource_id, fromPage : 'editor'}, 
-     function(d){
-        if (d=='fail')return;
-        else{window.open(d)}
-     });
-}
-// save
-function save(v){
-    clearTimeout(timer);
-    if(resource_id=='Demo'){
-        if(v==0){
-            alert("Sorry, but you'll have to login to start saving scripts!");
-        }
-        return;
-    }
-    var data=JSON.stringify(lines);
-    document.getElementById('saveButton').value='Saving...';
-    $.post('/save', {data : data, resource_id : resource_id, autosave : v}, function(d){
-        document.getElementById('saveButton').value='Saved';
-        document.getElementById('saveButton').disabled=true;
-    });
-    var arr = []
-    for (i in notes){
-        arr.push([notes[i][0], notes[i][1], notes[i][3]])
-    }
-    if(arr.length!=0){
-        $.post('/notesposition', {resource_id:resource_id, positions: JSON.stringify(arr)}, function(d){
-        });
-    }
-}
-// open other script
-function openPrompt(){
-    typeToScript=false;
-    var d=document.getElementById('openTable');
-    d.innerHTML = "Loading... ";
-    document.getElementById('openpopup').style.visibility = 'visible';
-    $.post('/list', function(data){
-        d.innerHTML="";
-        var j = JSON.parse(data);
-        var x=j[0];
-        var TR = d.appendChild(document.createElement('tr'));
-        var TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Title'));
-        TD.style.textDecoration='underline';
-        TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Updated'));
-        TD.style.textDecoration='underline';
-        for (i in x){
-            var TR = d.appendChild(document.createElement('tr'));
-            var newA=TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
-            newA.appendChild(document.createTextNode(x[i][1]));
-            newA.href="/editor?resource_id="+x[i][0];
-            newA.target="_blank";
-            TR.appendChild(document.createElement('td')).appendChild(document.createTextNode(x[i][2]));
-        }
-    });
-}
-function hideOpenPrompt(){
-    document.getElementById('openpopup').style.visibility = 'hidden';
-    typeToScript=true;
-}
 
-//rename
-function renamePrompt(){
-    typeToScript=false;
-    document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
-    document.getElementById('renameField').value = document.getElementById('title').innerHTML;
-    document.getElementById('renamepopup').style.visibility = 'visible';
-}
 
-function hideRenamePrompt(){
-	document.getElementById('renameField').value = "";
-	document.getElementById('renamepopup').style.visibility = 'hidden';
-    typeToScript=true;
-}
-	
-function renameScript(){
-	var rename = document.getElementById('renameField').value;
-	if (rename==""){return;}
-	document.getElementById('title').innerHTML = rename;
-	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
-	hideRenamePrompt()
-}
 //exporting
 function exportPrompt(){
     if(document.getElementById('saveButton').value=="Save")save(0);
@@ -2035,181 +999,6 @@ function exportScripts(){
         }
     }
 }
-// emailing
-function emailPrompt(){
-    if(document.getElementById('saveButton').value=="Save")save(0);
-    typeToScript=false;
-    document.getElementById("emailpopup").style.visibility='visible'
-}
-function hideEmailPrompt(){
-    document.getElementById("emailpopup").style.visibility='hidden';
-    document.getElementById('recipient').value='';
-    document.getElementById('recipients').innerHTML='';
-    document.getElementById('message').innerHTML='';
-    typeToScript=true;
-}
-
-function emailComplete(e){
-	document.getElementById('emailS').disabled = false;
-	document.getElementById('emailS').value = 'Send';
-	if (e=='sent'){
-		alert("Email Sent")
-		hideEmailPrompt();
-	}
-	else{
-		alert("There was a problem sending your email. Please try again later.")
-	}
-}
-function emailScript(){
-	tokenize('recipient');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
-	var recipients = arr.join(',');
-	var subject = document.getElementById('subject').value;
-	var body_message = document.getElementById('message').innerHTML;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
-	document.getElementById('emailS').disabled = true;
-	document.getElementById('emailS').value = 'Sending...';
-}
-
-// spellCheck
-function launchSpellCheck(){
-    typeToScript=false;
-    ajaxSpell(pos.row)
-    var firstLine = (pos.row==0 ? true : false);
-    document.getElementById('spellcheckpopup').style.visibility = 'visible';
-    spellCheckCycle(firstLine, 0, 0)
-    
-}
-function spellCheckCycle(firstLine, r, w){
-    if(r=='finished'){
-        alert('Spell Check Complete');
-        hideSpellCheck();
-        return;
-    }
-    var line=lines[r][0].split(' ');
-    var found = false;
-    while (found==false){
-        var word = line[w].replace("?", "").replace(".","").replace(",","").replace("(","").replace(")","");
-        for (i in spellWrong){
-            if (spellWrong[i][0].toUpperCase()==word.toUpperCase()){
-                found=[r,w,i,];
-                for(v in spellIgnore){
-                    if (spellIgnore[v].toUpperCase()==word.toUpperCase())found=false;
-                }
-            }
-        }
-        if (!found){
-            w++;
-            if (w==line.length){
-                w=0;
-                r++;
-                if (r==lines.length){
-                    found='finished';
-                }
-                else{
-                    line = lines[r][0].split(' ');
-                }
-            }
-        }
-    }
-    if (found=='finished'){
-        document.getElementById('sSuggest').innerHTML="";
-        document.getElementById('sSentance').innerHTML = "";
-        alert("Spell Check Complete");
-        hideSpellCheck()
-    }
-    else{
-        var sen =lines[r][0];
-        var reg = new RegExp(word,'i');
-        var rep = "<span id='sFocus' title='"+word+"' style='color:red'>"+word+"</span>"
-        sen = sen.replace(reg, rep);
-        if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
-            document.getElementById('sSentance').innerHTML = sen.toUpperCase();
-            document.getElementById('sSentance').innerHTML =document.getElementById('sSentance').innerHTML.replace("SFOCUS","sFocus")
-        }
-        else{
-            document.getElementById('sSentance').innerHTML = sen;
-        }
-        document.getElementById('sSentance').title = r;
-        var sug = spellWrong[found[2]][1];
-        var d=document.getElementById('sSuggest')
-        d.innerHTML="";
-        for (i in sug){
-            var item =d.appendChild(document.createElement('div'))
-            item.className='spellcheckitem';
-            if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
-                item.appendChild(document.createTextNode(sug[i].toUpperCase()));
-            }
-            else{
-                item.appendChild(document.createTextNode(sug[i]));
-            }
-            item.title=sug[i];
-        }
-        w++;
-        if (w==line.length){
-            w=0;
-            r++;
-            if (r==lines.length){
-                found='finished';
-            }
-            else{
-                line = lines[r][0].split(' ');
-            }
-        }
-        var h = (found=='finished' ? found : [r,w].join(','))
-        document.getElementById('sHidden').value=h;
-        $(".spellcheckitem").click(function(){
-            var f = document.getElementById('spellcheckfocus');
-            if (f!=undefined){
-                f.removeAttribute('id');
-            }
-            this.id='spellcheckfocus'
-            document.getElementById('sFocus').innerHTML=this.title;
-        });
-    }
-}
-
-function hideSpellCheck(){
-    document.getElementById('spellcheckpopup').style.visibility='hidden';
-    typeToScript=true;
-    //spellIgnore=[];
-}
-function s_ignore(){
-    var tmp = document.getElementById('sHidden').value;
-    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
-}
-function s_ignore_all(){
-    spellIgnore.push(document.getElementById('sFocus').title);
-    var tmp = document.getElementById('sHidden').value;
-    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
-}
-function s_change(){
-    var s=document.getElementById('sSentance');
-    var r = s.title;
-    lines[r][0]="";
-    for (i in s.childNodes){
-        if(s.childNodes[i].nodeName=="#text")lines[r][0]=lines[r][0]+s.childNodes[i].nodeValue;
-        else{
-            var c = s.childNodes[i].childNodes;
-            for (j in c){
-                if (c[j].nodeName=="#text")lines[r][0]=lines[r][0]+c[j].nodeValue;
-            }
-        }
-    }
-    var tmp = document.getElementById('sHidden').value;
-    spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
-    paint(false,false,true,false);
-}
-
-
-
-	
 
 
 //drawing functions
@@ -2886,12 +1675,9 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.font="10pt sans-serif";
     ctx.fillStyle="#000"
     ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
-    // write enter and tab directions
-    var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"];
-    ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
     // write current scene number
     var txt="Scene "+ currentScene + " of " + scenes.length;
-    ctx.fillText(txt, 400, document.getElementById('canvas').height-8);
+    ctx.fillText(txt, 50, document.getElementById('canvas').height-8);
     ctx.font = font;
     //Make ScrollBar
     scrollArrows(ctx);

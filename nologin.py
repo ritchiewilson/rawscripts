@@ -81,7 +81,7 @@ class Editor (webapp.RequestHandler):
       resource_id=self.request.get('resource_id')
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
                     "WHERE resource_id='"+resource_id+"' "+
-                    "AND user='"+user.email()+"'")
+                    "AND user='"+user.email().lower()+"'")
       r=q.fetch(1)
       if r[0].permission=='collab':
         path = os.path.join(os.path.dirname(__file__), 'viewer.html')

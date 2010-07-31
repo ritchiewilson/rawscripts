@@ -1682,18 +1682,10 @@ function sortNotesCol(a,b){
     return 0;
 }
 function noteIndex(){
-    //notes.sort(sortNotesCol);
-    //console.log(notes);
     notes.sort(sortNotes);
     console.log(notes);
 	var c = document.getElementById('noteBox');
 	c.innerHTML="";
-    var i = c.appendChild(document.createElement('input'));
-    i.type = 'button';
-    i.value = "Insert New Note";
-    i.addEventListener('click', newThread, false);
-    i.style.margin="5px";
-    //c.appendChild(document.createElement('br'));
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';

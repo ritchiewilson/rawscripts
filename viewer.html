@@ -11,21 +11,7 @@
   <style>
   body{padding:0; margin:0;height:100%; background-color:#ccc}
   html{height:99%; margin:0; padding:0;}
-  #suggestBox{
-	background-color:#ccc;
-	border:1px black solid;
-	min-width:70px;
-  }
-  .suggestItem{
-	padding:2px;
-	font-family:Courier;
-	font-size:12pt;
-	cursor:pointer;
-  }
-  #focus{
-	background-color:lightBlue;
-  }
-  .TEXT{
+.TEXT{
     background-color:white;
   }
   .toolBar{
@@ -68,18 +54,6 @@
     position:fixed; 
     top:63px; 
     left:71px; 
-    border-right:1px #333 solid; 
-    border-bottom:1px #333 solid; 
-    border-top:1px #999 solid; 
-    border-left:1px #999 solid;
-    background-color:#eeeeef;
-    display:none;
-  }
-  #shareMenu{
-    width:150px;
-    position:fixed; 
-    top:63px; 
-    left:114px; 
     border-right:1px #333 solid; 
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
@@ -187,31 +161,6 @@
   font-family:Verdana, Geneva, sans-serif;
   width:400px;
 }
-.token{
-	background-color:#ddd;
-	padding:3px;
-	margin:3px;
-	float:none;
-	font:Verdana, Geneva, sans-serif;
-	-moz-border-radius: 5px; 
-	-webkit-border-radius: 5px;
-	float:left;
-	}
-.token a{
-	text-decoration:none;
-	color:#000;
-}
-.mailto{
-	display:none;
-}
-.spellcheckitem{
-    font-family:Verdana, Geneva, sans-serif;
-    font-size:10pt;
-    cursor:pointer;
-}
-#spellcheckfocus{
-    background-color:lightBlue;
-}
 .tab{
     background-color:#6C8CD5;
     padding:2px;
@@ -225,64 +174,6 @@
   </style
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
-<div id="emailpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
-	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideEmailPrompt()" style="color:#333">Close</a>
-			<br /><br />
-            Send Script
-            <br /><br />
-			<label for="recipient">Recipients (max 5, comma seperated)</label>
-			<br />
-            <div id="recipients"></div>
-			<input class="TEXT" type='text' name='recipient' id='recipient' style="width:400px" />
-			<br />
-			<label for="subject">Subject</label>
-			<br />
-			<input class="TEXT" type='text' name='subject' id='subject' style="width:400px" />
-			<br />
-			<label for="message">Message (optional)</label>
-			<br />
-			<div class="TEXT" contentEditable='true' name='message' id='message' style="width:400px; height:110px; overflow:auto;"></div>
-            <br>
-            <select id="emailTitle">
-                <option>Without title Page</option>
-                <option>With title Page</option>
-            </select>
-            <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a>
-			<br /><br>
-			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
-            <br />
-			<b>Note:</b> you will automatically get a copy yourself
-		</div>
-	</div>
-</div>
-<div id="spellcheckpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
-	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:500px; height:220px; position:relative; margin:auto; top:15%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideSpellCheck()" style="color:#333">Close</a>
-			<br /><br />
-            Spell Check
-            <br />
-			<br />
-            <div id="spellCheck">
-                <div class="TEXT" contentEditable='true' name='sSentance' id='sSentance' style="width:235px; height:120px; overflow:auto; float:left"></div>
-                <div id="sSuggest" style="width:120px; height:120px; background-color:white; float:left; border:2px inset; margin-left:10px;"></div>
-                <div id="spellControls" style="float:left; margin-left:10px;">
-                    <input id="sIgnore" value="Ignore" type="button" style="width:100px;" onclick="s_ignore()"><br>
-                    <input id="sIgnoreAll" value="Ignore All" type="button" style="width:100px;" onclick="s_ignore_all()"><br><br>
-                    <input id="sChange" value="Change" type="button" style="width:100px;" onclick="s_change()"><br>
-                    <input id="sHidden" value ="" type="hidden">
-                   
-                </div>
-            </div>
-            <br>
-            
-		</div>
-	</div>
-</div>
 <div id="newscriptpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
@@ -300,24 +191,6 @@
 		</div> 
 	</div> 
 </div> 
-<div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
-	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
-			<br />
-            
-			<p id="renameTitle"></p>
-			<br />
-            <input type="hidden" value="blank" id="resource_id" />
-			<input class="TEXT" type='text' name='renameField' id='renameField' style="width:350px" />
-			<br />
-			<input type='button' onClick='renameScript()' value='Rename' />
-			
-            <br />
-		</div>
-	</div>
-</div>
 <div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100"> 
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
@@ -355,27 +228,6 @@
 		</div>
 	</div>
 </div>
-<div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
-	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
-			<br /><br />
-            Share Script: <b id="shareTitle"></b>
-            <br /><br>
-			<table id="hasAccess" width="350px">
-            </table>
-            <br>
-			<br />
-            <p>To be added: (comma seperated)</p>
-            <div id="collaborators"></div>
-			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br><br><br><br>
-			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
-            <input type="hidden" value="blank" id="shareResource_id" />
-		</div>
-	</div>
-</div>
   <div id='container' style="width:100%; height:100%; margin:0; padding:0">
   <div id='header' style="width:100%; height:65px; background-color:#6484df">
     <div id="titleBar">
@@ -387,7 +239,6 @@
           <div id='file' class="menuItem">File</div>
           <div id='edit' class="menuItem">Edit</div>
           <div id='view' class="menuItem">View</div>
-          <div id='share' class="menuItem">Share</div>
           <!--<div id='help' class="menuItem">Help</div>-->
         </div>
     </div>
@@ -414,7 +265,7 @@
         <div style="margin-left:80px;"><a href="http://www.google.com/chromeframe/eula.html" target="_blank"><img src="images/chrome-frame.png" /></a></div>
     </div>
   </canvas>
-  <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; overflow:auto; background-color:white;">
+  <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; background-color:white;">
     <div id="tabBox">
         <table width="100%" cellspacing=0>
             <tr>
@@ -424,20 +275,17 @@
         </table>
     </div>
     <div id="scenes">
-        <div id="sceneBox" style="height=50%;overflow:auto;"></div>
+        <div id="sceneBox" style="position:absolute; right:0; left:0; top: 35px; bottom:0px; overflow:auto;"></div>
     </div>
     <div id="notes">
-        <div id="noteBox" style="height=50%;overflow:auto;"></div>
+        <input type="button" value="Insert New Note" onclick="newThread()" style="margin:5px"/>
+        <div id="noteBox" style="position:absolute; right:0; left:0; top: 55px; bottom:0px; overflow:auto; border-top:1px #999 solid"></div>
     </div>
   </div>
   </div>
   <div class="topMenu" id="fileMenu" style="display:none">
     <div id='new' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px"></td><td>New</td></tr></table></div>
     <div id='open' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Open</td></tr></table></div>
-    
-    <div id='rename' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Rename</td></tr></table></div>
-    <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save</td></tr></table></div>
-    <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Duplicate</td></tr></table></div>
 
     <!--<div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>-->
     <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Export As</td></tr></table></div>
@@ -445,34 +293,12 @@
     <div id='close' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Close</td></tr></table></div>
   </div>
   <div class="topMenu" id="editMenu" style="display:none">
-    <div id='undo' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Undo</td></tr></table></div>
-    <div id='redo' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Redo</td></tr></table></div>
-    
-    <div id='cut' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">✄</td><td>Cut</td></tr></table></div>
-    <div id='copy' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Copy</td></tr></table></div>
-    <div id='paste' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Paste</td></tr></table></div>
 	
-	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>
-    
-    <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Edit Title Page</td></tr></table></div>
-    
-    <div id='spellCheck' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Spell Check</td></tr></table></div>
-
-    <div id="format0" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check0' style="width:15px">✓</td><td>Slugline</td></tr></table></div>
-    <div id="format1" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check1' style="width:15px"></td><td>Action</td></tr></table></div>
-    <div id="format2" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check2' style="width:15px"></td><td>Character</td></tr></table></div>
-    <div id="format3" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check3' style="width:15px"></td><td>Dialog</td></tr></table></div>
-    <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:15px"></td><td>Parenthetical</td></tr></table></div>
-    <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:15px"></td><td>Transition</td></tr></table></div>
+	<div id='insertNote' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>
   </div>
   <div class="topMenu" id="viewMenu" style="display:none">
     <!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Font Size</td></tr></table></div>-->
     <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>View/Hide Notes</td></tr></table></div>
-    <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Revision History</td></tr></table></div>
-  </div>
-  <div class="topMenu" id="shareMenu" style="display:none">
-    <!--<div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>-->
-    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
     <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>FAQs</td></tr></table></div>
