@@ -267,7 +267,6 @@ class List (webapp.RequestHandler):
 
     q= db.GqlQuery("SELECT * FROM UsersScripts "+
                    "WHERE user='"+users.get_current_user().email().lower()+"' "+
-                   "AND permission='owner' "+
                    "ORDER BY updated DESC")
     results = q.fetch(1000)
     now = datetime.datetime.today()
@@ -318,65 +317,28 @@ class List (webapp.RequestHandler):
           i.updated=str(diff)+" years ago"
 
     owned = []
+    shared = []
+    ownedDeleted = []
     for i in results:
-      owned.append([i.resource_id, i.title, i.updated, i.permission])
+      if i.permission=='owner':
+        q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+i.resource_id+"'")
+        p=q.fetch(500)
+        sharingArr=[]
+        for j in p:
+          if j.user.lower()!=users.get_current_user().email().lower():
+            sharingArr.append(j.user)
+        owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr])
+      if i.permission=="ownerDeleted":
+        ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission])
+      if i.permission=="collab":
+        q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                      "WHERE resource_id='"+i.resource_id+"' "+
+                      "AND permission='owner'")
+        p=q.fetch(1)
+        shared.append([i.resource_id, i.title, i.updated, p[0].user])
 
-    q= db.GqlQuery("SELECT * FROM UsersScripts "+
-                   "WHERE user='"+users.get_current_user().email().lower()+"' "+
-                   "AND permission='ownerDeleted' "+
-                   "ORDER BY updated DESC")
-    results = q.fetch(1000)
-    now = datetime.datetime.today()
-    for i in results:
-      t=str(i.updated)
-      date=t.split(' ')[0]
-      time=t.split(' ')[1]
-      year=date.split('-')[0]
-      month=date.split('-')[1]
-      day=date.split('-')[2]
-      if not int(year)<now.year:
-        if not int(month)<now.month:
-          if not int(day)<now.day:
-            hour=time.split(':')[0]
-            minute=time.split(':')[1]
-            if not int(hour)<now.hour:
-              if not int(minute)<now.minute:
-                i.updated="Seconds Ago"
-              else:
-                diff=now.minute-int(minute)
-                if diff==1:
-                  i.updated="1 minute ago"
-                else:
-                  i.updated=str(diff)+" minutes ago"
-            else:
-              diff=now.hour-int(hour)
-              if diff==1:
-                i.updated="1 hour ago"
-              else:
-                i.updated=str(diff)+" hours ago"
-          else:
-            diff=now.day-int(day)
-            if diff==1:
-              i.updated="Yesterday"
-            else:
-              i.updated=str(diff)+" days ago"
-        else:
-          diff=now.month-int(month)
-          if diff==1:
-            i.updated="1 month ago"
-          else:
-            i.updated=str(diff)+" months ago"
-      else:
-        diff=now.year-int(year)
-        if diff==1:
-          i.updated="last year"
-        else:
-          i.updated=str(diff)+" years ago"
-    ownedDeleted=[]
-    for i in results:
-      ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission])
-
-    pl=[owned, ownedDeleted]
+    pl=[owned, ownedDeleted, shared]
     
     j = simplejson.dumps(pl)
     self.response.headers['Content-Type']='text/plain'
@@ -475,7 +437,7 @@ class Export (webapp.RequestHandler):
       p=False
       for i in results:
         if i.user==user:
-          if i.permission=='owner':
+          if i.permission=='owner' or i.permission=="collab":
             p=True
             title=i.title
       if p==True:
@@ -602,7 +564,7 @@ class NewScript (webapp.RequestHandler):
                    ignore="[]")
     s.put()
 
-    u = UsersScripts(user=user,
+    u = UsersScripts(user=user.lower(),
                      title=filename,
                      resource_id=resource_id,
                      updated = str(datetime.datetime.today()),
@@ -652,7 +614,7 @@ class Duplicate (webapp.RequestHandler):
                           from_version=version)
 
       d.put()
-      u = UsersScripts(user=user,
+      u = UsersScripts(user=user.lower(),
                        title='Copy of '+title,
                        resource_id=new_resource_id,
                        updated = str(datetime.datetime.today()),
@@ -733,7 +695,7 @@ class ConvertProcess (webapp.RequestHandler):
                    autosave=0)
     s.put()
 
-    u = UsersScripts(user=user,
+    u = UsersScripts(user=user.lower(),
                      title=filename,
                      resource_id=resource_id,
                      updated = str(datetime.datetime.today()),
@@ -816,92 +778,37 @@ class GetVersion(webapp.RequestHandler):
 class Share (webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    collaborators = self.request.get('collaborators')
-    fromPage = self.request.get('fromPage')
-    token=get_auth_token(self.request)
-    collaborators = self.request.get('collaborators')
-    collabList = collaborators.split(',')
-    client = gdata.docs.client.DocsClient()
-    entry = client.GetDoc(resource_id, auth_token=token)
-    mobile = 0
-    #Check if should send to mobile Page
-    ua = self.request.user_agent
-    props = da.getPropertiesAsTyped(tree, ua)
-    if props.has_key('mobileDevice'):
-      if props['mobileDevice']:
-        path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
-        mobile = 1
-    i=0
-    addedCollabs=''
-    while i<len(collabList):
-      k=0
-      while k<4:
-        try:
-          scope = gdata.acl.data.AclScope(value=collabList[i], type='user')
-          role = gdata.acl.data.AclRole(value='reader')
-          acl_entry = gdata.docs.data.Acl(scope=scope, role=role)
-          new_acl = client.Post(acl_entry, entry.GetAclFeedLink().href, auth_token=token)
-          s = ShareDB(resource_id=resource_id,
-                    name=collabList[i],
-                    fromPage=fromPage)
-          s.put()
-          k=5
-          addedCollabs = addedCollabs+collabList[i] + ','
-        except:
-          k=k+1
-      i=i+1
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(addedCollabs)
+    p = permission(resource_id)
+    if p!=False:
+      collaborators = self.request.get('collaborators')
+      fromPage = self.request.get('fromPage')
+      collabList = collaborators.split(',')
+
+      for i in collabList:
+        u = UsersScripts(resource_id=resource_id,
+                         permission="collab",
+                         user = i.lower(),
+                         updated = str(datetime.datetime.today()),
+                         title = p)
+        u.put()
+      self.response.headers['Content-Type'] = 'text/plain'
+      self.response.out.write(collaborators)
     
 class RemoveAccess (webapp.RequestHandler):
   def post(self):
-    token = get_auth_token(self.request)
     resource_id=self.request.get('resource_id')
+    p=permission(resource_id)
+    if p!=False:
+      person = self.request.get('removePerson')
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"' "+
+                    "AND user='"+person.lower()+"'")
+      r=q.fetch(1)
+      r[0].delete()
     remove_person = self.request.get('removePerson')
-    client = gdata.docs.client.DocsClient()
-    acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
-    for acl in acl_feed.entry:
-      if remove_person.lower() == acl.scope.value.lower():
-        client.Delete(acl.GetEditLink().href, force=True, auth_token=token)
-    q = db.GqlQuery("SELECT * FROM ShareDB "+
-                          "WHERE resource_id='"+resource_id+"'")
-    results = q.fetch(50)
-    for p in results:
-      if p.name.lower() == remove_person.lower():
-        p.delete()
-    logging.info(remove_person.lower())
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write(remove_person.lower())
 
-class GetShareList (webapp.RequestHandler):
-  def post(self):
-    token = get_auth_token(self.request)
-    resource_id=self.request.get('resource_id')
-    client = gdata.docs.client.DocsClient()
-    acl_feed = client.GetAclPermissions(resource_id, auth_token=token)
-    output = ''
-    for acl in acl_feed.entry:
-      if not acl.role.value == 'owner':
-        output = output + '?user=' + acl.scope.value
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(output)
-
-class PostNotes (webapp.RequestHandler):
-  def post(self):
-    user = self.request.get('user')
-    resource_id = self.request.get('resource_id')
-    data = self.request.get('data')
-
-    q= db.GqlQuery("SELECT * FROM Notes "+
-                   "WHERE resource_id='"+resource_id+"'"+
-                   "AND user='"+user+"'")
-    results = q.fetch(5)
-    for p in results:
-      p.delete()
-    newNotes = Notes(user = user,
-                     resource_id=resource_id,
-                     data=data,)
-    newNotes.put()
 
 class OneScript (webapp.RequestHandler):
   def get(self):
@@ -932,11 +839,9 @@ def main():
 					('/emailscript', EmailScript),
                                         ('/convertprocess', ConvertProcess),
                                         ('/share', Share),
-                                        ('/postnotes', PostNotes),
                                         ('/removeaccess', RemoveAccess),
                                         ('/titlepage', TitlePage),
                                         ('/titlepagesave', SaveTitlePage),
-                                        ('/getsharelist', GetShareList),
                                         ("/onescript", OneScript),
                                         ('/list', List),],
                                        debug=True)

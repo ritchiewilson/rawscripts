@@ -6,7 +6,7 @@
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
+<script type="text/javascript" src="js/scriptlist.js"></script>
 <script src="js/json2.js" type="text/javascript"></script>
 <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
@@ -185,7 +185,7 @@ $(document).ready(function(){
 
 <div id="nav">
 	<div id="myScripts" class="tab">My Scripts</div>
-    <!--<div id="friendsScripts" class="tab">Friends' Scripts</div>-->
+    <div id="friendsScripts" class="tab">Friends' Scripts</div>
     <div id="trashTab" class="tab" style="margin-top:20px;">Trash</div>
 </div>
 
@@ -197,9 +197,9 @@ $(document).ready(function(){
                   <tr>
                 <td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
                     <td>My Scripts</td>
-                    <!--<td style="width:120px" align="center">Shared With</td>-->
+                    <td style="width:120px" align="center">Shared With</td>
               		<td style="width:120px" align="center">Email</td>
-                    <td style="width:110px" align="center">Last Viewed</td>
+                    <td style="width:140px" align="center">Last Viewed</td>
                   </tr>
                 </table>
 		    </div>
@@ -213,10 +213,8 @@ $(document).ready(function(){
                   <tr>
                 <td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
                     <td>Friends' Scripts</td>
-                    <td style="width:120px" align="center">Owner</td>
-              		<td style="width:120px" align="center">Email</td>
-                    <td style="width:110px" align="center">Last Viewed</td>
-                    <td style="width:70px" align="center">GDocs</td>
+                    <td style="width:120px" align="right">Owner</td>
+                    <td style="width:140px" align="center">Last Viewed</td>
                   </tr>
                 </table>
 		    </div>

@@ -74,13 +74,20 @@ class Welcome (webapp.RequestHandler):
 class Editor (webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    path = os.path.join(os.path.dirname(__file__), 'editor.html')
     if user:
       template_values = { 'sign_out': users.create_logout_url('/') }
       template_values['user'] = users.get_current_user().email()
+      resource_id=self.request.get('resource_id')
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"' "+
+                    "AND user='"+user.email().lower()+"'")
+      r=q.fetch(1)
+      if r[0].permission=='collab':
+        path = os.path.join(os.path.dirname(__file__), 'viewer.html')
     else:
       template_values = { 'sign_out': '/' }
       template_values['user'] = "test@example.com"
-    path = os.path.join(os.path.dirname(__file__), 'editor.html')
         
     mobile = 0
     #Check if should send to mobile Page
@@ -112,7 +119,7 @@ class ScriptContent (webapp.RequestHandler):
       for i in results:
         title=i.title
         if i.user==users.get_current_user().email().lower():
-          if i.permission=='owner':
+          if i.permission=='owner' or i.permission=="collab":
             p=True
     
     if p==True:
