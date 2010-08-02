@@ -270,6 +270,9 @@ class List (webapp.RequestHandler):
                    "ORDER BY updated DESC")
     results = q.fetch(1000)
     now = datetime.datetime.today()
+    owned = []
+    shared = []
+    ownedDeleted = []
     for i in results:
       t=str(i.updated)
       date=t.split(' ')[0]
@@ -315,11 +318,8 @@ class List (webapp.RequestHandler):
           i.updated="last year"
         else:
           i.updated=str(diff)+" years ago"
-
-    owned = []
-    shared = []
-    ownedDeleted = []
-    for i in results:
+          
+      #now put these bits in the right array
       if i.permission=='owner':
         q=db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+i.resource_id+"'")
@@ -329,9 +329,9 @@ class List (webapp.RequestHandler):
           if j.user.lower()!=users.get_current_user().email().lower():
             sharingArr.append(j.user)
         owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr])
-      if i.permission=="ownerDeleted":
+      elif i.permission=="ownerDeleted":
         ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission])
-      if i.permission=="collab":
+      elif i.permission=="collab":
         q=db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+i.resource_id+"' "+
                       "AND permission='owner'")
