@@ -49,9 +49,6 @@ handlers:
 - url: /submitbug.*
   script: nologin.py
 
-- url: /editor.*
-  script: nologin.py
-
 - url: /test.*
   script: nologin.py
 

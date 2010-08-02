@@ -76,16 +76,13 @@ class Editor (webapp.RequestHandler):
     user = users.get_current_user()
     path = os.path.join(os.path.dirname(__file__), 'editor.html')
     if user:
+      resource_id=self.request.get('resource_id')
       template_values = { 'sign_out': users.create_logout_url('/') }
       template_values['user'] = users.get_current_user().email()
-      resource_id=self.request.get('resource_id')
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
                     "WHERE resource_id='"+resource_id+"' "+
                     "AND user='"+user.email().lower()+"'")
       r=q.fetch(1)
-      logging.info(resource_id)
-      logging.info(user.email())
-      
       if r[0].permission=='collab':
         path = os.path.join(os.path.dirname(__file__), 'viewer.html')
     else:
@@ -94,7 +91,7 @@ class Editor (webapp.RequestHandler):
         template_values = { 'sign_out': '/' }
         template_values['user'] = "test@example.com"
       else:
-        template_values = { 'sign_in': users.create_login_url('http://www.rawscripts.com/editor?resource_id='+resource_id) }
+        template_values = { 'sign_in': users.create_login_url('/editor?resource_id='+resource_id) }
         path = os.path.join(os.path.dirname(__file__), 'login.html')
         
     mobile = 0
