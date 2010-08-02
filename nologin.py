@@ -75,8 +75,8 @@ class Editor (webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     path = os.path.join(os.path.dirname(__file__), 'editor.html')
-    if user:
-      resource_id=self.request.get('resource_id')
+    resource_id=self.request.get('resource_id')
+    if user and resource_id!="Demo":
       template_values = { 'sign_out': users.create_logout_url('/') }
       template_values['user'] = users.get_current_user().email()
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
