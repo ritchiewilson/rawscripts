@@ -1,5 +1,3 @@
-#
-
 from django.utils import simplejson
 import StringIO
 from collections import deque
@@ -178,7 +176,7 @@ def Text(data, title, title_page, resource_id):
 def Pdf(data, title, title_page, resource_id):
   widths=[[61,7,1],[61,7,1],[40,32,0],[35,22,1],[35,27,0],[61,61,1]]
   txt = simplejson.loads(data)
-  more="                                   (MORE)\n"
+  more="                                (MORE)\n"
   cont="(CONT'D)"
   lines=[]
   parenTest=False
@@ -223,21 +221,21 @@ def Pdf(data, title, title_page, resource_id):
         linecount=len(lines[i])-diff+1
         lines[i].insert(diff, more)
         
-        lines[i].insert(diff+1,'                                                                 '+str(pageN)+'.')
+        lines[i].insert(diff+1,'                                                                '+str(pageN)+'.')
         pageN+=1
         lines[i].insert(diff+2,'')
         lines[i].insert(diff+3,'')
         lines[i].insert(diff+4, char+" (CONT'D)")
         i+=1
-      elif linecount<54 and len(lines[i])>4 and txt[i][1]==3:
+      elif linecount<54 and len(lines[i])>4 and linecount+len(lines[i])==57 and txt[i][1]==3:
         char=lines[i-1][0]
         diff=len(lines[i])-3
         lines[i].insert(diff, more)
         lines[i].insert(diff+1,'')
-        if diff==2:
-          lines[i].insert(diff+1,'')
-          diff+=1
-        lines[i].insert(diff+2,'                                                                 '+str(pageN)+'.')
+        #if diff!=0:
+        #  lines[i].insert(diff+1,'')
+        #  diff+=1
+        lines[i].insert(diff+2,'                                                                '+str(pageN)+'.')
         pageN+=1
         lines[i].insert(diff+3,'')
         lines[i].insert(diff+4,'')
