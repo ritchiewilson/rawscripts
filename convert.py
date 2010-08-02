@@ -157,14 +157,16 @@ def Celtx(data):
             unit.append(i.split('>')[1])
             if i[11]=='a':
                 unit.append(1)
-            if i[11]=='c':
+            elif i[11]=='c':
                 unit.append(2)
-            if i[11]=='d':
+            elif i[11]=='d':
                 unit.append(3)
-            if i[11]=='p':
+            elif i[11]=='p':
                 unit.append(4)
-            if i[11]=='t':
+            elif i[11]=='t':
                 unit.append(5)
+            else:
+                unit.append(1)
         jl.append(unit)
     for i in jl:
         i[0]=i[0].rstrip()
