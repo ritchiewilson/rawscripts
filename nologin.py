@@ -143,15 +143,24 @@ class ScriptContent (webapp.RequestHandler):
       for i in noteresults:
         arr = [i.row, i.col, simplejson.loads(i.data), i.thread_id]
         notes.append(arr)
+
+
+      sharedwith=[]
+      q=db.GqlQuery("SELECT * FROM UsersScripts "+
+                    "WHERE resource_id='"+resource_id+"'")
+      shareresults=q.fetch(50)
+      for i in shareresults:
+        if i.permission=="collab":
+          sharedwith.append(i.user)
       
       ja=[]
       ja.append(title)
       ja.append(simplejson.loads(results[0].data))
       ja.append(sp)
       ja.append(notes)
+      ja.append(sharedwith)
 
       content = simplejson.dumps(ja)
-
       
       self.response.headers["Content-Type"]='text/plain'
       self.response.out.write(content)

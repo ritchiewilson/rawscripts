@@ -99,8 +99,10 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
+    $('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
     $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
+    $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
@@ -438,6 +440,16 @@ function setup(){
     for(i in p[3]){
         notes.push(p[3][i]);
     }
+    var collabs=p[4];
+    var c = document.getElementById('hasAccess');
+    for (i in collabs){
+        var TR = c.appendChild(document.createElement('tr'));
+        TR.id=collabs[i];
+        TR.appendChild(document.createElement('td')).appendChild(document.createTextNode(collabs[i]));
+        var newA = TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
+        newA.appendChild(document.createTextNode('Remove Access'));
+        newA.href="javascript:removeAccess('"+collabs[i]+"')";
+    }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id;
@@ -556,6 +568,7 @@ function mouseDown(e){
             viewNotes = (viewNotes ? false : true);
         }
         //Share
+        else if(id=='collaborators')sharePrompt();
         else if(id=='email')emailPrompt();
         a.style.display='none';
     }
@@ -2076,6 +2089,54 @@ function emailScript(){
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
+}
+
+//Sharing scripts
+function sharePrompt(){
+typeToScript=false;
+    document.getElementById("sharepopup").style.visibility="visible";
+}
+function hideSharePrompt(){
+    typeToScript=true;
+    document.getElementById("sharepopup").style.visibility="hidden";
+    document.getElementById("collaborator").value="";
+}
+function removeAccess(v){
+    var c = confirm("Are you sure you want to remove access for this user?");
+    if(c==true){
+        var c = document.getElementById(v);
+        c.style.backgroundColor="#ccc";
+        $.post("/removeaccess", {resource_id:resource_id, removePerson:v}, function(d){document.getElementById(d).parentNode.removeChild(document.getElementById(d))});
+    }
+}
+
+function shareScript(){
+	tokenize('collaborator');
+	var arr = new Array();
+	var c = document.getElementsByTagName('span');
+	for(var i=0;i<c.length; i++){
+		if (c[i].className=='mailto'){
+			arr.push(c[i].innerHTML);
+			}
+		}
+	var collaborators = arr.join(',');
+	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){
+        var people = data.split(",");
+        var c=document.getElementById('hasAccess');
+        for(i in people){
+            var TR = c.appendChild(document.createElement("tr"));
+            TR.id = people[i];
+            TR.appendChild(document.createElement("td")).appendChild(document.createTextNode(people[i]));
+            var newA = TR.appendChild(document.createElement("td")).appendChild(document.createElement("a"));
+            newA.appendChild(document.createTextNode("Remove Access"));
+            newA.href="javascript:removeAccess('"+people[i]+"')";
+        }
+        document.getElementById('shareS').disabled = false;
+        document.getElementById('shareS').value = "Send Invitations";
+    });
+	document.getElementById('shareS').disabled = true;
+	document.getElementById('shareS').value = "Sending Invites...";
+    document.getElementById('collaborators').innerHTML="";
 }
 
 // spellCheck

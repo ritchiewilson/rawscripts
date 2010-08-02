@@ -363,14 +363,15 @@
 			<br /><br />
             Share Script: <b id="shareTitle"></b>
             <br /><br>
-			<table id="hasAccess" width="350px">
+			<table id="hasAccess" width="350px" cellspacing=0>
             </table>
             <br>
 			<br />
             <p>To be added: (comma seperated)</p>
             <div id="collaborators"></div>
 			<input class="TEXT" type='text' name='collaborator' id='collaborator' />
-			<br><br><br><br>
+			<br />
+            <p>Note: for now you can only share with Gmail users</p>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
             <input type="hidden" value="blank" id="shareResource_id" />
 		</div>
@@ -481,7 +482,7 @@
     <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Revision History</td></tr></table></div>
   </div>
   <div class="topMenu" id="shareMenu" style="display:none">
-    <!--<div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>-->
+    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>
     <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
