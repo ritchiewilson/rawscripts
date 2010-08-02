@@ -1,5 +1,5 @@
 application: ritchietestproj
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
@@ -47,9 +47,6 @@ handlers:
   script: nologin.py
 
 - url: /submitbug.*
-  script: nologin.py
-
-- url: /editor.*
   script: nologin.py
 
 - url: /test.*
