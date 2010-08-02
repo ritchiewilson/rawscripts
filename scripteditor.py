@@ -791,6 +791,34 @@ class Share (webapp.RequestHandler):
                          updated = str(datetime.datetime.today()),
                          title = p)
         u.put()
+      subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
+      body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+      result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
+      htmlbody = result.content
+      html = htmlbody.replace("SCRIPTTITLE", p)
+      html = html.replace("USER",users.get_current_user().email())
+      html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+      body = body_message + """
+
+
+  --- This Script written and sent from RawScripts.com. Check it out---"""
+    
+      #Mail the damn thing. Itereating to reduce userside errors
+      j=0
+      while j<3:
+        try:
+          mail.send_mail(sender="admin@rawscripts.com",
+                         to=recipients,
+                         subject=subject,
+                         body = body,
+                         html = html)
+          j=5
+        except:
+          j=j+1
+          if j==3:
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write('not sent')
+            return
       self.response.headers['Content-Type'] = 'text/plain'
       self.response.out.write(collaborators)
     
