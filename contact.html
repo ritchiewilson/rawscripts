@@ -16,43 +16,15 @@
 		$.post('/contactemail', {name : document.getElementById('name').value , subject : document.getElementById('subject').value , message : document.getElementById('message').value}, function(){emailComplete()});
 	}
 	function emailComplete(){
-		document.getElementById('sentPopup').style.visibility = 'visible';
 		document.getElementById('name').value = '';
 		document.getElementById('subject').value = '';
 		document.getElementById('message').value = '';
 		document.getElementById('send').value = 'Send';
 		document.getElementById('send').disabled = false;
-		
+		alert("Message Sent");
 	}
 	function hideSentPopup(){
 		document.getElementById('sentPopup').style.visibility = 'hidden';
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		document.getElementById('Home').style.display = 'block';
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				if (d[i].innerHTML == 'Home') d[i].style.backgroundColor = '#7694D8';
-				else d[i].style.backgroundColor = '#365498';
-			}
-		}
-	}
-	
-	function switchTabs(obj){
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				d[i].style.backgroundColor = '#365498';
-			}
-		}
-		obj.style.backgroundColor = '#7694D8';
-		document.getElementById(obj.innerHTML).style.display = 'block';
 	}
 	</script>
     <style>
@@ -66,7 +38,13 @@
 	#center{
 	}
 	article{
-		
+		background-color:#A2BAE9;
+		margin:auto;
+		margin-bottom:30px;
+		width:400px;
+		padding:30px;
+		-webkit-box-shadow: 0px 3px 3px #333;
+		-moz-box-shadow: 0px 3px 3px #333;
 	}
 	nav{
 	position:absolute;
@@ -76,16 +54,6 @@
 	#header{
 		font-size:16pt;
 	margin:20px;
-	}
-	dt {
-		font-weight:bold;
-	}
-	dd {
-		margin-bottom:10px;
-	}
-	a{
-	color:black;
-	text-decoration:none;
 	}
 	#content{
 	border-top:1px #333 solid;
@@ -138,21 +106,32 @@
   </tr>
 </table>
 </nav>
-    <article id='About' style="float:right; display:none">
-    	<header>RawScripts.com <span style="font-size:12pt">(beta)</span></header>
-        <h2>About</h2>
-        <dl>
-          <dt>What is RawScripts?</dt>
-          <dd>RawScripts is online screenplay editing software that syncs all your scripts to Google Docs. Because they're all online, you can get to them anywhere you have an internet connection.</dd>
-          <dt>Seems dumb. What are the benifits?</dt>
-          <dd>Your files arn't on one computer, they're anywhere you want them. Not at your home computer? Laptop died? Visiting the folks for a week and forgot to send yourself your latest revisions? Doens't matter. Everything is online, accessible from any browser. Heck, just met an actor that would be great for your next project? Email him the script from your smartphone.</dd>
-          <dt>How do I login?</dt>
-          <dd>All you need is a Google Account. If you don't have one, you can sign up for one <a href="https://www.google.com/accounts/NewAccount">here</a>. Once you have one, all you need to do is authenticate your account to work with RawScripts.</dd>
-          <dt>Browsers</dt>
-          <dd>Just right quick, we recommend you use the latest version of <a href="http://www.getfirefox.com/">FireFox</a>, <a href="http://www.apple.com/safari/download/">Safari</a>, or <a href="http://www.google.com/chrome">Chrome</a>. It'll work in older versions, it'll work in other browsers, just recomending for now you use one of those three.</dd>
-        </dl>
-    </article>
-    
+	<table width=100%>
+		<tr>
+			<td width=50%>
+				<article>
+					<p>Contact us in any number of ways!</p>
+					<ul>
+						<li>Visit the <a href="http://community.rawscripts.com/RawScripts/">forums</a> and join in the discussion.</li>
+						<li>Email us at contact@rawscripts.com.</li>
+						<li>Fill out the form to the right.</li>
+					</ul>
+				</article>
+			</td>
+			<td width=50%>
+    <article id='Contact'> 
+	    	<h2>Email Us</h2> 
+	        Your Name or Email <br> 
+	        <input id="name" type="text" /><br> 
+	        Subject<br> 
+	        <input id="subject" type="text" /><br> 
+	        Message<br> 
+	        <textarea id="message" cols="50" rows="20"></textarea><br> 
+	        <input id="send" type="button" value="Send" onClick="sendEmail()" /> 
+	    </article>
+			</td>
+			</tr>
+			</table>
     
     <div id="content"clear="all">
     <table width=100% cellspacing=0 cellpadding=20>
