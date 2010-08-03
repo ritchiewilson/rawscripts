@@ -16,43 +16,15 @@
 		$.post('/contactemail', {name : document.getElementById('name').value , subject : document.getElementById('subject').value , message : document.getElementById('message').value}, function(){emailComplete()});
 	}
 	function emailComplete(){
-		document.getElementById('sentPopup').style.visibility = 'visible';
 		document.getElementById('name').value = '';
 		document.getElementById('subject').value = '';
 		document.getElementById('message').value = '';
 		document.getElementById('send').value = 'Send';
 		document.getElementById('send').disabled = false;
-		
+		alert("Message Sent");
 	}
 	function hideSentPopup(){
 		document.getElementById('sentPopup').style.visibility = 'hidden';
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		document.getElementById('Home').style.display = 'block';
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				if (d[i].innerHTML == 'Home') d[i].style.backgroundColor = '#7694D8';
-				else d[i].style.backgroundColor = '#365498';
-			}
-		}
-	}
-	
-	function switchTabs(obj){
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				d[i].style.backgroundColor = '#365498';
-			}
-		}
-		obj.style.backgroundColor = '#7694D8';
-		document.getElementById(obj.innerHTML).style.display = 'block';
 	}
 	</script>
     <style>
@@ -82,10 +54,6 @@
 	#header{
 		font-size:16pt;
 	margin:20px;
-	}
-	a{
-	color:black;
-	text-decoration:none;
 	}
 	#content{
 	border-top:1px #333 solid;
@@ -144,9 +112,9 @@
 				<article>
 					<p>Contact us in any number of ways!</p>
 					<ul>
+						<li>Visit the <a href="http://community.rawscripts.com/RawScripts/">forums</a> and join in the discussion.</li>
 						<li>Email us at contact@rawscripts.com.</li>
 						<li>Fill out the form to the right.</li>
-						<li></li>
 					</ul>
 				</article>
 			</td>
