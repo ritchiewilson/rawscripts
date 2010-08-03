@@ -11,6 +11,18 @@ handlers:
   static_files: convert.html
   upload: convert.html
 
+- url: /about
+  static_files: about.html
+  upload: about.html
+
+- url: /blog
+  static_files: blog.html
+  upload: blog.html
+
+- url: /contact
+  static_files: contact.html
+  upload: contact.html
+
 - url: /migration
   static_files: migration.html
   upload: migration.html
