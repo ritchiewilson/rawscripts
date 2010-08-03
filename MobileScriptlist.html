@@ -5,67 +5,88 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>Scriptlist</title>
 <script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/json2.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){
-						   refreshList();
-						   $('#recipient').keyup(function(event){if(event.which==188)tokenize()});
-						   });
+function setup(){
+	refreshList();
+}
 function refreshList(){
+	tabSwitch(0);
 	$.post('/list', function(data){
-		document.getElementById('content').innerHTML = data;
+		var J = JSON.parse(data);
+		var o = J[0];
+		var s = J[1];
+		var d = J[2];
+		var c = document.getElementById('mineContent');
+		c.innerHTML = "";
+		if (o.length==0)c.innerHTML="You Have No Scripts.";
+		else{
+			for (i in o){
+				var resource_id = o[i][0];
+				var title = o[i][1];
+				var updated = o[i][2];
+				var permission = o[i][3];
+				var shared_with = o[i][4];
+				var entry = c.appendChild(document.createElement('div'));
+				entry.className='entry';
+				var titleDiv = entry.appendChild(document.createElement('div'));
+				titleDiv.appendChild(document.createTextNode(title));
+				//control div
+				var controlDiv = entry.appendChild(document.createElement('div'));
+				var e = controlDiv.appendChild(document.createElement("input"));
+				e.addEventListener("click",emailPrompt, false);
+				e.title = resource_id;
+				e.type="button";
+				e.value = "Email"
+				//share script
+				var sh = controlDiv.appendChild(document.createElement("input"));
+				sh.type="button";
+				sh.id = resource_id;
+				sh.title = shared_eith.join(",");
+				sh.addEventListener("click",sharePrompt, false);
+				sh.value = "Share"
+				//title page
+				var t = controlDiv.appendChild(document.createElement('input'));
+				t.type="button";
+				t.value="Edit Title Page";
+				t.addEventListener("click", titlePage, false);
+				t.title = resource_id;
+				
+			}
+		}
+		var c = document.getElementById('othersContent');
+		c.innerHTML = "";
+		if (o.length==0)c.innerHTML="No One is Sharing Scripts With You.";
+		else{
+			for(i in s){
+				var resource_id = s[i][0];
+				var title = s[i][1];
+				var updated = s[i][2];
+				var owner = s[i][3];
+			}
+		}
 	
 							 });
 }
-
-function tokenize(){
-	var counter = 0;
-	var c = document.getElementsByTagName('div');
-		for(var i=0;i<c.length;i++){
-			if(c[i].className=='token'){
-				counter++;
-				}
-			}
-	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
-	var txtbox = document.getElementById('recipient');
-	var data = txtbox.value.replace(',','');
-	var whitespace = data.replace(/ /g, "");
-	if (whitespace==""){return;}
-	var arr = data.split(' ');
-	var email = arr.pop();
-	var name = "";
-	if(arr.length == 0){name = email;}
-	else{name = arr.join(' ').replace(/"/g, '');}
-	// Create Token div
-	var newToken = document.createElement('div');
-	var insertedToken = document.getElementById('recipients').appendChild(newToken);
-	insertedToken.className='token';
-	insertedToken.id = email;
-	// Create Name Area
-	var newSpan = document.createElement('span');
-	var nameSpan = insertedToken.appendChild(newSpan);
-	var nameText = document.createTextNode(name);
-	nameSpan.appendChild(nameText);
-	//Create Mailto area
-	var newSpan = document.createElement('span');
-	var emailSpan = insertedToken.appendChild(newSpan);
-	var emailText = document.createTextNode(email);
-	emailSpan.className = 'mailto';
-	emailSpan.appendChild(emailText);
-	// create X button
-	var newA = document.createElement('a');
-	var xA = insertedToken.appendChild(newA);
-	var xText = document.createTextNode(" | X");
-	xA.appendChild(xText);
-	var js = 'javascript:removeToken("'+email+'")'
-	xA.setAttribute('href', js);
-	txtbox.value='';
+function tabSwitch(v){
+	var t = ["mine","others","deleted"];
+	for (i in t){
+		if (i*1==v*1){
+			document.getElementById(t[v]).style.backgroundColor="#6484DF";
+			document.getElementById(t[v]+"Content").style.display="block";
+		}
+		else{
+			document.getElementById(t[i]).style.backgroundColor="#A2BAE9";
+			document.getElementById(t[i]+"Content").style.display="none";
+		}
+	}
+}
+function sharePrompt(){
 	
 }
-function removeToken(v){
-	var token = document.getElementById(v);
-	token.parentNode.removeChild(token);	
-	}
-
+function titlePage(){
+	window.open("titlepage?resource_id="+this.title)
+}
 function script(v){
 url = '/editor?resource_id=' + v;
 window.open(url);
@@ -95,46 +116,8 @@ function exportScript(v){
 url = '/export?resource_id=' + v + '&export_format=pdf';
 window.open(url);
 }
-function countCommas(){
-	var rec = document.getElementById('recipient').value;
-	var data = rec.split(',');
-	for(var i=0;i<data.length;i++){
-		var whitespace = data[i].replace(/ /g, "");
-		if (whitespace!=""){
-			var arr = data[i].split(' ');
-			var email = arr.pop();
-			var name = email;
-			// Create Token div
-			var newToken = document.createElement('div');
-			var insertedToken = document.getElementById('recipients').appendChild(newToken);
-			insertedToken.className='token';
-			insertedToken.id = email;
-			// Create Name Area
-			var newSpan = document.createElement('span');
-			var nameSpan = insertedToken.appendChild(newSpan);
-			var nameText = document.createTextNode(name);
-			nameSpan.appendChild(nameText);
-			//Create Mailto area
-			var newSpan = document.createElement('span');
-			var emailSpan = insertedToken.appendChild(newSpan);
-			var emailText = document.createTextNode(email);
-			emailSpan.className = 'mailto';
-			emailSpan.appendChild(emailText);
-			// create X button
-			var newA = document.createElement('a');
-			var xA = insertedToken.appendChild(newA);
-			var xText = document.createTextNode(" | X");
-			xA.appendChild(xText);
-			var js = 'javascript:removeToken("'+email+'")'
-			xA.setAttribute('href', js);
-		}
-	}
-	document.getElementById('recipient').value='';
-	
-}
+
 function emailScript(){
-	countCommas();
-	tokenize();
 	var arr = new Array();
 	var c = document.getElementsByTagName('span');
 	for(var i=0;i<c.length; i++){
@@ -148,9 +131,8 @@ function emailScript(){
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message});
 	hideEmailDiv();
 }
-var resource_id="";
-function emailPrompt(v){
-	resource_id=v;
+function emailPrompt(){
+	resource_id=this;
 	document.getElementById('emailPrompt').style.display = 'block';
 }
 function renamePrompt(v){
@@ -189,7 +171,15 @@ function showActions(v){
 	}
 </script>
 <style>
-body{margin:0; padding:0;}
+body{
+	margin:0; 
+	padding:0;
+	font-family:sans-serif;
+}
+.tab{
+	border:1px #333 solid;
+	background-color:#A2BAE9;
+}
 .TEXT{
 	font-size:24px;
   border-style:inset; 
@@ -226,23 +216,28 @@ body{margin:0; padding:0;}
 	padding-right:10px;
 	font-size:150%;
 }
-.user{
-}
-.popup{
-}
 </style>
 </head>
 
-<body>
+<body onload="setup()">
 <b id="user">{{  user  }}</b>  |  <a href="{{ sign_out }}" class="user" style="font-size:100%">Sign Out</a>
 
 		<div style="border:ridge;">
 			<div style="border-bottom:3px #999999 solid; background-color:#ddd; padding:3px; font-size:100%">RawScripts</div>
-			<div id="content"></div>
+			<table id='tabs' width=100%>
+				<tr>
+					<td align="center" width=33% id="mine" class="tab" onclick="tabSwitch(0)">Mine</td>
+					<td align="center" width=33% id="others" class="tab" onclick="tabSwitch(1)">Others'</td>
+					<td align="center" width=33% id="deleted" class="tab" onclick="tabSwitch(2)">Deleted</td>
+				</tr>
+			</table>
+			<div id="mineContent" style="display:none">Loading...</div>
+			<div id="othersContent" style="display:none">Loading...</div>
+			<div id="deletedContent" style="display:none">Loading...</div>
 		</div>
 
-<div id="emailPrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100">
-	<div class="popup_block" style="width:90%; position:relative; margin:auto; top:10%; padding:10px; border:double">
+<div id="emailPrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100; width:100%" >
+	<div class="popup_block" style="width:100%; position:relative; margin:auto; top:10%; padding:10px; border:double">
 		<div class="popup">
 			<a href="javascript:hideEmailDiv()" style="color:#333">Close</a>
 			<br /><br />

@@ -58,6 +58,14 @@ class Welcome (webapp.RequestHandler):
     referer = os.environ.get("HTTP_REFERER")
     template_values={}
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
+    mobile = 0
+    #Check if should send to mobile Page
+    ua = self.request.user_agent
+    props = da.getPropertiesAsTyped(tree, ua)
+    if props.has_key('mobileDevice'):
+      if props['mobileDevice']:
+        path = os.path.join(os.path.dirname(__file__), 'MobileWelcome.html')
+        mobile = 1
     if referer == 'http://www.rawscripts.com/scriptlist':
       self.response.headers['Content-Type'] = 'text/html'
       self.response.out.write(template.render(path, template_values))

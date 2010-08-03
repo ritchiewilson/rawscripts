@@ -117,7 +117,7 @@ class ScriptList(webapp.RequestHandler):
 
     
     
-    path = os.path.join(os.path.dirname(__file__), 'scriptlist.html')
+    path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
     mobile = 0
     #Check if should send to mobile Page
     ua = self.request.user_agent
