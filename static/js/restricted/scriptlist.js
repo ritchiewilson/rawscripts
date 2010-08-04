@@ -52,7 +52,6 @@ function tabs(v){
 
 function refreshList(v){
 	$.post('/list', function(data){
-    console.log(data);
 	document.getElementById('loading').style.display = 'none';
     //remove old data
     var childs = document.getElementById('content').childNodes;
@@ -142,6 +141,12 @@ function refreshList(v){
         updatedTd.appendChild(document.createTextNode(updated));
 	}
     // showing sharing scripts
+    //remove old data
+    var childs = document.getElementById('sharedContent').childNodes;
+    for (var i=0; i<childs.length; i++){
+        childs[i].parentNode.removeChild(childs[i]);
+        i--;
+    }
     document.getElementById('sharedLoading').style.display='none';
     if (ss.length==0)document.getElementById('sharedNoEntries').style.display='block';
     var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));

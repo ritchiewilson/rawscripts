@@ -1,281 +1,448 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>Scriptlist</title>
-<script type="text/javascript" src="js/jquery.min.js"></script>
-<script type="text/javascript" src="js/json2.js"></script>
-<script type="text/javascript">
-function setup(){
-	refreshList();
-}
-function refreshList(){
-	tabSwitch(0);
-	$.post('/list', function(data){
-		var J = JSON.parse(data);
-		var o = J[0];
-		var s = J[1];
-		var d = J[2];
-		var c = document.getElementById('mineContent');
-		c.innerHTML = "";
-		if (o.length==0)c.innerHTML="You Have No Scripts.";
-		else{
-			for (i in o){
-				var resource_id = o[i][0];
-				var title = o[i][1];
-				var updated = o[i][2];
-				var permission = o[i][3];
-				var shared_with = o[i][4];
-				var entry = c.appendChild(document.createElement('div'));
-				entry.className='entry';
-				var titleDiv = entry.appendChild(document.createElement('div'));
-				titleDiv.appendChild(document.createTextNode(title));
-				//control div
-				var controlDiv = entry.appendChild(document.createElement('div'));
-				var e = controlDiv.appendChild(document.createElement("input"));
-				e.addEventListener("click",emailPrompt, false);
-				e.title = resource_id;
-				e.type="button";
-				e.value = "Email"
-				//share script
-				var sh = controlDiv.appendChild(document.createElement("input"));
-				sh.type="button";
-				sh.id = resource_id;
-				sh.title = shared_eith.join(",");
-				sh.addEventListener("click",sharePrompt, false);
-				sh.value = "Share"
-				//title page
-				var t = controlDiv.appendChild(document.createElement('input'));
-				t.type="button";
-				t.value="Edit Title Page";
-				t.addEventListener("click", titlePage, false);
-				t.title = resource_id;
-				
+	<meta name="viewport" content="width=device-width">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Scriptlist</title>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/json2.js"></script>
+	<script type="text/javascript">
+	function setup(){
+		refreshList();
+	}
+	function refreshList(){
+		tabSwitch(0);
+		$.post('/list', function(data){
+			var J = JSON.parse(data);
+			var o = J[0];
+			var s = J[1];
+			var d = J[2];
+			var c = document.getElementById('mineContent');
+			c.innerHTML = "";
+			if (o.length==0)c.innerHTML="You Have No Scripts.";
+			else{
+				for (i in o){
+					var resource_id = o[i][0];
+					var title = o[i][1];
+					var updated = o[i][2];
+					var permission = o[i][3];
+					var shared_with = o[i][4];
+					var entry = c.appendChild(document.createElement('div'));
+					entry.className='entry';
+					entry.id =resource_id;
+					var titleDiv = entry.appendChild(document.createElement('div'));
+					titleDiv.appendChild(document.createTextNode(title));
+					titleDiv.addEventListener("click", entryReveal, false);
+					titleDiv.className="title";
+					//control div
+					var controlDiv = entry.appendChild(document.createElement('div'));
+					controlDiv.className="controls";
+					// email
+					var e = controlDiv.appendChild(document.createElement("input"));
+					e.addEventListener("click",emailPrompt, false);
+					e.title = title;
+					e.name=resource_id;
+					e.type="button";
+					e.value = "Email"
+					//share script
+					var sh = controlDiv.appendChild(document.createElement("input"));
+					sh.type="button";
+					sh.name = resource_id;
+					sh.title = title;
+					sh.id = shared_with.join(",");
+					sh.addEventListener("click",sharePrompt, false);
+					sh.value = "Share"
+					//title page
+					var t = controlDiv.appendChild(document.createElement('input'));
+					t.type="button";
+					t.value="Edit Title Page";
+					t.addEventListener("click", titlePage, false);
+					t.title = resource_id;
+
+				}
+			}
+			var c = document.getElementById('othersContent');
+			c.innerHTML = "";
+			if (s.length==0)c.innerHTML="No One is Sharing Scripts With You.<br><br><br><br><br><br>";
+			else{
+				for(i in s){
+					var resource_id = s[i][0];
+					var title = s[i][1];
+					var updated = s[i][2];
+					var owner = s[i][3];
+					var entry = c.appendChild(document.createElement('div'));
+					entry.className='entry';
+					var titleDiv = entry.appendChild(document.createElement('div'));
+					titleDiv.appendChild(document.createTextNode(title));
+					titleDiv.addEventListener("click", entryReveal, false);
+					titleDiv.className="title";
+					//control div
+					var controlDiv = entry.appendChild(document.createElement('div'));
+					controlDiv.className="controls";
+					
+				}
+			}
+			var c = document.getElementById('deletedContent');
+			c.innerHTML = "";
+			if (d.length==0)c.innerHTML="No Deleted Scripts.";
+			else{
+				for(i in d){
+					var resource_id = d[i][0];
+					var title = d[i][1];
+					var updated = d[i][2];
+					var owner = d[i][3];
+					var entry = c.appendChild(document.createElement('div'));
+					entry.className='entry';
+					var titleDiv = entry.appendChild(document.createElement('div'));
+					titleDiv.appendChild(document.createTextNode(title));
+					titleDiv.addEventListener("click", entryReveal, false);
+					titleDiv.className="title";
+					//control div
+					var controlDiv = entry.appendChild(document.createElement('div'));
+					controlDiv.className="controls";
+					var undelete = controlDiv.appendChild(document.createElement('input'));
+					undelete.type="button";
+					undelete.value="Undelete";
+					undelete.addEventListener("click", undelete, false);
+					//delete permanantly
+					var dp=controlDiv.appendChild(document.createElement('input'));
+					dp.type="button";
+					dp.value="Delete Permanently";
+					dp.addEventListener("click", deletePermanently, false);
+				}
+			}
+
+		});
+	}
+	function tabSwitch(v){
+		var t = ["mine","others","deleted"];
+		t=["mine"]
+		for (i in t){
+			if (i*1==v*1){
+				document.getElementById(t[v]).style.backgroundColor="#6484DF";
+				document.getElementById(t[v]+"Content").style.display="block";
+			}
+			else{
+				document.getElementById(t[i]).style.backgroundColor="#A2BAE9";
+				document.getElementById(t[i]+"Content").style.display="none";
 			}
 		}
-		var c = document.getElementById('othersContent');
-		c.innerHTML = "";
-		if (o.length==0)c.innerHTML="No One is Sharing Scripts With You.";
-		else{
-			for(i in s){
-				var resource_id = s[i][0];
-				var title = s[i][1];
-				var updated = s[i][2];
-				var owner = s[i][3];
+	}
+	function entryReveal(){
+		var d = document.getElementsByTagName('div');
+		for (i in d){
+			if(d[i].className=="controls"){
+				d[i].style.display="none";
+				d[i].parentNode.style.backgroundColor="white";
 			}
 		}
-	
-							 });
-}
-function tabSwitch(v){
-	var t = ["mine","others","deleted"];
-	for (i in t){
-		if (i*1==v*1){
-			document.getElementById(t[v]).style.backgroundColor="#6484DF";
-			document.getElementById(t[v]+"Content").style.display="block";
+		this.parentNode.style.backgroundColor="#A2BAE9";
+		var c = this.nextSibling;
+		c.style.display="block";
+	}
+	function sharePrompt(){
+		document.getElementById('shareName').innerHTML = this.title;
+		var shared_with= this.id.split(",");
+		var table = document.getElementById("shareTable");
+		table.innerHTML="";
+		for (i in shared_with){
+			var tr = table.appendChild(document.createElement('tr'));
+			tr.appendChild(document.createElement("td")).appendChild(document.createTextNode(shared_with[i]));
+			var td = tr.appendChild(document.createElement("td"));
+			td.align="right";
+			var b = td.appendChild(document.createElement("input"));
+			b.type = "button";
+			b.value="Remove";
+			b.title=shared_with[i];
+			b.name=this.name;
+			b.addEventListener("click", removeAccess, false);
 		}
-		else{
-			document.getElementById(t[i]).style.backgroundColor="#A2BAE9";
-			document.getElementById(t[i]+"Content").style.display="none";
+		
+		document.getElementById("container").style.display="none";
+		document.getElementById("sharePrompt").style.display="block";
+		document.getElementById("shareHidden").value=this.name;
+		
+	}
+	function shareScript(){
+		var resource_id=document.getElementById("shareHidden").value;
+		var p = document.getElementById('share').value;
+		p = p.replace(" ","");
+		if(p==""){
+			alert("You must add at least one email address.")
+			return;
 		}
+		$.post("/share", {resource_id:resource_id, collaborators:p, fromPage:"mobilescriptlist"}, function(d){
+			var people=d.split(",");
+			var resource_id=document.getElementById("shareHidden").value;
+			var bs = document.getElementById(resource_id).getElementsByTagName("input");
+			for (i in bs){
+				if (bs[i].value=="Share")var b = bs[i];
+			}
+			var t=document.getElementById("shareTable");
+			for (i in people){
+				b.id = b.id+","+people[i];
+				var tr = t.appendChild(document.createElement('tr'));
+				tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(people[i]));
+				var td = tr.appendChild(document.createElement("td"));
+				td.align="right";
+				var b = td.appendChild(document.createElement("input"));
+				b.type = "button";
+				b.value="Remove";
+				b.title=people[i];
+				b.name=resource_id;
+				b.addEventListener("click", removeAccess, false);
+			}
+		});
 	}
-}
-function sharePrompt(){
-	
-}
-function titlePage(){
-	window.open("titlepage?resource_id="+this.title)
-}
-function script(v){
-url = '/editor?resource_id=' + v;
-window.open(url);
-}
-function renameScript(){
-	var resource_id = document.getElementById('resource_id').innerHTML;
-	var id = "name"+resource_id;
-	var nameCell = document.getElementById(id);
-	var rename = document.getElementById('rename').value;
-	if (rename!=""){
-		$.post("/rename", {resource_id : resource_id, rename : rename});
-		nameCell.innerHTML = rename;
+	function removeAccess(){
+		var resource_id = this.name;
+		var person = this.title;
+		var b=this;
+		$.post("/removeaccess", {resource_id:resource_id, removePerson:person, fromPage:"mobilescriptlist"}, function(d){
+			var c = document.getElementById(resource_id).getElementsByTagName("input");
+			for (i in c){
+				if(c[i].value=="Share"){
+					c[i].id=c[i].id.replace(","+d, "");
+					c[i].id=c[i].id.replace(d, "");
+				}
+			}
+			while(b.nodeName!="TR")b=b.parentNode;
+			b.parentNode.removeChild(b);
+		});
 	}
-	document.getElementById('rename').value = "";
-	document.getElementById('resource_id').innerHTML = "";
-	document.getElementById('renamePrompt').style.display= 'block';
-	
+	function hideSharePrompt(){
+		document.getElementById("container").style.display="block";
+		document.getElementById("sharePrompt").style.display="none";
 	}
-function deleteScript(v){
-	var script = document.getElementById(v);
-	script.style.backgroundColor = '#ccc';
-	script.style.opacity = '0.5';
-	$.post("/delete", {resource_id : v}, function(){script.parentNode.removeChild(script);});
+	function titlePage(){
+		window.open("titlepage?resource_id="+this.title)
+	}
+	function script(v){
+		url = '/editor?resource_id=' + v;
+		window.open(url);
+	}
+	function renameScript(){
+		var resource_id = document.getElementById('resource_id').innerHTML;
+		var id = "name"+resource_id;
+		var nameCell = document.getElementById(id);
+		var rename = document.getElementById('rename').value;
+		if (rename!=""){
+			$.post("/rename", {resource_id : resource_id, rename : rename});
+			nameCell.innerHTML = rename;
+		}
+		document.getElementById('rename').value = "";
+		document.getElementById('resource_id').innerHTML = "";
+		document.getElementById('renamePrompt').style.display= 'block';
+
+	}
+	function deleteScript(v){
+		var script = document.getElementById(v);
+		script.style.backgroundColor = '#ccc';
+		script.style.opacity = '0.5';
+		$.post("/delete", {resource_id : v}, function(){script.parentNode.removeChild(script);});
 	}
 
-function exportScript(v){
-url = '/export?resource_id=' + v + '&export_format=pdf';
-window.open(url);
-}
+	function exportScript(v){
+		url = '/export?resource_id=' + v + '&export_format=pdf';
+		window.open(url);
+	}
 
-function emailScript(){
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
+	function emailScript(){
+		var r = document.getElementById("recipient").value;
+		r = r.replace(" ","");
+		if (r==""){
+			alert("You must add at least one recipient");
+			return;
+		}
+		if(r.substr(r.length-1)==",")r=r.substr(0,r.length-1);
+		if(r.split(",").length>5){
+			alert("Sorry, you can only send to 5 recipients at a time. You're trying to send to "+r.split(",").length)
+			return;
+		}
+		var subject = document.getElementById('subject').value;
+		var body_message = document.getElementById('message').value;
+		var resource_id=document.getElementById("emailHidden").value;
+		var d= (document.getElementById("titlePageCheckbox").checked ? 1 : 0);
+		$.post("/emailscript", {resource_id : resource_id, recipients : r, subject :subject, body_message:body_message, title_page:d}, function(d){
+			document.getElementById('send').value="Send";
+			document.getElementById('send').disabled=false;
+			if(d=="error"){
+				alert("ERROR. There was a problem sending your script. Please try again later.")
 			}
-		}
-	var recipients = arr.join(',');
-	var subject = document.getElementById('subject').value;
-	var body_message = document.getElementById('message').value;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message});
-	hideEmailDiv();
-}
-function emailPrompt(){
-	resource_id=this;
-	document.getElementById('emailPrompt').style.display = 'block';
-}
-function renamePrompt(v){
-	var nameId = "name"+v;
-	var name = document.getElementById(nameId).innerHTML;
-	document.getElementById('renamePrompt').style.display = 'block';
-	document.getElementById('resource_id').innerHTML = v;
-	document.getElementById('renameName').innerHTML = name;
-}
-function hideEmailDiv(){
-document.getElementById('emailPrompt').style.display = 'none';
-document.getElementById('recipient').value = "";
-document.getElementById('subject').value = "";
-document.getElementById('message').value = "";
-document.getElementById('recipients').innerHTML = "";
-}
-function hideRenameDiv(){
-document.getElementById('renamePrompt').style.display = 'none';
-document.getElementById('rename').value = "";
-}
-function showActions(v){
-	var a = document.getElementById(v).style.display;
-	var c = document.getElementsByTagName('div');
-	for(var i=0; i<c.length; i++){
-		if(c[i].className=='actions'){c[i].style.display = 'none';}
-		if(c[i].className!='popup_block'){c[i].parentNode.style.backgroundColor = 'white';}
-		}
-	
-	if(a == 'none'){
-		document.getElementById(v).style.display = 'block';
-		document.getElementById(v).parentNode.style.backgroundColor = '#90A6D8';
-		}
-	else {document.getElementById(v).style.display = 'none';}
-	
-	
+			else{
+				alert("Sent!")
+				hideEmailDiv();
+			}
+		});
+		document.getElementById('send').value="Sending...";
+		document.getElementById('send').disabled=true;
 	}
-</script>
-<style>
-body{
-	margin:0; 
-	padding:0;
-	font-family:sans-serif;
-}
-.tab{
-	border:1px #333 solid;
-	background-color:#A2BAE9;
-}
-.TEXT{
-	font-size:24px;
-  border-style:inset; 
-  border-width:2px; 
-}
-.token{
-	background-color:#ddd;
-	padding:3px;
-	margin:3px;
-	float:none;
-	font:Verdana, Geneva, sans-serif;
-	-moz-border-radius: 5px; 
-	-webkit-border-radius: 5px;
-	float:left;
+	function emailPrompt(){
+		document.getElementById("emailHidden").value=this.name;
+		document.getElementById("emailScriptName").innerHTML = this.title;
+		document.getElementById("emailHref").href = "/titlepage?resource_id="+this.name;
+		document.getElementById('emailPrompt').style.display = 'block';
+		document.getElementById("container").style.display="none";
 	}
-.token a{
-	text-decoration:none;
-	color:#000;
-}
-.name{
-	font-size:30px;;
-}
-.mailto{
-	display:none;
-}
-.entry{
-	padding:6px;
-	border:ridge;
-}
-.title{
-	font-size:180%;
-}
-.btn{
-	padding-right:10px;
-	font-size:150%;
-}
-</style>
+	function renamePrompt(v){
+		var nameId = "name"+v;
+		var name = document.getElementById(nameId).innerHTML;
+		document.getElementById('renamePrompt').style.display = 'block';
+		document.getElementById('resource_id').innerHTML = v;
+		document.getElementById('renameName').innerHTML = name;
+	}
+	function hideEmailDiv(){
+		document.getElementById("container").style.display="block";
+		document.getElementById('emailPrompt').style.display = 'none';
+		document.getElementById('recipient').value = "";
+		document.getElementById('subject').value = "";
+		document.getElementById('message').value = "";
+		document.getElementById('recipients').innerHTML = "";
+	}
+	function hideRenameDiv(){
+		document.getElementById('renamePrompt').style.display = 'none';
+		document.getElementById('rename').value = "";
+	}
+	function undelete(){
+		
+	}
+	function deletePermanently(){
+		
+	}
+	</script>
+	<style>
+	body{
+		margin:0; 
+		padding:0;
+		font-family:sans-serif;
+	}
+	.tab{
+		border:1px #333 solid;
+		background-color:#A2BAE9;
+	}
+	.TEXT{
+		border-style:inset; 
+		border-width:1px; 
+		width:75%;
+	}
+	.name{
+		font-size:30px;;
+	}
+	.mailto{
+		display:none;
+	}
+	.entry{
+		padding:6px;
+		border:ridge;
+	}
+	.title{
+		font-size:130%;
+	}
+	.btn{
+		padding-right:10px;
+	}
+	.controls{
+		display:none;
+	}
+	.prompt{
+		background-color:#7694D8; 
+		display:none; 
+		position:absolute; 
+		min-height:100%; 
+		width:100%;
+		top:0; 
+		left:0;  
+		z-index:100; 
+		padding:15px;
+		border:1px darkBlue double;
+	}
+	</style>
 </head>
 
 <body onload="setup()">
-<b id="user">{{  user  }}</b>  |  <a href="{{ sign_out }}" class="user" style="font-size:100%">Sign Out</a>
+	<b id="user">{{  user  }}</b>  |  <a href="{{ sign_out }}" class="user">Sign Out</a>
 
-		<div style="border:ridge;">
-			<div style="border-bottom:3px #999999 solid; background-color:#ddd; padding:3px; font-size:100%">RawScripts</div>
-			<table id='tabs' width=100%>
-				<tr>
-					<td align="center" width=33% id="mine" class="tab" onclick="tabSwitch(0)">Mine</td>
-					<td align="center" width=33% id="others" class="tab" onclick="tabSwitch(1)">Others'</td>
-					<td align="center" width=33% id="deleted" class="tab" onclick="tabSwitch(2)">Deleted</td>
-				</tr>
-			</table>
-			<div id="mineContent" style="display:none">Loading...</div>
-			<div id="othersContent" style="display:none">Loading...</div>
-			<div id="deletedContent" style="display:none">Loading...</div>
-		</div>
+	<div id="container" style="border:ridge;">
+		<div style="border-bottom:3px #999999 solid; background-color:#A2BAE9; padding:3px; font-size:100%">RawScripts.com</div>
+		<table id='tabs' width=100%>
+			<tr>
+				<td align="center" width=33% id="mine" class="tab" onclick="tabSwitch(0)">My Scripts</td>
+				<!--><td align="center" width=33% id="others" class="tab" onclick="tabSwitch(1)">Others'</td>
+				<td align="center" width=33% id="deleted" class="tab" onclick="tabSwitch(2)">Deleted</td>-->
+			</tr>
+		</table>
+		<div id="mineContent" style="display:none">Loading...</div>
+		<div id="othersContent" style="display:none">Loading...</div>
+		<div id="deletedContent" style="display:none">Loading...</div>
+		<div id="ads">
+			<script type="text/javascript"><!--
+			window.googleAfmcRequest = {
+				client: 'ca-mb-pub-0734345216970558',
+				ad_type: 'text_image',
+				output: 'html',
+				channel: '',
+				format: '320x50_mb',
+				oe: 'utf8',
+				color_border: '336699',
+				color_bg: 'FFFFFF',
+				color_link: '0000FF',
+				color_text: '000000',
+				color_url: '008000',
+			};
+			//--></script>
+			<script type="text/javascript" 
+			src="http://pagead2.googlesyndication.com/pagead/show_afmc_ads.js"></script>
 
-<div id="emailPrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100; width:100%" >
-	<div class="popup_block" style="width:100%; position:relative; margin:auto; top:10%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideEmailDiv()" style="color:#333">Close</a>
-			<br /><br />
-            Email Script
-            <br /><br />
-			Recipients (max 5, comma seperated)
-			<br />
-            <div id="recipients"></div>
-			<input class="TEXT" type='text' name='recipient' id='recipient' />
-			<br />
-			Subject
-			<br />
-			<input class="TEXT" type='text' name='subject' id='subject' />
-			<br />
-			Message (optional)
-			<br />
-			<textarea class="TEXT" name='message' id='message'></textarea>
-			<br />
-			<input type='button' class="btn" onClick='emailScript()' value='Send' />
-			<br />
-			<b>Note:</b> you will automatically get a copy yourself
 		</div>
 	</div>
-</div>
-<div id="renamePrompt" style="background-color:#7694D8; display:none; position:absolute; height:100%; top:0; left:0;  z-index:100">
-	<div class="popup_block" style="background:#7694D8; width:90%; position:relative; margin:auto; top:30%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideRenameDiv()" style="color:#333">Close</a>
-            <br /><br />
-			Rename <b id="renameName"></b>
-			<br /><br />
-			<input class="TEXT" type='text' name='rename' id='rename' />
-			<br />
-			<input type='button' class="btn" onClick='renameScript()' value='Save' />
-            <div id="resource_id" style="display:none"></div>
-			
-		</div>
+
+	<div class="prompt" id="emailPrompt" >
+		<a href="javascript:hideEmailDiv()" style="color:#333">Close</a>
+		<br /><br />
+		Email Script: <b id="emailScriptName"></b>
+		<br /><br />
+		Recipients (max 5, comma seperated)
+		<br />
+		<div id="recipients"></div>
+		<input class="TEXT" type='text' name='recipient' id='recipient' />
+		<br />
+		Subject
+		<br />
+		<input class="TEXT" type='text' name='subject' id='subject' />
+		<br />
+		Message (optional)
+		<br />
+		<textarea class="TEXT" name='message' id='message'></textarea>
+		<br /><br>
+		<input id="titlePageCheckbox" type="checkbox">Send with Title Page <a id="emailHref" href="#" target="_blank">Edit Title Page</a><br><br>
+		<input type="hidden" id="emailHidden">
+		<input id="send" type='button' class="btn" onClick='emailScript()' value='Send' />
+		<br />
+		<b>Note:</b> you will automatically get a copy yourself
 	</div>
-</div>
+	
+	<div class="prompt" id="renamePrompt">
+		<a href="javascript:hideRenameDiv()" style="color:#333">Close</a>
+		<br /><br />
+		Rename <b id="renameName"></b>
+		<br /><br />
+		<input class="TEXT" type='text' name='rename' id='rename' />
+		<br />
+		<input type='button' class="btn" onClick='renameScript()' value='Save' />
+		<div id="resource_id" style="display:none"></div>
+	</div>
+	
+	<div class="prompt" id="sharePrompt">
+		<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+		<br /><br>
+		<u id="shareName"></u> Shared With: <br><br>
+		<table id="shareTable" border="0" cellspacing="0" width=100%>
+		</table><br>
+		Add collaborators (comma seperated)
+		<input class="TEXT" type='text' name='share' id='share' />
+		<br />
+		<input type='button' class="btn" onClick='shareScript()' value='Send Inivitations' />
+		<input type="hidden" id="shareHidden" />
+	</div>
 </body>
 </html>
