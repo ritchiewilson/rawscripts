@@ -144,7 +144,7 @@ class TitlePage(webapp.RequestHandler):
   def get(self):
     resource_id=self.request.get('resource_id')
     if resource_id=="Demo":
-      p="Duck Soup"
+      return
     else:
       p = permission(resource_id)
     if p==False:
@@ -216,7 +216,8 @@ class TitlePage(webapp.RequestHandler):
 class SaveTitlePage (webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
-    logging.info(resource_id)
+    if resource_id=="Demo":
+      return
     title = permission(resource_id)
     if not title==False:
       q= db.GqlQuery("SELECT * FROM TitlePageData "+
@@ -406,6 +407,8 @@ class HardDelete(webapp.RequestHandler):
 class Rename (webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     fromPage = self.request.get('fromPage')
     rename = self.request.get('rename')
     q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -427,6 +430,8 @@ class Export (webapp.RequestHandler):
     
     fromPage = self.request.get('fromPage')
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     export_format = self.request.get('export_format')
     title_page = self.request.get('title_page')
     user=users.get_current_user().email().lower()
@@ -469,6 +474,8 @@ class EmailScript (webapp.RequestHandler):
   def post(self):
     fromPage = self.request.get('fromPage')
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     title_page = self.request.get('title_page')
 
     p=permission(resource_id)
@@ -576,6 +583,8 @@ class NewScript (webapp.RequestHandler):
 class Duplicate (webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     title = permission(resource_id)
     if not title==False:
       q=db.GqlQuery("SELECT * FROM ScriptData "+
@@ -778,6 +787,8 @@ class GetVersion(webapp.RequestHandler):
 class Share (webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if p!=False:
       collaborators = self.request.get('collaborators')
@@ -825,6 +836,8 @@ class Share (webapp.RequestHandler):
 class RemoveAccess (webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p=permission(resource_id)
     if p!=False:
       person = self.request.get('removePerson')

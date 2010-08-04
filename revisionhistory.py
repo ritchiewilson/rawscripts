@@ -68,6 +68,8 @@ class SpellingData (db.Model):
 class RevisionTag(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       version=self.request.get('version')
@@ -83,6 +85,8 @@ class RevisionTag(webapp.RequestHandler):
 class DuplicateOldRevision(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       version = self.request.get('version')
@@ -140,6 +144,8 @@ class DuplicateOldRevision(webapp.RequestHandler):
 class RevisionHistory(webapp.RequestHandler):
   def get(self):
     resource_id = self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       q = db.GqlQuery("SELECT * FROM ScriptData "+
@@ -191,6 +197,8 @@ class RevisionHistory(webapp.RequestHandler):
 class RevisionList(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p=permission(resource_id)
     if not p==False:
       begining=False
@@ -232,6 +240,8 @@ class RevisionList(webapp.RequestHandler):
 class GetVersion(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       version = self.request.get('version')
@@ -259,6 +269,8 @@ class CompareVersions(webapp.RequestHandler):
 
     v_o_id=self.request.get('v_o_id')
     v_t_id=self.request.get('v_t_id')
+    if v_o_id=="Demo" or v_t_id=="Demo":
+      return
     title=permission(v_o_id)
     p = permission(v_t_id)
     if title!=False and p!=False:

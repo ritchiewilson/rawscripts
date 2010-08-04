@@ -79,6 +79,8 @@ class SpellingData (db.Model):
 class NewThread(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       user=users.get_current_user().email()
@@ -101,6 +103,8 @@ class NewThread(webapp.RequestHandler):
 class SubmitMessage(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = permission(resource_id)
     if not p==False:
       user=users.get_current_user().email()
@@ -124,6 +128,8 @@ class SubmitMessage(webapp.RequestHandler):
 class Position (webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = ownerPermission(resource_id)
     if not p==False:
       positions = self.request.get('positions')
@@ -140,6 +146,8 @@ class Position (webapp.RequestHandler):
 class DeleteThread (webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
+    if resource_id=="Demo":
+      return
     p = ownerPermission(resource_id)
     if not p==False:
       thread_id = self.request.get('thread_id')

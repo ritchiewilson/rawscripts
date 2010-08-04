@@ -541,11 +541,38 @@ function mouseDown(e){
         }
         //FILE
         if(id=='save')save(0);
-        else if(id=='new')newScriptPrompt();
-        else if(id=='open')openPrompt();
-        else if(id=='rename')renamePrompt();
-        else if(id=='exportas')exportPrompt();
-        else if(id=='duplicate')duplicate();
+        else if(id=='new'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+            }
+            else {newScriptPrompt();}
+        }
+        else if(id=='open'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+            }
+            else{openPrompt();}
+        }
+        else if(id=='rename'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+            }
+            else{renamePrompt();}
+        }
+        else if(id=='exportas'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{exportPrompt();}
+        }
+        else if(id=='duplicate'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{duplicate();}
+        }
         else if(id=='close')closeScript();
         //Edit
         else if(id=='undo')undo();
@@ -560,16 +587,40 @@ function mouseDown(e){
             viewNotes=true;
             newThread();
         }
-        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
+        else if(id=='editTitlePage'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{window.open('/titlepage?resource_id='+resource_id);}
+        }
         else if(id=="spellCheck")launchSpellCheck();
         //View
-        else if(id=='revision')window.open('/revisionhistory?resource_id='+resource_id);
+        else if(id=='revision'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{window.open('/revisionhistory?resource_id='+resource_id);}
+        }
         else if(id=='notes'){
             viewNotes = (viewNotes ? false : true);
         }
         //Share
-        else if(id=='collaborators')sharePrompt();
-        else if(id=='email')emailPrompt();
+        else if(id=='collaborators'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{sharePrompt();}
+        }
+        else if(id=='email'){
+            if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+            else{emailPrompt();}
+        }
         a.style.display='none';
     }
 	else if(document.getElementById('suggestBox')!=null){
@@ -1785,8 +1836,10 @@ function submitNewThread(v){
     if (content!=""){
         var arr = [pos.row, pos.col, [[content,u,d]], v];
         notes.push(arr);
-        var data = [pos.row, pos.col, content, v]
-        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        var data = [pos.row, pos.col, content, v];
+        if(resource_id!="Demo"){
+            $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        }
     }
     noteIndex();
 }
@@ -1825,7 +1878,9 @@ function submitMessage(v){
     if(content!=""){
         var arr=[content, u, d]
         notes[n][2].push(arr);
-        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        if(resource_id!="Demo"){
+            $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        }
     }
 	noteIndex();
 }
@@ -1833,7 +1888,9 @@ function submitMessage(v){
 function deleteThread(v){
     var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
     if(c==true){
-        $.post("/notesdeletethread", {resource_id:resource_id, thread_id:v})
+        if(resource_id!="Demo"){
+            $.post("/notesdeletethread", {resource_id:resource_id, thread_id:v});
+        }
     for (i in notes){
         if (notes[i][3]==v)var found = i;
     }
