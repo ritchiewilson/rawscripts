@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=0;">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Scriptlist</title>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/json2.js"></script>
+	<script type="text/javascript">
+	function setup(){
+		//alert({{j}});
+		var notes = {{j}};
+		var c = document.getElementById('content');
+		c.innerHTML="";
+		if (notes.length==0)c.innerHTML="There are no notes for this script."
+		for (x in notes){
+			var newDiv=c.appendChild(document.createElement('div'));
+			newDiv.className='thread';
+			if ("{{ f }}"!="False"){
+				var header = newDiv.appendChild(document.createElement('table'));
+				header.width="100%";
+				var TR = header.appendChild(document.createElement('tr'));
+				TR.appendChild(document.createElement('td'));
+				var TD = TR.appendChild(document.createElement('td'));
+				TD.align="right";
+				var newA = TD.appendChild(document.createElement('a'));
+				newA.style.backgroundColor="orange";
+				newA.appendChild(document.createTextNode('Delete'));
+				newA.href="#";
+				newA.name=notes[x][3];
+				newA.addEventListener("click", deleteThread, false);
+				newA.style.textDecoration="none";
+				newA.style.color = "black";
+			}
+			for (y in notes[x][2]){
+				var msgDiv = newDiv.appendChild(document.createElement('div'));
+				var contentDiv = msgDiv.appendChild(document.createElement('div'));
+				contentDiv.innerHTML = notes[x][2][y][0];
+				var infoDiv = msgDiv.appendChild(document.createElement('div'));
+				infoDiv.appendChild(document.createTextNode(notes[x][2][y][1].split("@")[0]));
+				infoDiv.align='right';
+				infoDiv.className="msgInfo";
+				msgDiv.className='msg';
+				msgDiv.id=notes[x][3]+"msg";
+			}
+			var cont=newDiv.appendChild(document.createElement('div'));
+			cont.className='respond';
+			cont.appendChild(document.createTextNode('Respond'));
+			cont.id=notes[x][3];
+			cont.addEventListener("click", newMessage, false)
+		}
+	}
+	function newMessage(v){
+		if(document.getElementById('nmi')!=null){
+			var c=document.getElementById('nmi')
+			while(c.className!="respondControls")c=c.parentNode;
+			var thread_id=c.name;
+			var d=c.parentNode;
+			d.removeChild(c);
+			var cont=d.appendChild(document.createElement('div'));
+			cont.className='respond';
+			cont.appendChild(document.createTextNode('Respond'));
+			cont.id=thread_id;
+			cont.addEventListener("click", newMessage, false);
+		}
+		var c=this;
+		var n=c.parentNode.insertBefore(document.createElement('div'),c);
+		n.className='respondControls';
+		n.name=this.id;
+		var i=n.appendChild(document.createElement('textarea'));
+		i.cols=40;
+		i.rows=5;
+		i.id='nmi';
+		var sb = n.appendChild(document.createElement('input'));
+		sb.type='button';
+		sb.value='Save';
+		sb.id='noteSave';
+		sb.name = this.id;
+		sb.addEventListener("click", submitMessage, false);
+		var cb = n.appendChild(document.createElement('input'));
+		cb.type='button';
+		cb.value='Cancel';
+		cb.id="noteCancel";
+		cb.addEventListener("click", cancel, false);
+		c.parentNode.removeChild(c);
+		i.focus();
+	}
+	function submitMessage(){
+		var thread_id = this.name;
+		var content = document.getElementById('nmi').value.replace("\n","<br>");
+		var resource_id = window.location.href.split("=")[1];
+		if(content!=""){
+			if(resource_id!="Demo"){
+				$.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : thread_id}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+			}
+		}
+		var c = this;
+		while(c.className!="respondControls")c=c.parentNode;
+		var d=c.parentNode;
+		d.removeChild(c);
+		var msgDiv = d.appendChild(document.createElement('div'));
+		var contentDiv = msgDiv.appendChild(document.createElement('div'));
+		contentDiv.innerHTML = content;
+		var infoDiv = msgDiv.appendChild(document.createElement('div'));
+		infoDiv.appendChild(document.createTextNode(document.getElementById('user').innerHTML.split("@")[0]));
+		infoDiv.align='right';
+		infoDiv.className="msgInfo";
+		msgDiv.className='msg';
+		msgDiv.id=thread_id+"msg";
+		var cont=d.appendChild(document.createElement('div'));
+		cont.className='respond';
+		cont.appendChild(document.createTextNode('Respond'));
+		cont.id=thread_id;
+		cont.addEventListener("click", newMessage, false)
+	}
+	function cancel(){
+		var thread_id = this.name;
+		var c = this;
+		while (c.className!="respondControls")c=c.parentNode;
+		var d=c.parentNode;
+		d.removeChild(c);
+		var cont=d.appendChild(document.createElement('div'));
+		cont.className='respond';
+		cont.appendChild(document.createTextNode('Respond'));
+		cont.id=thread_id;
+		cont.addEventListener("click", newMessage, false);
+		var i = d.getElementsByTagName('div');
+		if (i.length==1)d.parentNode.removeChild(d)
+	}
+	function deleteThread(){
+		var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
+		var resource_id = window.location.href.split("=")[1];
+		if(c==true){
+			if(resource_id!="Demo"){
+				$.post("/notesdeletethread", {resource_id:resource_id, thread_id:this.name});
+			}
+		}
+		var c = this;
+		while(c.className!="thread")c=c.parentNode;
+		c.parentNode.removeChild(c);
+	}
+	function newThread(){
+		id=Math.round(Math.random()*1000000000);
+		var c = document.getElementsByTagName('div')
+		var found=true;
+		while (found==true){
+			found=false;
+			for (i in c){
+				if (c[i].className=="respond" && c[i].id==id){
+					id=Math.round(Math.random()*1000000000);
+					found=true;
+				}
+			}
+		}
+		var d = document.getElementById('content').appendChild(document.createElement('div'));
+		d.className="thread";
+		var n=d.appendChild(document.createElement('div'));
+		n.className='respondControls';
+		var i=n.appendChild(document.createElement('textarea'));
+		i.cols=40;
+		i.rows=5;
+		i.id='nmi';
+		var sb = n.appendChild(document.createElement('input'));
+		sb.type='button';
+		sb.value='Save';
+		sb.id='noteSave';
+		sb.name = id;
+		sb.addEventListener("click", submitThread, false);
+		var cb = n.appendChild(document.createElement('input'));
+		cb.type='button';
+		cb.value='Cancel';
+		cb.id="noteCancel";
+		cb.addEventListener("click", cancel, false);
+		i.focus();
+	}
+	function submitThread(){
+		var thread_id = this.name;
+		var content = document.getElementById('nmi').value.replace("\n","<br>");
+		var resource_id = window.location.href.split("=")[1];
+		if(content!=""){
+			if(resource_id!="Demo"){
+				$.post("/notesnewthread", {resource_id:resource_id, row:0, col:0, content : content, thread_id : thread_id}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+			}
+		}
+		var c = this;
+		while(c.className!="respondControls")c=c.parentNode;
+		var d=c.parentNode;
+		d.removeChild(c);
+		var msgDiv = d.appendChild(document.createElement('div'));
+		var contentDiv = msgDiv.appendChild(document.createElement('div'));
+		contentDiv.innerHTML = content;
+		var infoDiv = msgDiv.appendChild(document.createElement('div'));
+		infoDiv.appendChild(document.createTextNode(document.getElementById('user').innerHTML.split("@")[0]));
+		infoDiv.align='right';
+		infoDiv.className="msgInfo";
+		msgDiv.className='msg';
+		msgDiv.id=thread_id+"msg";
+		var cont=d.appendChild(document.createElement('div'));
+		cont.className='respond';
+		cont.appendChild(document.createTextNode('Respond'));
+		cont.id=thread_id;
+		cont.addEventListener("click", newMessage, false)
+	}
+
+
+	</script>
+	<style>
+	body{
+		margin:0; 
+		padding:0;
+		font-family:sans-serif;
+	}
+	.tab{
+		border:1px #333 solid;
+		background-color:#A2BAE9;
+	}
+	.thread{
+		border:1px #666 solid;
+		padding:5px;
+		margin:10px;
+		background-color:#efeff1;
+		-moz-box-shadow: 3px 3px 3px #999;
+		-webkit-box-shadow: 3px 3px 3px #999;
+	}
+	.msg{
+		background-color:#6A97FF;
+		padding:5px;
+		margin:3px;
+		font-size:11pt;
+		-moz-border-radius: 5px; 
+		-webkit-border-radius: 5px;
+		cursor:pointer;
+	}
+	.msgInfo{
+		padding-top:2px;
+		font-size:11pt;
+	}
+	.respondControls{
+		background-color:#26972D;
+		cursor:pointer;
+		padding:5px;
+		margin:3px;
+	}
+	.respond{
+		background-color:#26972D;
+		cursor:pointer;
+		padding:5px;
+		margin:3px;
+		-moz-border-radius: 5px; 
+		-webkit-border-radius: 5px;
+	}
+	#nmi{
+		padding:5px;
+		margin:3px;
+		background-color:white;
+	}
+	.TEXT{
+		border-style:inset; 
+		border-width:1px; 
+		width:75%;
+	}
+	.name{
+		font-size:30px;;
+	}
+	.mailto{
+		display:none;
+	}
+	.entry{
+		padding:6px;
+		border:ridge;
+	}
+	.title{
+		font-size:130%;
+	}
+	.btn{
+		padding-right:10px;
+	}
+	.controls{
+		display:none;
+		padding-top:5px;
+	}
+	.prompt{
+		background-color:#7694D8; 
+		display:none; 
+		position:absolute; 
+		min-height:100%; 
+		width:100%;
+		top:0; 
+		left:0;  
+		z-index:100; 
+		padding:15px;
+		border:1px darkBlue double;
+	}
+	</style>
+</head>
+
+<body onload="setup()">
+	<b id="user">{{  user  }}</b>  |  <a href="{{ sign_out }}" class="user">Sign Out</a>
+
+	<div id="container" style="border:ridge;">
+		<div style="border-bottom:3px #999999 solid; background-color:#A2BAE9; padding:3px; font-size:100%">RawScripts.com</div>
+		<table id='tabs' width=100%>
+			<tr>
+				<td align="center" width=33% id="mine" class="tab">Notes for {{  title  }}</td>
+			</tr>
+		</table>
+		<input type="button" value="Insert New Thread" onclick="newThread()"/>
+		<div id="content">Loading...</div>
+	</div>
+
+	<div class="prompt" id="emailPrompt" >
+		<a href="javascript:hideEmailDiv()" style="color:#333">Close</a>
+		<br /><br />
+		Email Script: <b id="emailScriptName"></b>
+		<br /><br />
+		Recipients (max 5, comma seperated)
+		<br />
+		<div id="recipients"></div>
+		<input class="TEXT" type='text' name='recipient' id='recipient' />
+		<br />
+		Subject
+		<br />
+		<input class="TEXT" type='text' name='subject' id='subject' />
+		<br />
+		Message (optional)
+		<br />
+		<textarea class="TEXT" name='message' id='message'></textarea>
+		<br /><br>
+		<input id="titlePageCheckbox" type="checkbox">Send with Title Page <a id="emailHref" href="#" target="_blank">Edit Title Page</a><br><br>
+		<input type="hidden" id="emailHidden">
+		<input id="send" type='button' class="btn" onClick='emailScript()' value='Send' />
+		<br />
+		<b>Note:</b> you will automatically get a copy yourself
+	</div>
+
+	<div class="prompt" id="renamePrompt">
+		<a href="javascript:hideRenameDiv()" style="color:#333">Close</a>
+		<br /><br />
+		Rename <b id="renameName"></b>
+		<br /><br />
+		<input class="TEXT" type='text' name='rename' id='rename' />
+		<br />
+		<input type='button' class="btn" onClick='renameScript()' value='Save' />
+		<div id="resource_id" style="display:none"></div>
+	</div>
+
+	<div class="prompt" id="sharePrompt">
+		<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+		<br /><br>
+		<u id="shareName"></u> Shared With: <br><br>
+		<table id="shareTable" border="0" cellspacing="0" width=100%>
+		</table><br>
+		Add collaborators (comma seperated)
+		<input class="TEXT" type='text' name='share' id='share' />
+		<br />
+		<input type='button' class="btn" onClick='shareScript()' value='Send Inivitations' />
+		<input type="hidden" id="shareHidden" />
+	</div>
+</body>
+</html>

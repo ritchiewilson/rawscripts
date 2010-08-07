@@ -30,6 +30,17 @@ def permission (resource_id):
   results = q.fetch(1000)
   p=False
   for i in results:
+    if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=='collab':
+      if i.user==users.get_current_user().email().lower():
+        p=i.title
+  return p
+
+def ownerPermission (resource_id):
+  q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+  results = q.fetch(1000)
+  p=False
+  for i in results:
     if i.permission=='owner' or i.permission=='ownerDeleted':
       if i.user==users.get_current_user().email().lower():
         p=i.title
@@ -146,7 +157,7 @@ class TitlePage(webapp.RequestHandler):
     if resource_id=="Demo":
       return
     else:
-      p = permission(resource_id)
+      p = ownerPermission(resource_id)
     if p==False:
       return
 
@@ -157,7 +168,6 @@ class TitlePage(webapp.RequestHandler):
     q= db.GqlQuery("SELECT * FROM TitlePageData "+
                    "WHERE resource_id='"+resource_id+"'")
     results = q.fetch(5)
-    logging.info(resource_id)
     
     if not len(results)==0:
       r=results[0]
@@ -218,7 +228,7 @@ class SaveTitlePage (webapp.RequestHandler):
     resource_id=self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q= db.GqlQuery("SELECT * FROM TitlePageData "+
                      "WHERE resource_id='"+resource_id+"'")
@@ -373,7 +383,7 @@ class Delete (webapp.RequestHandler):
 class Undelete(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    title= permission(resource_id)
+    title= ownerPermission(resource_id)
     if not title==False:
       q = db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+resource_id+"'")
@@ -394,7 +404,7 @@ class Undelete(webapp.RequestHandler):
 class HardDelete(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q = db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+resource_id+"'")
@@ -471,68 +481,66 @@ class Export (webapp.RequestHandler):
         self.response.out.write(newfile.getvalue())
   
 class EmailScript (webapp.RequestHandler):
-  def post(self):
-    fromPage = self.request.get('fromPage')
-    resource_id = self.request.get('resource_id')
-    if resource_id=="Demo":
-      return
-    title_page = self.request.get('title_page')
-
-    p=permission(resource_id)
-    if p==False:
-      logging.info(resource_id)
-      return
-    else:      
-      subject=self.request.get('subject')
-      body_message=self.request.get('body_message')
-      result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
-      htmlbody = result.content
-      html = htmlbody.replace("FILLERTEXT", body_message)
-      body = body_message + """
+	def post(self):
+		fromPage = self.request.get('fromPage')
+		resource_id = self.request.get('resource_id')
+		if resource_id=="Demo":
+			return
+		title_page = self.request.get('title_page')
+		p=permission(resource_id)
+		if p==False:
+			return
+		else:      
+			subject=self.request.get('subject')
+			body_message=self.request.get('body_message')
+			result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
+			htmlbody = result.content
+			html = htmlbody.replace("FILLERTEXT", body_message)
+			body = body_message + """
 
 
   --- This Script written and sent from RawScripts.com. Check it out---"""
     
-    # Make Recipient list instead of just one
-    recipients=self.request.get('recipients').split(',')
-    title = p
-    q=db.GqlQuery("SELECT * FROM ScriptData "+
+		# Make Recipient list instead of just one
+		recipients=self.request.get('recipients').split(',')
+		title = p
+		q=db.GqlQuery("SELECT * FROM ScriptData "+
                   "WHERE resource_id='"+resource_id+"' "+
                   "ORDER BY version DESC")
-    results = q.fetch(1000)
-    data=results[0].data
-    newfile = export.Pdf(data, str(title), title_page, resource_id)
-    filename=title+'.pdf'
+		results = q.fetch(1000)
+		data=results[0].data
+		newfile = export.Pdf(data, str(title), title_page, resource_id)
+		filename=title+'.pdf'
 
     
-
     #Mail the damn thing. Itereating to reduce userside errors
-    j=0
-    while j<3:
-      try:
-        mail.send_mail(sender=users.get_current_user().email(),
-                       to=recipients,
-                       subject=subject,
-                       body = body,
-                       html = html,
-                       attachments=[(filename, newfile.getvalue())])
-        j=5
-      except:
-        j=j+1
-        if j==3:
-          self.response.headers['Content-Type'] = 'text/plain'
-          self.response.out.write('not sent')
-          return
-    J = simplejson.loads(results[0].export)
-    t=str(datetime.datetime.today())
+		j=0
+		while j<3:
+			try:
+				mail.send_mail(sender=users.get_current_user().email(),
+								to=recipients,
+								subject=subject,
+								body = body,
+								html = html,
+								attachments=[(filename, newfile.getvalue())])
+				j=5
+			except:
+				j=j+1
+			if j==3:
+				logging.info('notSent')
+				self.response.headers['Content-Type'] = 'text/plain'
+				self.response.out.write('not sent')
+				return
+		J = simplejson.loads(results[0].export)
+		t=str(datetime.datetime.today())
 
-    for recipient in recipients:
-      J[0].append([recipient, t])
-    results[0].export=simplejson.dumps(J)
-    results[0].put()
+		for recipient in recipients:
+			J[0].append([recipient, t])
+		results[0].export=simplejson.dumps(J)
+		results[0].put()
    
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write('sent')
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write('sent')
     
 
 class NewScript (webapp.RequestHandler):
@@ -585,7 +593,7 @@ class Duplicate (webapp.RequestHandler):
     resource_id = self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q=db.GqlQuery("SELECT * FROM ScriptData "+
                     "WHERE resource_id='"+resource_id+"' "+
@@ -773,7 +781,7 @@ class MyParser(sgmllib.SGMLParser):
 class GetVersion(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
-    p = permission(resource_id)
+    p = ownerPermission(resource_id)
     if not p==False:
       version = self.request.get('version')
       logging.info(version)
@@ -789,7 +797,7 @@ class Share (webapp.RequestHandler):
     resource_id = self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    p = permission(resource_id)
+    p = ownerPermission(resource_id)
     if p!=False:
       collaborators = self.request.get('collaborators')
       fromPage = self.request.get('fromPage')
@@ -838,7 +846,7 @@ class RemoveAccess (webapp.RequestHandler):
     resource_id=self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    p=permission(resource_id)
+    p=ownerPermission(resource_id)
     if p!=False:
       person = self.request.get('removePerson')
       q=db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -877,7 +885,7 @@ def main():
                                         ('/duplicate', Duplicate),
                                         ('/export', Export),
                                         ('/rename', Rename),
-					('/emailscript', EmailScript),
+										('/emailscript', EmailScript),
                                         ('/convertprocess', ConvertProcess),
                                         ('/share', Share),
                                         ('/removeaccess', RemoveAccess),

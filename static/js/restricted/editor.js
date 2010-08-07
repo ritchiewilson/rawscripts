@@ -1894,7 +1894,6 @@ function deleteThread(v){
     for (i in notes){
         if (notes[i][3]==v)var found = i;
     }
-    console.log(found);
     notes.splice(found,1);
     noteIndex();
     }

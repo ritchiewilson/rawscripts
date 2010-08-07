@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width">
+	<meta name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=0;">
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Scriptlist</title>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/json2.js"></script>
+	<script type="text/javascript" src="js/iscroll.js"></script>
 	<script type="text/javascript">
 	function setup(){
 		refreshList();
@@ -15,8 +16,8 @@
 		$.post('/list', function(data){
 			var J = JSON.parse(data);
 			var o = J[0];
-			var s = J[1];
-			var d = J[2];
+			var s = J[2];
+			var d = J[1];
 			var c = document.getElementById('mineContent');
 			c.innerHTML = "";
 			if (o.length==0)c.innerHTML="You Have No Scripts.";
@@ -37,6 +38,7 @@
 					//control div
 					var controlDiv = entry.appendChild(document.createElement('div'));
 					controlDiv.className="controls";
+					controlDiv.appendChild(document.createElement('hr'));
 					// email
 					var e = controlDiv.appendChild(document.createElement("input"));
 					e.addEventListener("click",emailPrompt, false);
@@ -58,12 +60,17 @@
 					t.value="Edit Title Page";
 					t.addEventListener("click", titlePage, false);
 					t.title = resource_id;
-
+					var n = controlDiv.appendChild(document.createElement("input"));
+					n.type="button";
+					n.addEventListener("click",viewNotes, false);
+					n.title = title;
+					n.name=resource_id;
+					n.value = "View Notes"
 				}
 			}
 			var c = document.getElementById('othersContent');
 			c.innerHTML = "";
-			if (s.length==0)c.innerHTML="No One is Sharing Scripts With You.<br><br><br><br><br><br>";
+			if (s.length==0)c.innerHTML="No One is Sharing Scripts With You.";
 			else{
 				for(i in s){
 					var resource_id = s[i][0];
@@ -76,10 +83,25 @@
 					titleDiv.appendChild(document.createTextNode(title));
 					titleDiv.addEventListener("click", entryReveal, false);
 					titleDiv.className="title";
+					titleDiv.id=resource_id;
 					//control div
 					var controlDiv = entry.appendChild(document.createElement('div'));
 					controlDiv.className="controls";
-					
+					controlDiv.appendChild(document.createElement('hr'));
+					//email
+					var e = controlDiv.appendChild(document.createElement("input"));
+					e.addEventListener("click",emailPrompt, false);
+					e.title = title;
+					e.name=resource_id;
+					e.type="button";
+					e.value = "Email"
+					// notes
+					var e = controlDiv.appendChild(document.createElement("input"));
+					e.addEventListener("click",viewNotes, false);
+					e.title = title;
+					e.name=resource_id;
+					e.type="button";
+					e.value = "View Notes"
 				}
 			}
 			var c = document.getElementById('deletedContent');
@@ -100,15 +122,17 @@
 					//control div
 					var controlDiv = entry.appendChild(document.createElement('div'));
 					controlDiv.className="controls";
-					var undelete = controlDiv.appendChild(document.createElement('input'));
-					undelete.type="button";
-					undelete.value="Undelete";
-					undelete.addEventListener("click", undelete, false);
+					controlDiv.appendChild(document.createElement('hr'));
+					var ud = controlDiv.appendChild(document.createElement('input'));
+					ud.type="button";
+					ud.value="Undelete";
+					ud.name=resource_id;
+					ud.addEventListener("click", undelete, false);
 					//delete permanantly
-					var dp=controlDiv.appendChild(document.createElement('input'));
-					dp.type="button";
-					dp.value="Delete Permanently";
-					dp.addEventListener("click", deletePermanently, false);
+					//var dp=controlDiv.appendChild(document.createElement('input'));
+					//dp.type="button";
+					//dp.value="Delete Permanently";
+					//dp.addEventListener("click", deletePermanently, false);
 				}
 			}
 
@@ -116,7 +140,6 @@
 	}
 	function tabSwitch(v){
 		var t = ["mine","others","deleted"];
-		t=["mine"]
 		for (i in t){
 			if (i*1==v*1){
 				document.getElementById(t[v]).style.backgroundColor="#6484DF";
@@ -127,6 +150,7 @@
 				document.getElementById(t[i]+"Content").style.display="none";
 			}
 		}
+		document.getElementById('emailHref').style.display = (v==1 ? "none" : "block")
 	}
 	function entryReveal(){
 		var d = document.getElementsByTagName('div');
@@ -139,6 +163,9 @@
 		this.parentNode.style.backgroundColor="#A2BAE9";
 		var c = this.nextSibling;
 		c.style.display="block";
+	}
+	function viewNotes(){
+		window.open("/notesview?resource_id="+this.name)
 	}
 	function sharePrompt(){
 		document.getElementById('shareName').innerHTML = this.title;
@@ -259,14 +286,14 @@
 			alert("Sorry, you can only send to 5 recipients at a time. You're trying to send to "+r.split(",").length)
 			return;
 		}
-		var subject = document.getElementById('subject').value;
+		var subject = document.getElementById('subject').value=" ";
 		var body_message = document.getElementById('message').value;
 		var resource_id=document.getElementById("emailHidden").value;
 		var d= (document.getElementById("titlePageCheckbox").checked ? 1 : 0);
 		$.post("/emailscript", {resource_id : resource_id, recipients : r, subject :subject, body_message:body_message, title_page:d}, function(d){
 			document.getElementById('send').value="Send";
 			document.getElementById('send').disabled=false;
-			if(d=="error"){
+			if(d!="sent"){
 				alert("ERROR. There was a problem sending your script. Please try again later.")
 			}
 			else{
@@ -304,6 +331,8 @@
 		document.getElementById('rename').value = "";
 	}
 	function undelete(){
+		var resource_id=this.name;
+		$.post('/undelete',{resource_id:resource_id}, function(){setup()});
 		
 	}
 	function deletePermanently(){
@@ -343,6 +372,7 @@
 	}
 	.controls{
 		display:none;
+		padding-top:5px;
 	}
 	.prompt{
 		background-color:#7694D8; 
@@ -380,33 +410,13 @@
 		<table id='tabs' width=100%>
 			<tr>
 				<td align="center" width=33% id="mine" class="tab" onclick="tabSwitch(0)">My Scripts</td>
-				<!--><td align="center" width=33% id="others" class="tab" onclick="tabSwitch(1)">Others'</td>
-				<td align="center" width=33% id="deleted" class="tab" onclick="tabSwitch(2)">Deleted</td>-->
+				<td align="center" width=33% id="others" class="tab" onclick="tabSwitch(1)">Others'</td>
+				<td align="center" width=33% id="deleted" class="tab" onclick="tabSwitch(2)">Deleted</td>
 			</tr>
 		</table>
 		<div id="mineContent" style="display:none">Loading...</div>
 		<div id="othersContent" style="display:none">Loading...</div>
 		<div id="deletedContent" style="display:none">Loading...</div>
-		<div id="ads">
-			<script type="text/javascript"><!--
-			window.googleAfmcRequest = {
-				client: 'ca-mb-pub-0734345216970558',
-				ad_type: 'text_image',
-				output: 'html',
-				channel: '',
-				format: '320x50_mb',
-				oe: 'utf8',
-				color_border: '336699',
-				color_bg: 'FFFFFF',
-				color_link: '0000FF',
-				color_text: '000000',
-				color_url: '008000',
-			};
-			//--></script>
-			<script type="text/javascript" 
-			src="http://pagead2.googlesyndication.com/pagead/show_afmc_ads.js"></script>
-
-		</div>
 	</div>
 
 	<div class="prompt" id="emailPrompt" >
