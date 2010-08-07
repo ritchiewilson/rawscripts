@@ -144,23 +144,50 @@ class Position (webapp.RequestHandler):
         r[0].put()
 
 class DeleteThread (webapp.RequestHandler):
-  def post(self):
-    resource_id=self.request.get('resource_id')
-    if resource_id=="Demo":
-      return
-    p = ownerPermission(resource_id)
-    if not p==False:
-      thread_id = self.request.get('thread_id')
-      q=db.GqlQuery("SELECT * FROM Notes "+
-                    "WHERE resource_id='"+resource_id+"' "+
-                    "AND thread_id='"+thread_id+"'")
-      r=q.fetch(1)
-      r[0].delete()
+	def post(self):
+  		resource_id=self.request.get('resource_id')
+  		if resource_id=="Demo":
+			return
+		p = ownerPermission(resource_id)
+		logging.info(p)
+		if not p==False:
+			thread_id = self.request.get('thread_id')
+			logging.info(thread_id)
+			q=db.GqlQuery("SELECT * FROM Notes "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+thread_id+"'")
+			r=q.fetch(1)
+			r[0].delete()
+
+class ViewNotes(webapp.RequestHandler):
+	def get(self):
+		resource_id=self.request.get('resource_id')
+		if resource_id=="Demo":
+			return
+		title = permission(resource_id)
+		if not title==False:
+			f = ownerPermission(resource_id)
+			q = db.GqlQuery("SELECT * FROM Notes "+
+							"WHERE resource_id='"+resource_id+"'")
+			r=q.fetch(500)
+			export=[]
+			for i in r:
+				export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
+				
+			template_values={'j':simplejson.dumps(export),
+			 				"user":users.get_current_user().email(),
+							"sign_out": users.create_logout_url("/"),
+							"title":title,
+							"f":f
+							}
+			path = os.path.join(os.path.dirname(__file__), 'MobileViewNotes.html')
+			self.response.out.write(template.render(path, template_values))
 
 def main():
   application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
                                         ('/notesposition', Position),
                                         ('/notesdeletethread', DeleteThread),
+										('/notesview', ViewNotes),
                                         ('/notesnewthread', NewThread)],
                                        debug=True)
   
