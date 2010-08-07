@@ -66,7 +66,7 @@ class Welcome (webapp.RequestHandler):
       if props['mobileDevice']:
         path = os.path.join(os.path.dirname(__file__), 'MobileWelcome.html')
         mobile = 1
-    if referer == 'http://www.rawscripts.com/scriptlist' or referer == 'http://www.rawscripts.com/' or  referer == 'http://www.rawscripts.com/about' or  referer == 'http://www.rawscripts.com/blog' or  referer == 'http://www.rawscripts.com/about':
+    if referer == 'http://www.rawscripts.com/scriptlist' or referer == 'http://www.rawscripts.com/' or  referer == 'http://www.rawscripts.com/about' or  referer == 'http://www.rawscripts.com/blog' or  referer == 'http://www.rawscripts.com/contact':
       self.response.headers['Content-Type'] = 'text/html'
       self.response.out.write(template.render(path, template_values))
       return
