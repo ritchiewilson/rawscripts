@@ -2141,6 +2141,7 @@ function emailScript(){
 		}
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
+	if(subject=="")subject="Script";
 	var body_message = document.getElementById('message').innerHTML;
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;

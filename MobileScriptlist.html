@@ -286,11 +286,12 @@
 			alert("Sorry, you can only send to 5 recipients at a time. You're trying to send to "+r.split(",").length)
 			return;
 		}
-		var subject = document.getElementById('subject').value=" ";
+		var subject = document.getElementById('subject').value;
+		if(subject=="")subject="Script";
 		var body_message = document.getElementById('message').value;
 		var resource_id=document.getElementById("emailHidden").value;
 		var d= (document.getElementById("titlePageCheckbox").checked ? 1 : 0);
-		$.post("/emailscript", {resource_id : resource_id, recipients : r, subject :subject, body_message:body_message, title_page:d}, function(d){
+		$.post("/emailscript", {resource_id : resource_id, recipients : r, subject :subject, body_message:body_message, title_page:d, fromPage:"mobilescriptlist"}, function(d){
 			document.getElementById('send').value="Send";
 			document.getElementById('send').disabled=false;
 			if(d!="sent"){

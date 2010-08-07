@@ -361,6 +361,7 @@ function emailScript(){
 		}
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
+	if(subject=="")subject="Script";
 	var body_message = document.getElementById('message').innerHTML;
     var title_page = document.getElementById("emailTitle").selectedIndex;
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
