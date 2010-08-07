@@ -49,10 +49,6 @@
 			cont.id=notes[x][3];
 			cont.addEventListener("click", newMessage, false)
 		}
-		var spacer = c.appendChild(document.createElement('div'));
-		spacer.style.height="20px";
-		spacer.style.width="100%";
-
 	}
 	function newMessage(v){
 		if(document.getElementById('nmi')!=null){
@@ -310,26 +306,6 @@
 		</table>
 		<input type="button" value="Insert New Thread" onclick="newThread()"/>
 		<div id="content">Loading...</div>
-		<div id="ads">
-			<script type="text/javascript"><!--
-			window.googleAfmcRequest = {
-				client: 'ca-mb-pub-0734345216970558',
-				ad_type: 'text_image',
-				output: 'html',
-				channel: '',
-				format: '320x50_mb',
-				oe: 'utf8',
-				color_border: '336699',
-				color_bg: 'FFFFFF',
-				color_link: '0000FF',
-				color_text: '000000',
-				color_url: '008000',
-			};
-			//--></script>
-			<script type="text/javascript" 
-			src="http://pagead2.googlesyndication.com/pagead/show_afmc_ads.js"></script>
-
-		</div>
 	</div>
 
 	<div class="prompt" id="emailPrompt" >

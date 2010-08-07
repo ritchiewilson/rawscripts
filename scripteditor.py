@@ -35,6 +35,17 @@ def permission (resource_id):
         p=i.title
   return p
 
+def ownerPermission (resource_id):
+  q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                  "WHERE resource_id='"+resource_id+"'")
+  results = q.fetch(1000)
+  p=False
+  for i in results:
+    if i.permission=='owner' or i.permission=='ownerDeleted':
+      if i.user==users.get_current_user().email().lower():
+        p=i.title
+  return p
+
 class SpellingData (db.Model):
   resource_id = db.StringProperty()
   wrong = db.TextProperty()
@@ -146,7 +157,7 @@ class TitlePage(webapp.RequestHandler):
     if resource_id=="Demo":
       return
     else:
-      p = permission(resource_id)
+      p = ownerPermission(resource_id)
     if p==False:
       return
 
@@ -157,7 +168,6 @@ class TitlePage(webapp.RequestHandler):
     q= db.GqlQuery("SELECT * FROM TitlePageData "+
                    "WHERE resource_id='"+resource_id+"'")
     results = q.fetch(5)
-    logging.info(resource_id)
     
     if not len(results)==0:
       r=results[0]
@@ -218,7 +228,7 @@ class SaveTitlePage (webapp.RequestHandler):
     resource_id=self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q= db.GqlQuery("SELECT * FROM TitlePageData "+
                      "WHERE resource_id='"+resource_id+"'")
@@ -373,7 +383,7 @@ class Delete (webapp.RequestHandler):
 class Undelete(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    title= permission(resource_id)
+    title= ownerPermission(resource_id)
     if not title==False:
       q = db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+resource_id+"'")
@@ -394,7 +404,7 @@ class Undelete(webapp.RequestHandler):
 class HardDelete(webapp.RequestHandler):
   def post(self):
     resource_id = self.request.get('resource_id')
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q = db.GqlQuery("SELECT * FROM UsersScripts "+
                       "WHERE resource_id='"+resource_id+"'")
@@ -477,7 +487,6 @@ class EmailScript (webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		title_page = self.request.get('title_page')
-		logging.info(resource_id)
 		p=permission(resource_id)
 		if p==False:
 			return
@@ -584,7 +593,7 @@ class Duplicate (webapp.RequestHandler):
     resource_id = self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    title = permission(resource_id)
+    title = ownerPermission(resource_id)
     if not title==False:
       q=db.GqlQuery("SELECT * FROM ScriptData "+
                     "WHERE resource_id='"+resource_id+"' "+
@@ -772,7 +781,7 @@ class MyParser(sgmllib.SGMLParser):
 class GetVersion(webapp.RequestHandler):
   def post(self):
     resource_id=self.request.get('resource_id')
-    p = permission(resource_id)
+    p = ownerPermission(resource_id)
     if not p==False:
       version = self.request.get('version')
       logging.info(version)
@@ -788,7 +797,7 @@ class Share (webapp.RequestHandler):
     resource_id = self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    p = permission(resource_id)
+    p = ownerPermission(resource_id)
     if p!=False:
       collaborators = self.request.get('collaborators')
       fromPage = self.request.get('fromPage')
@@ -837,7 +846,7 @@ class RemoveAccess (webapp.RequestHandler):
     resource_id=self.request.get('resource_id')
     if resource_id=="Demo":
       return
-    p=permission(resource_id)
+    p=ownerPermission(resource_id)
     if p!=False:
       person = self.request.get('removePerson')
       q=db.GqlQuery("SELECT * FROM UsersScripts "+

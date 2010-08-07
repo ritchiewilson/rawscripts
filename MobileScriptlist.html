@@ -68,9 +68,6 @@
 					n.value = "View Notes"
 				}
 			}
-			var newDiv=c.appendChild(document.createElement('div'));
-			newDiv.style.height="30px";
-			newDiv.style.width="100%";
 			var c = document.getElementById('othersContent');
 			c.innerHTML = "";
 			if (s.length==0)c.innerHTML="No One is Sharing Scripts With You.";
@@ -107,9 +104,6 @@
 					e.value = "View Notes"
 				}
 			}
-			var newDiv=c.appendChild(document.createElement('div'));
-			newDiv.style.height="30px";
-			newDiv.style.width="100%";
 			var c = document.getElementById('deletedContent');
 			c.innerHTML = "";
 			if (d.length==0)c.innerHTML="No Deleted Scripts.";
@@ -135,15 +129,12 @@
 					ud.name=resource_id;
 					ud.addEventListener("click", undelete, false);
 					//delete permanantly
-					var dp=controlDiv.appendChild(document.createElement('input'));
-					dp.type="button";
-					dp.value="Delete Permanently";
-					dp.addEventListener("click", deletePermanently, false);
+					//var dp=controlDiv.appendChild(document.createElement('input'));
+					//dp.type="button";
+					//dp.value="Delete Permanently";
+					//dp.addEventListener("click", deletePermanently, false);
 				}
 			}
-			var newDiv=c.appendChild(document.createElement('div'));
-			newDiv.style.height="30px";
-			newDiv.style.width="100%";
 
 		});
 	}
@@ -159,6 +150,7 @@
 				document.getElementById(t[i]+"Content").style.display="none";
 			}
 		}
+		document.getElementById('emailHref').style.display = (v==1 ? "none" : "block")
 	}
 	function entryReveal(){
 		var d = document.getElementsByTagName('div');
@@ -412,26 +404,6 @@
 		<div id="mineContent" style="display:none">Loading...</div>
 		<div id="othersContent" style="display:none">Loading...</div>
 		<div id="deletedContent" style="display:none">Loading...</div>
-		<div id="ads">
-			<script type="text/javascript"><!--
-			window.googleAfmcRequest = {
-				client: 'ca-mb-pub-0734345216970558',
-				ad_type: 'text_image',
-				output: 'html',
-				channel: '',
-				format: '320x50_mb',
-				oe: 'utf8',
-				color_border: '336699',
-				color_bg: 'FFFFFF',
-				color_link: '0000FF',
-				color_text: '000000',
-				color_url: '008000',
-			};
-			//--></script>
-			<script type="text/javascript" 
-			src="http://pagead2.googlesyndication.com/pagead/show_afmc_ads.js"></script>
-
-		</div>
 	</div>
 
 	<div class="prompt" id="emailPrompt" >
