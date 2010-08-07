@@ -526,7 +526,9 @@ class EmailScript (webapp.RequestHandler):
 				j=5
 			except:
 				j=j+1
-			if j==3:
+			if j==2:
+				subject="Script"
+			if j==4:
 				logging.info('notSent')
 				self.response.headers['Content-Type'] = 'text/plain'
 				self.response.out.write('not sent')
