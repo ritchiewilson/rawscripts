@@ -1,173 +1,61 @@
-<!DOCTYPE html>
-<html>
-  <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="google-site-verification" content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" />
-  <meta name="description" content="Free, online screenplay software that syncs to your Google Docs. Windows, Mac, and Linux. Edit from any computer, share from your phone, take control of your scripts." />
-    <title>RawScripts.com - Free Online screenplay editor through Google Docs</title>
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script>
-	function sendEmail(){
-		if(document.getElementById('message').value==''){
-			return;
-		}
-		document.getElementById('send').disabled = 'true';
-		document.getElementById('send').value = 'Sending...';
-		$.post('/contactemail', {name : document.getElementById('name').value , subject : document.getElementById('subject').value , message : document.getElementById('message').value}, function(){emailComplete()});
-	}
-	function emailComplete(){
-		document.getElementById('sentPopup').style.visibility = 'visible';
-		document.getElementById('name').value = '';
-		document.getElementById('subject').value = '';
-		document.getElementById('message').value = '';
-		document.getElementById('send').value = 'Send';
-		document.getElementById('send').disabled = false;
-		
-	}
-	function hideSentPopup(){
-		document.getElementById('sentPopup').style.visibility = 'hidden';
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		document.getElementById('Home').style.display = 'block';
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				if (d[i].innerHTML == 'Home') d[i].style.backgroundColor = '#7694D8';
-				else d[i].style.backgroundColor = '#365498';
-			}
-		}
-	}
-	
-	function switchTabs(obj){
-		var c = document.getElementsByTagName('article');
-		for (var i=0; i<c.length; i++){
-			c[i].style.display = 'none';
-		}
-		var d = document.getElementsByTagName('div');
-		for (var i=0; i<d.length; i++){
-			if (d[i].className=='navItem'){
-				d[i].style.backgroundColor = '#365498';
-			}
-		}
-		obj.style.backgroundColor = '#7694D8';
-		document.getElementById(obj.innerHTML).style.display = 'block';
-	}
-	</script>
-    <style>
-	body{
-		background-color:#6484DF;
-	color:black;
-	margin:0;
-	padding:0;
-	font-family:sans-serif;
-	}
-	#center{
-	}
-	article{
-		
-	}
-	nav{
-	position:absolute;
-	right:15px;
-	top:15px;
-	}
-	#header{
-		font-size:16pt;
-	margin:20px;
-	}
-	dt {
-		font-weight:bold;
-	}
-	dd {
-		margin-bottom:10px;
-	}
-	a{
-	color:black;
-	text-decoration:none;
-	}
-	#content{
-	border-top:1px #333 solid;
-	-webkit-box-shadow: 0px 3px 3px #333;
-	float:none;
-	}
-	</style>
-  </head>
-  <body>
-  <script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-16492540-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-<div id="sentPopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
-	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
-		<div class="popup">
-			<a href="javascript:hideSentPopup()" style="color:#333">Close</a>
-			<br />
-            <h2>Sent!</h2>
-            <p>Thanks for taking the time to write.</p>
-            <br>
-            
-			
-			
-            <br />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="google-site-verification" content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" /> 
+	<meta name="description" content="Free, online screenplay software that syncs to your Google Docs. Windows, Mac, and Linux. Edit from any computer, share from your phone, take control of your scripts." /> 
+	 <title>RawScripts.com - Free Online screenplay editor through Google Docs</title>
+	<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
+</head>
+<body>
+	<p id="top"><a href="/scriptlist">Login</a></p>
+	<div id="content">
+		<div id="logo">
+			<h1><a href="/">RawScripts.com</a></h1>
 		</div>
+		<ul id="menu">
+			<li class="current"><a href="/">Home</a></li>
+			<li><a href="/about">About</a></li>
+			<li><a href="/blog">Blog</a></li>
+			<li><a href="community/rawscripts.com/RawScripts" target="_blank">Forum</a></li>
+			<li><a href="/contact">Contact</a></li>
+		</ul>
+		<div class="line"></div>
+		<div id="pitch">
+			<div style="width:500px; float:left; margin-right:60px;">
+				<h1>Free Online Screenplay Editor.</h1>
+				<h2>Access your scripts from any computer, any browser. Share with collaborators for instant feedback, email scripts from your smartphone, one click import and export in multiple formats.</h2>
+			</div>
+			<a style="float:left" href="/editor?resource_id=Demo"><img src="images/editor.png" /></a>
+		</div>	
+		<div class="third">
+			<h3>Login with your Google Account</h3>
+			<p>You have too many usernames and passwords as it is. Login here just require a Google Account you probabaly already have. And if you don't, sorry. But you can <a href="http://www.google.com/accounts">get one</a> quickly.</p>
+			<a href="/scriptlist"><img src="images/login_google.png"></a>
+		</div>
+		<div class="third">
+			<h3>All in the Browser</h3>
+			<p>Nothing to download, nothing to install. Just login and start typing in seconds. And because everything is online, you have your scripts, your notes, and a complete draft history from any computer. Your home desktop, your travel laptop, even your smartphone.</p>
+		</div>
+		<div class="third last">
+			<h3>Simple Import/Export</h3>
+			<p>Have scripts started in differant software? Easily upload them with formats preserved. You can import all your old scripts in seconds.</p><p>Done with RawScripts? We don't want to keep your files hostage. We make it very easy to get your scripts out and back into Final Draft, Celtx, or any other screenwriting software.</p>
+		</div>
+		<div class="line"></div>
+		<div class="left">
+			<h4>Join the Movement</h4>
+			<p><em>Laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</em></p>
+		</div>
+		<div class="right">
+			<h3>12 / 2009</h3>
+			<p>Duis rutrum dapibus diam. Sed turpis sem, suscipit et, ullamcorper vel, aliquam in, tellus. Phasellus interdum. Sed pede. Fusce semper tellus quis sapien.</p>
+			<br />
+			<h3>12 / 2009</h3>
+			<p>Duis rutrum dapibus diam. Sed turpis sem, suscipit et, ullamcorper vel, aliquam in, tellus. Phasellus interdum. Sed pede. Fusce semper tellus quis sapien.</p>
+		</div>
+		<div id="footer">
+			<p>&copy; Copyright 2010 - RawScripts.com</a></p>
+		</div>	
 	</div>
-</div>
-<div id="header">
-<h1 style="font-family:Courier">Rawscripts.com</h1>
-<p>Online Screenplay Editing Software.</p>
-</div>
-<nav>
-<table cellspacing=5>
-  <tr>
-    <td><a href="/">Home</a></td>
-    <td><a href="/about">About</a></td>
-    <td><a href="/contact">Contact</a></td>
-    <td><a href="/blog">Blog</a></td>
-  </tr>
-</table>
-</nav>
-    <article id='About' style="float:right; display:none">
-    	<header>RawScripts.com <span style="font-size:12pt">(beta)</span></header>
-        <h2>About</h2>
-        <dl>
-          <dt>What is RawScripts?</dt>
-          <dd>RawScripts is online screenplay editing software that syncs all your scripts to Google Docs. Because they're all online, you can get to them anywhere you have an internet connection.</dd>
-          <dt>Seems dumb. What are the benifits?</dt>
-          <dd>Your files arn't on one computer, they're anywhere you want them. Not at your home computer? Laptop died? Visiting the folks for a week and forgot to send yourself your latest revisions? Doens't matter. Everything is online, accessible from any browser. Heck, just met an actor that would be great for your next project? Email him the script from your smartphone.</dd>
-          <dt>How do I login?</dt>
-          <dd>All you need is a Google Account. If you don't have one, you can sign up for one <a href="https://www.google.com/accounts/NewAccount">here</a>. Once you have one, all you need to do is authenticate your account to work with RawScripts.</dd>
-          <dt>Browsers</dt>
-          <dd>Just right quick, we recommend you use the latest version of <a href="http://www.getfirefox.com/">FireFox</a>, <a href="http://www.apple.com/safari/download/">Safari</a>, or <a href="http://www.google.com/chrome">Chrome</a>. It'll work in older versions, it'll work in other browsers, just recomending for now you use one of those three.</dd>
-        </dl>
-    </article>
-    
-    
-    <div id="content"clear="all">
-    <table width=100% cellspacing=0 cellpadding=20>
-        <tr style="background-color:#A2BAE9">
-           <!-- <td width=33%>
-	      <a href="/videos">Watch video introduction.</a><br>
-	      <a href="/features">Check out a list of features.</a>
-            </td>-->
-            <td width=33% align="center"><a href="/editor?resource_id=Demo" target="_blank"><img src="images/editor.png"></a></td>
-            <td width=33% align="center">
-	      <p>RawScripts.com uses Google Accounts for Login.</p><p>Click the link and get writing.</p>
-	      <a name="login" href="/scriptlist"><img src="images/login_google.png" alt="Login With Google" /></a>
-	    </td>
-        </tr>
-    </table>
-    </div>
-  </body>
+</body>
 </html>

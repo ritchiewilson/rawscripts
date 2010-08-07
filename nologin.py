@@ -244,16 +244,19 @@ class Save (webapp.RequestHandler):
 
 class ContactEmail (webapp.RequestHandler):
   def post(self):
-    name = self.request.get('name')
-    subject = self.request.get('subject')
-    message = self.request.get('message')
-    if not message == None:
-      body = 'FROM: '+name+'\n\nSUBJECT: '+subject+'\n\n'+message
-      mail.send_mail(sender='contact@rawscripts.com',
+	name = self.request.get('name')
+	subject = self.request.get('subject')
+	message = self.request.get('message')
+	logging.info(name)
+	logging.info(subject)
+	logging.info(message)
+	if not message == None:
+		body = 'FROM: '+name+'\n\nSUBJECT: '+subject+'\n\n'+message
+		mail.send_mail(sender='contact@rawscripts.com',
                      to='contact@rawscripts.com',
                      subject='From Homepage Form: '+subject,
                      body=body)
-      self.response.out.write('1')
+		self.response.out.write('1')
 
 class Bugs (webapp.RequestHandler):
   def get(self):

@@ -1,0 +1,43 @@
+/*
+	=====================================
+	project: Distinctive
+	author:  Luka Cvrk (www.solucija.com)
+	-------------------------------------
+	2009. Solucija
+	=====================================
+*/
+
+*{margin:0;padding:0}:focus,:active {outline:0}img{border: 0}
+body { font: .8em Arial, Tahoma, Verdana; background: #fff url(../images/bg.gif) repeat-x; color: #777; }
+a { text-decoration: none; }
+h1 { font-size: 1.4em; font-weight: normal; }
+	h1 a { color: #fff; font-size: 1.6em; }
+h2 { font-size: 1.2em; margin-bottom:20px; }
+h3, .headline { font-size: 1.2em; background: #B00A0A url(../images/bluebg.png) repeat-x left bottom; padding: 6px 7px; color: #fff; font-weight: normal; margin: 0 0 15px; float: left; }
+.headline a{text-decoration:none; color:white;}
+h4 { margin: 0 0 15px; color: #555; font-weight: normal; font-size: 1.6em; font-weight: normal; }
+p { clear: both; line-height: 1.64em; margin: 0 0 15px; }
+.line { clear: both; border-bottom: 1px solid #ddd; margin: 0 0 45px; }
+.clear { clear: both; }
+#content { width: 970px; margin: 0 auto; }
+	#top { color: #ccc; padding: 4px 20px 0; text-align: right; }
+    #top a { color: #ccc }
+	#logo { float: left; background: url(../images/bluebg.png) repeat-x; padding: 70px 25px 15px; margin: -46px 0 20px; }
+		#logo h1 { text-shadow: 1px 1px 1px #003399; font-family:Courier; }
+	#menu { float: right; margin: 63px 20px 0; }
+		#menu li { display: inline; font-size: 1.3em; }
+			#menu li a { float: left; color: #808080; padding: 0 0 5px; margin: 0 0 0 55px; }
+			#menu li a:hover, #menu li.current a, #menu li a:focus { color: #000; border-bottom: 1px solid #ddd; }
+	#pitch {padding: 00px 50px 0 0; border-bottom: 1px solid #ddd; height: 210px; margin: 0 0 35px; }
+		#pitch h1 { font-size: 2.6em; color: #000; margin: 0 0 20px; }
+		#pitch h2 { line-height: 1.5em; }
+	.left { float: left; width: 250px; }	
+	.right { float: right; width: 630px; margin: 0 0 20px; }
+		.right h3 { background: #808080; font-size: .84em; }
+	.third { float: left; width: 296px; margin: 0 40px 20px 0; }
+		.last { margin-right: 0; }
+	#footer { clear: both; font-size: .84em; border-top: 1px solid #ddd; padding: 20px 0 0; }
+    
+.feedburnerFeedBlock .blogger-post-footer {border-bottom:1px #ddd solid; margin-bottom:50px;}
+.feedburnerFeedBlock{}
+#blog{width:550px; margin-left:30px;}
