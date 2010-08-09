@@ -51,6 +51,7 @@ function tabs(v){
 }
 
 function refreshList(v){
+	document.getElementById("refresh_icon").style.visibility="visible";
 	$.post('/list', function(data){
 	document.getElementById('loading').style.display = 'none';
     //remove old data
@@ -238,6 +239,7 @@ function refreshList(v){
     if(v){
 		sharePrompt(v);
 	}
+	document.getElementById("refresh_icon").style.visibility="hidden";
 							 });
 }
 function selectAll(obj, which){
