@@ -66,10 +66,8 @@ function refreshList(v){
     var j = JSON.parse(data);
     var x=j[0];
     var z=j[1];
-    var ss=j[2]
-    if(x.length==0){
-        document.getElementById('noentries').style.display='block';
-    }
+    var ss=j[2];
+	document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
     for (var i=0; i<x.length; i++){
         var title = x[i][1];
         var resource_id = x[i][0];
@@ -149,7 +147,7 @@ function refreshList(v){
         i--;
     }
     document.getElementById('sharedLoading').style.display='none';
-    if (ss.length==0)document.getElementById('sharedNoEntries').style.display='block';
+    document.getElementById('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
     var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
     listDiv.id = 'sharedList';
     for (i in ss){
@@ -191,6 +189,7 @@ function refreshList(v){
     
     
     document.getElementById('trashLoading').style.display = 'none';
+    document.getElementById('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
     //remove old data
     var childs = document.getElementById('trashContent').childNodes;
     for (var i=0; i<childs.length; i++){
@@ -482,7 +481,7 @@ function createScript (){
             
 	}
 	hideNewScriptPrompt();
-	setTimeout('refreshList()', 10000);
+	setTimeout('refreshList()', 5000);
 }
 function recieveMessage(e){
     

@@ -6,7 +6,7 @@
 	<title>Scriptlist</title>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
+	<script type="text/javascript" src="js/restricted/scriptlist.js"></script>
 	<script src="js/json2.js" type="text/javascript"></script>
 	<link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 	<link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
@@ -227,7 +227,7 @@ _gaq.push(['_trackPageview']);
 				</div>
 				<div id="content"></div>
 				<div id="loading"><div style="" align="center">Loading...</div></div>
-				<div id="noentries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">You have no scripts yet. <a href='javascript:newScriptPrompt()'>Start one</a> now.</div>
+				<div id="noentries" class="none_of_type" align="center">You have no scripts yet (or I guess you could have deleted all your old ones...).<br><br><a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.</div>
 			</div>
 			<div id="shared" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
@@ -242,7 +242,7 @@ _gaq.push(['_trackPageview']);
 				</div>
 				<div id="sharedContent"></div>
 				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
-				<div id="sharedNoEntries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">No one is sharing scripts with you.</div>
+				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 			</div>
 			<div id="trash" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
@@ -256,7 +256,7 @@ _gaq.push(['_trackPageview']);
 				</div>
 				<div id="trashContent"></div>
 				<div id="trashLoading"><div style="" align="center">Loading...</div></div>
-				<div id="trashNoEntries" style="width:100%; color:#666; background-color:white; padding-top:7px; display:none" align="center">No one is sharing scripts with you.</div>
+				<div id="trashNoEntries" class="none_of_type" align="center"><p>You have no trash.</p><p>You are a very clean person.</p></div>
 			</div>
 		</div>
 	</div>

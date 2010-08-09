@@ -148,6 +148,18 @@ a{
 h1 { font-size: 1.4em; font-weight: normal; }
 #logo h1 a { color: #fff; font-size: 1.6em; text-decoration:none;}
 #menu { float: right; margin: 13px 20px 0; }
-	#menu li { display: inline; font-size: 1.3em; }
-		#menu li a { float: left; color: #808080; padding: 0 0 5px; margin: 0 0 0 55px; text-decoration:none;}
-		#menu li a:hover, #menu li.current a, #menu li a:focus { color: #000; border-bottom: 1px solid #ddd; }
+#menu li { display: inline; font-size: 1.3em; }
+#menu li a { float: left; color: #808080; padding: 0 0 5px; margin: 0 0 0 55px; text-decoration:none;}
+#menu li a:hover, #menu li.current a, #menu li a:focus { color: #000; border-bottom: 1px solid #ddd; }
+#noentries a {
+	color:blue;
+	text-decoration:underline;
+}
+.none_of_type{
+	color:#666; 
+	background-color:white; 
+	padding-top:17px; 
+	display:none;
+	width:300px;
+	margin:auto;
+}

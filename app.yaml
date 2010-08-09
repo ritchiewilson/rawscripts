@@ -31,10 +31,6 @@ handlers:
   static_files: rawscripts.manifest
   upload: rawscripts.manifest
 
-- url: /js/restricted
-  static_dir: static/js/restricted
-  login: admin
-
 - url: /images
   static_dir: static/images
 
