@@ -199,10 +199,12 @@ function refreshList(v){
     //update with new info
     var listDiv = document.getElementById('trashContent').appendChild(document.createElement('div'));
     listDiv.id = 'trashList';
-    for(i in z){
-        var title = z[i][1];
-        var resource_id = z[i][0];
-        var updated = z[i][2]
+	x=z;
+    for(i in x){
+        var title = x[i][1];
+        var resource_id = x[i][0];
+        var updated = x[i][2]
+        var shared_with=x[i][4]
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -220,7 +222,14 @@ function refreshList(v){
         var titleCell = entryTr.appendChild(document.createElement('td'));
         var titleLink = titleCell.appendChild(document.createElement('a'));
         titleLink.id = 'name'+resource_id;
-        var href = 'javascript:script("'+resource_id+'")';
+        /*
+        if (newNotes==true){
+            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
+            newNotesSpan.className = 'redAlertSpan';
+        }
+        */
+        var href = 'javascript:haveToUndelete()';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
         //shared column
@@ -228,12 +237,42 @@ function refreshList(v){
         sharedTd.className = 'sharedCell';
         sharedTd.align = 'right';
         
+        if (shared_with.length==0){
+            var collabs = '';
+        }
+        else{
+            if (shared_with.length==1){
+                var collabs = '1 person ';
+            }
+            else {
+                var collabs = String(shared_with.length)+" people ";
+            }
+        }
+        sharedTd.appendChild(document.createTextNode(collabs));
+        var manage = sharedTd.appendChild(document.createElement('a'));
+        var href = "javascript:sharePrompt('"+resource_id+"')";
+        manage.href=href;
+        manage.appendChild(document.createTextNode('Manage'));
+        manage.id = 'share'+resource_id;
+        manage.title = shared_with.join('&');
+		sharedTd.style.display="none";
+        
+        //email column
+        var emailTd = entryTr.appendChild(document.createElement('td'));
+        emailTd.className = 'emailCell';
+        emailTd.align='center';
+        var emailLink = emailTd.appendChild(document.createElement('a'));
+        emailLink.className = 'emailLink';
+        href = 'javascript:emailPrompt("'+resource_id+'")';
+        emailLink.href=href;
+        emailLink.appendChild(document.createTextNode('Email'));
+		emailTd.style.display="none";
         // Last updated
         var updatedTd = entryTr.appendChild(document.createElement('td'));
         updatedTd.className = 'updatedCell';
-        updatedTd.align='left';
-        updatedTd.style.width="215px";
+        updatedTd.align='center';
         updatedTd.appendChild(document.createTextNode(updated));
+		
     }
     if(v){
 		sharePrompt(v);
@@ -258,7 +297,9 @@ function script(v){
 url = '/editor?resource_id=' + v;
 window.open(url);
 }
-
+function haveToUndelete(){
+	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
+}
 function deleteScript(v){
 	var scriptDiv = document.getElementById(v);
 	scriptDiv.style.backgroundColor = '#ccc';
@@ -266,16 +307,16 @@ function deleteScript(v){
 	$.post("/delete", {resource_id : v}, function(){
         scriptDiv.parentNode.removeChild(scriptDiv);
         document.getElementById('trashList').appendChild(scriptDiv);
-        scriptDiv.style.backgroundColor='white';
+        scriptDiv.style.backgroundColor='#f9f9fc';
         scriptDiv.style.opacity='1';
         var t=scriptDiv.firstChild;
         t=(t.nodeName=='#text' ? t.nextSibling : t);
         t.getElementsByTagName('input')[0].name='trashListItems';
         var c = t.getElementsByTagName('td');
-        c[2].parentNode.removeChild(c[2]);
-        c[2].parentNode.removeChild(c[2]);
-        c[2].align='left';
-        c[2].style.width='215px';
+        c[2].style.display="none";
+		c[3].style.display='none';
+		c[1].firstChild.href="javascript:haveToUndelete()";
+		document.getElementById("trashNoEntries").style.display="none";
         });
 }
 
@@ -286,7 +327,7 @@ function undelete(v){
 	$.post("/undelete", {resource_id : v}, function(){
         scriptDiv.parentNode.removeChild(scriptDiv);
         document.getElementById('list').appendChild(scriptDiv);
-        scriptDiv.style.backgroundColor='white';
+        scriptDiv.style.backgroundColor='#f9f9fc';
         scriptDiv.style.opacity='1';
         var t=scriptDiv.firstChild;
         t=(t.nodeName=='#text' ? t.nextSibling : t);
@@ -294,17 +335,11 @@ function undelete(v){
         t=(t.nodeName=='#text' ? t.nextSibling : t);
         var c = t.getElementsByTagName('td');
         t.getElementsByTagName('input')[0].name='listItems';
-        c[c.length-1].align='center';
-        c[c.length-1].className='updatedCell';
-        c[c.length-1].removeAttribute('style');
-        var emailTd = c[0].parentNode.insertBefore(document.createElement('td'), c[c.length-1]);
-        emailTd.className = 'emailCell';
-        emailTd.align='center';
-        var emailLink = emailTd.appendChild(document.createElement('a'));
-        emailLink.className = 'emailLink';
-        href = 'javascript:emailPrompt("'+v+'")';
-        emailLink.href=href;
-        emailLink.appendChild(document.createTextNode('Email'));
+		t.getElementsByTagName('a')[0].href="javascript:script('"+v+"')"
+        for (i in c){
+			if (c[i].style!=undefined)c[i].style.display="table-cell"
+		}
+		document.getElementById("noentries").style.display="none";
     });
 }
 
@@ -483,7 +518,19 @@ function createScript (){
 	hideNewScriptPrompt();
 	setTimeout('refreshList()', 5000);
 }
+window.addEventListener("message", recieveMessage, false);
 function recieveMessage(e){
+	if(e.origin!="http://www.rawscripts.com")return;
+	if(e.data=="uploading"){
+		document.getElementById("uploading").style.display="block";
+		document.getElementById("uploadFrame").style.display="none";
+	}
+	else{
+		document.getElementById("uploading").style.display="none";
+		document.getElementById("uploadFrame").style.display="block";
+		window.open("/editor?resource_id="+e.data);
+		refreshList();
+	}
     
 }
 function hideExportPrompt(){

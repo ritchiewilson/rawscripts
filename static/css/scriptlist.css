@@ -61,7 +61,7 @@ body{
 #nav{
 	position:absolute;
 	left:0px;
-	top:140px;
+	top:135px;
 	width:50%;
 }
 .tab{
@@ -85,7 +85,7 @@ li{
 .entry{
 	display:block;
 	border-bottom:1px #999999 solid;
-
+	background-color:#f9f9fc;
 }
 .checkboxCell{
 	width:15px;
@@ -100,7 +100,7 @@ li{
 	right:10px;
 }
 .updatedCell{
-	width:140px;
+	width:160px;
 }
 .gdocsCell{
 	width:70px;
@@ -118,9 +118,6 @@ a{
 #header a{
 	color:blue;
 	text-decoration:underline;
-}
-.entry{
-	background-color:#f9f9fc;
 }
 #logo { 
 	float: left; 
@@ -162,4 +159,18 @@ h1 { font-size: 1.4em; font-weight: normal; }
 	display:none;
 	width:300px;
 	margin:auto;
+}
+.popup_block{
+	background:#87A7E6; 
+	width:450px; 
+	position:relative; 
+	margin:auto; 
+	top:15%; 
+	padding:10px; 
+	border:double;
+}
+.close{
+	position:absolute;
+	top:-15px;
+	right:-15px;
 }

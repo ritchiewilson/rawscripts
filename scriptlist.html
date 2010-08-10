@@ -6,7 +6,7 @@
 	<title>Scriptlist</title>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/restricted/scriptlist.js"></script>
+	<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
 	<script src="js/json2.js" type="text/javascript"></script>
 	<link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 	<link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
@@ -60,9 +60,9 @@ _gaq.push(['_trackPageview']);
 	</script>
 	<div id="emailpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
+		<div class="popup_block">
 			<div class="popup">
-				<a href="javascript:hideEmailPrompt()" style="color:#333">Close</a>
+				<a href="javascript:hideEmailPrompt()" class="close"><img src="/images/close.png"></a>
 				<br /><br />
 				Send Script
 				<br /><br />
@@ -93,9 +93,9 @@ _gaq.push(['_trackPageview']);
 	</div>
 	<div id="renamepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup_block" style="width:400px;">
 			<div class="popup">
-				<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
+				<a href="javascript:hideRenamePrompt()" class="close"><img src="/images/close.png"></a>
 				<br />
 
 				<p id="renameTitle"></p>
@@ -111,8 +111,8 @@ _gaq.push(['_trackPageview']);
 	</div>
 	<div id="uploadpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:400px; position:relative; margin:auto; top:20%; padding:10px; padding-bottom:0; border:double">
-			<a href="javascript:hideUploadPrompt()" style="color:#333; float:left">Close</a><br><br>
+		<div class="popup_block" style="width:400px">
+			<a href="javascript:hideUploadPrompt()" class="close"><img src="/images/close.png"></a><br><br>
 			<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
 			</iframe>
 			<div id="uploading" style="display:none"><p>Converting script...</p><img src="images/uploading.gif" /><br><br><br></div>
@@ -120,9 +120,9 @@ _gaq.push(['_trackPageview']);
 	</div>
 	<div id="newscriptpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup_block" style="width:400px;">
 			<div class="popup">
-				<a href="javascript:hideNewScriptPrompt()" style="color:#333">Close</a>
+				<a href="javascript:hideNewScriptPrompt()" class="close"><img src="/images/close.png"></a>
 				<br />
 
 				<p>New Script Title</p>
@@ -137,9 +137,9 @@ _gaq.push(['_trackPageview']);
 	</div>
 	<div id="exportpopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:500px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup_block" style="width:500px;">
 			<div class="popup">
-				<a href="javascript:hideExportPrompt()" style="color:#333">Close</a>
+				<a href="javascript:hideExportPrompt()" class="close"><img src="/images/close.png"></a>
 				<br />
 				<p>Export as...</p>
 				<table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
@@ -152,9 +152,9 @@ _gaq.push(['_trackPageview']);
 	</div>
 	<div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0;  z-index:100">
 		<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-		<div class="popup_block" style="background:#6490E6; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+		<div class="popup_block" style="width:450px;">
 			<div class="popup">
-				<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+				<a href="javascript:hideSharePrompt()" class="close"><img src="/images/close.png"></a>
 				<br /><br />
 				Share Script: <b id="shareTitle"></b>
 				<br /><br>
@@ -202,7 +202,7 @@ _gaq.push(['_trackPageview']);
 	</div>
 
 
-	<div style="postion:absolute; right:0; left:0; bottom:0; top:110pt;">
+	<div>
 
 		<div id="nav">
 			<div id="myScripts" class="tab current">My Scripts</div>
@@ -221,22 +221,22 @@ _gaq.push(['_trackPageview']);
 							<td>My Scripts</td>
 							<td style="width:120px" align="center">Shared With</td>
 							<td style="width:120px" align="center">Email</td>
-							<td style="width:140px" align="center">Last Modified</td>
+							<td style="width:160px" align="center">Last Modified</td>
 						</tr>
 					</table>
 				</div>
 				<div id="content"></div>
 				<div id="loading"><div style="" align="center">Loading...</div></div>
-				<div id="noentries" class="none_of_type" align="center">You have no scripts yet (or I guess you could have deleted all your old ones...).<br><br><a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.</div>
+				<div id="noentries" class="none_of_type" style="" align="center">You haven't started any scripts yet.<br><br><a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.</div>
 			</div>
-			<div id="shared" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
+			<div id="shared" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
 					<table width="100%">
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
 							<td>Friends' Scripts</td>
 							<td style="width:120px" align="right">Owner</td>
-							<td style="width:140px" align="center">Last Modified</td>
+							<td style="width:160px" align="center">Last Modified</td>
 						</tr>
 					</table>
 				</div>
@@ -244,13 +244,13 @@ _gaq.push(['_trackPageview']);
 				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 			</div>
-			<div id="trash" style="right:0px; border:ridge; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
+			<div id="trash" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
 					<table width="100%">
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "trashListItems")' type='checkbox' value='all' /></td>
 							<td>Trash</td>
-							<td style="width:210px" align="left">Last Modified</td>
+							<td style="width:160px" align="center">Last Modified</td>
 						</tr>
 					</table>
 				</div>
