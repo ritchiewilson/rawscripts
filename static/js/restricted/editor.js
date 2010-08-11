@@ -11,6 +11,7 @@
    var timer;
    var typeToScript=true;
    var pasting=false;
+   var justPasted=false;
    var undoQue = [];
    var redoQue = [];
    var pageBreaks=[];
@@ -285,89 +286,93 @@ function cut(){
 function copy(){
 }
 function paste(){
-    saveTimer();
-    redoQue=[];
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-    var j=false;
-    var data=document.getElementById('ccp').value;
-    var r = new RegExp( "\\n", "g" );
-    if (data.split(r).length>1) {
-        var tmp=data.split(r);
-        var tmpArr=[];
-        for (x in tmp){
-            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
-        }
-        data=JSON.stringify(tmpArr);
-    }
-    undoQue.push(['paste',pos.row,pos.col,data]);
-    //undoQue[x][0] ==paste
-    //[1]=pos.row
-    //[2]=pos.col
-    //[3]=data
-    //[4]=added to line
-    //[5]=deleted empty line at end
-    if(data[0]=='[' && data[1]=='[')j=true;
-    if(!j){
-        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
-        pos.col+=document.getElementById('ccp').value.length;
-        anch.col=pos.col;
-    }
-    else{
-        var arr=JSON.parse(data);
-        if (lines[pos.row][0]==''){
-            lines[pos.row][1]=arr[0][1];
-        }
-        if (lines[pos.row][1]==arr[0][1]){
-            undoQue[undoQue.length-1].push(1);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        else{
-            undoQue[undoQue.length-1].push(0);
-            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
-            pos.row++;
-            lines.splice(pos.row,0,arr[0]);
-            var i=1;
-            var p=pos.row+1;
-            while(i<arr.length){
-                lines.splice(p,0,arr[i]);
-                p++;
-                i++;
-            }
-            lines.splice(p,0,tmp);
-            if(lines[p][0]=='' || lines[p][0]==' '){
-                lines.splice(p,1);
-                undoQue[undoQue.length-1].push(0);
-            }
-            else{undoQue[undoQue.length-1].push(1)}
-        }
-        pos.row=anch.row=p;
-        pos.col=anch.col=0;
-        if(pos.row>=lines.length){
-            pos.row=anch.row=lines.length-1
-            pos.col=anch.col=lines[pos.row][0].length;
-        }
-    }
-    pasting=false;
-    sceneIndex();
-    document.getElementById('canvas').height = $('#container').height()-65;
-    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-855)+'px';
-    paint(false,false,true,false);
+	if(!justPasted){
+    	saveTimer();
+	    redoQue=[];
+	    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+	    var j=false;
+	    var data=document.getElementById('ccp').value;
+	    var r = new RegExp( "\\n", "g" );
+	    if (data.split(r).length>1) {
+	        var tmp=data.split(r);
+	        var tmpArr=[];
+	        for (x in tmp){
+	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
+	        }
+	        data=JSON.stringify(tmpArr);
+	    }
+	    undoQue.push(['paste',pos.row,pos.col,data]);
+	    //undoQue[x][0] ==paste
+	    //[1]=pos.row
+	    //[2]=pos.col
+	    //[3]=data
+	    //[4]=added to line
+	    //[5]=deleted empty line at end
+	    if(data[0]=='[' && data[1]=='[')j=true;
+	    if(!j){
+	        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
+	        pos.col+=document.getElementById('ccp').value.length;
+	        anch.col=pos.col;
+	    }
+	    else{
+	        var arr=JSON.parse(data);
+	        if (lines[pos.row][0]==''){
+	            lines[pos.row][1]=arr[0][1];
+	        }
+	        if (lines[pos.row][1]==arr[0][1]){
+	            undoQue[undoQue.length-1].push(1);
+	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
+	            var i=1;
+	            var p=pos.row+1;
+	            while(i<arr.length){
+	                lines.splice(p,0,arr[i]);
+	                p++;
+	                i++;
+	            }
+	            lines.splice(p,0,tmp);
+	            if(lines[p][0]=='' || lines[p][0]==' '){
+	                lines.splice(p,1);
+	                undoQue[undoQue.length-1].push(0);
+	            }
+	            else{undoQue[undoQue.length-1].push(1)}
+	        }
+	        else{
+	            undoQue[undoQue.length-1].push(0);
+	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
+	            pos.row++;
+	            lines.splice(pos.row,0,arr[0]);
+	            var i=1;
+	            var p=pos.row+1;
+	            while(i<arr.length){
+	                lines.splice(p,0,arr[i]);
+	                p++;
+	                i++;
+	            }
+	            lines.splice(p,0,tmp);
+	            if(lines[p][0]=='' || lines[p][0]==' '){
+	                lines.splice(p,1);
+	                undoQue[undoQue.length-1].push(0);
+	            }
+	            else{undoQue[undoQue.length-1].push(1)}
+	        }
+	        pos.row=anch.row=p;
+	        pos.col=anch.col=0;
+	        if(pos.row>=lines.length){
+	            pos.row=anch.row=lines.length-1
+	            pos.col=anch.col=lines[pos.row][0].length;
+	        }
+	    }
+	    pasting=false;
+	    sceneIndex();
+	    paint(false,false,true,false);
+		justPasted=true;
+		setTimeout("setJustPasted()", 50)
+	}
+}
+function setJustPasted(){
+	justPasted=false;
 }
 function selection(){
     //order stuff
@@ -577,12 +582,6 @@ function mouseDown(e){
         //Edit
         else if(id=='undo')undo();
         else if(id=='redo')redo();
-        else if(id=='cut')var t=setTimeout("cut()",50);
-        else if(id=='copy')copy();
-        else if(id=='paste'){
-            pasting=true;
-            var t=setTimeout("paste()",50);
-        }
         else if(id=='insertNote'){
             viewNotes=true;
             newThread();
@@ -1306,13 +1305,13 @@ if(typeToScript){
 }
 	
 function handlekeypress(event) {
-    if(typeToScript){
+    if(typeToScript && !commandDownBool){
         event.preventDefault();
 		redoQue=[];
         var d= new Date();
         milli = d.getMilliseconds();
         
-        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8 && !commandDownBool){
+        if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
             if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
