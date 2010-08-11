@@ -174,7 +174,8 @@ $(document).ready(function(){
   $('*').mousemove(function(e){
     mouseMove(e);
   });
-    
+
+  window.oncontextmenu = contextmenu;
 	
 // Character and Scene Suggest
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
@@ -407,7 +408,6 @@ function selection(){
 function setup(){
     resource_id=window.location.href.split('=')[1];
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
-    //console.log(data);
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(false,false,true,false);
@@ -506,7 +506,24 @@ function changeFormat(v){
     }
     sceneIndex();
 }
-
+function contextmenu(e){
+	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
+		e.preventDefault();
+		var d = document.body.appendChild(document.createElement('div'));
+		d.style.position="fixed";
+		d.style.top=e.clientY-3+"px";
+		d.style.left=e.clientX+5+"px";
+		d.id="context_menu";
+		for (i in formats){
+			var u = d.appendChild(document.createElement('div'));
+			u.innerHTML=formats[i];
+			u.id="cm"+i;
+			u.className="contextUnit";
+		}
+		$('.contextUnit').mouseover(function(){this.style.backgroundColor="LightSkyBlue"});
+		$('.contextUnit').mouseout(function(){this.style.backgroundColor="white"})
+	}
+}
 function mouseUp(e){
     mouseDownBool=false;
     scrollBarBool=false;
@@ -629,6 +646,12 @@ function mouseDown(e){
 			pos.col=anch.col=lines[pos.row][0].length;
 		}
 		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+	}
+	else if(document.getElementById('context_menu')!=null){
+		if(e.target.className=="contextUnit"){
+			changeFormat(e.target.id.replace("cm",""));
+		}
+		document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
 	}
     else{
         var height = document.getElementById('canvas').height;
@@ -1747,7 +1770,6 @@ function sortNotesCol(a,b){
 }
 function noteIndex(){
     notes.sort(sortNotes);
-    console.log(notes);
 	var c = document.getElementById('noteBox');
 	c.innerHTML="";
 	for (x in notes){
@@ -2938,7 +2960,6 @@ function paint(e, anchE, forceCalc, forceScroll){
         var notesSpacingDiff=0;
         for (note in notesOnThisLine){
             var n = notesOnThisLine[note];
-            console.log();
             if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
                 notesSpacingDiff++;
             }
