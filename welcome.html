@@ -6,10 +6,6 @@
 	<meta name="description" content="Free, online screenplay software. Windows, Mac, and Linux. Edit from any computer, share from your phone, take control of your scripts." /> 
 	 <title>RawScripts.com - Free Online screenplay editor through Google Docs</title>
 	<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
-	<link rel="stylesheet" type="text/css" href="css/openid.css" media="screen" />
-	<script type="text/javascript" src="js/jquery.min.js"></script>
-	<script type="text/javascript" src="js/jquery.openid.js"></script>
-	<script type="text/javascript">  $(function() { $("form.openid:eq(0)").openid(); });</script>
 </head>
 <body>
 	<script type="text/javascript">
@@ -25,7 +21,6 @@
 	  })();
 
 	</script>
-	<p id="top"><a href="{{  sign_in  }}">Login</a></p>
 	<div id="content">
 		<div id="logo">
 			<h1><a href="/">RawScripts.com</a></h1>
@@ -42,33 +37,18 @@
 			<div style="width:500px; float:left; margin-right:60px;">
 				<h1>Free Online Screenplay Editor.</h1>
 				<h2>Access your scripts from any computer, any browser. Share with collaborators for instant feedback, email scripts from your smartphone, one click import and export in multiple formats.</h2>
-				<form class="openid" method="post" action="/scriptlist?ReturnUrl="> 
-					<p style="font-size:16pt;color:black">Login With Your AOL, Google, or Yahoo Account</p>
-				  <div><ul class="providers"> 
-					<li class="username" title="AOL screen name"> 
-						<img src="images/aolB.png" alt="icon" /><span>http://openid.aol.com/<strong>username</strong></span></li>
-				  <li class="direct" title="Google"> 
-						<img src="images/googleB.png" alt="icon" /><span>https://www.google.com/accounts/o8/id</span></li> 
-				  <li class="direct" title="Yahoo"> 
-						<img src="images/yahooB.png" alt="icon" /><span>http://yahoo.com/</span></li> 
-				  </ul></div> 
-				  <fieldset> 
-				  <label for="openid_username">Enter your <span>Provider user name</span></label> 
-				  <div><span></span><input type="text" name="openid_username" /><span></span> 
-				  <input type="submit" value="Login" /></div> 
-				  </fieldset> 
-				  <fieldset> 
-				  <label for="openid_identifier">Enter your <a class="openid_logo" href="http://openid.net">OpenID</a></label> 
-				  <div><input type="text" name="openid_identifier" /> 
-				  <input type="submit" value="Login" /></div> 
-				  </fieldset> 
-				</form>
+				 
+					<p style="font-size:16pt;color:black">Login With Your Google or Yahoo Account</p>
+				  <div class="providers">
+				  <div class="login" title="Google"><a href="{{  google_sign_in  }}"><img src="images/googleB.png" alt="icon" /></a></div>
+				  <div class="login" title="Yahoo"><a href="{{  yahoo_sign_in  }}"><img src="images/yahooB.png" alt="icon" /></a></div>
+				  </div> 
 			</div>
 			<a style="float:left" href="/editor?resource_id=Demo"><img src="images/editor.png" /></a>
 		</div>	
 		<div class="third">
-			<h3>Login With OpenId</h3>
-			<p>You probably have an openId account. If have a Google, Yahoo, or AOL account, you can just login with one of those. No new usernames and passwords. Just write. Go. Do it</p>
+			<h3>No New UserNames and Passwords</h3>
+			<p>We try to make it simple. If you have a Google or Yahoo account, just click the button, and sign in. No new names, no registering, just start writing.</p>
 		</div>
 		<div class="third">
 			<h3>All in the Browser</h3>

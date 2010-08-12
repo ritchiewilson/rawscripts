@@ -19,6 +19,7 @@ h4 { margin: 0 0 15px; color: #555; font-weight: normal; font-size: 1.6em; font-
 p { clear: both; line-height: 1.64em; margin: 0 0 15px; }
 .line { clear: both; border-bottom: 1px solid #ddd; margin: 0 0 45px; }
 .clear { clear: both; }
+.login { float:left; margin-left:50px;}
 #content { width: 970px; margin: 0 auto; }
 	#top { color: #ccc; padding: 4px 20px 0; text-align: right; }
     #top a { color: #ccc }
@@ -28,7 +29,7 @@ p { clear: both; line-height: 1.64em; margin: 0 0 15px; }
 		#menu li { display: inline; font-size: 1.3em; }
 			#menu li a { float: left; color: #808080; padding: 0 0 5px; margin: 0 0 0 55px; }
 			#menu li a:hover, #menu li.current a, #menu li a:focus { color: #000; border-bottom: 1px solid #ddd; }
-	#pitch {padding: 00px 50px 0 0; border-bottom: 1px solid #ddd; height: 330px; margin: 0 0 35px; }
+	#pitch {padding: 00px 50px 0 0; border-bottom: 1px solid #ddd; height: 300px; margin: 0 0 35px; }
 	#pitch_alt {padding: 00px 50px 0 0; height: 210px; margin: 0 0 35px; }
 		#pitch h1 { font-size: 2.6em; color: #000; margin: 0 0 20px; }
 		#pitch h2 { line-height: 1.5em; }
