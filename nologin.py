@@ -56,7 +56,7 @@ class UsersScripts (db.Model):
 class Welcome (webapp.RequestHandler):
   def get(self):
     referer = os.environ.get("HTTP_REFERER")
-    template_values={}
+    template_values = { 'sign_in': users.create_login_url('/scriptlist') }
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
     mobile = 0
     #Check if should send to mobile Page
