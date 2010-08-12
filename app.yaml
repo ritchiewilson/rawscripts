@@ -7,6 +7,9 @@ handlers:
 - url: /
   script: nologin.py
 
+- url: /_ah/login_required
+  script: nologin.py
+
 - url: /convert
   static_files: convert.html
   upload: convert.html

@@ -56,7 +56,7 @@ class UsersScripts (db.Model):
 class Welcome (webapp.RequestHandler):
   def get(self):
     referer = os.environ.get("HTTP_REFERER")
-    template_values={}
+    template_values = { 'sign_in': users.create_login_url('/scriptlist') }
     path = os.path.join(os.path.dirname(__file__), 'welcome.html')
     mobile = 0
     #Check if should send to mobile Page
@@ -240,7 +240,9 @@ class Save (webapp.RequestHandler):
     else:
       self.response.out.write('0')
 
-    
+class LoginRequired(webapp.RequestHandler):
+	def get(self):
+		self.redirect('/')    
 
 class ContactEmail (webapp.RequestHandler):
   def post(self):
@@ -273,6 +275,7 @@ def main():
                                         ('/', Welcome),
                                         ('/scriptcontent', ScriptContent),
                                         ('/contactemail', ContactEmail),
+										('/_ah/login_required', LoginRequired),
                                         ('/bugs', Bugs),
                                         ('/save', Save),
                                         ('/submitbug', SubmitBug),],
