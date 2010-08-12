@@ -240,7 +240,9 @@ class Save (webapp.RequestHandler):
     else:
       self.response.out.write('0')
 
-    
+class LoginRequired(webapp.RequestHandler):
+	def get(self):
+		self.redirect('/')    
 
 class ContactEmail (webapp.RequestHandler):
   def post(self):
@@ -273,6 +275,7 @@ def main():
                                         ('/', Welcome),
                                         ('/scriptcontent', ScriptContent),
                                         ('/contactemail', ContactEmail),
+										('/_ah/login_required', LoginRequired),
                                         ('/bugs', Bugs),
                                         ('/save', Save),
                                         ('/submitbug', SubmitBug),],
