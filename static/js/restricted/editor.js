@@ -98,7 +98,7 @@ $(document).ready(function(){
     document.getElementById('canvas').height = $('#container').height()-60;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
-    $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*45);}});
+    $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*25);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
     $('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
     $('#renameField').keydown(function(e){if(e.which==13){e.preventDefault(); renameScript()}});
