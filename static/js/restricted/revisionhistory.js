@@ -314,10 +314,12 @@ function buildTable(d){
     });
 }
 function changeVersion(v, r){
+	document.getElementById('loading').style.display="block";
     $.post('/revisionget', {resource_id:r, version:String(v).substr(1)}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
+	document.getElementById('loading').style.display="none";
     });
 }
 
@@ -326,11 +328,13 @@ function compareVersions(v_one, v_one_id, v_two, v_two_id){
     var v_t = (v_one<v_two ? v_two : v_one);
     var v_o_id = (v_one>v_two ? v_two_id : v_one_id);
     var v_t_id = (v_one<v_two ? v_two_id : v_one_id);
+	document.getElementById('loading').style.display="block";
     $.post('/revisioncompare', {v_o:v_o.substr(1), v_o_id:v_o_id, v_t:v_t.substr(1), v_t_id:v_t_id}, function(data){
     if(data=='not found'){
     }
     document.getElementById('scriptcontent').innerHTML = data;
     context();
+	document.getElementById('loading').style.display="none";
     });
 }
 

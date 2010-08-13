@@ -126,13 +126,13 @@ def Text(data, title, title_page, resource_id):
   for i in txt:
       #lingering parentheses problem
       if parenTest==True:
-          if not i[1]==4:
+          if not int(i[1])==4:
               s.write('\n')
           parenTest=False
       
       words = deque(i[0].split(' '))
-      if not i[1]==5:
-          spaces=widths[i[1]][1]
+      if not int(i[1])==5:
+          spaces=widths[int(i[1])][1]
       else:
           diff=0
           for j in words:
@@ -146,18 +146,18 @@ def Text(data, title, title_page, resource_id):
       linewidth=0
       
       for j in words:
-          if linewidth+len(j)>widths[i[1]][0]:
+          if linewidth+len(j)>widths[int(i[1])][0]:
               linewidth=0
               s.write('\n')
               k=0
-              while k<widths[i[1]][1]:
+              while k<widths[int(i[1])][1]:
                   s.write(' ')
                   k+=1
-          if i[1]==0:
+          if int(i[1])==0:
               v=j.upper()
-          elif i[1]==2:
+          elif int(i[1])==2:
               v=j.upper()
-          elif i[1]==5:
+          elif int(i[1])==5:
               v=j.upper()
           else:
               v=j
@@ -166,9 +166,9 @@ def Text(data, title, title_page, resource_id):
           linewidth+=len(j)+1
       s.write('\n')
       #save paren for next time around to be sure
-      if i[1]==3:
+      if int(i[1])==3:
           parenTest=True
-      elif widths[i[1]][2]==1:
+      elif widths[int(i[1])][2]==1:
           s.write('\n')
     
   return s
@@ -187,22 +187,22 @@ def Pdf(data, title, title_page, resource_id):
     linewidth=0
     line=''
     k=0
-    while k<widths[i[1]][1]:
+    while k<widths[int(i[1])][1]:
       line+=' '
       k+=1
     for j in words:
-      if linewidth+len(j)>widths[i[1]][0]:
+      if linewidth+len(j)>widths[int(i[1])][0]:
         linewidth=0
         w.append(line.rstrip())
         line=''
         k=0
-        while k<widths[i[1]][1]:
+        while k<widths[int(i[1])][1]:
           line+=' '
           k+=1
       line+=j+' '
       linewidth+=len(j)+1
     w.append(line.rstrip())
-    if widths[i[1]][2]:
+    if widths[int(i[1])][2]:
       w.append('')
     lines.append(w)
   linecount=0

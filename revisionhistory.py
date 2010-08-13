@@ -259,7 +259,7 @@ class GetVersion(webapp.RequestHandler):
       v = ['s','a','c','d','p','t']
       contents=''
       for i in J:
-        contents+='<p class="'+v[i[1]]+'">'+i[0]+"</p>"
+        contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
       self.response.headers['Content-Type']='text/plain'
       self.response.out.write(contents)
 
@@ -290,11 +290,11 @@ class CompareVersions(webapp.RequestHandler):
       j_one = simplejson.loads(r_one[0].data)
       s_one=StringIO.StringIO()
       for i in j_one:
-        s_one.write("<p class='"+v[i[1]]+"'>"+i[0]+"</p>\n")
+        s_one.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
       j_two = simplejson.loads(r_two[0].data)
       s_two=StringIO.StringIO()
       for i in j_two:
-        s_two.write("<p class='"+v[i[1]]+"'>"+i[0]+"</p>\n")
+        s_two.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
 
       content = textDiff(s_one.getvalue(), s_two.getvalue())
       content=content.replace("<del><p", "<p")

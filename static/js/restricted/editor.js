@@ -2388,7 +2388,13 @@ function scrollBar(ctx, y){
     if (barHeight<20)barHeight=20;
     if (barHeight>=height-39)barHeight=height-39;
     var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight);
-    ctx.fillRect(editorWidth-22, topPixel, 20,barHeight);
+    ctx.fillRect(editorWidth-22, topPixel+9, 20,barHeight-18);
+	ctx.beginPath();
+	ctx.arc(editorWidth-12, topPixel+10,10, 0, Math.PI, true);
+	ctx.fill();
+	ctx.beginPath()
+	ctx.arc(editorWidth-12, topPixel+barHeight-10, 10, 0, Math.PI, false);
+	ctx.fill();
 }
 function drawRange(ctx){
     if(pos.row>anch.row){
