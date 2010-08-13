@@ -73,6 +73,12 @@ class Notes (db.Model):
 	data = db.TextProperty()
 	row = db.IntegerProperty()
 	col = db.IntegerProperty()
+	
+class NotesNotify (db.Model):
+	resource_id = db.StringProperty()
+	thread_id = db.StringProperty
+	user = db.StringProperty()
+	new_notes= db.IntegerProperty()
 
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()
