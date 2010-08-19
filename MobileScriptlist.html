@@ -28,6 +28,7 @@
 					var updated = o[i][2];
 					var permission = o[i][3];
 					var shared_with = o[i][4];
+					var new_notes = o[i][5];
 					var entry = c.appendChild(document.createElement('div'));
 					entry.className='entry';
 					entry.id =resource_id;
@@ -35,6 +36,11 @@
 					titleDiv.appendChild(document.createTextNode(title));
 					titleDiv.addEventListener("click", entryReveal, false);
 					titleDiv.className="title";
+					if (new_notes!=0){
+						var newSpan = titleDiv.appendChild(document.createElement('span'));
+						newSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+" New Notes")));
+						newSpan.className="redAlertSpan";
+					}
 					//control div
 					var controlDiv = entry.appendChild(document.createElement('div'));
 					controlDiv.className="controls";
@@ -77,6 +83,7 @@
 					var title = s[i][1];
 					var updated = s[i][2];
 					var owner = s[i][3];
+					var new_notes=s[i][4];
 					var entry = c.appendChild(document.createElement('div'));
 					entry.className='entry';
 					var titleDiv = entry.appendChild(document.createElement('div'));
@@ -84,6 +91,11 @@
 					titleDiv.addEventListener("click", entryReveal, false);
 					titleDiv.className="title";
 					titleDiv.id=resource_id;
+					if (new_notes!=0){
+						var newSpan = titleDiv.appendChild(document.createElement('span'));
+						newSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+" New Notes")));
+						newSpan.className="redAlertSpan";
+					}
 					//control div
 					var controlDiv = entry.appendChild(document.createElement('div'));
 					controlDiv.className="controls";
@@ -356,7 +368,7 @@
 		width:75%;
 	}
 	.name{
-		font-size:30px;;
+		font-size:30px;
 	}
 	.mailto{
 		display:none;
@@ -386,6 +398,11 @@
 		z-index:100; 
 		padding:15px;
 		border:1px darkBlue double;
+	}
+	.redAlertSpan{
+		color:red;
+		vertical-align:top;
+		font-size:100%;
 	}
 	</style>
 </head>
