@@ -610,6 +610,7 @@ function mouseDown(e){
             }
             else{window.open('/titlepage?resource_id='+resource_id);}
         }
+		else if(id=='tag')tagPrompt();
         else if(id=="spellCheck")launchSpellCheck();
         //View
         else if(id=='revision'){
@@ -2216,7 +2217,18 @@ function shareScript(){
 	document.getElementById('shareS').value = "Sending Invites...";
     document.getElementById('collaborators').innerHTML="";
 }
-
+//tag
+function tagPrompt(){
+	save(0);
+	var t = prompt("Leave a tag for this version:");
+	if (t!=null && t!=""){
+		$.post("/revisiontag", {resource_id:resource_id, version:"latest", tag:t}, function(d){
+			if(d!='tagged'){
+				alert("There was a problem tagging this script. Please try again later.")
+			}
+		});
+	}
+}
 // spellCheck
 function launchSpellCheck(){
     typeToScript=false;

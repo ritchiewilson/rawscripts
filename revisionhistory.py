@@ -74,10 +74,16 @@ class RevisionTag(webapp.RequestHandler):
     if not p==False:
       version=self.request.get('version')
       tag = self.request.get('tag')
-      q=db.GqlQuery("SELECT * FROM ScriptData "+
-                     "WHERE resource_id='"+resource_id+"' "+
-                     "AND version="+version)
-      r=q.fetch(1)
+      if version=="latest":
+        q=db.GqlQuery("SELECT * FROM ScriptData "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"ORDER BY version DESC")
+        r=q.fetch(10)
+      else:
+        q=db.GqlQuery("SELECT * FROM ScriptData "+
+                       "WHERE resource_id='"+resource_id+"' "+
+                       "AND version="+version)
+        r=q.fetch(1)
       r[0].tag=tag
       r[0].put()
       self.response.out.write('tagged')
