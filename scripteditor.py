@@ -848,7 +848,7 @@ class Share (webapp.RequestHandler):
 			j=0
 			while j<3:
 				try:
-					mail.send_mail(sender="admin@rawscripts.com",
+					mail.send_mail(sender=users.get_current_user().email(),
 												 to=collabList,
 												 subject=subject,
 												 body = body,
