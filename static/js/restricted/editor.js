@@ -3001,7 +3001,7 @@ function paint(e, anchE, forceCalc, forceScroll){
             try{
                 ctx.fillRect(lr,ud,2,17);
             }
-            catch(err){console.log(lines[pos.row][0]);}
+            catch(err){}
         }
     }
       
