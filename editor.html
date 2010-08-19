@@ -11,6 +11,11 @@
   <style>
   body{padding:0; margin:0;height:100%; background-color:#ccc}
   html{height:99%; margin:0; padding:0;}
+  .close{
+	position:absolute;
+	top:-15px;
+	right:-15px;
+	}
   #suggestBox{
 	background-color:#ccc;
 	border:1px black solid;
@@ -256,7 +261,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
 		<div class="popup">
-			<a href="javascript:hideEmailPrompt()" style="color:#333">Close</a>
+			<a href="javascript:hideEmailPrompt()" class="close"><img src="/images/close.png"></a>
 			<br /><br />
             Send Script
             <br /><br />
@@ -289,7 +294,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:500px; height:220px; position:relative; margin:auto; top:15%; padding:10px; border:double">
 		<div class="popup">
-			<a href="javascript:hideSpellCheck()" style="color:#333">Close</a>
+			<a href="javascript:hideSpellCheck()" class="close"><img src="/images/close.png"></a>
 			<br /><br />
             Spell Check
             <br />
@@ -314,7 +319,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
 		<div class="popup"> 
-			<a href="javascript:hideNewScriptPrompt()" style="color:#333">Close</a> 
+			<a href="javascript:hideNewScriptPrompt()" class="close"><img src="/images/close.png"></a>
 			<br /> 
             
 			<p>New Script Title</p> 
@@ -331,7 +336,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double">
 		<div class="popup">
-			<a href="javascript:hideRenamePrompt()" style="color:#333">Close</a>
+			<a href="javascript:hideRenamePrompt()" class="close"><img src="/images/close.png"></a>
 			<br />
             
 			<p id="renameTitle"></p>
@@ -349,7 +354,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div> 
 	<div class="popup_block" style="background:#7694D8; width:400px; position:relative; margin:auto; top:20%; padding:10px; border:double"> 
 		<div class="popup"> 
-			<a href="javascript:hideExportPrompt()" style="color:#333">Close</a> 
+			<a href="javascript:hideExportPrompt()" class="close"><img src="/images/close.png"></a>
 			<br /> 
 			<p>Export as...</p> 
 			<input class='exportList' type="checkbox" checked='true' name="pdf" style="margin-left:5px; margin-right:10px" />   Adobe Pdf<br> 
@@ -371,7 +376,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
 		<div class="popup">
-			<a href="javascript:hideOpenPrompt()" style="color:#333">Close</a>
+			<a href="javascript:hideOpenPrompt()" class="close"><img src="/images/close.png"></a>
 			<br /><br />
             Open Script:
             <br /><br>
@@ -386,7 +391,7 @@
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
 		<div class="popup">
-			<a href="javascript:hideSharePrompt()" style="color:#333">Close</a>
+			<a href="javascript:hideSharePrompt()" class="close"><img src="/images/close.png"></a>
 			<br /><br />
             Share Script: <b id="shareTitle"></b>
             <br /><br>
