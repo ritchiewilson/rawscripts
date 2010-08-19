@@ -876,6 +876,12 @@ class RemoveAccess (webapp.RequestHandler):
 										"AND user='"+person.lower()+"'")
 			r=q.fetch(1)
 			r[0].delete()
+			q=db.GqlQuery("SELECT * FROM NotesNotify "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND user='"+person.lower()+"'")
+			r=q.fetch(500)
+			for i in r:
+				i.delete()
 		remove_person = self.request.get('removePerson')
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(remove_person.lower())
