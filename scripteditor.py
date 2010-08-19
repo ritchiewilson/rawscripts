@@ -76,7 +76,7 @@ class Notes (db.Model):
 	
 class NotesNotify (db.Model):
 	resource_id = db.StringProperty()
-	thread_id = db.StringProperty
+	thread_id = db.StringProperty()
 	user = db.StringProperty()
 	new_notes= db.IntegerProperty()
 
@@ -281,9 +281,9 @@ class List (webapp.RequestHandler):
 			if props['mobileDevice']:
 				path = os.path.join(os.path.dirname(__file__), 'mobilelist.html')
 				mobile = 1
-
+		user = users.get_current_user().email().lower()
 		q= db.GqlQuery("SELECT * FROM UsersScripts "+
-									 "WHERE user='"+users.get_current_user().email().lower()+"' "+
+									 "WHERE user='"+user+"' "+
 									 "ORDER BY updated DESC")
 		results = q.fetch(1000)
 		now = datetime.datetime.today()
@@ -335,7 +335,14 @@ class List (webapp.RequestHandler):
 					i.updated="last year"
 				else:
 					i.updated=str(diff)+" years ago"
-					
+			#getting notesnotification info for scripts
+			nnq=db.GqlQuery("SELECT * FROM NotesNotify "+
+							"WHERE resource_id='"+i.resource_id+"' "+
+							"AND user='"+user+"'")
+			nn=nnq.fetch(500)
+			new_notes=0
+			for c in nn:
+				new_notes=new_notes+c.new_notes		
 			#now put these bits in the right array
 			if i.permission=='owner':
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -345,7 +352,7 @@ class List (webapp.RequestHandler):
 				for j in p:
 					if j.user.lower()!=users.get_current_user().email().lower():
 						sharingArr.append(j.user)
-				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr])
+				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr, new_notes])
 			elif i.permission=="ownerDeleted":
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 											"WHERE resource_id='"+i.resource_id+"'")
@@ -360,7 +367,7 @@ class List (webapp.RequestHandler):
 											"WHERE resource_id='"+i.resource_id+"' "+
 											"AND permission='owner'")
 				p=q.fetch(1)
-				shared.append([i.resource_id, i.title, i.updated, p[0].user])
+				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes])
 
 		pl=[owned, ownedDeleted, shared]
 		

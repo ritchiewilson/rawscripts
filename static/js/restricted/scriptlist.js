@@ -73,6 +73,7 @@ function refreshList(v){
         var resource_id = x[i][0];
         var updated = x[i][2]
         var shared_with=x[i][4]
+		var new_notes=x[i][5]
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -90,13 +91,11 @@ function refreshList(v){
         var titleCell = entryTr.appendChild(document.createElement('td'));
         var titleLink = titleCell.appendChild(document.createElement('a'));
         titleLink.id = 'name'+resource_id;
-        /*
-        if (newNotes==true){
+        if (new_notes!=0){
             var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
+            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
             newNotesSpan.className = 'redAlertSpan';
         }
-        */
         var href = 'javascript:script("'+resource_id+'")';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
@@ -155,6 +154,7 @@ function refreshList(v){
         var title = ss[i][1];
         var updated = ss[i][2];
         var owner = ss[i][3];
+		var new_notes=ss[i][4]
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -175,6 +175,11 @@ function refreshList(v){
         var href = 'javascript:script("'+resource_id+'")';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
+		if (new_notes!=0){
+            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
+            newNotesSpan.className = 'redAlertSpan';
+        }
         //show owner
         var ownerTd = entryTr.appendChild(document.createElement('td'));
         ownerTd.appendChild(document.createTextNode(owner));

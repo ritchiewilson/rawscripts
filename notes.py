@@ -185,10 +185,8 @@ class DeleteThread (webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p = ownerPermission(resource_id)
-		logging.info(p)
 		if not p==False:
 			thread_id = self.request.get('thread_id')
-			logging.info(thread_id)
 			q=db.GqlQuery("SELECT * FROM Notes "+
 						"WHERE resource_id='"+resource_id+"' "+
 						"AND thread_id='"+thread_id+"'")
