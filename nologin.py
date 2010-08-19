@@ -107,7 +107,8 @@ class Editor (webapp.RequestHandler):
 				template_values = { 'sign_out': '/' }
 				template_values['user'] = "test@example.com"
 			else:
-				template_values = { 'sign_in': users.create_login_url('/editor?resource_id='+resource_id) }
+				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
+				 					'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
 				path = os.path.join(os.path.dirname(__file__), 'login.html')
 				
 		mobile = 0
