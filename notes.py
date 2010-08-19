@@ -106,10 +106,9 @@ class NewThread(webapp.RequestHandler):
 							"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(500)
 			for i in r:
-				if i.permission=='collab':
-					logging.info(thread_id)
+				if not i.user==users.get_current_user().email().lower():
 					nn = NotesNotify(resource_id=resource_id,
-									user=users.get_current_user().email().lower(),
+									user=i.user,
 									new_notes=1,
 									thread_id=thread_id)
 					nn.put()
@@ -141,16 +140,16 @@ class SubmitMessage(webapp.RequestHandler):
 							"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(500)
 			for i in r:
-				if i.permission=='collab':
+				if not i.user==user.lower():
 					q=db.GqlQuery("SELECT * FROM NotesNotify "+
 									"WHERE resource_id='"+resource_id+"' "+
-									"AND thread_id='"+thread_id+"'")
+									"AND thread_id='"+thread_id+"' "+
+									"AND user='"+i.user+"'")
 					n=q.fetch(1)
 					if len(n)==0:
-						logging.info('test')
 						n = NotesNotify(resource_id=resource_id,
 										thread_id=thread_id,
-										user=users.get_current_user().email().lower(),
+										user=i.user,
 										new_notes=1)
 						n.put()
 					else:
@@ -195,6 +194,13 @@ class DeleteThread (webapp.RequestHandler):
 						"AND thread_id='"+thread_id+"'")
 			r=q.fetch(1)
 			r[0].delete()
+			
+			q=db.GqlQuery("SELECT * FROM NotesNotify "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+thread_id+"'")
+			r=q.fetch(1000)
+			for i in r:
+				i.delete()
 
 class ViewNotes(webapp.RequestHandler):
 	def get(self):
