@@ -223,6 +223,13 @@ class ViewNotes(webapp.RequestHandler):
 							}
 			path = os.path.join(os.path.dirname(__file__), 'MobileViewNotes.html')
 			self.response.out.write(template.render(path, template_values))
+			
+			q = db.GqlQuery("SELECT * FROM NotesNotify "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND user='"+users.get_current_user().email().lower()+"'")
+			r = q.fetch(500)
+			for i in r:
+				i.delete()
 
 def main():
 	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
