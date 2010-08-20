@@ -821,47 +821,67 @@ class Share (webapp.RequestHandler):
 			return
 		p = ownerPermission(resource_id)
 		if p!=False:
-			collaborators = self.request.get('collaborators')
+			collaborators = self.request.get('collaborators').lower()
 			fromPage = self.request.get('fromPage')
 			collabList = collaborators.split(',')
+			
+			#uniquify the list
+			keys={}
+			for e in collabList:
+				keys[e]=1
+			uCollabList=keys.keys()
+			
+			#don't duplicate sharing
+			q=db.GqlQuery("SELECT * FROM UsersScripts "+
+							"WHERE resource_id='"+resource_id+"'")
+			r=q.fetch(500)
+			output=[]
+			for i in uCollabList:
+				found=False
+				for j in r:
+					if j.user==i.lower():
+						found=True
+					if i=="":
+						found=True
+				if found==False:
+					output.append(i.lower())
+					u = UsersScripts(resource_id=resource_id,
+													 permission="collab",
+													 user = i.lower(),
+													 updated = str(datetime.datetime.today()),
+													 title = p)
+					u.put()
+			if output!=[]:
+				subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
+				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+				result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
+				htmlbody = result.content
+				html = htmlbody.replace("SCRIPTTITLE", p)
+				html = html.replace("USER",users.get_current_user().email())
+				html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+				body = body_message + """
 
-			for i in collabList:
-				u = UsersScripts(resource_id=resource_id,
-												 permission="collab",
-												 user = i.lower(),
-												 updated = str(datetime.datetime.today()),
-												 title = p)
-				u.put()
-			subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
-			body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
-			result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
-			htmlbody = result.content
-			html = htmlbody.replace("SCRIPTTITLE", p)
-			html = html.replace("USER",users.get_current_user().email())
-			html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
-			body = body_message + """
 
-
-	--- This Script written and sent from RawScripts.com. Check it out---"""
+		--- This Script written and sent from RawScripts.com. Check it out---"""
 		
-			#Mail the damn thing. Itereating to reduce userside errors
-			j=0
-			while j<3:
-				try:
-					mail.send_mail(sender=users.get_current_user().email(),
-												 to=collabList,
-												 subject=subject,
-												 body = body,
-												 html = html)
-					j=5
-				except:
-					j=j+1
-					if j==3:
-						self.response.headers['Content-Type'] = 'text/plain'
-						self.response.out.write('not sent')
-						return
+				#Mail the damn thing. Itereating to reduce userside errors
+				j=0
+				while j<3:
+					try:
+						mail.send_mail(sender=users.get_current_user().email(),
+													 to=output,
+													 subject=subject,
+													 body = body,
+													 html = html)
+						j=5
+					except:
+						j=j+1
+						if j==3:
+							self.response.headers['Content-Type'] = 'text/plain'
+							self.response.out.write('not sent')
+							return
 			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.out.write(collaborators)
+			self.response.out.write(",".join(output))
 		
 class RemoveAccess (webapp.RequestHandler):
 	def post(self):

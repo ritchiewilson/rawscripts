@@ -2203,12 +2203,14 @@ function shareScript(){
         var people = data.split(",");
         var c=document.getElementById('hasAccess');
         for(i in people){
-            var TR = c.appendChild(document.createElement("tr"));
-            TR.id = people[i];
-            TR.appendChild(document.createElement("td")).appendChild(document.createTextNode(people[i]));
-            var newA = TR.appendChild(document.createElement("td")).appendChild(document.createElement("a"));
-            newA.appendChild(document.createTextNode("Remove Access"));
-            newA.href="javascript:removeAccess('"+people[i]+"')";
+			if(people[i]!="" && people[i]!=="not sent"){
+	            var TR = c.appendChild(document.createElement("tr"));
+	            TR.id = people[i];
+	            TR.appendChild(document.createElement("td")).appendChild(document.createTextNode(people[i]));
+	            var newA = TR.appendChild(document.createElement("td")).appendChild(document.createElement("a"));
+	            newA.appendChild(document.createTextNode("Remove Access"));
+	            newA.href="javascript:removeAccess('"+people[i]+"')";
+			}
         }
         document.getElementById('shareS').disabled = false;
         document.getElementById('shareS').value = "Send Invitations";
