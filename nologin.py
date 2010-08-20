@@ -265,9 +265,6 @@ class ContactEmail (webapp.RequestHandler):
 		name = self.request.get('name')
 		subject = self.request.get('subject')
 		message = self.request.get('message')
-		logging.info(name)
-		logging.info(subject)
-		logging.info(message)
 		if not message == None:
 			body = 'FROM: '+name+'\n\nSUBJECT: '+subject+'\n\n'+message
 			mail.send_mail(sender='contact@rawscripts.com',
