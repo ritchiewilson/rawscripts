@@ -90,7 +90,7 @@
 		var resource_id = window.location.href.split("=")[1];
 		if(content!=""){
 			if(resource_id!="Demo"){
-				$.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : thread_id}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+				$.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : thread_id, fromPage:'mobileviewnotes'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
 			}
 		}
 		var c = this;
@@ -131,7 +131,7 @@
 		var resource_id = window.location.href.split("=")[1];
 		if(c==true){
 			if(resource_id!="Demo"){
-				$.post("/notesdeletethread", {resource_id:resource_id, thread_id:this.name});
+				$.post("/notesdeletethread", {resource_id:resource_id, thread_id:this.name, fromPage:'mobileviewnotes'});
 			}
 		}
 		var c = this;
@@ -177,7 +177,7 @@
 		var resource_id = window.location.href.split("=")[1];
 		if(content!=""){
 			if(resource_id!="Demo"){
-				$.post("/notesnewthread", {resource_id:resource_id, row:0, col:0, content : content, thread_id : thread_id}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+				$.post("/notesnewthread", {resource_id:resource_id, row:0, col:0, content : content, thread_id : thread_id, fromPage:'mobileviewnotes'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
 			}
 		}
 		var c = this;

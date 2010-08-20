@@ -12,6 +12,7 @@ import random
 import datetime
 import logging
 from django.utils import simplejson
+import activity
 
 # instantiate API and read in the JSON
 TREEFILE = 'DeviceAtlas.json'
@@ -26,7 +27,7 @@ def permission (resource_id):
 	for i in results:
 		if i.permission=='owner' or i.permission=="collab":
 			if i.user==users.get_current_user().email().lower():
-				p=i.title
+				p=i.permission
 	return p
 
 def ownerPermission (resource_id):
@@ -88,6 +89,7 @@ class NewThread(webapp.RequestHandler):
 			return
 		p = permission(resource_id)
 		if not p==False:
+			fromPage=self.request.get('fromPage')
 			user=users.get_current_user().email()
 			row = self.request.get('row')
 			col = self.request.get('col')
@@ -114,6 +116,14 @@ class NewThread(webapp.RequestHandler):
 					nn.put()
 			self.response.headers["Content-Type"]="text/plain"
 			self.response.out.write('sent')
+			mobile = 0
+			#Check if should send to mobile Page
+			ua = self.request.user_agent
+			props = da.getPropertiesAsTyped(tree, ua)
+			if props.has_key('mobileDevice'):
+				if props['mobileDevice']:
+					mobile = 1
+			activity.activity("newthread", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None, thread_id, None,None,p,None,fromPage, None)
 							
 class SubmitMessage(webapp.RequestHandler):
 	def post(self):
@@ -125,6 +135,7 @@ class SubmitMessage(webapp.RequestHandler):
 			user=users.get_current_user().email()
 			thread_id = self.request.get('thread_id')
 			content = self.request.get('content')
+			fromPage = self.request.get('fromPage')
 			d = str(datetime.datetime.today())
 
 			q = db.GqlQuery("SELECT * FROM Notes "+
@@ -157,6 +168,14 @@ class SubmitMessage(webapp.RequestHandler):
 						n[0].put()
 			self.response.headers["Content-Type"]="text/plain"
 			self.response.out.write('sent')
+			mobile = 0
+			#Check if should send to mobile Page
+			ua = self.request.user_agent
+			props = da.getPropertiesAsTyped(tree, ua)
+			if props.has_key('mobileDevice'):
+				if props['mobileDevice']:
+					mobile = 1
+			activity.activity("notesresponse", users.get_current_user().email().lower(), resource_id, mobile, len(content), None, None, thread_id, None,None,p,None,fromPage, None)
 
 class Position (webapp.RequestHandler):
 	def post(self):
@@ -186,6 +205,7 @@ class DeleteThread (webapp.RequestHandler):
 			return
 		p = ownerPermission(resource_id)
 		if not p==False:
+			fromPage=self.request.get('fromPage')
 			thread_id = self.request.get('thread_id')
 			q=db.GqlQuery("SELECT * FROM Notes "+
 						"WHERE resource_id='"+resource_id+"' "+
@@ -199,6 +219,14 @@ class DeleteThread (webapp.RequestHandler):
 			r=q.fetch(1000)
 			for i in r:
 				i.delete()
+			mobile = 0
+			#Check if should send to mobile Page
+			ua = self.request.user_agent
+			props = da.getPropertiesAsTyped(tree, ua)
+			if props.has_key('mobileDevice'):
+				if props['mobileDevice']:
+					mobile = 1
+			activity.activity("deletethread", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, thread_id, None,None,None,None,fromPage, None)
 
 class ViewNotes(webapp.RequestHandler):
 	def get(self):
@@ -228,8 +256,10 @@ class ViewNotes(webapp.RequestHandler):
 							"WHERE resource_id='"+resource_id+"' "+
 							"AND user='"+users.get_current_user().email().lower()+"'")
 			r = q.fetch(500)
+			l=len(r)
 			for i in r:
 				i.delete()
+			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, l, None, None, None,None,p,None,None, None)
 
 def main():
 	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),

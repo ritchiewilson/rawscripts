@@ -14,6 +14,7 @@ import api
 import random
 import zipfile
 import export
+import activity
 import logging
 from django.utils import simplejson
 
@@ -92,6 +93,7 @@ class Editor (webapp.RequestHandler):
 		user = users.get_current_user()
 		path = os.path.join(os.path.dirname(__file__), 'editor.html')
 		resource_id=self.request.get('resource_id')
+		format='editor'
 		if user and resource_id!="Demo":
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
@@ -100,6 +102,7 @@ class Editor (webapp.RequestHandler):
 										"AND user='"+user.email().lower()+"'")
 			r=q.fetch(1)
 			if r[0].permission=='collab':
+				format='viewer'
 				path = os.path.join(os.path.dirname(__file__), 'viewer.html')
 		else:
 			resource_id=self.request.get('resource_id')
@@ -119,9 +122,13 @@ class Editor (webapp.RequestHandler):
 			if props['mobileDevice']:
 				path = os.path.join(os.path.dirname(__file__), 'MobileEditor.html')
 				mobile = 1
-		
+		if user:
+			user=user.email().lower()
+		else:
+			user="unknown"
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
+		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)
 
 class ScriptContent (webapp.RequestHandler):
 	def post(self):
@@ -183,16 +190,32 @@ class ScriptContent (webapp.RequestHandler):
 			ja.append(sharedwith)
 
 			content = simplejson.dumps(ja)
-			
-			q=db.GqlQuery("SELECT * FROM NotesNotify "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND user='"+users.get_current_user().email().lower()+"'")
-			nn=q.fetch(500)
-			for i in nn:
-				i.delete()
+			user = users.get_current_user()
+			if user:
+				q=db.GqlQuery("SELECT * FROM NotesNotify "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND user='"+users.get_current_user().email().lower()+"'")
+				nn=q.fetch(500)
+				NN=len(nn)
+				for i in nn:
+					i.delete()
+			else:
+				NN=0
 			
 			self.response.headers["Content-Type"]='text/plain'
 			self.response.out.write(content)
+			mobile = 0
+			#Check if should send to mobile Page
+			ua = self.request.user_agent
+			props = da.getPropertiesAsTyped(tree, ua)
+			if props.has_key('mobileDevice'):
+				if props['mobileDevice']:
+					mobile = 1
+			if user:
+				user=user.email().lower()
+			else:
+				user="unknown"
+			activity.activity("scriptcontent", user, resource_id, mobile, len(results[0].data), NN, None, None, None,title,None,None,None, None)
 
 
 class Save (webapp.RequestHandler):
@@ -255,10 +278,12 @@ class Save (webapp.RequestHandler):
 			self.response.out.write('1')
 		else:
 			self.response.out.write('0')
+		activity.activity("save", users.get_current_user().email().lower(), resource_id, None, len(data), None, int(autosave), None, None,None,None,None,None, None)
 
 class LoginRequired(webapp.RequestHandler):
 	def get(self):
-		self.redirect('/')    
+		self.redirect('/')
+		activity.activity("LoginRequired", None, None, None, None, None, None, None,None,None,None,None, None)
 
 class ContactEmail (webapp.RequestHandler):
 	def post(self):

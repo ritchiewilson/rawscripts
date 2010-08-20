@@ -833,7 +833,7 @@ function submitNewThread(v){
         var arr = [pos.row, pos.col, [[content,u,d]], v];
         notes.push(arr);
         var data = [pos.row, pos.col, content, v]
-        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v, fromPage:'viewer'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
     }
     noteIndex();
 }
@@ -872,7 +872,7 @@ function submitMessage(v){
     if(content!=""){
         var arr=[content, u, d]
         notes[n][2].push(arr);
-        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+        $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v, fromPage:'viewer'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
     }
 	noteIndex();
 }
