@@ -17,18 +17,20 @@
 	right:-15px;
 	}
   #suggestBox{
-	background-color:#ccc;
-	border:1px black solid;
+	background-color:#f9f9f9;
+	border:1px #333 solid;
+	border-top:1px #999 solid;
+	border-left:1px #999 solid;
 	min-width:70px;
   }
   .suggestItem{
 	padding:2px;
 	font-family:Courier;
-	font-size:12pt;
+	font-size:10pt;
 	cursor:pointer;
   }
   #focus{
-	background-color:lightBlue;
+	background-color:#A2BAE9;
   }
   .TEXT{
     background-color:white;
@@ -49,8 +51,8 @@
     position:fixed; 
     top:63px; 
     left:0px; 
-    border-right:1px #333 solid; 
-    border-bottom:1px #333 solid; 
+    border-right:1px #666 solid; 
+    border-bottom:1px #666 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid; 
     background-color:#eeeeef;
@@ -118,8 +120,8 @@
     font-size:10pt;
     cursor:pointer;
   }
-  .submenu:hover{background-color:lightBlue}
-  .submenuSplit:hover{background-color:lightBlue}
+  .submenu:hover{background-color:#ccf}
+  .submenuSplit:hover{background-color:#ccf}
   td{padding:0;}
   #titleBar{
     height:40px;
@@ -431,10 +433,10 @@
             <option>Parenthetical</option>
             <option>Transition</option>
           </select>
-        <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-left:500px;float:left" onclick="save(0)" />
+        <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-right:50px;float:right" onclick="save(0)" />
     </div>
   </div>
-  <canvas id='canvas' width="850" style="float:left">
+  <canvas id='canvas' width="850" style="float:left; cursor:text">
     <div style="background-color:white; width:400px; margin-left:75px; padding:100px; padding-top:50px;">
         <h2>Grrr.... Internet!</h2>
         <p>Hey, sorry for this, but basicly your browser isn't going to run this very well... at all. But you have options!</p>
@@ -456,7 +458,7 @@
         <div style="margin-left:80px;"><a href="http://www.google.com/chromeframe/eula.html" target="_blank"><img src="images/chrome-frame.png" /></a></div>
     </div>
   </canvas>
-  <div id="sidebar" style="position:absolute; top:65px; right:0; width:400px; float:left; border:2px ridge; overflow:auto; background-color:white;">
+  <div id="sidebar" style="position:absolute; top:65px; right:0; width:320px; float:left; border:2px ridge; overflow:auto; background-color:white;">
     <div id="tabBox">
         <table width="100%" cellspacing=0>
             <tr>

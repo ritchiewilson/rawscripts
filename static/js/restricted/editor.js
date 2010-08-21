@@ -54,7 +54,7 @@
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
-    var WrapVariableArray = [[62, 111+50,0,1,2],[62,111+50,0,0,2],[40, 271+50,0,1,1],[36, 191+50,0,0,2],[30, 231+50,0,0,1],[61, 601+50,1,1,2]];
+    var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
     
     //if ($.browser.mozilla)fontWidth=9;
     var editorWidth = 850;
@@ -96,8 +96,10 @@
     
 $(document).ready(function(){
     document.getElementById('canvas').height = $('#container').height()-60;
+	document.getElementById('canvas').width = $('#container').width()-320;
+	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
+    //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*25);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
     $('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
@@ -112,8 +114,11 @@ $(document).ready(function(){
   });
   $(window).resize(function(){
     document.getElementById('canvas').height = $('#container').height()-60;
+	document.getElementById('canvas').width = $('#container').width()-320;
+	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
+    //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
+	paint(false,false,false,false)
   });
   $('*').keydown(function(e){
   if (commandDownBool && e.which!=16){
@@ -185,14 +190,14 @@ function createSuggestBox(d){
 	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
 	if(d=='c'){
         v=characters;
-        var left=WrapVariableArray[2][1]+'px';
+        var left=WrapVariableArray[2][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
     else{
         v=scenes;
         for(i in v){
             v[i][0]=v[i][0].split(') ').splice(1).join(') ');
         }
-        var left=WrapVariableArray[0][1]+'px';
+        var left=WrapVariableArray[0][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
 	var l=lines[pos.row][0].length;
 	for (x in v){
@@ -467,7 +472,7 @@ function setup(){
     document.getElementById('saveButton').value="Saved";
     document.getElementById('saveButton').disabled=true;
     paint(false,false,true,false);
-    setInterval('paint(false,false, false,false)', 40);
+    setInterval('paint(false,false, false,false)', 25);
     });
 }
 function tabs(v){
@@ -2410,7 +2415,7 @@ function scrollBar(ctx, y){
 	ctx.arc(editorWidth-12, topPixel+barHeight-10, 10, 0, Math.PI, false);
 	ctx.fill();
 }
-function drawRange(ctx){
+function drawRange(ctx, pageStartX){
     if(pos.row>anch.row){
         var startRange = {row:anch.row, col:anch.col};
         var endRange = {row:pos.row, col:pos.col};
@@ -2524,12 +2529,12 @@ function drawRange(ctx){
     if(endHeight==startHeight){
         var onlyBlueLine = startWidth;
         if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(onlyBlueLine, startHeight-vOffset,endWidth-startWidth, 12);
+        ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
     }
     else{
         var firstLineBlue = startWidth;
          if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(firstLineBlue,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
         while(startHeight+lineheight<endHeight){
             for(var counter=0; counter<pageBreaks.length; counter++){
                 if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
@@ -2549,67 +2554,67 @@ function drawRange(ctx){
             if(startHeight!=endHeight){
                 var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
                 if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-                ctx.fillRect(blueStart, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
             }
             
         }
         //ctx.fillStyle="blue";
         var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
         if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-        ctx.fillRect(lastBlueLine, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+        ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
     }
 }
 
 
-function drawNote(width, height, col, ctx, i){
+function drawNote(width, height, col, ctx, i, pageStartX){
     if(lines[i][1]==5){
         ctx.fillStyle="gold";
         ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1), height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle="#333";
         ctx.lineWidth = 1;
         ctx.beginPath();
         for(var j=1; j<6; j++){
-            ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+1, height-vOffset-lineheight+3+(2*j)+0.5);
-            ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1, height-vOffset-lineheight+3+(2*j)+0.5);
+            ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
+            ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
             ctx.stroke();
         }
         ctx.strokeStyle="#999";
         ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
         ctx.stroke();
     }
     else{
         ctx.fillStyle="gold";
         ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3);
+        ctx.moveTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3);
+        ctx.lineTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
+        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle="#333";
         ctx.lineWidth = 1;
         ctx.beginPath();
         for(var i=1; i<6; i++){
-            ctx.moveTo(width+fontWidth*col+1, height-vOffset-lineheight+3+(2*i)+0.5);
-            ctx.lineTo(width+fontWidth*col+fontWidth-1, height-vOffset-lineheight+3+(2*i)+0.5);
+            ctx.moveTo(width+fontWidth*col+1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
+            ctx.lineTo(width+fontWidth*col+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
             ctx.stroke();
         }
         ctx.strokeStyle="#999";
         ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth, height-vOffset-lineheight+3+4);
+        ctx.moveTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
+        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
+        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
         ctx.stroke();
     }
     ctx.fillStyle=foreground;
@@ -2630,18 +2635,19 @@ function paint(e, anchE, forceCalc, forceScroll){
     
     
     //draw pages
-    var pageStartX = 45;
+    var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
     var pageStartY = lineheight;
+	ctx.font=font;
     for(var i=0; i<=pageBreaks.length;i++){
         ctx.fillStyle = background;
-        ctx.fillRect(pageStartX, pageStartY-vOffset, editorWidth*0.85, lineheight*70);
+        ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 1;
-        ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(editorWidth*0.85), lineheight*70);
+        ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
         ctx.strokeStyle='#999';
-        ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(editorWidth*0.85)+4, lineheight*70+4);
+        ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
         ctx.fillStyle=foreground;
-        if(i>0)ctx.fillText(String(i+1)+'.', 645, pageStartY-vOffset+85);
+        if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
         pageStartY+= lineheight*72;
     }
     
@@ -2665,8 +2671,8 @@ function paint(e, anchE, forceCalc, forceScroll){
                 for(var j=0; j<linesNLB[i].length; j++){
                     greyHeight+=lineheight;
                     if (lines[i][1]==0){
-                       if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3,greyHeight-vOffset,61*fontWidth+6, 14);
-                       if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3,greyHeight-vOffset,61*fontWidth+6, 14);
+                       if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+                       if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
                     }
                 }
             }
@@ -2676,7 +2682,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
-        drawRange(ctx);
+        drawRange(ctx, pageStartX);
         if(!pasting)selection();
     }
     
@@ -2792,12 +2798,12 @@ function paint(e, anchE, forceCalc, forceScroll){
                         for(note in notesArr){
                             if (notesArr[note]>=lines[i][0].length-printString.length){
                                 altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i);
+                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
                                 notesInThisLine.push(notesArr[note]);
                             }
                         }
                     }
-                    if(printString!='')ctx.fillText(altPrintString, wrapVars[1] , y-vOffset);
+                    if(printString!='')ctx.fillText(altPrintString, wrapVars[1]+pageStartX , y-vOffset);
                     ctx.textAlign='left';
                     word=wordsArr.length;
                     linesNLB[i].push(printString.length);
@@ -2823,13 +2829,13 @@ function paint(e, anchE, forceCalc, forceScroll){
                         for(note in notesArr){
                             if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
                                 altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i);
+                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
                                 notesInThisLine.push(notesArr[note]);
                             }
                         }
                     }
                     tc+=newLineToPrint.length+1;
-                    ctx.fillText(altNewLineToPrint, wrapVars[1], y-vOffset);
+                    ctx.fillText(altNewLineToPrint, wrapVars[1]+pageStartX, y-vOffset);
                     linesNLB[i].push(newLineToPrint.length);
                     y+=lineheight;
                     word+=itr-1;
@@ -2852,6 +2858,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                     pos.row=i;
                     pos.col=0;
                     var itr=0;
+					//line break measure
                     var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
                     while(e.clientY-headerHeight>lbMeasure){
                         pos.col+=linesNLB[i][itr]+1;
@@ -2859,13 +2866,13 @@ function paint(e, anchE, forceCalc, forceScroll){
                         itr++;
                     }
                     if(type!=5){
-                        var remainder = Math.round(((e.clientX-wrapVars[1])/fontWidth));
+                        var remainder = Math.round(((e.clientX-wrapVars[1]-pageStartX)/fontWidth));
                         if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
                         if(remainder<0)remainder=0;
                         pos.col+=remainder;
                     }
                     else{
-                        var remainder = Math.round(((wrapVars[1]-e.clientX)/fontWidth));
+                        var remainder = Math.round(((wrapVars[1]-e.clientX-pageStartX)/fontWidth));
                         if(remainder<0)remainder = 0;
                         pos.col-=remainder;
                         pos.col+=lines[i][0].length;
@@ -2897,13 +2904,13 @@ function paint(e, anchE, forceCalc, forceScroll){
                         itr++;
                     }
                     if(type!=5){
-                        var remainder = Math.round(((anchE.clientX-wrapVars[1])/fontWidth));
+                        var remainder = Math.round(((anchE.clientX-wrapVars[1]-pageStartX)/fontWidth));
                         if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
                         if(remainder<0)remainder=0;
                         anch.col+=remainder;
                     }
                     else{
-                        var remainder = Math.round(((wrapVars[1]-anchE.clientX)/fontWidth));
+                        var remainder = Math.round(((wrapVars[1]-anchE.clientX-pageStartX)/fontWidth));
                         if(remainder<0)remainder = 0;
                         anch.col-=remainder;
                         anch.col+=lines[i][0].length;
@@ -2922,10 +2929,10 @@ function paint(e, anchE, forceCalc, forceScroll){
                     anchEFound=true;
                 }
                 if(bb && linesNLB[i].length==pageBreaks[count][2]){
-                    if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1], y-vOffset);
+                    if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
                     y=72*lineheight*(count+1)+11*lineheight;
                     if(lines[i][1]==3){
-                        ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1], y-vOffset);
+                        ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
                         y+=lineheight;
                     }
                     count++;
@@ -2997,7 +3004,7 @@ function paint(e, anchE, forceCalc, forceScroll){
             }
         }
         if(cursor){
-            var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth);
+            var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth)+pageStartX;
             if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
             ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
             try{
@@ -3050,7 +3057,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
     // write current scene number
     var txt="Scene "+ currentScene + " of " + scenes.length;
-    ctx.fillText(txt, 400, document.getElementById('canvas').height-8);
+    ctx.fillText(txt, (editorWidth/2)-30, document.getElementById('canvas').height-8);
     ctx.font = font;
     //Make ScrollBar
     scrollArrows(ctx);
