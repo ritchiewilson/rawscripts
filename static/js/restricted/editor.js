@@ -118,6 +118,7 @@ $(document).ready(function(){
 	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
+	scroll(0);
 	paint(false,false,false,false)
   });
   $('*').keydown(function(e){
@@ -142,7 +143,8 @@ $(document).ready(function(){
         scroll(ud-400);
       }
       //console.log(e.which);
-    }
+    d=null;
+	}
     if(typeToScript){
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
@@ -187,7 +189,10 @@ $(document).ready(function(){
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
 
 function createSuggestBox(d){
-	if(document.getElementById('suggestBox')!=null)document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+	if(document.getElementById('suggestBox')!=null){
+		$('.suggestItem').unbind();
+		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
+	}
 	if(d=='c'){
         v=characters;
         var left=WrapVariableArray[2][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
@@ -200,8 +205,8 @@ function createSuggestBox(d){
         var left=WrapVariableArray[0][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
 	var l=lines[pos.row][0].length;
+	var part=lines[pos.row][0].toUpperCase();
 	for (x in v){
-		var part=lines[pos.row][0].toUpperCase();
 		var s = v[x][0].substr(0,l).toUpperCase();
 		if (part==s && part!=v[x][0]){
 			//create box now if doens't exist
@@ -218,6 +223,7 @@ function createSuggestBox(d){
                 for (i in c){
                     if(v[x][0]==c[i].value)found=true;
                 }
+				c=null;
             }
             if(!found){
                 var item = box.appendChild(document.createElement('div'));
@@ -225,9 +231,13 @@ function createSuggestBox(d){
                 item.appendChild(document.createTextNode(v[x][0]))
                 item.value=v[x][0]
                 document.getElementById('suggestBox').firstChild.id='focus';
+				item=null;
             }
+			found=null;
 		}
 	}
+	if(document.getElementById('suggestBox')!=null)box = s = null;
+	d=v=part=l=left=x=null;
 	$('.suggestItem').mouseover(function(){
 		document.getElementById('focus').removeAttribute('id');
 		this.id='focus';})
@@ -265,6 +275,7 @@ function ajaxSpell(v, r){
             i--;
         }
     }
+	i=null;
     var j = JSON.stringify(words);
     $.post('/spellcheck', {data : j, resource_id : resource_id}, function(d){
         if(d=='correct')return;
@@ -272,6 +283,7 @@ function ajaxSpell(v, r){
         for (i in x){
             spellWrong.push(x[i]);
         }
+		x=i=null;
     });
 }
 
@@ -306,6 +318,7 @@ function paste(){
 	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
 	        }
 	        data=JSON.stringify(tmpArr);
+			x=tmp=tmpArr=null;
 	    }
 	    undoQue.push(['paste',pos.row,pos.col,data]);
 	    //undoQue[x][0] ==paste
@@ -369,12 +382,14 @@ function paste(){
 	            pos.row=anch.row=lines.length-1
 	            pos.col=anch.col=lines[pos.row][0].length;
 	        }
+			arr=i=p=tmp=null;
 	    }
 	    pasting=false;
 	    sceneIndex();
 	    paint(false,false,true,false);
 		justPasted=true;
-		setTimeout("setJustPasted()", 50)
+		setTimeout("setJustPasted()", 50);
+		j=r=data=null;
 	}
 }
 function setJustPasted(){
@@ -413,6 +428,7 @@ function selection(){
     c.value=sel;
     c.focus();
     c.select();
+	startRange=endRange=sel=null;
 }
 
 function setup(){
@@ -459,6 +475,7 @@ function setup(){
         var newA = TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
         newA.appendChild(document.createTextNode('Remove Access'));
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
+		TR=newA=null;
     }
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
@@ -473,6 +490,7 @@ function setup(){
     document.getElementById('saveButton').disabled=true;
     paint(false,false,true,false);
     setInterval('paint(false,false, false,false)', 25);
+	i=p=data=title=x=w=c=collabs=null;
     });
 }
 function tabs(v){
@@ -490,6 +508,7 @@ function tabs(v){
             document.getElementById(t[i].replace("Tab","s")).style.display="none";
         }
     }
+	t=i=null;
 }
 function changeFormat(v){
     saveTimer();
@@ -529,7 +548,9 @@ function contextmenu(e){
 			u.innerHTML=formats[i];
 			u.id="cm"+i;
 			u.className="contextUnit";
+			u=null;
 		}
+		d=i=null;
 		$('.contextUnit').mouseover(function(){this.style.backgroundColor="LightSkyBlue"});
 		$('.contextUnit').mouseout(function(){this.style.backgroundColor="white"})
 	}
@@ -543,7 +564,8 @@ function mouseUp(e){
     if(e.clientY-headerHeight>height-39 && e.clientY-headerHeight<height && e.clientX>editorWidth-22 && e.clientX<editorWidth-2){
             if(e.clientY-headerHeight>height-20)scroll(30);
             else scroll(-30);
-        }
+    }
+	width=height=null;
 }
 function mouseDown(e){
     if(checkSpell)ajaxSpell(pos.row);
@@ -555,6 +577,7 @@ function mouseDown(e){
             var a=c[i];
         }
     }
+	i=c=null;
     if(menu){
         var command = e.target;
         while(command.nodeName!='DIV'){
@@ -644,18 +667,24 @@ function mouseDown(e){
             else{emailPrompt();}
         }
         a.style.display='none';
+		a=id=f=command=null;
     }
 	else if(document.getElementById('suggestBox')!=null){
 		if (e.target.className=='suggestItem'){
+			var len = lines[pos.row][0].length;
 			lines[pos.row][0]=e.target.value;
+	        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
 			pos.col=anch.col=lines[pos.row][0].length;
+			len=null;
 		}
+		$('.suggestItem').unbind();
 		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
 	}
 	else if(document.getElementById('context_menu')!=null){
 		if(e.target.className=="contextUnit"){
 			changeFormat(e.target.id.replace("cm",""));
 		}
+		$('.contextUnit').unbind();
 		document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
 	}
     else{
@@ -673,7 +702,8 @@ function mouseDown(e){
         else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
             scrollBarBool=true;
         }
-    }
+    	height=pagesHeight=barHeight=topPixel=null;
+	}
 }
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
@@ -689,13 +719,20 @@ function scrollBarDrag(e){
     if (vOffset<0)vOffset=0;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height+20;
     if(vOffset>pagesHeight)vOffset=pagesHeight+20;
+	diff=height=pagesHeight=null;
 }
 function scroll(v){
     vOffset+=v;
     if (vOffset<0)vOffset=0;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height+20;
     if(vOffset>pagesHeight)vOffset=pagesHeight+20;
-	//if(document.getElementById('suggestBox')!=null)createSuggestBox('c');
+	var d= new Date();
+    milli = d.getMilliseconds();
+	if(document.getElementById('suggestBox')!=null){
+		paint(false,false,false,false);
+		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
+	}
+	pagesHeight=d=null;
 }
 function jumpTo(v){
     if(v!=''){
@@ -713,11 +750,13 @@ function jumpTo(v){
                 scrollHeight+=lineheight*(72-pageBreaks[count][1]);
             }
         }
+		count=null;
         scrollHeight+=(linesNLB[i].length*lineheight);
     }
     vOffset=scrollHeight;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
     if(vOffset>pagesHeight)vOffset=pagesHeight;
+	e=i=scrollHeight=pagesHeight=null;
 }
 function upArrow(){
     if(typeToScript && document.getElementById('suggestBox')==null){
@@ -1294,43 +1333,44 @@ function enter(){
 }
 
 function tab(){
-if(typeToScript){
-    saveTimer();
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
-    redoQue=[];
-    var slug=false;
-    if (lines[pos.row][1]==0)var slug=true;
-	var type = lines[pos.row][1];
-	if (type==1){
-        lines[pos.row][1]=0;
-        slug=true;
-    }
-	else if (type==0)lines[pos.row][1]=2;
-	else if (type==2)lines[pos.row][1]=1;
-	else if (type==3)lines[pos.row][1]=4;
-	else if (type==4)lines[pos.row][1]=3;
-	else if (type==5){
-        lines[pos.row][1]=0;
-        slug=true;
-    }
-    if(slug)sceneIndex();
-    if(lines[pos.row][1]==4){
-        if(lines[pos.row][0].charAt(0)!='('){
-            lines[pos.row][0]='('+lines[pos.row][0];
-            pos.col++;
-            anch.col++;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-    }
-    if(lines[pos.row][1]==3){
-        if(lines[pos.row][0].charAt(0)=='('){
-            lines[pos.row][0]=lines[pos.row][0].substr(1);
-            pos.col--;
-            anch.col--;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-    }
-}
+	if(typeToScript){
+	    saveTimer();
+	    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
+	    redoQue=[];
+	    var slug=false;
+	    if (lines[pos.row][1]==0)var slug=true;
+		var type = lines[pos.row][1];
+		if (type==1){
+	        lines[pos.row][1]=0;
+	        slug=true;
+	    }
+		else if (type==0)lines[pos.row][1]=2;
+		else if (type==2)lines[pos.row][1]=1;
+		else if (type==3)lines[pos.row][1]=4;
+		else if (type==4)lines[pos.row][1]=3;
+		else if (type==5){
+	        lines[pos.row][1]=0;
+	        slug=true;
+	    }
+	    if(slug)sceneIndex();
+		slug=null;
+	    if(lines[pos.row][1]==4){
+	        if(lines[pos.row][0].charAt(0)!='('){
+	            lines[pos.row][0]='('+lines[pos.row][0];
+	            pos.col++;
+	            anch.col++;
+	        }
+	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+	    }
+	    if(lines[pos.row][1]==3){
+	        if(lines[pos.row][0].charAt(0)=='('){
+	            lines[pos.row][0]=lines[pos.row][0].substr(1);
+	            pos.col--;
+	            anch.col--;
+	        }
+	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+	    }
+	}
 }
 	
 function handlekeypress(event) {
@@ -1339,7 +1379,7 @@ function handlekeypress(event) {
 		redoQue=[];
         var d= new Date();
         milli = d.getMilliseconds();
-        
+        d=null;
         if (event.which!=13 && event.which!=37 && event.which!=0 && event.which!=8){
             if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
@@ -1736,8 +1776,10 @@ function characterIndex(v){
     if (!found){
         characters.push([chara,1]);
     }
+	found=chara=i=null;
 }
 function sceneIndex(){
+	$('.sceneItem').unbind();
     scenes=[];
     var num = 0;
     for (var i=0; i<lines.length; i++){
@@ -1746,15 +1788,20 @@ function sceneIndex(){
             scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
         }
     }
-    var c = document.getElementById('sceneBox');
-    c.innerHTML="";
+    var c = document.getElementById('sceneBox').childNodes;
+    for (var i=0;i<c.length;i++){
+		if(c[i]!=undefined)c[i].parentNode.removeChild(c[i]);
+		i--;
+	}
     
     for (var i=0; i<scenes.length; i++){
-        var elem = c.appendChild(document.createElement('p'))
+        var elem = document.getElementById('sceneBox').appendChild(document.createElement('p'))
         elem.appendChild(document.createTextNode(scenes[i][0]));
         elem.className='sceneItem';
         elem.id="row"+scenes[i][1];
+		elem=null;
     }
+	c=i=num=null;
     $('.sceneItem').click(function(){$(this).css("background-color", "#999ccc");jumpTo(this.id)});
     $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
 	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
@@ -1776,7 +1823,11 @@ function sortNotesCol(a,b){
 function noteIndex(){
     notes.sort(sortNotes);
 	var c = document.getElementById('noteBox');
-	c.innerHTML="";
+	$('.respond, .msg').unbind();
+	for(var i=0;i<c.childNodes.length;i++){
+		c.removeChild(c.firstChild);
+		i--;
+	}
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';
@@ -1802,11 +1853,13 @@ function noteIndex(){
             infoDiv.className="msgInfo";
 			msgDiv.className='msg';
             msgDiv.id=notes[x][3]+"msg";
+			msgDiv=contentDiv=infoDiv=null;
 		}
 		var cont=newDiv.appendChild(document.createElement('div'));
 		cont.className='respond';
 		cont.appendChild(document.createTextNode('Respond'));
 		cont.id=notes[x][3];
+		newDiv=TR=TD=newA=cont=null;
 	}
     typeToScript=true;
 	$('.respond').click(function(){newMessage(this.id)});
@@ -1821,6 +1874,7 @@ function noteIndex(){
         if(ud>document.getElementById('canvas').height)scroll(ud-document.getElementById('canvas').height+200);
         if(ud<0)scroll(ud-200);
     });
+	x=i=null;
 }
 function newThread(){
     noteIndex();
@@ -1908,8 +1962,10 @@ function submitMessage(v){
         if(resource_id!="Demo"){
             $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v, fromPage:'editor'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
         }
+		arr=null
     }
 	noteIndex();
+	x=d=content=u=n=null;
 }
 
 function deleteThread(v){
@@ -1921,6 +1977,7 @@ function deleteThread(v){
     for (i in notes){
         if (notes[i][3]==v)var found = i;
     }
+	c=i=null;
     notes.splice(found,1);
     noteIndex();
     }
@@ -1945,6 +2002,7 @@ function openMenu(v){
             }
         }
     }
+	i=null;
 }
 function topMenuOver(v){
     var open=false;
@@ -1978,6 +2036,7 @@ function topMenuOver(v){
             }
         }
     }
+	open=c=i=null;
 }
 function topMenuOut(v){
     if(document.getElementById(v+'Menu').style.display=='none'){
@@ -1990,7 +2049,7 @@ function topMenuOut(v){
 // closing the window
 function closeScript(){
     var data=JSON.stringify(lines);
-    $.post('/save', {data : data, resource_id : resource_id}, function(d){self.close()});
+    $.post('/save', {data : data, resource_id : resource_id, autosave:0}, function(d){self.close()});
 }
 // new script
 function newScriptPrompt(){
@@ -2046,6 +2105,7 @@ function save(v){
         $.post('/notesposition', {resource_id:resource_id, positions: JSON.stringify(arr)}, function(d){
         });
     }
+	data=arr=i=null;
 }
 // open other script
 function openPrompt(){
@@ -2111,9 +2171,7 @@ function hideExportPrompt(){
     document.getElementById("exportpopup").style.visibility="hidden";
 }
 function exportScripts(){
-    var b=window.location.href;
-    var resource_id=b.split("=")[1];
-    if (resource_id=='demo'){
+    if (resource_id=='Demo'){
         nope();
         return;
     }
@@ -2130,6 +2188,7 @@ function exportScripts(){
                 }
             }
         }
+		d=title=a=c=null;
     }
 }
 // emailing
@@ -2173,6 +2232,7 @@ function emailScript(){
 	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'editor', title_page: document.getElementById('emailTitle').selectedIndex}, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
+	c=arr=recipients=subject=body_message=null;
 }
 
 //Sharing scripts
@@ -2192,6 +2252,7 @@ function removeAccess(v){
         c.style.backgroundColor="#ccc";
         $.post("/removeaccess", {resource_id:resource_id, removePerson:v}, function(d){document.getElementById(d).parentNode.removeChild(document.getElementById(d))});
     }
+	c=null;
 }
 
 function shareScript(){
@@ -2399,6 +2460,7 @@ function scrollArrows(ctx){
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
+	height=null;
 }
 function scrollBar(ctx, y){
     var height = document.getElementById('canvas').height;
@@ -2414,6 +2476,7 @@ function scrollBar(ctx, y){
 	ctx.beginPath()
 	ctx.arc(editorWidth-12, topPixel+barHeight-10, 10, 0, Math.PI, false);
 	ctx.fill();
+	height=pagesHeight=barHeight=topPixel=null;
 }
 function drawRange(ctx, pageStartX){
     if(pos.row>anch.row){
@@ -2530,10 +2593,11 @@ function drawRange(ctx, pageStartX){
         var onlyBlueLine = startWidth;
         if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
         ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
+		onlyBlueLine=null;
     }
     else{
         var firstLineBlue = startWidth;
-         if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+        if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
         ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
         while(startHeight+lineheight<endHeight){
             for(var counter=0; counter<pageBreaks.length; counter++){
@@ -2545,6 +2609,7 @@ function drawRange(ctx, pageStartX){
                     if(lines[startRange.row][1]==3)startHeight+=lineheight;
                 }
             }
+			counter=null;
             i++;
             startHeight+=lineheight;
             if(linesNLB[startRange.row].length<=i){
@@ -2555,6 +2620,7 @@ function drawRange(ctx, pageStartX){
                 var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
                 if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
                 ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+				blueStart=null;
             }
             
         }
@@ -2562,7 +2628,9 @@ function drawRange(ctx, pageStartX){
         var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
         if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
         ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+		firstLineBlue=lastBlueLine=null;
     }
+	startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
 }
 
 
@@ -2585,6 +2653,7 @@ function drawNote(width, height, col, ctx, i, pageStartX){
             ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
             ctx.stroke();
         }
+		j=null;
         ctx.strokeStyle="#999";
         ctx.beginPath();
         ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
@@ -2610,6 +2679,7 @@ function drawNote(width, height, col, ctx, i, pageStartX){
             ctx.lineTo(width+fontWidth*col+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
             ctx.stroke();
         }
+		j=null;
         ctx.strokeStyle="#999";
         ctx.beginPath();
         ctx.moveTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
@@ -2650,12 +2720,12 @@ function paint(e, anchE, forceCalc, forceScroll){
         if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
         pageStartY+= lineheight*72;
     }
-    
+    pageStartY=null;
     // use this opportunity to put in the grey backing
-    var greyHeight = lineheight*9+2;
-    var wrapVars=WrapVariableArray[0];
-    ctx.fillStyle='#ddd';
     if(!forceCalc){
+		var greyHeight = lineheight*9+2;
+	    var wrapVars=WrapVariableArray[0];
+	    ctx.fillStyle='#ddd';
         var count=0;
         for (var i=0;i<lines.length;i++){
             if(pageBreaks.length!=0 && pageBreaks[count][0]==i){
@@ -2675,8 +2745,10 @@ function paint(e, anchE, forceCalc, forceScroll){
                        if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
                     }
                 }
+				j=null;
             }
         }
+		greyHeight=wrapVars=count=i=null;
     }
     ctx.fillStyle=foreground;
     
@@ -2889,7 +2961,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                     if(pos.col<0)pos.col=0;
                     if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
                     eFound=true;
-                    
+                    itr=remainder=integ=lbMeasure=null
                 }
                 // Now setting anchor position
                 
@@ -2927,6 +2999,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                     if(anch.col<0)anch.col=0;
                     if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
                     anchEFound=true;
+					itr=remainder=integ=lbMeasure=null;
                 }
                 if(bb && linesNLB[i].length==pageBreaks[count][2]){
                     if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
@@ -2972,6 +3045,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     if (diff<0 && diff<-500){
         cursor = true;
     }
+	d=newMilli=diff=i=null;
     if(wrappedText){
         var wrapCounter=0;
         var lrPosDiff = pos.col;
@@ -2989,7 +3063,9 @@ function paint(e, anchE, forceCalc, forceScroll){
             if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
                 notesSpacingDiff++;
             }
+			n=null;
         }
+		note=null;
         //console.log(notesSpacingDiff);
         if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
             currentPage+=1;
@@ -3011,7 +3087,9 @@ function paint(e, anchE, forceCalc, forceScroll){
                 ctx.fillRect(lr,ud,2,17);
             }
             catch(err){}
+			lr=null;
         }
+		wrapCounter=lrPosDiff=totalCharacters=null;
     }
       
     
@@ -3059,6 +3137,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     var txt="Scene "+ currentScene + " of " + scenes.length;
     ctx.fillText(txt, (editorWidth/2)-30, document.getElementById('canvas').height-8);
     ctx.font = font;
+	txt=wordArr=pages=tp=null;
     //Make ScrollBar
     scrollArrows(ctx);
     scrollBar(ctx, y);
