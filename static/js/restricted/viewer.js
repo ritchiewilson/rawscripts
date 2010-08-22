@@ -721,23 +721,39 @@ function pagination(){
 }
 
 function sceneIndex(){
+	$('.sceneItem').unbind();
     scenes=[];
     var num = 0;
     for (var i=0; i<lines.length; i++){
         if(lines[i][1]==0){
             num++;
-            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
+			var toolip="";
+			if (i!=lines.length-1){
+				tooltip=lines[i+1][0];
+				if((lines[i+1][1]==2 || lines[i+1][1]==5) && i!=lines.length-2){
+					tooltip+=" "+lines[i+2][0];
+				}
+				
+			}
+            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i, tooltip]);
+			tooltip=null;
         }
     }
-    var c = document.getElementById('sceneBox');
-    c.innerHTML="";
+    var c = document.getElementById('sceneBox').childNodes;
+    for (var i=0;i<c.length;i++){
+		if(c[i]!=undefined)c[i].parentNode.removeChild(c[i]);
+		i--;
+	}
     
     for (var i=0; i<scenes.length; i++){
-        var elem = c.appendChild(document.createElement('p'))
+        var elem = document.getElementById('sceneBox').appendChild(document.createElement('p'))
         elem.appendChild(document.createTextNode(scenes[i][0]));
         elem.className='sceneItem';
         elem.id="row"+scenes[i][1];
+		elem.title=scenes[i][2];
+		elem=null;
     }
+	c=i=num=null;
     $('.sceneItem').click(function(){$(this).css("background-color", "#999ccc");jumpTo(this.id)});
     $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
 	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
