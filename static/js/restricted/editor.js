@@ -1785,7 +1785,16 @@ function sceneIndex(){
     for (var i=0; i<lines.length; i++){
         if(lines[i][1]==0){
             num++;
-            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i]);
+			var toolip="";
+			if (i!=lines.length-1){
+				tooltip=lines[i+1][0];
+				if((lines[i+1][1]==2 || lines[i+1][1]==5) && i!=lines.length-2){
+					tooltip+=" "+lines[i+2][0];
+				}
+				
+			}
+            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i, tooltip]);
+			tooltip=null;
         }
     }
     var c = document.getElementById('sceneBox').childNodes;
@@ -1799,6 +1808,7 @@ function sceneIndex(){
         elem.appendChild(document.createTextNode(scenes[i][0]));
         elem.className='sceneItem';
         elem.id="row"+scenes[i][1];
+		elem.title=scenes[i][2];
 		elem=null;
     }
 	c=i=num=null;
