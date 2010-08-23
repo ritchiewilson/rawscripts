@@ -1,27 +1,83 @@
-<html>
+<!DOCTYPE html> 
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<title>stats</title>
+	<script type="text/javascript" charset="utf-8" src="js/json2.js"></script>
 	<script type="text/javascript" charset="utf-8">
 		function setup(){
-			var arr={{  users_scripts  }};
-			arr=arr.sort(sortNumbers)
-			var d = document.getElementById('content')
-			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Number of users: "+arr.length));
-			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Number of scripts they each own: "+arr.join(', ')));
-			//mean
+			var data={{  users_scripts  }};
+			var d = document.getElementById('content');
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Number of Users: "+data.length));
+			//scripts they each own
+			var arr = [];
+			for (i in data){
+				arr.push(data[i][1].length);
+			}
+			arr=arr.sort(sortNumbers);
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Scripts they each own: "+arr.join(", ")));
 			var t = 0;
-			for (i in arr){t+=arr[i]}
-			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Scripts/user: "+t/arr.length));
-			//median
-			if(arr.length % 2 !=0){
+			for (i in arr)t+=arr[i];
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Scripts/Users: "+t/data.length));
+			//Median
+			if(arr.length % 2 == 0){
+				var m = (arr[arr.length/2-1]+arr[arr.length/2])/2;
+			}
+			else{
 				var m = arr[arr.length/2-0.5]
 			}
-			else{var m = (arr[arr.length/2-1]+arr[arr.length/2])/2}
 			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Median: "+m));
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Total scripts: "+t));
+			var pages =[];
+			var p = d.appendChild(document.createElement("p"));
+			p.appendChild(document.createTextNode("CLICK to HIDE/SHOW tables"));
+			p.addEventListener("click", hideShow, false);
+			p.style.cursor = "pointer";
+			var tables = d.appendChild(document.createElement("div"));
+			tables.style.display="none";
+			for (i in data){
+				var t = tables.appendChild(document.createElement('table'))
+				t.border="1px";
+				t.appendChild(document.createElement('th')).appendChild(document.createTextNode(data[i][0]));
+				var r = t.appendChild(document.createElement('tr'));
+				r.appendChild(document.createElement('td')).appendChild(document.createTextNode('Title'));
+				r.appendChild(document.createElement('td')).appendChild(document.createTextNode('Size (pages~)'));
+				for (j in data[i][1]){
+					var r = t.appendChild(document.createElement('tr'));
+					r.appendChild(document.createElement('td')).appendChild(document.createTextNode(data[i][1][j][0]));
+					r.appendChild(document.createElement('td')).appendChild(document.createTextNode(data[i][1][j][1]/1000));
+					pages.push(data[i][1][j][1]/1000);
+				}
+			}
+			pages=pages.sort(sortNumbers);
+			var p = d.appendChild(document.createElement("p"));
+			p.appendChild(document.createTextNode("CLICK to HIDE/SHOW all script page lengths"));
+			p.addEventListener("click", hideShow, false);
+			p.style.cursor = "pointer";
+			var u = d.appendChild(document.createElement('ul'));
+			u.appendChild(document.createElement('li')).appendChild(document.createTextNode('NOTE: 0.028 means the script is just "FADE IN:/INT." Nothing has been added.'))
+			t=0;
+			for (i in pages){
+				t+=pages[i];
+				u.appendChild(document.createElement('li')).appendChild(document.createTextNode(pages[i]));
+			}
+			u.style.display="none";
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Average Length of Scripts (pages~): "+t/pages.length));
+			//Median
+			if(pages.length % 2 == 0){
+				var m = (pages[pages.length/2-1]+pages[pages.length/2])/2;
+			}
+			else{
+				console.log(pages.length/2);
+				var m = pages[pages.length/2-0.5];
+			}
+			d.appendChild(document.createElement('p')).appendChild(document.createTextNode("Median (pages~): "+m));
+			
 		}
 		function sortNumbers(a,b){
 			return a-b
+		}
+		function hideShow(){
+			this.nextSibling.style.display = (this.nextSibling.style.display=="none" ? "block" : "none");
 		}
 	</script>
 </head>

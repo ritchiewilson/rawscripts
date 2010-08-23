@@ -53,15 +53,27 @@ class Stats(webapp.RequestHandler):
 		r=q.fetch(1000)
 		num_users=len(r)
 		users_scripts=[]
-		logging.info(len(r))
-		for i in r:
+		i=0
+		while i < len(r):
+			user=[r[i].name]
+			user_data=[]
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-							"WHERE user='"+i.name+"' "+
+							"WHERE user='"+r[i].name+"' "+
 							"AND permission='owner'")
-			u=q.fetch(500)
-			logging.info(len(u))
-			users_scripts.append(len(u))
-		template_values= { 'users_scripts': users_scripts }
+			u=q.fetch(1000)
+			j=0
+			while j < len(u):
+				q=db.GqlQuery("SELECT * FROM ScriptData "+
+								"WHERE resource_id='"+u[j].resource_id+"' "+
+								"ORDER BY version DESC")
+				d=q.fetch(1)
+				user_data.append([u[j].title,len(d[0].data)])
+				j+=1
+			user.append(user_data)
+			users_scripts.append(user)
+			i+=1
+				
+		template_values= { 'users_scripts': simplejson.dumps(users_scripts) }
 		path = os.path.join(os.path.dirname(__file__), 'stats.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
