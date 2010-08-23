@@ -630,6 +630,7 @@ class NewScript (webapp.RequestHandler):
 			
 		filename = self.request.get('filename')
 		filename = filename.replace('%20', ' ')
+		fromPage = self.request.get('fromPage')
 		user=users.get_current_user().email()
 		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 		resource_id=''
@@ -669,7 +670,7 @@ class NewScript (webapp.RequestHandler):
 		u.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(resource_id)
-		activity.activity("newscript", users.get_current_user().email().lower(), resource_id, 0, None, None, None, None, None,filename,None,None,None, None)
+		activity.activity("newscript", users.get_current_user().email().lower(), resource_id, 0, None, None, None, None, None,filename,None,None,fromPage, None)
 
 class Duplicate (webapp.RequestHandler):
 	def post(self):

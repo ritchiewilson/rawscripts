@@ -510,18 +510,23 @@ function newScriptPrompt(){
 function hideNewScriptPrompt(){
 	document.getElementById('newScript').value = "";
 	document.getElementById('newscriptpopup').style.visibility = 'hidden';
-	}
+	document.getElementById('createScriptButton').disabled=false;
+	document.getElementById('createScriptButton').value="Create";
+	document.getElementById('createScriptIcon').style.visibility="hidden";
+}
 
 function createScript (){
 	var filename = document.getElementById('newScript').value;
 	if (filename!=''){
-		$.post('/newscript', {filename:filename}, function(data){
+		document.getElementById('createScriptButton').disabled=true;
+		document.getElementById('createScriptButton').value="Creating Script...";
+		document.getElementById('createScriptIcon').style.visibility="visible";
+		$.post('/newscript', {filename:filename, fromPage:"scriptlist"}, function(data){
             window.open('editor?resource_id='+data);
+			hideNewScriptPrompt();
+			refreshList()
         });
-            
 	}
-	hideNewScriptPrompt();
-	setTimeout('refreshList()', 5000);
 }
 window.addEventListener("message", recieveMessage, false);
 function recieveMessage(e){

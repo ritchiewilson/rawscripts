@@ -2071,17 +2071,22 @@ function hideNewScriptPrompt(){
     typeToScript=true;
 	document.getElementById('newScript').value = "";
 	document.getElementById('newscriptpopup').style.visibility = 'hidden';
+	document.getElementById('createScriptButton').disabled=false;
+	document.getElementById('createScriptButton').value="Create";
+	document.getElementById('createScriptIcon').style.visibility="hidden";
 }
 
 function createScript (){
 	var filename = document.getElementById('newScript').value;
 	if (filename!=''){
-		$.post('/newscript', {filename:filename}, function(data){
-            window.open('/editor?resource_id='+data);
+		document.getElementById('createScriptButton').disabled=true;
+		document.getElementById('createScriptButton').value="Creating Script...";
+		document.getElementById('createScriptIcon').style.visibility="visible";
+		$.post('/newscript', {filename:filename, fromPage:"editor"}, function(data){
+            window.open('editor?resource_id='+data);
+			hideNewScriptPrompt();
         });
-            
 	}
-	hideNewScriptPrompt();
 }
 // duplicate
 function duplicate(){

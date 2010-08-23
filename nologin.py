@@ -283,7 +283,6 @@ class Save (webapp.RequestHandler):
 class LoginRequired(webapp.RequestHandler):
 	def get(self):
 		self.redirect('/')
-		activity.activity("LoginRequired", None, None, None, None, None, None, None,None,None,None,None, None)
 
 class ContactEmail (webapp.RequestHandler):
 	def post(self):
