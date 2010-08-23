@@ -162,8 +162,8 @@ function buildTooltip(e, obj){
     var node = c.firstChild;
     while(node.nodeName!='#text')node=node.nextSibling;
     var data = node.nodeValue;
-    if(data!="[[],[]]"){
-        var j = JSON.parse(data)
+	var j = JSON.parse(data)
+    if(j[0].length!=0){
         var newDiv = document.body.appendChild(document.createElement('div'));
         newDiv.id='exportTooltip';
         newDiv.style.padding= "5px";
