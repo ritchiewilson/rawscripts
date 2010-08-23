@@ -1785,7 +1785,7 @@ function sceneIndex(){
     for (var i=0; i<lines.length; i++){
         if(lines[i][1]==0){
             num++;
-			var toolip="";
+			var tooltip="";
 			if (i!=lines.length-1){
 				tooltip=lines[i+1][0];
 				if((lines[i+1][1]==2 || lines[i+1][1]==5) && i!=lines.length-2){

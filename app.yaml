@@ -113,6 +113,10 @@ handlers:
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
 
+- url: /stats.*
+  login: admin
+  script: stats.py
+
 - url: /.*
   login: required
   script: scripteditor.py
