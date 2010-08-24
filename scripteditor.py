@@ -125,6 +125,10 @@ class DuplicateScripts (db.Model):
 	from_script = db.StringProperty()
 	from_version = db.IntegerProperty()
 
+class Folders (db.Model):
+	data = db.StringProperty()
+	user = db.StringProperty()
+
 class ScriptList(webapp.RequestHandler):
 	"""Requests the list of the user's Screenplays in the RawScripts folder."""
 
@@ -386,8 +390,14 @@ class List (webapp.RequestHandler):
 											"AND permission='owner'")
 				p=q.fetch(1)
 				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes])
-
-		pl=[owned, ownedDeleted, shared]
+		
+		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
+		f = q.fetch(1)
+		if len(f)==0:
+			folders=[]
+		else:
+			folders=simplejson.loads(f[0].data)
+		pl=[owned, ownedDeleted, shared, folders]
 		
 		j = simplejson.dumps(pl)
 		self.response.headers['Content-Type']='text/plain'
@@ -974,7 +984,25 @@ class RemoveAccess (webapp.RequestHandler):
 					mobile = 1
 			activity.activity("removeaccess", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
 
-
+class NewFolder (webapp.RequestHandler):
+	def post(self):
+		user=users.get_current_user().email().lower()
+		folder_name= self.request.get('folder_name')
+		folder_id=self.request.get('folder_id')
+		q=db.GqlQuery("SELECT * FROM Folders "+
+						"WHERE user='"+user+"'")
+		r=q.fetch(1)
+		logging.info(len(r))
+		if len(r)==0:
+			f=Folders(user=user,
+						data=simplejson.dumps([[folder_name, folder_id]]))
+			f.put()
+		else:
+			J=simplejson.loads(r[0].data)
+			J.append([folder_name, folder_id])
+			r[0].data=simplejson.dumps(J)
+			r[0].put()
+			
 class OneScript (webapp.RequestHandler):
 	def get(self):
 		q=db.GqlQuery("SELECT * FROM Users")
@@ -997,6 +1025,7 @@ def main():
 																				('/removeaccess', RemoveAccess),
 																				('/titlepage', TitlePage),
 																				('/titlepagesave', SaveTitlePage),
+																				('/newfolder', NewFolder),
 																				("/onescript", OneScript),
 																				('/list', List),],
 																			 debug=True)

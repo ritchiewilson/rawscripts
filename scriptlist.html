@@ -6,7 +6,7 @@
 	<title>RawScripts - Scriptlist</title>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/min/scriptlist-min.js"></script>
+	<script type="text/javascript" src="js/restricted/scriptlist.js"></script>
 	<script src="js/json2.js" type="text/javascript"></script>
 	<link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 	<link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
@@ -21,25 +21,6 @@
 		$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 		$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
 		$('#newScript').keydown(function(e){if(e.which==13){e.preventDefault();createScript()}});
-		$('.tab').click(function(e){
-			$(".current").removeClass("current").css("background-color","white");
-			$(this).addClass('current')
-			tabs(e.target.id);
-			$(this).css("background-color","#2352AE");
-		});
-		$(".tab").mouseover(function(){
-			if(!$(this).hasClass("current")){
-				$(this).css("background-color","#ccf");
-			}
-			else{
-				$(this).css("background-color","#2352AE");
-			}
-		});
-		$(".tab").mouseout(function(){
-			if(!$(this).hasClass("current")){
-				$(this).css("background-color","#fff")
-			}
-		});
 	});
 
 	</script>
@@ -185,16 +166,20 @@ _gaq.push(['_trackPageview']);
 				<input type='button' onClick="newScriptPrompt()" value='New Script' />
 				<input type="button" onClick="uploadPrompt()" value="Upload" />
 			</div>
-			<div id="my_script_buttons" style="float:left; display:block;margin-left:55px;">
+			<div id="owned_buttons" class="buttons_block" style="float:left; display:block;margin-left:55px;">
 				<input type="button" onClick="renamePrompt()" value="Rename" />
 				<input type='button' onClick="duplicate()" value='Duplicate' />
 				<input type='button' onClick="exportPrompt()" value='Export' />
 				<input type='button' onClick="batchProcess('delete')" value='Move to Trash' style="margin-left:55px; margin-right:15px;" />
+				<select name="move_to_folder" id="move_to_folder" onchange="batchProcess(this.selectedIndex)">
+					<option value="move_to">Move to Folder...</option>
+					
+				</select>
 			</div>
-			<div id="friends_scripts_buttons" style="float:left; display:none;margin-left:55px;">
+			<div id="shared_buttons" class="buttons_block" style="float:left; display:none;margin-left:55px;">
 				<input type='button' onClick="exportPrompt()" value='Export' />
 			</div>
-			<div id="trash_buttons" style="float:left; display:none;margin-left:55px;">
+			<div id="trash_buttons" class="buttons_block" style="float:left; display:none;margin-left:55px;">
 				<input type='button' onClick="batchProcess('undelete')" value='Undelete' />
 				<input type='button' onClick="batchProcess('hardDelete')" value='Delete Permanantly' style="margin-left:20px" />
 			</div>
@@ -206,15 +191,18 @@ _gaq.push(['_trackPageview']);
 	<div>
 
 		<div id="nav">
-			<div id="myScripts" class="tab current">My Scripts</div>
-			<div id="friendsScripts" class="tab">Friends' Scripts</div>
-			<div id="trashTab" class="tab">Trash</div>
-			<!--><div id="foldersTab" class="tab"><span style="color:#999">▼</span>Folders</div>-->
+			<div id="ownedFolder" class="tab current">My Scripts</div>
+			<div id="sharedFolder" class="tab">Friends' Scripts</div>
+			<div id="trashFolder" class="tab">Trash</div>
+			<div id="nf_div">
+				<input type="button" name="new_folder" value="New Folder" id="new_folder" onclick="newFolder()">
+			</div>
+			
 		</div>
 
 		<div style="background-color:#6490E6; position:absolute; right:0; left:160px; bottom:0; top:100pt;">
 
-			<div id="owned" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
+			<div id="owned" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
 					<table width="100%">
 						<tr>
@@ -230,7 +218,7 @@ _gaq.push(['_trackPageview']);
 				<div id="loading"><div style="" align="center">Loading...</div></div>
 				<div id="noentries" class="none_of_type" style="" align="center">You haven't started any scripts yet.<br><br><a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.</div>
 			</div>
-			<div id="shared" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
+			<div id="shared" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
 					<table width="100%">
 						<tr>
@@ -245,7 +233,7 @@ _gaq.push(['_trackPageview']);
 				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 			</div>
-			<div id="trash" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
+			<div id="trash" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
 				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
 					<table width="100%">
 						<tr>

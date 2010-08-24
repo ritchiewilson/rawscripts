@@ -14,39 +14,53 @@ function uploadWindow(evt){
 }
 
 function tabs(v){
+	console.log(v);
 	var c = document.getElementsByTagName('input');
 	for (var i=0; i<c.length; i++){
 		if (c[i].type == 'checkbox'){
 			c[i].checked = false;
 		}
 	}
-	if(v=='myScripts'){
-		document.getElementById('owned').style.display='block';
-		document.getElementById('shared').style.display='none';
-        document.getElementById('trash').style.display='none';
-        //buttons
-        document.getElementById('my_script_buttons').style.display='block';
-        document.getElementById('friends_scripts_buttons').style.display='none';
-        document.getElementById('trash_buttons').style.display='none';
-        
+	var c = document.getElementsByTagName('div');
+	for(i in c){
+		if(c[i].className=="folderContents")c[i].style.display="none";
+		if(c[i].className=="buttons_block")c[i].style.display="none";
 	}
-    else if(v=='trashTab'){
-        document.getElementById('owned').style.display='none';
-		document.getElementById('shared').style.display='none';
-        document.getElementById('trash').style.display='block';
-        //buttons
-        document.getElementById('my_script_buttons').style.display='none';
-        document.getElementById('friends_scripts_buttons').style.display='none';
-        document.getElementById('trash_buttons').style.display='block';
-    }
-	else{
-		document.getElementById('owned').style.display='none';
-		document.getElementById('shared').style.display='block';
-        document.getElementById('trash').style.display='none';
-        //buttons
-        document.getElementById('my_script_buttons').style.display='none';
-        document.getElementById('friends_scripts_buttons').style.display='block';
-        document.getElementById('trash_buttons').style.display='none';
+	document.getElementById(v.replace("Folder","")).style.display="block";
+	document.getElementById(v.replace("Folder","_buttons")).style.display="block";
+}
+
+function newFolder(){
+	var f = prompt("New Folder Name");
+	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
+	if(f!=null && f!=""){
+		var id = Math.round(Math.random()*10000000000);
+		$.post("/newfolder", {folder_name:f, folder_id:id})
+		var d = document.getElementById('nav').appendChild(document.createElement('div'));
+		d.className="tab";
+		d.id="folder"+id;
+		d.appendChild(document.createElement("img")).src="images/folder.png";
+		d.appendChild(document.createTextNode(" "+f));
+		$('.tab').unbind();
+		$('.tab').click(function(e){
+			$(".current").removeClass("current").css("background-color","white");
+			$(this).addClass('current')
+			tabs(e.target.id);
+			$(this).css("background-color","#2352AE");
+		});
+		$(".tab").mouseover(function(){
+			if(!$(this).hasClass("current")){
+				$(this).css("background-color","#ccf");
+			}
+			else{
+				$(this).css("background-color","#2352AE");
+			}
+		});
+		$(".tab").mouseout(function(){
+			if(!$(this).hasClass("current")){
+				$(this).css("background-color","#fff")
+			}
+		});
 	}
 }
 
@@ -63,10 +77,42 @@ function refreshList(v){
     //update with new info
     var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
     listDiv.id = 'list';
-    var j = JSON.parse(data);
+	var j = JSON.parse(data);
     var x=j[0];
     var z=j[1];
     var ss=j[2];
+	var folders=j[3];
+	var d=document.getElementById('nav');
+	var select = document.getElementById('move_to_folder')
+	for(i in folders){
+		var f = d.appendChild(document.createElement('div'));
+		f.className="tab";
+		f.id="folder"+folders[i][1];
+		f.appendChild(document.createElement('img')).src="images/folder.png";
+		f.appendChild(document.createTextNode(' '+folders[i][0]))
+		var option = select.appendChild(document.createElement('option'))
+		option.appendChild(document.createTextNode(folders[i][0]));
+		option.value=folders[i][1];
+	}
+	$('.tab').click(function(e){
+		$(".current").removeClass("current").css("background-color","white");
+		$(this).addClass('current')
+		tabs(e.target.id);
+		$(this).css("background-color","#2352AE");
+	});
+	$(".tab").mouseover(function(){
+		if(!$(this).hasClass("current")){
+			$(this).css("background-color","#ccf");
+		}
+		else{
+			$(this).css("background-color","#2352AE");
+		}
+	});
+	$(".tab").mouseout(function(){
+		if(!$(this).hasClass("current")){
+			$(this).css("background-color","#fff")
+		}
+	});
 	document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
     for (var i=0; i<x.length; i++){
         var title = x[i][1];

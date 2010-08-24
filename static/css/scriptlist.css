@@ -174,3 +174,12 @@ h1 { font-size: 1.4em; font-weight: normal; }
 	top:-15px;
 	right:-15px;
 }
+#nf_div{
+	width:160px;
+	background-color:#ccc;
+	margin-top:15px;
+	margin-bottom:5px;
+}
+#new_folder{
+	margin-left:40px;
+}
