@@ -94,6 +94,16 @@ class Editor (webapp.RequestHandler):
 		path = os.path.join(os.path.dirname(__file__), 'editor.html')
 		resource_id=self.request.get('resource_id')
 		format='editor'
+		mobile = 0
+		#Check if should send to mobile Page
+		ua = self.request.user_agent
+		props = da.getPropertiesAsTyped(tree, ua)
+		if props.has_key('mobileDevice'):
+			if props['mobileDevice']:
+				mobile = 1
+				self.redirect('/scriptlist')
+				activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
+				return;
 		if user and resource_id!="Demo":
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
@@ -114,14 +124,6 @@ class Editor (webapp.RequestHandler):
 				 					'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
 				path = os.path.join(os.path.dirname(__file__), 'login.html')
 				
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				path = os.path.join(os.path.dirname(__file__), 'MobileEditor.html')
-				mobile = 1
 		if user:
 			user=user.email().lower()
 		else:
