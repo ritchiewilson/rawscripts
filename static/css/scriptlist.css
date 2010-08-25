@@ -183,3 +183,18 @@ h1 { font-size: 1.4em; font-weight: normal; }
 #new_folder{
 	margin-left:40px;
 }
+.folderContents{
+	right:0px; 
+	border:2px #ccc solid; 
+	border-top:none; 
+	left:5pt; 
+	top:0px; 
+	bottom:0; 
+	position:absolute;
+	background-color:white; 
+	overflow:auto; 
+}
+.contentsHeader{
+	border-bottom:2px #999999 solid; 
+	background-color:#ddd
+}

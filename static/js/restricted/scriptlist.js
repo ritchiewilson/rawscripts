@@ -14,7 +14,6 @@ function uploadWindow(evt){
 }
 
 function tabs(v){
-	console.log(v);
 	var c = document.getElementsByTagName('input');
 	for (var i=0; i<c.length; i++){
 		if (c[i].type == 'checkbox'){
@@ -27,6 +26,7 @@ function tabs(v){
 		if(c[i].className=="buttons_block")c[i].style.display="none";
 	}
 	document.getElementById(v.replace("Folder","")).style.display="block";
+	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_buttons";
 	document.getElementById(v.replace("Folder","_buttons")).style.display="block";
 }
 
@@ -38,9 +38,35 @@ function newFolder(){
 		$.post("/newfolder", {folder_name:f, folder_id:id})
 		var d = document.getElementById('nav').appendChild(document.createElement('div'));
 		d.className="tab";
-		d.id="folder"+id;
+		d.id="Folder"+id;
 		d.appendChild(document.createElement("img")).src="images/folder.png";
 		d.appendChild(document.createTextNode(" "+f));
+		var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
+		folderContents.id=id;
+		folderContents.className='folderContents';
+		folderContents.style.display="none";
+		var ch = folderContents.appendChild(document.createElement('div'))
+		ch.className="contentsHeader";
+		var table = ch.appendChild(document.createElement('table'));
+		table.width="100%";
+		tr = table.appendChild(document.createElement('tr'));
+		var td = tr.appendChild(document.createElement('td'));
+		td.style.width="15px";
+		var cb = td.appendChild(document.createElement('input'));
+		cb.type='checkbox';
+		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(f));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Shared With"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Email"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="160px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Last Modified"));
 		$('.tab').unbind();
 		$('.tab').click(function(e){
 			$(".current").removeClass("current").css("background-color","white");
@@ -87,12 +113,39 @@ function refreshList(v){
 	for(i in folders){
 		var f = d.appendChild(document.createElement('div'));
 		f.className="tab";
-		f.id="folder"+folders[i][1];
+		f.id="Folder"+folders[i][1];
 		f.appendChild(document.createElement('img')).src="images/folder.png";
 		f.appendChild(document.createTextNode(' '+folders[i][0]))
 		var option = select.appendChild(document.createElement('option'))
 		option.appendChild(document.createTextNode(folders[i][0]));
 		option.value=folders[i][1];
+		var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
+		folderContents.id=folders[i][1];
+		folderContents.className='folderContents';
+		folderContents.style.display="none";
+		var ch = folderContents.appendChild(document.createElement('div'))
+		ch.className="contentsHeader";
+		var table = ch.appendChild(document.createElement('table'));
+		table.width="100%";
+		tr = table.appendChild(document.createElement('tr'));
+		var td = tr.appendChild(document.createElement('td'));
+		td.style.width="15px";
+		var cb = td.appendChild(document.createElement('input'));
+		cb.type='checkbox';
+		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(folders[i][0]));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Shared With"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Email"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="160px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Last Modified"));
+		
 	}
 	$('.tab').click(function(e){
 		$(".current").removeClass("current").css("background-color","white");

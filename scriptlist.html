@@ -200,10 +200,10 @@ _gaq.push(['_trackPageview']);
 			
 		</div>
 
-		<div style="background-color:#6490E6; position:absolute; right:0; left:160px; bottom:0; top:100pt;">
+		<div id="contents" style="background-color:#6490E6; position:absolute; right:0; left:160px; bottom:0; top:100pt;">
 
-			<div id="owned" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:block">
-				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+			<div id="owned" class="folderContents" style="display:block">
+				<div class="contentsHeader">
 					<table width="100%">
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
@@ -218,8 +218,8 @@ _gaq.push(['_trackPageview']);
 				<div id="loading"><div style="" align="center">Loading...</div></div>
 				<div id="noentries" class="none_of_type" style="" align="center">You haven't started any scripts yet.<br><br><a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.</div>
 			</div>
-			<div id="shared" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
-				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+			<div id="shared" class="folderContents" style="display:none">
+				<div class="contentsHeader">
 					<table width="100%">
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
@@ -233,8 +233,8 @@ _gaq.push(['_trackPageview']);
 				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 			</div>
-			<div id="trash" class="folderContents" style="right:0px; border:2px #ccc solid; border-top:none; left:5pt; top:0px; bottom:0; position:absolute; background-color:white; overflow:auto; display:none">
-				<div style="border-bottom:2px #999999 solid; background-color:#ddd">
+			<div id="trash" class="folderContents" style="display:none">
+				<div class="contentsHeader">
 					<table width="100%">
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "trashListItems")' type='checkbox' value='all' /></td>
