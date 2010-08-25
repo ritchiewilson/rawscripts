@@ -90,6 +90,7 @@ function newFolder(){
 		td.style.width="15px";
 		var cb = td.appendChild(document.createElement('input'));
 		cb.type='checkbox';
+		cb.style.visibility="hidden";
 		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(f));
 		td = tr.appendChild(document.createElement('td'));
 		td.style.width="120px";
@@ -193,6 +194,7 @@ function refreshList(v){
 		td.style.width="15px";
 		var cb = td.appendChild(document.createElement('input'));
 		cb.type='checkbox';
+		cb.style.visibility="hidden"
 		var n = tr.appendChild(document.createElement('td'))
 		n.appendChild(document.createTextNode(folders[i][0]));
 		td = tr.appendChild(document.createElement('td'));
@@ -499,7 +501,12 @@ function renameFolder(){
 		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 		if(f!=""){
 			var folder_id = this.parentNode.value.replace("Folder", "");
-			$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()})
+			var d = document.getElementById(this.parentNode.value);
+			d.innerHTML="";
+			d.appendChild(document.createElement("img")).src="images/folder.png";
+			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
+			d.appendChild(document.createTextNode(f));
+			$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()});
 		}
 	}
 }

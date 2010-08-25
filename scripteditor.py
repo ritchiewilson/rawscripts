@@ -997,7 +997,6 @@ class NewFolder (webapp.RequestHandler):
 		q=db.GqlQuery("SELECT * FROM Folders "+
 						"WHERE user='"+user+"'")
 		r=q.fetch(1)
-		logging.info(len(r))
 		if len(r)==0:
 			f=Folders(user=user,
 						data=simplejson.dumps([[folder_name, folder_id]]))
@@ -1007,6 +1006,7 @@ class NewFolder (webapp.RequestHandler):
 			J.append([folder_name, folder_id])
 			r[0].data=simplejson.dumps(J)
 			r[0].put()
+		activity.activity("newfolder", users.get_current_user().email().lower(), None, 0, None, None, None, folder_id, None,folder_name,None,None,None, None)
 
 class ChangeFolder (webapp.RequestHandler):
 	def post(self):
@@ -1021,6 +1021,7 @@ class ChangeFolder (webapp.RequestHandler):
 				r[0].folder = self.request.get("folder_id")
 				r[0].put()
 		self.response.out.write("1")
+		activity.activity("changefolder", users.get_current_user().email().lower(), None, 0, None, None, None, self.request.get("folder_id"), len(resource_id),None,None,None,None, None)
 			
 		
 class DeleteFolder (webapp.RequestHandler):
@@ -1044,21 +1045,19 @@ class DeleteFolder (webapp.RequestHandler):
 		r[0].data = simplejson.dumps(arr)
 		r[0].put()
 		self.response.out.write("1")
+		activity.activity("deletefolder", users.get_current_user().email().lower(), None, 0, None, None, None, folder_id, None,None,None,None,None, None)
 
 class RenameFolder (webapp.RequestHandler):
 	def post(self):
 		folder_id=self.request.get("folder_id")
-		logging.info(folder_id)
 		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
 		r=q.fetch(1)
 		folders = simplejson.loads(r[0].data)
 		arr=[]
 		for i in folders:
-			logging.info(i[1])
 			if i[1]==folder_id:
 				i[0]=self.request.get("folder_name")
 			arr.append(i)
-		logging.info(arr)
 		r[0].data = simplejson.dumps(arr)
 		r[0].put()
 		self.response.out.write("1")
