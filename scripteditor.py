@@ -119,6 +119,7 @@ class UsersScripts (db.Model):
 	title = db.StringProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
+	folder = db.StringProperty()
 
 class DuplicateScripts (db.Model):
 	new_script = db.StringProperty()
@@ -374,7 +375,7 @@ class List (webapp.RequestHandler):
 				for j in p:
 					if j.user.lower()!=users.get_current_user().email().lower():
 						sharingArr.append(j.user)
-				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr, new_notes])
+				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr, new_notes, i.folder])
 			elif i.permission=="ownerDeleted":
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 											"WHERE resource_id='"+i.resource_id+"'")
@@ -383,13 +384,13 @@ class List (webapp.RequestHandler):
 				for j in p:
 					if j.user.lower()!=users.get_current_user().email().lower():
 						sharingArr.append(j.user)
-				ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission, sharingArr])
+				ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission, sharingArr,  i.folder])
 			elif i.permission=="collab":
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 											"WHERE resource_id='"+i.resource_id+"' "+
 											"AND permission='owner'")
 				p=q.fetch(1)
-				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes])
+				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes,  i.folder])
 		
 		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
 		f = q.fetch(1)
@@ -673,10 +674,11 @@ class NewScript (webapp.RequestHandler):
 		s.put()
 
 		u = UsersScripts(user=user.lower(),
-										 title=filename,
-										 resource_id=resource_id,
-										 updated = str(datetime.datetime.today()),
-										 permission='owner')
+						title=filename,
+						resource_id=resource_id,
+						updated = str(datetime.datetime.today()),
+						permission='owner',
+						folder = "?none?")
 		u.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(resource_id)
@@ -726,10 +728,11 @@ class Duplicate (webapp.RequestHandler):
 
 			d.put()
 			u = UsersScripts(user=user.lower(),
-											 title='Copy of '+title,
-											 resource_id=new_resource_id,
-											 updated = str(datetime.datetime.today()),
-											 permission='owner')
+							title='Copy of '+title,
+							resource_id=new_resource_id,
+							updated = str(datetime.datetime.today()),
+							permission='owner',
+							folder = "?none?")
 			u.put()
 			q=db.GqlQuery("SELECT * FROM SpellingData "+
 										"WHERE resource_id='"+resource_id+"'")
@@ -809,10 +812,11 @@ class ConvertProcess (webapp.RequestHandler):
 		s.put()
 
 		u = UsersScripts(user=user.lower(),
-										 title=filename,
-										 resource_id=resource_id,
-										 updated = str(datetime.datetime.today()),
-										 permission='owner')
+						title=filename,
+						resource_id=resource_id,
+						updated = str(datetime.datetime.today()),
+						permission='owner',
+						folder = "?none?")
 		u.put()
 		
 
@@ -907,10 +911,11 @@ class Share (webapp.RequestHandler):
 				if found==False:
 					output.append(i.lower())
 					u = UsersScripts(resource_id=resource_id,
-													 permission="collab",
-													 user = i.lower(),
-													 updated = str(datetime.datetime.today()),
-													 title = p)
+									permission="collab",
+									user = i.lower(),
+									updated = str(datetime.datetime.today()),
+									title = p,
+									folder = "?none?")
 					u.put()
 			if output!=[]:
 				subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
@@ -1002,33 +1007,58 @@ class NewFolder (webapp.RequestHandler):
 			J.append([folder_name, folder_id])
 			r[0].data=simplejson.dumps(J)
 			r[0].put()
+
+class ChangeFolder (webapp.RequestHandler):
+	def post(self):
+		resource_id=self.request.get("resource_id")
+		p = ownerPermission(resource_id)
+		if not p==False:
+			q = db.GqlQuery("SELECT * FROM UsersScripts "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"and permission='owner'")
+			r=q.fetch(1)
+			r[0].folder = self.request.get("folder_id")
+			r[0].put()
+			self.response.out.write("1")
+		self.response.out.write("0")
+			
 			
 class OneScript (webapp.RequestHandler):
 	def get(self):
-		q=db.GqlQuery("SELECT * FROM Users")
+		q=db.GqlQuery("SELECT * FROM UsersScripts")
 		r=q.fetch(1000)
+		for i in r:
+			u = UsersScripts(user = i.user,
+							resource_id = i.resource_id,
+							title = i.title,
+							updated = i.updated,
+							permission = i.permission,
+							folder = "?none?")
+			u.put()
+			i.delete()
 		self.response.headers["Content-Type"]="text/plain"
 		self.response.out.write(len(r))
 
 def main():
 	application = webapp.WSGIApplication([('/scriptlist', ScriptList),
-																				('/delete', Delete),
-																				('/harddelete', HardDelete),
-																				('/undelete', Undelete),
-																				('/newscript', NewScript),
-																				('/duplicate', Duplicate),
-																				('/export', Export),
-																				('/rename', Rename),
-																				('/emailscript', EmailScript),
-																				('/convertprocess', ConvertProcess),
-																				('/share', Share),
-																				('/removeaccess', RemoveAccess),
-																				('/titlepage', TitlePage),
-																				('/titlepagesave', SaveTitlePage),
-																				('/newfolder', NewFolder),
-																				("/onescript", OneScript),
-																				('/list', List),],
-																			 debug=True)
+											('/delete', Delete),
+											('/harddelete', HardDelete),
+											('/undelete', Undelete),
+											('/newscript', NewScript),
+											('/duplicate', Duplicate),
+											('/export', Export),
+											('/rename', Rename),
+											('/emailscript', EmailScript),
+											('/convertprocess', ConvertProcess),
+											('/share', Share),
+											('/removeaccess', RemoveAccess),
+											('/titlepage', TitlePage),
+											('/titlepagesave', SaveTitlePage),
+											('/newfolder', NewFolder),
+											("/onescript", OneScript),
+											("/changefolder", ChangeFolder),
+											('/list', List),],
+											debug=True)
 	
 	wsgiref.handlers.CGIHandler().run(application)
 

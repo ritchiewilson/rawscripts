@@ -90,6 +90,9 @@ li{
 .checkboxCell{
 	width:15px;
 }
+.folderCell{
+	width:120px;
+}
 .sharedCell{
 	width:120px;
 }
@@ -197,4 +200,10 @@ h1 { font-size: 1.4em; font-weight: normal; }
 .contentsHeader{
 	border-bottom:2px #999999 solid; 
 	background-color:#ddd
+}
+.folderSpan{
+	background-color:#0c0;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	padding:2px;
 }

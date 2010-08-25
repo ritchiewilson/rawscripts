@@ -35,7 +35,8 @@ function newFolder(){
 	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 	if(f!=null && f!=""){
 		var id = Math.round(Math.random()*10000000000);
-		$.post("/newfolder", {folder_name:f, folder_id:id})
+		$.post("/newfolder", {folder_name:f, folder_id:id}, function(){refreshList()})
+		/*
 		var d = document.getElementById('nav').appendChild(document.createElement('div'));
 		d.className="tab";
 		d.id="Folder"+id;
@@ -66,6 +67,9 @@ function newFolder(){
 		td = tr.appendChild(document.createElement('td'));
 		td.style.width="160px";
 		td.align = "center";
+		var option = document.getElementById('move_to_folder').appendChild(document.createElement('option'));
+		option.appendChild(document.createTextNode(f));
+		option.value=id;
 		td.appendChild(document.createTextNode("Last Modified"));
 		$('.tab').unbind();
 		$('.tab').click(function(e){
@@ -87,29 +91,54 @@ function newFolder(){
 				$(this).css("background-color","#fff")
 			}
 		});
+		*/
+	}
+}
+
+function moveToFolder(v){
+	if(v!="move_to"){
+		var c = document.getElementsByTagName("input");
+		var found = false;
+		for (i in c){
+			if (c[i].type=="checkbox" && c[i].checked==true && c[i].parentNode.className=="checkboxCell"){
+				$.post("/changefolder", {resource_id: c[i].value, folder_id : v})
+				var e = c[i];
+				while(e.nodeName!="DIV")e=e.parentNode;
+				e.style.backgroundColor = '#ccc';
+				e.style.opacity = '0.5';
+				found=true;
+			}
+		}
+		if(found==true)refreshList();
+		document.getElementById("move_to_folder").selectedIndex=0;
 	}
 }
 
 function refreshList(v){
 	document.getElementById("refresh_icon").style.visibility="visible";
 	$.post('/list', function(data){
-	document.getElementById('loading').style.display = 'none';
-    //remove old data
-    var childs = document.getElementById('content').childNodes;
-    for (var i=0; i<childs.length; i++){
-        childs[i].parentNode.removeChild(childs[i]);
-        i--;
-    }
+	
     //update with new info
-    var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
-    listDiv.id = 'list';
 	var j = JSON.parse(data);
     var x=j[0];
     var z=j[1];
     var ss=j[2];
 	var folders=j[3];
-	var d=document.getElementById('nav');
-	var select = document.getElementById('move_to_folder')
+	// know which tab is current, to be rest
+	//set up folders
+	var current = $(".current").get(0).id;
+	var c = document.getElementsByTagName('div');
+	for (i in c){
+		if (c[i].className=="folderContents"){
+			if(c[i].id!="owned" && c[i].id!="shared" &&c[i].id!="trash"){
+				c[i].parentNode.removeChild(c[i]);
+			}
+		}
+	}
+	var d=document.getElementById('user_folders');
+	d.innerHTML="";
+	var select = document.getElementById('move_to_folder');
+	select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
 	for(i in folders){
 		var f = d.appendChild(document.createElement('div'));
 		f.className="tab";
@@ -166,13 +195,23 @@ function refreshList(v){
 			$(this).css("background-color","#fff")
 		}
 	});
+	document.getElementById('loading').style.display = 'none';
+    //remove old data
+    var childs = document.getElementById('content').childNodes;
+    for (var i=0; i<childs.length; i++){
+        childs[i].parentNode.removeChild(childs[i]);
+        i--;
+    }
+	var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+    listDiv.id = 'list';
 	document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
     for (var i=0; i<x.length; i++){
         var title = x[i][1];
         var resource_id = x[i][0];
-        var updated = x[i][2]
-        var shared_with=x[i][4]
-		var new_notes=x[i][5]
+        var updated = x[i][2];
+        var shared_with=x[i][4];
+		var new_notes=x[i][5];
+		var folder = x[i][6];
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -198,6 +237,19 @@ function refreshList(v){
         var href = 'javascript:script("'+resource_id+'")';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
+		//folder column
+		var folderTd  = entryTr.appendChild(document.createElement('td'));
+		folderTd.align = "center";
+		folderTd.className="folderCell";
+		if(folder!="?none?"){
+			for(fold in folders){
+				if (folders[fold][1]==folder){
+					var span = folderTd.appendChild(document.createElement('span'));
+					span.appendChild(document.createTextNode(folders[fold][0]));
+					span.className="folderSpan";
+				}
+			}
+		}
         //shared column
         var sharedTd = entryTr.appendChild(document.createElement('td'));
         sharedTd.className = 'sharedCell';
@@ -236,6 +288,11 @@ function refreshList(v){
         updatedTd.className = 'updatedCell';
         updatedTd.align='center';
         updatedTd.appendChild(document.createTextNode(updated));
+		if(folder!="?none?"){
+			var obj = entryDiv.cloneNode(true);
+			var obj = document.getElementById(folder).appendChild(obj);
+			obj.getElementsByTagName("input")[0].name="listItems"+folder;
+		}
 	}
     // showing sharing scripts
     //remove old data
@@ -378,7 +435,9 @@ function refreshList(v){
         updatedTd.appendChild(document.createTextNode(updated));
 		
     }
-    if(v){
+	document.getElementById(current).className = document.getElementById(current).className.replace(" current","")+" current";
+    tabs(current);
+	if(v){
 		sharePrompt(v);
 	}
 	document.getElementById("refresh_icon").style.visibility="hidden";

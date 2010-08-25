@@ -171,7 +171,7 @@ _gaq.push(['_trackPageview']);
 				<input type='button' onClick="duplicate()" value='Duplicate' />
 				<input type='button' onClick="exportPrompt()" value='Export' />
 				<input type='button' onClick="batchProcess('delete')" value='Move to Trash' style="margin-left:55px; margin-right:15px;" />
-				<select name="move_to_folder" id="move_to_folder" onchange="batchProcess(this.selectedIndex)">
+				<select name="move_to_folder" id="move_to_folder" onchange="moveToFolder(this.options[this.selectedIndex].value)">
 					<option value="move_to">Move to Folder...</option>
 					
 				</select>
@@ -197,6 +197,7 @@ _gaq.push(['_trackPageview']);
 			<div id="nf_div">
 				<input type="button" name="new_folder" value="New Folder" id="new_folder" onclick="newFolder()">
 			</div>
+			<div id="user_folders"></div>
 			
 		</div>
 
@@ -208,6 +209,7 @@ _gaq.push(['_trackPageview']);
 						<tr>
 							<td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
 							<td>My Scripts</td>
+							<td style="width:120px" align="center">Folder</td>
 							<td style="width:120px" align="center">Shared With</td>
 							<td style="width:120px" align="center">Email</td>
 							<td style="width:160px" align="center">Last Modified</td>

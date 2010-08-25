@@ -42,6 +42,7 @@ class UsersScripts (db.Model):
 	title = db.StringProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
+	folder = db.StringProperty()
 
 class Users (db.Model):
 	name = db.StringProperty()

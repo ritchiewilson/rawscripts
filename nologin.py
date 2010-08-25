@@ -59,6 +59,7 @@ class UsersScripts (db.Model):
 	title = db.StringProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
+	folder = db.StringProperty()
 
 class Welcome (webapp.RequestHandler):
 	def get(self):
@@ -243,7 +244,8 @@ class Save (webapp.RequestHandler):
 											 resource_id=resource_id,
 											 title='name',
 											 updated='now',
-											 permission='owner')
+											 permission='owner',
+											folder = "?none?")
 			u.put()
 
 			v=1
