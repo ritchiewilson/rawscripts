@@ -12,7 +12,43 @@ function uploadWindow(evt){
 		refreshList();
 	}
 }
-
+window.oncontextmenu = contextmenu;
+window.onclick = click;
+function click(){
+	$(".context_unit").unbind();
+	if(document.getElementById('context_menu')!=null)document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
+}
+function contextmenu(e){
+	$(".context_unit").unbind();
+	if(document.getElementById('context_menu')!=null)document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
+	if(e.target.className=="tab" || e.target.className=="tab current"){
+		if(e.target.id!="ownedFolder" && e.target.id!="sharedFolder" && e.target.id!="trashFolder"){
+			e.preventDefault();
+			var cm = document.body.appendChild(document.createElement("div"));
+			cm.style.position="fixed";
+			cm.style.top=e.clientY+"px";
+			cm.style.left=e.clientX+5+"px";
+			cm.value = e.target.id;
+			cm.title = $("#"+e.target.id).text().substr(1);
+			cm.id="context_menu"
+			var d = cm.appendChild(document.createElement("div"))
+			d.appendChild(document.createTextNode("Rename"))
+			d.className = "context_unit";
+			d.addEventListener("click", renameFolder, false);
+			d = cm.appendChild(document.createElement("div"))
+			d.appendChild(document.createTextNode('Delete'))
+			d.className = "context_unit";
+			d.addEventListener("click", deleteFolder, false);
+			
+			$(".context_unit").mouseover(function(){
+				$(this).css("background-color","#6490E6");
+			});
+			$(".context_unit").mouseout(function(){
+				$(this).css("background-color","#fff");
+			})
+		}
+	}
+}
 function tabs(v){
 	var c = document.getElementsByTagName('input');
 	for (var i=0; i<c.length; i++){
@@ -35,9 +71,8 @@ function newFolder(){
 	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 	if(f!=null && f!=""){
 		var id = Math.round(Math.random()*10000000000);
-		$.post("/newfolder", {folder_name:f, folder_id:id}, function(){refreshList()})
-		/*
-		var d = document.getElementById('nav').appendChild(document.createElement('div'));
+		$.post("/newfolder", {folder_name:f, folder_id:id})
+		var d = document.getElementById('user_folders').appendChild(document.createElement('div'));
 		d.className="tab";
 		d.id="Folder"+id;
 		d.appendChild(document.createElement("img")).src="images/folder.png";
@@ -91,7 +126,6 @@ function newFolder(){
 				$(this).css("background-color","#fff")
 			}
 		});
-		*/
 	}
 }
 
@@ -99,17 +133,20 @@ function moveToFolder(v){
 	if(v!="move_to"){
 		var c = document.getElementsByTagName("input");
 		var found = false;
+		var arr = [];
 		for (i in c){
 			if (c[i].type=="checkbox" && c[i].checked==true && c[i].parentNode.className=="checkboxCell"){
-				$.post("/changefolder", {resource_id: c[i].value, folder_id : v})
 				var e = c[i];
 				while(e.nodeName!="DIV")e=e.parentNode;
 				e.style.backgroundColor = '#ccc';
 				e.style.opacity = '0.5';
 				found=true;
+				arr.push(c[i].value)
 			}
 		}
-		if(found==true)refreshList();
+		if(found==true){
+			$.post("/changefolder", {resource_id: arr.join(","), folder_id : v}, function(){refreshList()});
+		}
 		document.getElementById("move_to_folder").selectedIndex=0;
 	}
 }
@@ -127,14 +164,9 @@ function refreshList(v){
 	// know which tab is current, to be rest
 	//set up folders
 	var current = $(".current").get(0).id;
-	var c = document.getElementsByTagName('div');
-	for (i in c){
-		if (c[i].className=="folderContents"){
-			if(c[i].id!="owned" && c[i].id!="shared" &&c[i].id!="trash"){
-				c[i].parentNode.removeChild(c[i]);
-			}
-		}
-	}
+	$('.folderContents').each(function(){
+		if(this.id!="owned" && this.id!="shared" && this.id!="trash") this.parentNode.removeChild(this)
+	});
 	var d=document.getElementById('user_folders');
 	d.innerHTML="";
 	var select = document.getElementById('move_to_folder');
@@ -161,7 +193,8 @@ function refreshList(v){
 		td.style.width="15px";
 		var cb = td.appendChild(document.createElement('input'));
 		cb.type='checkbox';
-		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(folders[i][0]));
+		var n = tr.appendChild(document.createElement('td'))
+		n.appendChild(document.createTextNode(folders[i][0]));
 		td = tr.appendChild(document.createElement('td'));
 		td.style.width="120px";
 		td.align = "center";
@@ -366,6 +399,7 @@ function refreshList(v){
         var resource_id = x[i][0];
         var updated = x[i][2]
         var shared_with=x[i][4]
+		var folder = x[i][5];
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -393,6 +427,20 @@ function refreshList(v){
         var href = 'javascript:haveToUndelete()';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
+		//folder column
+		var folderTd  = entryTr.appendChild(document.createElement('td'));
+		folderTd.align = "center";
+		folderTd.className="folderCell";
+		if(folder!="?none?"){
+			for(fold in folders){
+				if (folders[fold][1]==folder){
+					var span = folderTd.appendChild(document.createElement('span'));
+					span.appendChild(document.createTextNode(folders[fold][0]));
+					span.className="folderSpan";
+				}
+			}
+		}
+		folderTd.style.display="none";
         //shared column
         var sharedTd = entryTr.appendChild(document.createElement('td'));
         sharedTd.className = 'sharedCell';
@@ -435,13 +483,32 @@ function refreshList(v){
         updatedTd.appendChild(document.createTextNode(updated));
 		
     }
+	if(document.getElementById(current)==null)current="ownedFolder"
 	document.getElementById(current).className = document.getElementById(current).className.replace(" current","")+" current";
-    tabs(current);
+	document.getElementById(current).style.backgroundColor="#2352AE";
+	tabs(current);
 	if(v){
 		sharePrompt(v);
 	}
 	document.getElementById("refresh_icon").style.visibility="hidden";
 							 });
+}
+function renameFolder(){
+	var f = prompt("Rename Folder", this.parentNode.title)
+	if(f!=null){
+		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
+		if(f!=""){
+			var folder_id = this.parentNode.value.replace("Folder", "");
+			$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()})
+		}
+	}
+}
+function deleteFolder(){
+	var c = confirm("Are you sure you want to delete this folder?")
+	if(c==true){
+		var folder_id = this.parentNode.value.replace("Folder","");
+		$.post("/deletefolder", {folder_id:folder_id}, function(){refreshList()})
+	}
 }
 function selectAll(obj, which){
 	var listItems = document.getElementsByTagName('input');
@@ -467,6 +534,13 @@ function deleteScript(v){
 	var scriptDiv = document.getElementById(v);
 	scriptDiv.style.backgroundColor = '#ccc';
 	scriptDiv.style.opacity = '0.5';
+	var c = document.getElementsByTagName('div');
+	for (i in c){
+		if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
+			c[i].style.backgroundColor = '#ccc';
+			c[i].style.opacity = '0.5';
+		}
+	}
 	$.post("/delete", {resource_id : v}, function(){
         scriptDiv.parentNode.removeChild(scriptDiv);
         document.getElementById('trashList').appendChild(scriptDiv);
@@ -478,8 +552,15 @@ function deleteScript(v){
         var c = t.getElementsByTagName('td');
         c[2].style.display="none";
 		c[3].style.display='none';
+		c[4].style.display="none";
 		c[1].firstChild.href="javascript:haveToUndelete()";
 		document.getElementById("trashNoEntries").style.display="none";
+		var c = document.getElementsByTagName('div');
+		for (i in c){
+			if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
+				c[i].parentNode.removeChild(c[i])
+			}
+		}
         });
 }
 
@@ -523,18 +604,21 @@ function batchProcess(v){
         if (confirm("Are you sure you want to delete these scripts? This cannot be undone."))con=true;
     }
     if(con){
+		var found=false;
         var listItems = document.getElementsByTagName('input');
         for (var i=0; i<listItems.length; i++){
             if(listItems[i].type == 'checkbox'){
                 if (listItems[i].checked == true){
-                    if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
+                    if (listItems[i].name.substr(0,9) == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
                         if(v=='delete')	deleteScript(listItems[i].value);
                         if(v=='undelete')undelete(listItems[i].value);
                         if(v=='hardDelete')hardDelete(listItems[i].value);
+						found=true;
                     }			
                 }
             }
         }
+		if(found==true)setTimeout("refreshList()", 5000);
     }
 }
 

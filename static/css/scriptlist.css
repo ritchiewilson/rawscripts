@@ -207,3 +207,16 @@ h1 { font-size: 1.4em; font-weight: normal; }
 	-moz-border-radius:2px;
 	padding:2px;
 }
+#context_menu{
+	background-color:#fff;
+	border:1px #666 solid;
+	border-left:1px #ccc solid;
+	border-top:1px #ccc solid;
+}
+.context_unit{
+	color:#333;
+	font-family:sans-serif;
+	font-size:10pt;
+	padding:2px 10px 2px 5px;
+	cursor:pointer;
+}
