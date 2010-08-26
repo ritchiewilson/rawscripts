@@ -129,3 +129,6 @@ handlers:
   login: required
   script: scripteditor.py
 
+- url: /js/restricted
+  static_dir: static/js/restricted
+  login: admin

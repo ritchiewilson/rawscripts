@@ -98,6 +98,12 @@ class SpellingData(db.Model):
 	ignore = db.TextProperty()
 	birthdate = db.DateProperty()
 
+class ShareNotify (db.Model):
+	user= db.StringProperty()
+	resource_id = db.StringProperty()
+	timeshared = db.DateTimeProperty()
+	timeopened = db.DateTimeProperty()
+	opened = db.BooleanProperty()
 
 class JunkParse(webapp.RequestHandler):
 	def get(self):
@@ -154,6 +160,11 @@ class AutomatedDelete (webapp.RequestHandler):
 				for i in r:
 					i.delete()
 				q=db.GqlQuery("SELECT * FROM NotesNotify "+
+											"WHERE resource_id='"+resource_id+"'")
+				r=q.fetch(1000)
+				for i in r:
+					i.delete()
+				q=db.GqlQuery("SELECT * FROM ShareNotify "+
 											"WHERE resource_id='"+resource_id+"'")
 				r=q.fetch(1000)
 				for i in r:
