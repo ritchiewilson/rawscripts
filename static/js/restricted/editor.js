@@ -1888,6 +1888,10 @@ function noteIndex(){
 	x=i=null;
 }
 function newThread(){
+	tabs(1);
+	viewNotes=true;
+	document.getElementById("notesViewHide").innerHTML = "✓";
+	paint(false,false,true,false);
     noteIndex();
     typeToScript=false;
     var c = document.getElementById('noteBox');
