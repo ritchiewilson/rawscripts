@@ -149,6 +149,7 @@ class Editor (webapp.RequestHandler):
 			user=user.email().lower()
 		else:
 			user="unknown"
+		template_values['resource_id'] = resource_id
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)

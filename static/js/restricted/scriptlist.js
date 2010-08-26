@@ -542,6 +542,7 @@ function selectAll(obj, which){
 function script(v){
 url = '/editor?resource_id=' + v;
 window.open(url);
+setTimeout('refreshList()',5000);
 }
 function haveToUndelete(){
 	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
@@ -780,7 +781,7 @@ function createScript (){
 		document.getElementById('createScriptButton').value="Creating Script...";
 		document.getElementById('createScriptIcon').style.visibility="visible";
 		$.post('/newscript', {filename:filename, fromPage:"scriptlist"}, function(data){
-            window.open('editor?resource_id='+data);
+            window.open('/editor?resource_id='+data);
 			hideNewScriptPrompt();
 			refreshList()
         });
