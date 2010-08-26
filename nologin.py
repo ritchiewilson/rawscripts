@@ -61,6 +61,13 @@ class UsersScripts (db.Model):
 	permission = db.StringProperty()
 	folder = db.StringProperty()
 
+class ShareNotify (db.Model):
+	user= db.StringProperty()
+	resource_id = db.StringProperty()
+	timeshared = db.DateTimeProperty()
+	timeopened = db.DateTimeProperty()
+	opened = db.BooleanProperty()
+
 class Welcome (webapp.RequestHandler):
 	def get(self):
 		referer = os.environ.get("HTTP_REFERER")
@@ -116,6 +123,15 @@ class Editor (webapp.RequestHandler):
 				if r[0].permission=='collab':
 					format='viewer'
 					path = os.path.join(os.path.dirname(__file__), 'viewer.html')
+					q=db.GqlQuery("SELECT * FROM ShareNotify "+
+									"WHERE user='"+user.email().lower()+"' "+
+									"AND resource_id='"+resource_id+"' "+
+									"AND opened=False")
+					unopened = q.fetch(1)
+					if len(unopened)!=0:
+						unopened[0].opened=True
+						unopened[0].timeopened = datetime.datetime.today()
+						unopened[0].put()
 			else:
 				self.redirect("/")
 				return

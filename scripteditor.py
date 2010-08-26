@@ -57,6 +57,13 @@ class ShareDB (db.Model):
 	name = db.StringProperty()
 	resource_id = db.StringProperty()
 	fromPage = db.StringProperty()
+
+class ShareNotify (db.Model):
+	user= db.StringProperty()
+	resource_id = db.StringProperty()
+	timeshared = db.DateTimeProperty()
+	timeopened = db.DateTimeProperty()
+	opened = db.BooleanProperty()
 	
 class LastUpdatedEtag (db.Model):
 	name = db.StringProperty()
@@ -305,6 +312,12 @@ class List (webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'mobilelist.html')
 				mobile = 1
 		user = users.get_current_user().email().lower()
+		
+		q=db.GqlQuery("SELECT * FROM ShareNotify "+
+						"WHERE user='"+user+"' "+
+						"AND opened=False")
+		unopened = q.fetch(500)
+		
 		q= db.GqlQuery("SELECT * FROM UsersScripts "+
 									 "WHERE user='"+user+"' "+
 									 "ORDER BY updated DESC")
@@ -390,7 +403,11 @@ class List (webapp.RequestHandler):
 											"WHERE resource_id='"+i.resource_id+"' "+
 											"AND permission='owner'")
 				p=q.fetch(1)
-				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes,  i.folder])
+				uo=False
+				for ra in unopened:
+					if i.resource_id==ra.resource_id:
+						uo=True
+				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes,  i.folder, str(uo)])
 		
 		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
 		f = q.fetch(1)
@@ -930,7 +947,7 @@ class Share (webapp.RequestHandler):
 
 		--- This Script written and sent from RawScripts.com. Check it out---"""
 		
-				#Mail the damn thing. Itereating to reduce userside errors
+				#Mail the damn thing. Itereating to reduce errors
 				j=0
 				while j<3:
 					try:
@@ -956,6 +973,13 @@ class Share (webapp.RequestHandler):
 				if props['mobileDevice']:
 					mobile = 1
 			activity.activity("share", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
+			for i in output:
+				s = ShareNotify(user = i,
+								resource_id = resource_id,
+								timeshared = datetime.datetime.today(),
+								timeopened = datetime.datetime.today(),
+								opened=False)
+				s.put()
 		
 class RemoveAccess (webapp.RequestHandler):
 	def post(self):
@@ -988,6 +1012,12 @@ class RemoveAccess (webapp.RequestHandler):
 				if props['mobileDevice']:
 					mobile = 1
 			activity.activity("removeaccess", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
+			q=db.GqlQuery("SELECT * FROM ShareNotify "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND user='"+person.lower()+"'")
+			r=q.fetch(1)
+			if len(r)!=0:
+				r[0].delete()
 
 class NewFolder (webapp.RequestHandler):
 	def post(self):

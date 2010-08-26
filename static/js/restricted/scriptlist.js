@@ -340,12 +340,15 @@ function refreshList(v){
     document.getElementById('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
     var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
     listDiv.id = 'sharedList';
+	var number_unopened = 0;
     for (i in ss){
         var resource_id=ss[i][0];
         var title = ss[i][1];
         var updated = ss[i][2];
         var owner = ss[i][3];
-		var new_notes=ss[i][4]
+		var new_notes=ss[i][4];
+		var unopened = ss[i][6];
+		console.log(unopened)
         var entryDiv = listDiv.appendChild(document.createElement('div'));
         entryDiv.id = resource_id;
         entryDiv.className = 'entry';
@@ -366,9 +369,15 @@ function refreshList(v){
         var href = 'javascript:script("'+resource_id+'")';
         titleLink.href=href;
         titleLink.appendChild(document.createTextNode(title));
-		if (new_notes!=0){
+		if (unopened=="True"){
+			var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+            newNotesSpan.appendChild(document.createTextNode(" New Script"));
+            newNotesSpan.className = 'redAlertSpan';
+			number_unopened++;
+		}
+		else if (new_notes!=0){
             var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
+            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note  " : " "+new_notes+' New Notes  ')));
             newNotesSpan.className = 'redAlertSpan';
         }
         //show owner
@@ -382,7 +391,7 @@ function refreshList(v){
         updatedTd.align="center";
         updatedTd.appendChild(document.createTextNode(updated));
     }
-    
+    document.getElementById("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
     
     document.getElementById('trashLoading').style.display = 'none';
     document.getElementById('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');

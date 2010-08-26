@@ -14,6 +14,13 @@ class Notes (db.Model):
 	data = db.TextProperty()
 	row = db.IntegerProperty()
 	col = db.IntegerProperty()
+
+class ShareNotify (db.Model):
+	user= db.StringProperty()
+	resource_id = db.StringProperty()
+	timeshared = db.DateTimeProperty()
+	timeopened = db.DateTimeProperty()
+	opened = db.BooleanProperty()
 	
 class NotesNotify (db.Model):
 	resource_id = db.StringProperty()
