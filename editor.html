@@ -48,7 +48,7 @@
   #header{padding:0px;}
   #menu{padding-top:0px;float:left}
   #fileMenu{
-    width:150px;
+    width:170px;
     position:fixed; 
     top:63px; 
     left:0px; 
@@ -56,11 +56,11 @@
     border-bottom:1px #666 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid; 
-    background-color:#eeeeef;
+    background-color:#fff;
     display:none;
   }
   #editMenu{
-    width:150px;
+    width:200px;
     position:fixed; 
     top:63px; 
     left:34px; 
@@ -68,11 +68,11 @@
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid;
-    background-color:#eeeeef;
+    background-color:#fff;
     display:none;
   }
   #viewMenu{
-    width:150px;
+    width:190px;
     position:fixed; 
     top:63px; 
     left:71px; 
@@ -80,11 +80,11 @@
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid;
-    background-color:#eeeeef;
+    background-color:#fff;
     display:none;
   }
   #shareMenu{
-    width:150px;
+    width:180px;
     position:fixed; 
     top:63px; 
     left:114px; 
@@ -92,7 +92,7 @@
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid;
-    background-color:#eeeeef;
+    background-color:#fff;
     display:none;
   }
   #helpMenu{
@@ -104,19 +104,19 @@
     border-bottom:1px #333 solid; 
     border-top:1px #999 solid; 
     border-left:1px #999 solid;
-    background-color:#eeeeef;
+    background-color:#fff;
     display:none;
   }
   .submenu{
-    padding:2px 2px 2px 6px;
+    padding:4px 4px 4px 8px;
     font-family:sans-serif; 
     font-size:10pt;
     cursor:pointer;
   }
   .submenuSplit{
-    padding:2px 2px 4px 6px;
+    padding:4px 4px 6px 8px;
     margin-bottom:4px;
-    border-bottom:1px #000000 solid;
+    border-bottom:1px #ccc solid;
     font-family:sans-serif; 
     font-size:10pt;
     cursor:pointer;
@@ -478,50 +478,50 @@
   </div>
   </div>
   <div class="topMenu" id="fileMenu" style="display:none">
-    <div id='new' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px"></td><td>New</td></tr></table></div>
-    <div id='open' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Open</td></tr></table></div>
+    <div id='new' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/new_file.gif"></td><td>New</td></tr></table></div>
+    <div id='open' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Open</td></tr></table></div>
     
-    <div id='rename' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Rename</td></tr></table></div>
-    <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Save</td></tr></table></div>
-    <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Duplicate</td></tr></table></div>
+    <div id='rename' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Rename</td></tr></table></div>
+    <div id='save' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/save.png"></td><td>Save</td></tr></table></div>
+    <div id='duplicate' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Duplicate</td></tr></table></div>
 
-    <!--<div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Print</td></tr></table></div>-->
-    <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Export As</td></tr></table></div>
+    <!--<div id='print' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Print</td></tr></table></div>-->
+    <div id='exportas' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/export.gif"></td><td>Export As...</td></tr></table></div>
 
-    <div id='close' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Close</td></tr></table></div>
+    <div id='close' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Close</td></tr></table></div>
   </div>
   <div class="topMenu" id="editMenu" style="display:none">
-    <div id='undo' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Undo</td></tr></table></div>
-    <div id='redo' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Redo</td></tr></table></div>
+    <div id='undo' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/undo.png"></td><td>Undo</td></tr></table></div>
+    <div id='redo' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/redo.png"></td><td>Redo</td></tr></table></div>
 	
-	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Insert Note</td></tr></table></div>
+	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/note.png"></td><td>Insert Note</td></tr></table></div>
     
-    <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Edit Title Page</td></tr></table></div>
+    <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Edit Title Page</td></tr></table></div>
     
-    <div id='spellCheck' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Spell Check</td></tr></table></div>
+    <div id='spellCheck' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/spellcheck.png"></td><td>Spell Check</td></tr></table></div>
 	
-	<div id='tag' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Tag Current Version</td></tr></table></div>
+	<div id='tag' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Tag Current Version</td></tr></table></div>
 	
-    <div id="format0" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check0' style="width:15px">✓</td><td>Slugline</td></tr></table></div>
-    <div id="format1" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check1' style="width:15px"></td><td>Action</td></tr></table></div>
-    <div id="format2" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check2' style="width:15px"></td><td>Character</td></tr></table></div>
-    <div id="format3" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check3' style="width:15px"></td><td>Dialog</td></tr></table></div>
-    <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:15px"></td><td>Parenthetical</td></tr></table></div>
-    <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:15px"></td><td>Transition</td></tr></table></div>
+    <div id="format0" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check0' style="width:25px">✓</td><td>Slugline</td></tr></table></div>
+    <div id="format1" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check1' style="width:25px"></td><td>Action</td></tr></table></div>
+    <div id="format2" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check2' style="width:25px"></td><td>Character</td></tr></table></div>
+    <div id="format3" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check3' style="width:25px"></td><td>Dialog</td></tr></table></div>
+    <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:25px"></td><td>Parenthetical</td></tr></table></div>
+    <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:25px"></td><td>Transition</td></tr></table></div>
   </div>
   <div class="topMenu" id="viewMenu" style="display:none">
-    <!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Font Size</td></tr></table></div>-->
-    <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>View/Hide Notes</td></tr></table></div>
-    <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Revision History</td></tr></table></div>
+    <!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Font Size</td></tr></table></div>-->
+    <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td id="notesViewHide" style="width:25px">✓</td><td>View/Hide Notes</td></tr></table></div>
+    <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Revision History</td></tr></table></div>
   </div>
   <div class="topMenu" id="shareMenu" style="display:none">
-    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Collaborators</td></tr></table></div>
-    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Email PDF</td></tr></table></div>
+    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Collaborators</td></tr></table></div>
+    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/email.gif"></td><td>Email PDF</td></tr></table></div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
-    <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>FAQs</td></tr></table></div>
-    <div id='videos' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Videos</td></tr></table></div>
-    <div id='contact' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:15px">  </td><td>Contact</td></tr></table></div>
+    <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>FAQs</td></tr></table></div>
+    <div id='videos' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Videos</td></tr></table></div>
+    <div id='contact' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Contact</td></tr></table></div>
   </div>
   <textarea id="ccp" style="position:fixed; top-9999px; left:-9999px;"></textarea>
 </body>

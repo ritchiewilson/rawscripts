@@ -650,6 +650,7 @@ function mouseDown(e){
         }
         else if(id=='notes'){
             viewNotes = (viewNotes ? false : true);
+			document.getElementById("notesViewHide").innerHTML = (viewNotes == true ? "✓" : "");
         }
         //Share
         else if(id=='collaborators'){
@@ -2453,45 +2454,79 @@ function scrollArrows(ctx){
     var height = document.getElementById('canvas').height;
     //up arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-22, height-39, 20,20);
+    ctx.fillRect(editorWidth-21, height-39, 21,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-20, height-37, 16, 16);
+    ctx.fillRect(editorWidth-19, height-37, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(editorWidth-18, height-24);
-    ctx.lineTo(editorWidth-12, height-35);
-    ctx.lineTo(editorWidth-6, height-24);
+    ctx.moveTo(editorWidth-16, height-24);
+    ctx.lineTo(editorWidth-10.5, height-35);
+    ctx.lineTo(editorWidth-5, height-24);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
     //down arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-22, height-19, 20,20);
+    ctx.fillRect(editorWidth-21, height-19, 20,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-20, height-18, 16, 16);
+    ctx.fillRect(editorWidth-19, height-18, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(editorWidth-18, height-15);
-    ctx.lineTo(editorWidth-12, height-4);
-    ctx.lineTo(editorWidth-6, height-15);
+    ctx.moveTo(editorWidth-16, height-15);
+    ctx.lineTo(editorWidth-10.5, height-4);
+    ctx.lineTo(editorWidth-5, height-15);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
 	height=null;
 }
 function scrollBar(ctx, y){
+	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
+	lingrad.addColorStop(0, "#5587c4");
+	lingrad.addColorStop(.8, "#95a7d4"); 
+	ctx.strokeStyle="#333";
+	//ctx.lineWidth=2;
+	ctx.fillStyle=lingrad;
     var height = document.getElementById('canvas').height;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight+40;
     var barHeight = ((height)/pagesHeight)*(height-39);
     if (barHeight<20)barHeight=20;
     if (barHeight>=height-39)barHeight=height-39;
     var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight);
-    ctx.fillRect(editorWidth-22, topPixel+9, 20,barHeight-18);
+    ctx.fillRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
+	ctx.strokeRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
 	ctx.beginPath();
-	ctx.arc(editorWidth-12, topPixel+10,10, 0, Math.PI, true);
+	ctx.arc(editorWidth-10.5, topPixel+9,8, 0, Math.PI, true);
 	ctx.fill();
+	ctx.stroke();
 	ctx.beginPath()
-	ctx.arc(editorWidth-12, topPixel+barHeight-10, 10, 0, Math.PI, false);
+	ctx.arc(editorWidth-10.5, topPixel+barHeight-11, 8, 0, Math.PI, false);
 	ctx.fill();
-	height=pagesHeight=barHeight=topPixel=null;
+	ctx.stroke();
+	var sh = topPixel;
+	while(sh < topPixel+barHeight){
+		var radgrad = ctx.createRadialGradient(editorWidth,sh+10,4,editorWidth+200,sh,10);  
+		radgrad.addColorStop(0, 'rgba(100,140,210,0.4)');  
+		radgrad.addColorStop(0.4, 'rgba(180,160,240,0.4)');  
+		radgrad.addColorStop(1, 'rgba(1,159,98,0)');
+		ctx.fillStyle=radgrad;
+		ctx.fillRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
+		
+		
+		sh+=20;
+	}
+	ctx.beginPath();
+	ctx.moveTo(editorWidth-7, topPixel+9);
+	ctx.lineTo(editorWidth-7, topPixel+barHeight-10);
+	ctx.lineCap="round";
+	ctx.strokeStyle = "rgba(200,220,255,0.3)";
+	ctx.lineWidth=4;
+	ctx.stroke()
+	ctx.beginPath();
+	ctx.moveTo(editorWidth-9, topPixel+10);
+	ctx.lineTo(editorWidth-9, topPixel+barHeight-10);
+	ctx.strokeStyle = "rgba(200,220,255,0.1)";
+	ctx.lineWidth=2;
+	ctx.stroke()
+	height=pagesHeight=barHeight=topPixel=sh=null;
 }
 function drawRange(ctx, pageStartX){
     if(pos.row>anch.row){
@@ -3120,22 +3155,23 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.stroke();
     //
     // bottom status bar
-    ctx.fillStyle = "#aaa";
-    ctx.fillRect(3,document.getElementById('canvas').height-24, editorWidth-25, 24);
-    ctx.strokeStyle = "#666";
+    ctx.fillStyle = "#ccc";
+    ctx.fillRect(2,document.getElementById('canvas').height-24, editorWidth-25, 24);
+    ctx.strokeStyle = "#aaa";
     ctx.lineWidth = 1;
     ctx.beginPath()
-    ctx.moveTo(2,document.getElementById('canvas').height-25);
-    ctx.lineTo(2,document.getElementById('canvas').height-2);
-    ctx.lineTo(editorWidth-23,document.getElementById('canvas').height-2);
-    ctx.lineTo(editorWidth-23,document.getElementById('canvas').height-25);
+    ctx.moveTo(1.5,document.getElementById('canvas').height-25.5);
+    ctx.lineTo(1.5,document.getElementById('canvas').height-1.5);
+    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-1.5);
+    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-25.5);
     ctx.closePath();
+	ctx.strokeStyle = "#999";
     ctx.stroke();
     ctx.beginPath()
-    ctx.moveTo(1,document.getElementById('canvas').height-24);
-    ctx.lineTo(1,document.getElementById('canvas').height-1);
-    ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-1);
-    ctx.lineTo(editorWidth-22,document.getElementById('canvas').height-24);
+    ctx.moveTo(0.5,document.getElementById('canvas').height-24.5);
+    ctx.lineTo(0.5,document.getElementById('canvas').height-0.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-0.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-24.5);
     ctx.closePath();
     // write current page number
     ctx.strokeStyle = "#333";
