@@ -112,9 +112,13 @@ class Editor (webapp.RequestHandler):
 										"WHERE resource_id='"+resource_id+"' "+
 										"AND user='"+user.email().lower()+"'")
 			r=q.fetch(1)
-			if r[0].permission=='collab':
-				format='viewer'
-				path = os.path.join(os.path.dirname(__file__), 'viewer.html')
+			if len(r)!=0:
+				if r[0].permission=='collab':
+					format='viewer'
+					path = os.path.join(os.path.dirname(__file__), 'viewer.html')
+			else:
+				self.redirect("/")
+				return
 		else:
 			resource_id=self.request.get('resource_id')
 			if resource_id=='Demo':
