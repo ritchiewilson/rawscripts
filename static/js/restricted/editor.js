@@ -1899,7 +1899,7 @@ function newThread(){
 	tabs(1);
 	viewNotes=true;
 	document.getElementById("notesViewHide").innerHTML = "✓";
-	paint(false,false,true,false);
+	paint(false,false,false,false);
     noteIndex();
     typeToScript=false;
     var c = document.getElementById('noteBox');
