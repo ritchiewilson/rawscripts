@@ -138,14 +138,19 @@ $(document).ready(function(){
       else if(e.which==9){e.preventDefault(); tab();}
       else if(e.which==16)shiftDown=true;
       else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=true;
-      //console.log(ud, vOffset);
-      if((ud<0 || ud>document.getElementById('canvas').height-80) && typeToScript && e.which!=13 && e.which!=46 && e.which!=8){
+      if(ud<0 && typeToScript && e.which!=13 && e.which!=46 && e.which!=8){
+		console.log("low")
         scroll(ud-400);
       }
+	  if(ud>document.getElementById('canvas').height-80 && typeToScript && e.which!=13 && e.which!=46 && e.which!=8 ){
+		console.log("high")
+		scroll(ud-400);
+	}
       //console.log(e.which);
     d=null;
 	}
     if(typeToScript){
+		if (anch.row==pos.row && pos.col==anch.col)document.getElementById("ccp").value="";
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
     }
@@ -804,7 +809,10 @@ function upArrow(){
             // totalCharacters now equals
             // all character up to and including
             // current line (integ) including spaces
-            
+            if(pos.row==0 && integ==0){
+				pos.col=anch.col=0;
+				return;
+			}
             //if this is the first line in a block of wrapped text
             if(integ==0){
                 if(checkSpell)ajaxSpell(pos.row);
@@ -909,7 +917,7 @@ function upArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
-        paint(false,false,false,true);
+		if(ud<0)paint(false,false,false,false);
     }
 	else if(document.getElementById('suggestBox')!=null){
 		var f=document.getElementById('focus');
@@ -993,7 +1001,7 @@ function downArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
-        paint(false,false,false,true);
+        if(ud>document.getElementById('canvas').height-50)paint(false,false,false,false);
     }
 	else if(document.getElementById('suggestBox')!=null){
 		var f=document.getElementById('focus');
