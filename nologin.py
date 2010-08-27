@@ -261,6 +261,8 @@ class Save (webapp.RequestHandler):
 										"WHERE resource_id='"+resource_id+"'")
 		results = q.fetch(1000)
 		if len(results)==0:
+			logging.info("save for no script exists")
+			return
 			u = UsersScripts(user = users.get_current_user().email().lower(),
 											 resource_id=resource_id,
 											 title='name',
