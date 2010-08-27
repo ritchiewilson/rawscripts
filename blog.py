@@ -26,7 +26,7 @@ class Blog(webapp.RequestHandler):
 						"order by timestamp desc")
 		r = q.fetch(1000)
 		template_values = { "r": r}
-		path = os.path.join(os.path.dirname(__file__), 'blog2.html')
+		path = os.path.join(os.path.dirname(__file__), 'blog.html')
 		self.response.out.write(template.render(path, template_values))
 							
 class BlogPostGUI(webapp.RequestHandler):
