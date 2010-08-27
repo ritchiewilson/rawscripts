@@ -13,6 +13,7 @@ a { text-decoration: none; }
 h1 { font-size: 1.4em; font-weight: normal; }
 	h1 a { color: #fff; font-size: 1.6em; }
 h2 { font-size: 1.2em; margin-bottom:20px; }
+a .h2_span { font-size: 1.5em; margin-bottom:20px; color:#777;}
 h3, .headline { font-size: 1.2em; background: #3366cc url(../images/bluebg.png) repeat-x left bottom; padding: 6px 7px; color: #fff; font-weight: normal; margin: 0 0 15px; float: left; }
 .headline a{text-decoration:none; color:white;}
 h4 { margin: 0 0 15px; color: #555; font-weight: normal; font-size: 1.6em; font-weight: normal; }
