@@ -41,6 +41,7 @@ p { clear: both; line-height: 1.64em; margin: 0 0 15px; }
 		.last { margin-right: 0; }
 	#footer { clear: both; font-size: .84em; border-top: 1px solid #ddd; padding: 20px 0 0; }
     
-.feedburnerFeedBlock .blogger-post-footer {border-bottom:1px #ddd solid; margin-bottom:50px;}
-.feedburnerFeedBlock{}
+.feed .blogger-post-footer {border-bottom:1px #ddd solid; margin-bottom:50px;}
+.feed{}
+.data {margin-bottom:80px; padding-bottom:10px; border-bottom:1px #aaa solid;}
 #blog{width:550px; margin-left:30px;}

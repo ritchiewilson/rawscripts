@@ -14,6 +14,9 @@ handlers:
   static_files: static/images/favicon.ico
   upload: static/images/favicon.ico
 
+- url: /blog.*
+  script: blog.py
+
 - url: /js/restricted
   static_dir: static/js/restricted
   login: admin
@@ -29,10 +32,6 @@ handlers:
 - url: /about
   static_files: about.html
   upload: about.html
-
-- url: /blog
-  static_files: blog.html
-  upload: blog.html
 
 - url: /contact
   static_files: contact.html

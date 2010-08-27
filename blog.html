@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -35,10 +35,20 @@
 		</ul>
 		<div class="line"></div>
 		<div id="blog">
-			<script src="http://feeds.feedburner.com/Rawscriptscom?format=sigpro" type="text/javascript" ></script><noscript><p>Subscribe to RSS headline updates from: <a href="http://feeds.feedburner.com/Rawscriptscom"></a><br/>Powered by FeedBurner</p> </noscript>
+			<div class="feed">
+				<ul>
+	            {% for i in r %}
+	                <li>
+	                	<span class="headline">{{  i.title  }}</span>
+						<p class="date">{{i.date}}</p>
+						<div class="data">{{i.data}}</div>
+	                </li>
+	            {% endfor %}
+	            </ul>
+			</div>
 		</div>
 		<div id="footer">
-			<p>&copy; Copyright 2010 - RawScripts.com</a></p>
+			<p>&copy; Copyright 2010 - RawScripts.com</p>
 		</div>	
 	</div>
 </body>
