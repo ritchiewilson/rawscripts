@@ -70,6 +70,9 @@ class ShareNotify (db.Model):
 
 class Welcome (webapp.RequestHandler):
 	def get(self):
+		user = users.get_current_user()
+		if user:
+			self.redirect('/scriptlist')
 		referer = os.environ.get("HTTP_REFERER")
 		template_values = { 'google_sign_in': users.create_login_url('/scriptlist', None, "gmail.com"),
 						'yahoo_sign_in' : users.create_login_url('/scriptlist', None, "yahoo.com"),
@@ -88,7 +91,6 @@ class Welcome (webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 			return
 		
-		user = users.get_current_user()
 		if not user:
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
