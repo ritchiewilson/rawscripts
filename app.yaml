@@ -21,6 +21,10 @@ handlers:
   static_dir: static/js/restricted
   login: admin
 
+- url: /sitemap.xml
+  static_files: static/text/sitemap.xml
+  upload: static/text/sitemap.xml
+
 - url: /robots.txt
   static_files: static/text/robots.txt
   upload: static/text/robots.txt
