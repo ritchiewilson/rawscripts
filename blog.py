@@ -97,19 +97,8 @@ class BlogDataMigrate(webapp.RequestHandler):
 		q = db.GqlQuery("SELECT * FROM BlogDB ORDER BY timestamp desc")
 		r = q.fetch(50)
 		for i in r:
-			#parts = i.date.split("/")
-			#month = int(parts[0])
-			#day = int(parts[1])
-			#year = int(parts[2])
-			#timestamp = datetime.datetime(year, month, day, 12, 0, 0, 0)
-			exclude = set(string.punctuation)
-			key_name = ''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
-			b = BlogDB(key_name = key_name,
-						title = i.title,
-						data = i.data.replace("images/","/images/"),
-						timestamp = i.timestamp)
-			i.delete()
-			b.put()
+			i.data = i.data.replace("/images/", "http://www.rawscripts.com/images/")
+			i.put()
 		self.response.out.write("out")
 
 def main():

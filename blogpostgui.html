@@ -3,7 +3,7 @@
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 		<title>blogpostgui</title>
 		<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
-		<script type="text/javascript" src="js/jquery.min.js"></sctipt>
+		<script type="text/javascript" src="js/jquery.min.js"></script>
 		<script type="text/javascript" charset="utf-8">
 			function SubmitData(){
 				var title = document.getElementById('Title').value;
@@ -12,21 +12,20 @@
 				$.post("/blogpost", {title:title, date:date, data:data}, function(d){alert(d)});
 			}
 			function preview(){
-				console.log("hey")
-				var d = document.getElementById("preview");
-				d.innerHTML="";
+				var d = document.getElementById("previewspace");
 				var f = d.appendChild(document.createElement("div"));
 				f.id="feed";
 				var u = f.appendChild(document.createElement('ul'));
 				var l = u.appendChild(document.createElement('li'));
+				l.style.width ="500px";
 				var s = l.appendChild(document.createElement('span'));
 				s.className="headline";
 				s.appendChild(document.createTextNode(document.getElementById("Title").value));
 				var date = l.appendChild(document.createElement('p'));
 				date.className="date";
-				date.appendChild(document.createTextNode(document.getElementById('Date')));
+				date.appendChild(document.createTextNode("9/05/2009"));
 				l.appendChild(document.createElement('div')).innerHTML=document.getElementById("Data").value;
-				
+		
 				
 			}
 		</script>
@@ -34,14 +33,13 @@
 	<body id="body">
 		<form action="/blogpost" method="post" accept-charset="utf-8">
 			<input type="text" name="title" value="Title" id="Title"><br>
-			<input type="text" name="date" value="Date" id="Date"><br>
 			<textarea id="Data" name="data" rows="12" cols="60"></textarea><br>
 
 			<p><input type="submit" value="Continue &rarr;"></p>
 		</form>
 		
 		<input type="button" name="preview" value="preview" id="preview" onclick="preview()"><br>
-		<div id="preview">
+		<div id="previewspace">
 			
 		</div>
 	</body>
