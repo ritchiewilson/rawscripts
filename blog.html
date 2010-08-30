@@ -5,7 +5,7 @@
 	<meta name="google-site-verification" content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" /> 
 	<meta name="description" content="Free, online screenplay software. Windows, Mac, and Linux. Edit from any computer, share from your phone, take control of your scripts." /> 
 	<title>RawScripts.com - Blog</title>
-	<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="/css/screen.css" media="screen" />
 	<link rel="shortcut icon" href="/favicon.ico">
 </head>
 <body>
@@ -34,13 +34,14 @@
 			<li><a href="/contact">Contact</a></li>
 		</ul>
 		<div class="line"></div>
+		{{  error_message  }}
 		<div id="blog">
 			<div class="feed">
 				<ul>
 	            {% for i in r %}
 	                <li>
-	                	<span class="headline">{{  i.title  }}</span>
-						<p class="date">{{i.date}}</p>
+	                	<span class="headline"><a href="{{  i.link  }}">{{  i.title  }}</a></span>
+						<p class="date">{{i.timestamp|date:"M d, Y"}}</p>
 						<div class="data">{{i.data}}</div>
 	                </li>
 	            {% endfor %}
