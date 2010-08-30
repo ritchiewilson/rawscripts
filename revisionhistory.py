@@ -13,11 +13,7 @@ import datetime
 import logging
 from django.utils import simplejson
 import activity
-
-# instantiate API and read in the JSON
-TREEFILE = 'DeviceAtlas.json'
-da = api.DaApi()
-tree = da.getTreeFromFile(TREEFILE)
+import mobileTest
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -89,13 +85,7 @@ class RevisionTag(webapp.RequestHandler):
 			r[0].tag=tag
 			r[0].put()
 			self.response.out.write('tagged')
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("tagscript", users.get_current_user().email().lower(), resource_id, mobile, len(tag), None, None, None, None,None,None,None,None, None)
 
 class DuplicateOldRevision(webapp.RequestHandler):
@@ -156,13 +146,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 			s.put()
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("duplicateoldversion", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None,None, None,new_resource_id,None,None,None, None)
 			
 
@@ -218,13 +202,7 @@ class RevisionHistory(webapp.RequestHandler):
 											 }
 			path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
 			self.response.out.write(template.render(path, template_values))
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("revisionhistory", users.get_current_user().email().lower(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)
 
 class RevisionList(webapp.RequestHandler):
@@ -268,13 +246,7 @@ class RevisionList(webapp.RequestHandler):
 			j=simplejson.dumps(out)
 			self.response.headers['Content-Type']= 'text/plain'
 			self.response.out.write(j)
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("revisionlist", users.get_current_user().email().lower(), resource_id, mobile, len(out), None, None, None, None,None,None,None,None, None)
 
 class GetVersion(webapp.RequestHandler):
@@ -302,13 +274,7 @@ class GetVersion(webapp.RequestHandler):
 				contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write(contents)
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("getversion", users.get_current_user().email().lower(), resource_id, mobile, len(r[0].data), None, None, None, None,None,None,None,None, None)
 			
 class CompareVersions(webapp.RequestHandler):
@@ -351,13 +317,7 @@ class CompareVersions(webapp.RequestHandler):
 			content=content.replace("</p></ins>", "</p>")
 			self.response.headers['Content-Type']='text/html'
 			self.response.out.write(content)
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("compareversions", users.get_current_user().email().lower(), v_o_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 import difflib, string

@@ -17,12 +17,7 @@ import export
 import activity
 import logging
 from django.utils import simplejson
-
-# instantiate API and read in the JSON
-TREEFILE = 'DeviceAtlas.json'
-da = api.DaApi()
-tree = da.getTreeFromFile(TREEFILE)
-
+import mobileTest
 
 class Notes (db.Model):
 	resource_id = db.StringProperty()
@@ -70,20 +65,14 @@ class ShareNotify (db.Model):
 
 class Welcome (webapp.RequestHandler):
 	def get(self):
-		
 		referer = os.environ.get("HTTP_REFERER")
 		template_values = { 'google_sign_in': users.create_login_url('/scriptlist', None, "gmail.com"),
 						'yahoo_sign_in' : users.create_login_url('/scriptlist', None, "yahoo.com"),
 						'aol_sign_in' : users.create_login_url('/scriptlist', None, "aol.com")}
 		path = os.path.join(os.path.dirname(__file__), 'welcome.html')
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				path = os.path.join(os.path.dirname(__file__), 'MobileWelcome.html')
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
+		if mobile == 1:
+			path = os.path.join(os.path.dirname(__file__), 'MobileWelcome.html')
 		if referer == 'http://www.rawscripts.com/scriptlist' or referer == 'http://www.rawscripts.com/' or  referer == 'http://www.rawscripts.com/about' or  referer == 'http://www.rawscripts.com/blog' or  referer == 'http://www.rawscripts.com/contact':
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
@@ -102,16 +91,11 @@ class Editor (webapp.RequestHandler):
 		path = os.path.join(os.path.dirname(__file__), 'editor.html')
 		resource_id=self.request.get('resource_id')
 		format='editor'
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				mobile = 1
-				self.redirect('/scriptlist')
-				activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
-				return;
+		mobile = mobileTest.mobileTest(self.request.user_agent)
+		if mobile == 1:
+			self.redirect('/scriptlist')
+			activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
+			return;
 		if user and resource_id!="Demo":
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
@@ -228,13 +212,7 @@ class ScriptContent (webapp.RequestHandler):
 			
 			self.response.headers["Content-Type"]='text/plain'
 			self.response.out.write(content)
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			if user:
 				user=user.email().lower()
 			else:

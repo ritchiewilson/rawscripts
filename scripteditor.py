@@ -18,12 +18,7 @@ import convert
 import logging
 from django.utils import simplejson
 import activity
-
-# instantiate API and read in the JSON
-TREEFILE = 'DeviceAtlas.json'
-da = api.DaApi()
-tree = da.getTreeFromFile(TREEFILE)
-
+import mobileTest
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -148,14 +143,9 @@ class ScriptList(webapp.RequestHandler):
 		
 		
 		path = os.path.join(os.path.dirname(__file__), 'scriptlist.html')
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
+		if mobile==1:
+			path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
 
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
@@ -242,13 +232,7 @@ class TitlePage(webapp.RequestHandler):
 
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
 		activity.activity("titlepage", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class SaveTitlePage (webapp.RequestHandler):
@@ -292,25 +276,12 @@ class SaveTitlePage (webapp.RequestHandler):
 
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("titlepagesave", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class List (webapp.RequestHandler):
 	def post(self):
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				path = os.path.join(os.path.dirname(__file__), 'mobilelist.html')
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
 		user = users.get_current_user().email().lower()
 		
 		q=db.GqlQuery("SELECT * FROM ShareNotify "+
@@ -446,13 +417,7 @@ class Delete (webapp.RequestHandler):
 		else:
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('0')
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
 		activity.activity("delete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 		
 class Undelete(webapp.RequestHandler):
@@ -472,13 +437,7 @@ class Undelete(webapp.RequestHandler):
 					i.put()
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("undelete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 		else:
 			self.response.headers['Content-Type']='text/plain'
@@ -496,13 +455,7 @@ class HardDelete(webapp.RequestHandler):
 			for i in r:
 				i.permission = 'hardDelete'
 				i.put()
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("harddelete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class Rename (webapp.RequestHandler):
@@ -571,13 +524,7 @@ class Export (webapp.RequestHandler):
 
 				self.response.headers['Content-Disposition'] = 'attachment; ' +filename
 				self.response.out.write(newfile.getvalue())
-				mobile = 0
-				#Check if should send to mobile Page
-				ua = self.request.user_agent
-				props = da.getPropertiesAsTyped(tree, ua)
-				if props.has_key('mobileDevice'):
-					if props['mobileDevice']:
-						mobile = 1
+				mobile = mobileTest.mobileTest(self.request.user_agent)
 				activity.activity("export", users.get_current_user().email().lower(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,export_format,None,fromPage, None)
 	
 class EmailScript (webapp.RequestHandler):
@@ -643,13 +590,7 @@ class EmailScript (webapp.RequestHandler):
 	 
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
-		mobile = 0
-		#Check if should send to mobile Page
-		ua = self.request.user_agent
-		props = da.getPropertiesAsTyped(tree, ua)
-		if props.has_key('mobileDevice'):
-			if props['mobileDevice']:
-				mobile = 1
+		mobile = mobileTest.mobileTest(self.request.user_agent)
 		activity.activity("email", users.get_current_user().email().lower(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,'pdf',len(recipients),fromPage, None)
 		
 
@@ -965,13 +906,7 @@ class Share (webapp.RequestHandler):
 							return
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(",".join(output))
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("share", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
 			for i in output:
 				s = ShareNotify(user = i,
@@ -1004,13 +939,7 @@ class RemoveAccess (webapp.RequestHandler):
 			remove_person = self.request.get('removePerson')
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(remove_person.lower())
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("removeaccess", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
 			q=db.GqlQuery("SELECT * FROM ShareNotify "+
 						"WHERE resource_id='"+resource_id+"' "+

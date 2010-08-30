@@ -13,11 +13,7 @@ import datetime
 import logging
 from django.utils import simplejson
 import activity
-
-# instantiate API and read in the JSON
-TREEFILE = 'DeviceAtlas.json'
-da = api.DaApi()
-tree = da.getTreeFromFile(TREEFILE)
+import mobileTest
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -117,13 +113,7 @@ class NewThread(webapp.RequestHandler):
 					nn.put()
 			self.response.headers["Content-Type"]="text/plain"
 			self.response.out.write('sent')
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("newthread", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None, thread_id, None,None,p,None,fromPage, None)
 							
 class SubmitMessage(webapp.RequestHandler):
@@ -169,13 +159,7 @@ class SubmitMessage(webapp.RequestHandler):
 						n[0].put()
 			self.response.headers["Content-Type"]="text/plain"
 			self.response.out.write('sent')
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("notesresponse", users.get_current_user().email().lower(), resource_id, mobile, len(content), None, None, thread_id, None,None,p,None,fromPage, None)
 
 class Position (webapp.RequestHandler):
@@ -220,13 +204,7 @@ class DeleteThread (webapp.RequestHandler):
 			r=q.fetch(1000)
 			for i in r:
 				i.delete()
-			mobile = 0
-			#Check if should send to mobile Page
-			ua = self.request.user_agent
-			props = da.getPropertiesAsTyped(tree, ua)
-			if props.has_key('mobileDevice'):
-				if props['mobileDevice']:
-					mobile = 1
+			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("deletethread", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, thread_id, None,None,None,None,fromPage, None)
 
 class ViewNotes(webapp.RequestHandler):
@@ -260,7 +238,7 @@ class ViewNotes(webapp.RequestHandler):
 			l=len(r)
 			for i in r:
 				i.delete()
-			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, l, None, None, None,None,p,None,None, None)
+			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, l, None, None, None,None,title,None,None, None)
 
 def main():
 	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
