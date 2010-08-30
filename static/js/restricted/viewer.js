@@ -939,8 +939,13 @@ function topMenuOut(v){
     }
 }
 
+
 //menu options and stuff
 // closing the window
+// open other script
+function openPrompt(){
+    window.open("/scriptlist")
+}
 function closeScript(){
     var data=JSON.stringify(lines);
     $.post('/save', {data : data, resource_id : resource_id}, function(d){self.close()});

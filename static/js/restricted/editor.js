@@ -2136,34 +2136,7 @@ function save(v){
 }
 // open other script
 function openPrompt(){
-    typeToScript=false;
-    var d=document.getElementById('openTable');
-    d.innerHTML = "Loading... ";
-    document.getElementById('openpopup').style.visibility = 'visible';
-    $.post('/list', function(data){
-        d.innerHTML="";
-        var j = JSON.parse(data);
-        var x=j[0];
-        var TR = d.appendChild(document.createElement('tr'));
-        var TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Title'));
-        TD.style.textDecoration='underline';
-        TD = TR.appendChild(document.createElement('td'))
-        TD.appendChild(document.createTextNode('Updated'));
-        TD.style.textDecoration='underline';
-        for (i in x){
-            var TR = d.appendChild(document.createElement('tr'));
-            var newA=TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
-            newA.appendChild(document.createTextNode(x[i][1]));
-            newA.href="/editor?resource_id="+x[i][0];
-            newA.target="_blank";
-            TR.appendChild(document.createElement('td')).appendChild(document.createTextNode(x[i][2]));
-        }
-    });
-}
-function hideOpenPrompt(){
-    document.getElementById('openpopup').style.visibility = 'hidden';
-    typeToScript=true;
+    window.open("/scriptlist")
 }
 
 //rename
