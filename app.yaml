@@ -14,6 +14,9 @@ handlers:
   static_files: static/images/favicon.ico
   upload: static/images/favicon.ico
 
+- url: /rss.*
+  script: blog.py
+
 - url: /blogpost.*
   script: blog.py
   login: admin
