@@ -22,12 +22,4 @@
   <loc>http://www.rawscripts.com/contact</loc>
   <changefreq>daily</changefreq>
 </url>
-<url>
-  <loc>http://www.rawscripts.com/editor?resource_id=Demo</loc>
-  <changefreq>daily</changefreq>
-</url>
-<url>
-  <loc>http://www.rawscripts.com/titlepage?resource_id=Demo</loc>
-  <changefreq>daily</changefreq>
-</url>
 </urlset>

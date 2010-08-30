@@ -27,22 +27,30 @@ class Blog(webapp.RequestHandler):
 		error_message = ""
 		if "/" in uri:
 			key = uri.split("/")[1].replace("-"," ").title().replace(" ","-")
-			r = db.get(db.Key.from_path('BlogDB', key))
-			if r==None:
-				r=[]
-				error_message="""
-				<div id="pitch">
-				<h1>Error:</h1>
-				<p>Sorry, that blog post could not be found. 
-				Go to to <a href="http://www.rawscripts.com/blog">www.rawscripts.com/blog</a> and see if you can't find what you're looking for there.</p>
-				</div>
-				"""
+			if key=="":
+				q = db.GqlQuery("SELECT * FROM BlogDB "+
+								"order by timestamp desc")
+				r = q.fetch(20)
 			else:
-				r=[r]
+				r = db.get(db.Key.from_path('BlogDB', key))
+				if r==None:
+					r=[]
+					error_message="""
+					<div id="pitch">
+					<h1>Error:</h1>
+					<p>Sorry, that blog post could not be found.</p>
+					<p>Go to to <a href="http://www.rawscripts.com/blog">www.rawscripts.com/blog</a> to see if you can find what you're looking for.</p>
+					</div>
+					"""
+				else:
+					r=[r]
 		else:	
 			q = db.GqlQuery("SELECT * FROM BlogDB "+
 							"order by timestamp desc")
-			r = q.fetch(10)
+			r = q.fetch(20)
+		exclude = set(string.punctuation)
+		for i in r:
+			i.link= "http://www.rawscripts.com/blog/"+''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
 		template_values = { "r": r,
 							"error_message" : error_message}
 		path = os.path.join(os.path.dirname(__file__), 'blog.html')
@@ -85,22 +93,23 @@ class RSS(webapp.RequestHandler):
 		
 class BlogDataMigrate(webapp.RequestHandler):
 	def get(self):
+		return
 		q = db.GqlQuery("SELECT * FROM BlogDB ORDER BY timestamp desc")
 		r = q.fetch(50)
 		for i in r:
-			parts = i.date.split("/")
-			day = int(parts[0])
-			month = int(parts[1])
-			year = int(parts[2])+2000
-			timestamp = datetime.datetime(year, month, day, 12, 0, 0, 0)
+			#parts = i.date.split("/")
+			#month = int(parts[0])
+			#day = int(parts[1])
+			#year = int(parts[2])
+			#timestamp = datetime.datetime(year, month, day, 12, 0, 0, 0)
 			exclude = set(string.punctuation)
 			key_name = ''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
-			
-			b = BlogDB(title = i.title,
-						data = i.data,
-						timestamp = timestamp)
-			b.put()
+			b = BlogDB(key_name = key_name,
+						title = i.title,
+						data = i.data.replace("images/","/images/"),
+						timestamp = i.timestamp)
 			i.delete()
+			b.put()
 		self.response.out.write("out")
 
 def main():

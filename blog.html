@@ -40,7 +40,7 @@
 				<ul>
 	            {% for i in r %}
 	                <li>
-	                	<span class="headline">{{  i.title  }}</span>
+	                	<span class="headline"><a href="{{  i.link  }}">{{  i.title  }}</a></span>
 						<p class="date">{{i.timestamp|date:"M d, Y"}}</p>
 						<div class="data">{{i.data}}</div>
 	                </li>
