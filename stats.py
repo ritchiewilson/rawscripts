@@ -48,7 +48,6 @@ class UsersScripts (db.Model):
 	resource_id = db.StringProperty()
 	title = db.StringProperty()
 	last_updated = db.DateTimeProperty()
-	updated = db.StringProperty()
 	permission = db.StringProperty()
 	folder = db.StringProperty()
 

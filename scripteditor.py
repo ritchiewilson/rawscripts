@@ -119,7 +119,6 @@ class UsersScripts (db.Model):
 	resource_id = db.StringProperty()
 	title = db.StringProperty()
 	last_updated = db.DateTimeProperty()
-	updated = db.StringProperty()
 	permission = db.StringProperty()
 	folder = db.StringProperty()
 
@@ -997,24 +996,20 @@ class OneScript (webapp.RequestHandler):
 		q=db.GqlQuery("SELECT * FROM UsersScripts")
 		r=q.fetch(1000)
 		for i in r:
-			u = i.updated
-			Y = int(u[0:4])
-			M = int(u[5:7])
-			D = int(u[8:10])
-			H = int(u[11:13])
-			Min = int(u[14:16])
-			S = int(u[17:19])
-			MS = 500
-			ud = datetime.datetime(Y, M, D, H, Min, S, MS)
-			u = UsersScripts(key_name = i.permission+i.user+i.resource_id,
+			perm = "owner"
+			if i.permission[0]=="c":
+				perm = "collab"
+			else:
+				perm = "owner"
+			u = UsersScripts(key_name = perm+i.user+i.resource_id,
 							user = i.user,
 							resource_id = i.resource_id,
 							title = i.title,
-							last_updated = ud,
+							last_updated = i.last_updated,
 							permission = i.permission,
 							folder = "?none?")
-			u.put()
 			i.delete()
+			u.put()
 		self.response.headers["Content-Type"]="text/plain"
 		self.response.out.write(len(r))
 
