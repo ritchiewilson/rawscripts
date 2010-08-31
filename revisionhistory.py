@@ -47,6 +47,7 @@ class UsersScripts (db.Model):
 	user = db.StringProperty()
 	resource_id = db.StringProperty()
 	title = db.StringProperty()
+	last_updated = db.DateTimeProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
 	folder = db.StringProperty()
@@ -100,7 +101,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 										"AND version="+version)
 			results = q.fetch(2)
 			data=results[0].data
-			user=users.get_current_user().email()
+			user=users.get_current_user().email().lower()
 			alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 			new_resource_id=''
 			for x in random.sample(alphabet,20):
@@ -129,10 +130,11 @@ class DuplicateOldRevision(webapp.RequestHandler):
 													from_script = resource_id,
 													from_version=int(version))
 			d.put()
-			u = UsersScripts(user=user,
+			u = UsersScripts(key_name="owner"+user+new_resource_id,
+							user=user,
 											 title='Copy of '+p,
 											 resource_id=new_resource_id,
-											 updated = str(datetime.datetime.today()),
+											 last_updated = datetime.datetime.today(),
 											 permission='owner',
 											folder = "?none?")
 			u.put()
@@ -161,7 +163,7 @@ class RevisionHistory(webapp.RequestHandler):
 									 "ORDER BY version DESC")
 			r = q.fetch(1000)
 			for i in r:
-				i.updated=str(i.timestamp)[5:16]
+				i.updated=i.timestamp.strftime("%b %d, %H:%M")
 				J=simplejson.loads(i.export)
 				"""
 				if len(J[0])==0 and len(J[1])==0:
@@ -233,7 +235,7 @@ class RevisionList(webapp.RequestHandler):
 											"ORDER BY version DESC")
 				r=q.fetch(1000)
 				for e in r:
-					e.updated=str(e.timestamp)[5:16]
+					e.updated=e.timestamp.strftime("%b %d, %H:%M")
 					if e.autosave==0:
 						e.s='manualsave'
 					else:

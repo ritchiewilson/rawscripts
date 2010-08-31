@@ -51,6 +51,7 @@ class UsersScripts (db.Model):
 	user = db.StringProperty()
 	resource_id = db.StringProperty()
 	title = db.StringProperty()
+	last_updated = db.DateTimeProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
 	folder = db.StringProperty()
@@ -236,7 +237,7 @@ class Save (webapp.RequestHandler):
 			b=1
 		q = db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"'")
-		results = q.fetch(1000)
+		results = q.fetch(1)
 		if len(results)==0:
 			logging.info("save for no script exists")
 			return
@@ -257,7 +258,7 @@ class Save (webapp.RequestHandler):
 						q = db.GqlQuery("SELECT * FROM ScriptData "+
 														"WHERE resource_id='"+resource_id+"' "+
 														"ORDER BY version DESC")
-						results = q.fetch(1000)
+						results = q.fetch(1)
 						v = results[0].version
 						v+=1
 
@@ -276,7 +277,7 @@ class Save (webapp.RequestHandler):
 										"WHERE resource_id='"+resource_id+"'")
 			results=q.fetch(500)
 			for i in results:
-				i.updated=str(datetime.datetime.today())
+				i.last_updated=datetime.datetime.today()
 				i.put()
 
 			self.response.out.write('1')

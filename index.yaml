@@ -32,5 +32,11 @@ indexes:
 - kind: UsersScripts
   properties:
   - name: user
+  - name: last_updated
+    direction: desc
+
+- kind: UsersScripts
+  properties:
+  - name: user
   - name: updated
     direction: desc

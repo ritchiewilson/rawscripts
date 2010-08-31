@@ -118,6 +118,7 @@ class UsersScripts (db.Model):
 	user = db.StringProperty()
 	resource_id = db.StringProperty()
 	title = db.StringProperty()
+	last_updated = db.DateTimeProperty()
 	updated = db.StringProperty()
 	permission = db.StringProperty()
 	folder = db.StringProperty()
@@ -290,57 +291,24 @@ class List (webapp.RequestHandler):
 		
 		q= db.GqlQuery("SELECT * FROM UsersScripts "+
 									 "WHERE user='"+user+"' "+
-									 "ORDER BY updated DESC")
+									 "ORDER BY last_updated DESC")
 		results = q.fetch(1000)
 		now = datetime.datetime.today()
 		owned = []
 		shared = []
 		ownedDeleted = []
 		for i in results:
-			t=str(i.updated)
-			date=t.split(' ')[0]
-			time=t.split(' ')[1]
-			year=date.split('-')[0]
-			month=date.split('-')[1]
-			day=date.split('-')[2]
-			if not int(year)<now.year:
-				if not int(month)<now.month:
-					if not int(day)<now.day:
-						hour=time.split(':')[0]
-						minute=time.split(':')[1]
-						if not int(hour)<now.hour:
-							if not int(minute)<now.minute:
-								i.updated="Seconds Ago"
-							else:
-								diff=now.minute-int(minute)
-								if diff==1:
-									i.updated="1 minute ago"
-								else:
-									i.updated=str(diff)+" minutes ago"
-						else:
-							diff=now.hour-int(hour)
-							if diff==1:
-								i.updated="1 hour ago"
-							else:
-								i.updated=str(diff)+" hours ago"
-					else:
-						diff=now.day-int(day)
-						if diff==1:
-							i.updated="Yesterday"
-						else:
-							i.updated=str(diff)+" days ago"
-				else:
-					diff=now.month-int(month)
-					if diff==1:
-						i.updated="1 month ago"
-					else:
-						i.updated=str(diff)+" months ago"
+			d = now - i.last_updated
+			if d.days>0:
+				i.updated=i.last_updated.strftime("%b %d")
+			elif d.seconds>7200:
+				i.updated = str(int(round(d.seconds/3600))) + " hours ago"
+			elif d.seconds>60:
+				i.updated= str(int(round(d.seconds/60))) + " minutes ago"
 			else:
-				diff=now.year-int(year)
-				if diff==1:
-					i.updated="last year"
-				else:
-					i.updated=str(diff)+" years ago"
+				i.updated = "Seconds ago"
+				
+			
 			#getting notesnotification info for scripts
 			nnq=db.GqlQuery("SELECT * FROM NotesNotify "+
 							"WHERE resource_id='"+i.resource_id+"' "+
@@ -630,10 +598,11 @@ class NewScript (webapp.RequestHandler):
 									 ignore="[]")
 		s.put()
 
-		u = UsersScripts(user=user.lower(),
+		u = UsersScripts(key_name="owner"+user.lower()+resource_id,
+						user=user.lower(),
 						title=filename,
 						resource_id=resource_id,
-						updated = str(datetime.datetime.today()),
+						last_updated = datetime.datetime.today(),
 						permission='owner',
 						folder = "?none?")
 		u.put()
@@ -684,10 +653,11 @@ class Duplicate (webapp.RequestHandler):
 													from_version=version)
 
 			d.put()
-			u = UsersScripts(user=user.lower(),
+			u = UsersScripts(key_name="owner"+user.lower()+new_resource_id,
+							user=user.lower(),
 							title='Copy of '+title,
 							resource_id=new_resource_id,
-							updated = str(datetime.datetime.today()),
+							last_updated = datetime.datetime.today(),
 							permission='owner',
 							folder = "?none?")
 			u.put()
@@ -768,10 +738,11 @@ class ConvertProcess (webapp.RequestHandler):
 									 autosave=0)
 		s.put()
 
-		u = UsersScripts(user=user.lower(),
+		u = UsersScripts(key_name="owner"+user.lower()+resource_id,
+						user=user.lower(),
 						title=filename,
 						resource_id=resource_id,
-						updated = str(datetime.datetime.today()),
+						last_updated = datetime.datetime.today(),
 						permission='owner',
 						folder = "?none?")
 		u.put()
@@ -867,10 +838,11 @@ class Share (webapp.RequestHandler):
 						found=True
 				if found==False:
 					output.append(i.lower())
-					u = UsersScripts(resource_id=resource_id,
+					u = UsersScripts(key_name="collab"+i.lower()+resource_id,
+									resource_id=resource_id,
 									permission="collab",
 									user = i.lower(),
-									updated = str(datetime.datetime.today()),
+									last_updated = datetime.datetime.today(),
 									title = p,
 									folder = "?none?")
 					u.put()
@@ -1025,10 +997,20 @@ class OneScript (webapp.RequestHandler):
 		q=db.GqlQuery("SELECT * FROM UsersScripts")
 		r=q.fetch(1000)
 		for i in r:
-			u = UsersScripts(user = i.user,
+			u = i.updated
+			Y = int(u[0:4])
+			M = int(u[5:7])
+			D = int(u[8:10])
+			H = int(u[11:13])
+			Min = int(u[14:16])
+			S = int(u[17:19])
+			MS = 500
+			ud = datetime.datetime(Y, M, D, H, Min, S, MS)
+			u = UsersScripts(key_name = i.permission+i.user+i.resource_id,
+							user = i.user,
 							resource_id = i.resource_id,
 							title = i.title,
-							updated = i.updated,
+							last_updated = ud,
 							permission = i.permission,
 							folder = "?none?")
 			u.put()
