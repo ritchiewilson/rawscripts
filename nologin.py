@@ -235,30 +235,20 @@ class Save (webapp.RequestHandler):
 		else:
 			b=1
 		q = db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
-		results = q.fetch(100)
-		if len(results)==0:
+										"WHERE resource_id='"+resource_id+"' "+
+										"AND permission='owner'")
+		u = q.get()
+		if u==None:
 			logging.info("save for no script exists")
 			return
-			u = UsersScripts(user = users.get_current_user().email().lower(),
-											 resource_id=resource_id,
-											 title='name',
-											 updated='now',
-											 permission='owner',
-											folder = "?none?")
-			u.put()
-
-			v=1
 		else:
-			for i in results:
-				if i.permission=='owner':
-					if i.user==users.get_current_user().email().lower():
-						q = db.GqlQuery("SELECT * FROM ScriptData "+
-														"WHERE resource_id='"+resource_id+"' "+
-														"ORDER BY version DESC")
-						results = q.fetch(1)
-						v = results[0].version
-						v+=1
+			if u.user==users.get_current_user().email().lower():
+				q = db.GqlQuery("SELECT * FROM ScriptData "+
+								"WHERE resource_id='"+resource_id+"' "+
+								"ORDER BY version DESC")
+				results = q.fetch(1)
+				v = results[0].version
+				v+=1
 
 		if not v==0:
 			a = ScriptData(resource_id=resource_id,
