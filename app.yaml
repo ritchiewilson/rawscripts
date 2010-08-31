@@ -24,10 +24,6 @@ handlers:
 - url: /blog.*
   script: blog.py
 
-- url: /js/restricted
-  static_dir: static/js/restricted
-  login: admin
-
 - url: /sitemap.xml
   static_files: static/text/sitemap.xml
   upload: static/text/sitemap.xml
@@ -138,3 +134,7 @@ handlers:
 - url: /.*
   login: required
   script: scripteditor.py
+
+- url: /js/restricted
+  static_dir: static/js/restricted
+  login: admin

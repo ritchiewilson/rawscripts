@@ -15,7 +15,6 @@
    var undoQue = [];
    var redoQue = [];
    var pageBreaks=[];
-   var mouseX=0;
    var mouseY=0;
    var shiftDown=false;
    var mouseDownBool=false;
@@ -572,6 +571,7 @@ function mouseUp(e){
 	width=height=null;
 }
 function mouseDown(e){
+	mousePosition(e);
     if(checkSpell)ajaxSpell(pos.row);
     var menu = false;
     var c = document.getElementsByTagName('div');
@@ -710,9 +710,36 @@ function mouseDown(e){
     	height=pagesHeight=barHeight=topPixel=null;
 	}
 }
+function mousePosition(e){
+	var count = 0;
+	var found = 0;
+	var mp=e.clientY+vOffset;
+	console.log(mp)
+	var y=15*lineheight;
+	for(i in lines){
+		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+			if(pageBreaks[count][2]==0){
+				y=72*lineheight*(count+1)+11*lineheight;
+				count++;
+			}
+			else{
+				y=72*lineheight*(count+1)+11*lineheight;
+				y+=pageBreaks[count][3]*15;
+				count++;
+				if(lines[i][1]==2)y+=15;
+			}
+		}
+		else{
+			y+=(lineheight*linesNLB[i].length);
+		}
+		if(y<mp){
+			found=i*1+1;
+		}
+	}
+	console.log(lines[found])
+}
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
-    mouseX=e.clientX;
     mouseY=e.clientY;
     if(mouseDownBool) paint(e, false, false,true);
 }
