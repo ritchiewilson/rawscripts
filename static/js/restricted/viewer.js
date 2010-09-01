@@ -336,18 +336,89 @@ function mouseDown(e){
         
         if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
             mouseDownBool=true;
-            paint(false, e, false,false);
+            //paint(false, e, false,false);
+			mousePosition(e,"anch")
         }
         else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
             scrollBarBool=true;
         }
     }
 }
+function mousePosition(e, w){
+	var d= new Date();
+    milli = d.getMilliseconds();
+	var count = 0;
+	var found = 0;
+	var mp=e.clientY+vOffset;
+	var y=15*lineheight;
+	var oldY=0;
+	for(i in lines){
+		oldY=y;
+		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+			if(pageBreaks[count][2]==0){
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight;
+				count++;
+			}
+			else{
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight;
+				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
+				if(lines[i][1]==3)y+=lineheight;
+				y-=(lineheight*linesNLB[i].length);
+				count++;
+			}
+		}
+		y+=(lineheight*linesNLB[i].length);
+		if(y>mp){
+			if(pageBreaks.length!=0 && pageBreaks[count-1]!=undefined && pageBreaks[count-1][0]==i && pageBreaks[count-1][2]!=0){
+				if ((mp-oldY)/lineheight<pageBreaks[count-1][2]){
+					var l = Math.round((mp-oldY)/lineheight+0.5);
+				}
+				else if (mp<72*lineheight*(count)+10*lineheight+headerHeight){
+					var l = pageBreaks[count-1][2];
+				}
+				else{
+					var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.5);
+				}
+			}
+			else{
+				var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.5);
+			}
+			var j=0;
+			var tc=0;
+			while(j+1<l){
+				tc+=linesNLB[i][j]+1;
+				j++;
+			}
+			var r;
+			if(lines[i][1]!=5){
+				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1])/fontWidth);
+			}
+			else{
+				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]+(lines[i][0].length*fontWidth))/fontWidth);
+			}
+			if(r<0)r=0;
+			if(r>linesNLB[i][j])r=linesNLB[i][j];
+			tc+=r;
+			if(tc<0)tc=0;
+            if(tc>lines[i][0].length)tc=lines[i][0].length;
+			if (w=="anch"){
+				pos.row = anch.row = i*1;
+				pos.col = anch.col = tc*1;
+			}
+			else{
+				pos.row = i;
+				pos.col = tc;
+			}
+			r = y = tc = count = found = mp = oldY = l = d = null;
+			return;
+		}
+	}
+}
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
     mouseX=e.clientX;
     mouseY=e.clientY;
-    if(mouseDownBool) paint(e, false, false,true);
+    if(mouseDownBool) mousePosition(e,"pos");
 }
 function scrollBarDrag(e){
     var diff = mouseY-e.clientY;
@@ -1528,83 +1599,7 @@ function paint(e, anchE, forceCalc, forceScroll){
                     linesNLB[i].pop();
                     y-=lineheight;
                 }
-                // changing cursor position
-                // on click
-                // Bad place to put it. See if can be done
-                // better in mouseClick function
-                if(e && !eFound && e.clientY-headerHeight<y-vOffset-lineheight && e.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
-                    pos.row=i;
-                    pos.col=0;
-                    var itr=0;
-                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
-                    while(e.clientY-headerHeight>lbMeasure){
-                        pos.col+=linesNLB[i][itr]+1;
-                        lbMeasure+=lineheight;
-                        itr++;
-                    }
-                    if(type!=5){
-                        var remainder = Math.round(((e.clientX-wrapVars[1]-pageStartX)/fontWidth));
-                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
-                        if(remainder<0)remainder=0;
-                        pos.col+=remainder;
-                    }
-                    else{
-                        var remainder = Math.round(((wrapVars[1]-e.clientX-pageStartX)/fontWidth));
-                        if(remainder<0)remainder = 0;
-                        pos.col-=remainder;
-                        pos.col+=lines[i][0].length;
-                    }
-                    if(viewNotes){
-                        for (note in notesInThisLine){
-                            if (notesInThisLine[note]<pos.col)pos.col--;
-                        }
-                    }
-                    var onClickLengthLimit=0;
-                    for(var integ=0; integ<wrapCounterOnClick.length; integ++){
-                        onClickLengthLimit+=wrapCounterOnClick[integ]+1;
-                    }
-                    if(pos.col<0)pos.col=0;
-                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-                    eFound=true;
-                    
-                }
-                // Now setting anchor position
                 
-                if(anchE && !anchEFound && anchE.clientY-headerHeight<y-vOffset-lineheight && anchE.clientY-headerHeight>y-vOffset-(linesNLB[i].length*lineheight)-lineheight){
-                    anch.row=i;
-                    anch.col=0;
-                    var itr=0;
-                    var lbMeasure = y-vOffset-(linesNLB[i].length*lineheight);
-                    while(anchE.clientY-headerHeight>lbMeasure){
-                        anch.col+=linesNLB[i][itr]+1;
-                        lbMeasure+=lineheight;
-                        itr++;
-                    }
-                    if(type!=5){
-                        var remainder = Math.round(((anchE.clientX-wrapVars[1]-pageStartX)/fontWidth));
-                        if(remainder>linesNLB[i][itr])remainder = linesNLB[i][itr];
-                        if(remainder<0)remainder=0;
-                        anch.col+=remainder;
-                    }
-                    else{
-                        var remainder = Math.round(((wrapVars[1]-anchE.clientX-pageStartX)/fontWidth));
-                        if(remainder<0)remainder = 0;
-                        anch.col-=remainder;
-                        anch.col+=lines[i][0].length;
-                    }
-                    if(viewNotes){
-                        for (note in notesInThisLine){
-                            if (notesInThisLine[note]<anch.col)anch.col--;
-                        }
-                    }
-                    var onClickLengthLimit=0;
-                    for(var integ=0; integ<wrapCounterOnClick.length; integ++){
-                        onClickLengthLimit+=wrapCounterOnClick[integ]+1;
-                    }
-                    if(anch.col<0)anch.col=0;
-                    if(anch.col>lines[anch.row][0].length)anch.col=lines[anch.row][0].length;
-                    anchEFound=true;
-                }
                 if(bb && linesNLB[i].length==pageBreaks[count][2]){
                     if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
                     y=72*lineheight*(count+1)+11*lineheight;
