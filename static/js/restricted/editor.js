@@ -419,7 +419,7 @@ function selection(){
     else{
         arr=[];
         arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
-        startRange.row+=1;
+        startRange.row=startRange.row*1+1;
         while(startRange.row<endRange.row){
             arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
             startRange.row+=1;
