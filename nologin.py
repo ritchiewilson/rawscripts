@@ -221,7 +221,6 @@ class ScriptContent (webapp.RequestHandler):
 
 class Save (webapp.RequestHandler):
 	def post(self):
-		v=0
 		resource_id = self.request.get('resource_id')
 		if resource_id == None:
 			return
@@ -238,6 +237,7 @@ class Save (webapp.RequestHandler):
 										"WHERE resource_id='"+resource_id+"' "+
 										"AND permission='owner'")
 		u = q.get()
+		v=0
 		if u==None:
 			logging.info("save for no script exists")
 			return
@@ -246,22 +246,21 @@ class Save (webapp.RequestHandler):
 				q = db.GqlQuery("SELECT * FROM ScriptData "+
 								"WHERE resource_id='"+resource_id+"' "+
 								"ORDER BY version DESC")
-				results = q.fetch(1)
-				v = results[0].version
+				most_recent = q.get()
+				v = most_recent.version
 				v+=1
 
 		if not v==0:
 			a = ScriptData(resource_id=resource_id,
-										 title='title',
-										 data=data,
-										 version=v,
-										 export='[[],[]]',
-										 tag='',
-										 autosave=b)
+							title='title',
+							data=data,
+							version=v,
+							export='[[],[]]',
+							tag='',
+							autosave=b)
 			a.put()
 
-			q = db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
+			q = db.GqlQuery("SELECT * FROM UsersScripts WHERE resource_id='"+resource_id+"'")
 			results=q.fetch(500)
 			for i in results:
 				i.last_updated=datetime.datetime.today()
