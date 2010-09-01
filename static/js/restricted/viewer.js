@@ -350,17 +350,17 @@ function mousePosition(e, w){
 	var count = 0;
 	var found = 0;
 	var mp=e.clientY+vOffset;
-	var y=15*lineheight;
+	var y=15*lineheight+3;
 	var oldY=0;
 	for(i in lines){
 		oldY=y;
 		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
 			if(pageBreaks[count][2]==0){
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight;
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
 				count++;
 			}
 			else{
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight;
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
 				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
 				if(lines[i][1]==3)y+=lineheight;
 				y-=(lineheight*linesNLB[i].length);
