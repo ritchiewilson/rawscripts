@@ -162,7 +162,7 @@ class RevisionHistory(webapp.RequestHandler):
 									 "ORDER BY version DESC")
 			r = q.fetch(1000)
 			for i in r:
-				i.updated=i.timestamp.strftime("%b %d, %H:%M")
+				i.updated=i.timestamp.strftime("%b %d")
 				J=simplejson.loads(i.export)
 				"""
 				if len(J[0])==0 and len(J[1])==0:
@@ -234,7 +234,7 @@ class RevisionList(webapp.RequestHandler):
 											"ORDER BY version DESC")
 				r=q.fetch(1000)
 				for e in r:
-					e.updated=e.timestamp.strftime("%b %d, %H:%M")
+					e.updated=e.timestamp.strftime("%b %d")
 					if e.autosave==0:
 						e.s='manualsave'
 					else:
