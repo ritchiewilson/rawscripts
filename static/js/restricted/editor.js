@@ -57,7 +57,7 @@
     
     //if ($.browser.mozilla)fontWidth=9;
     var editorWidth = 850;
-    var headerHeight=65;
+    var headerHeight=65+26;
 	var lines = [];
 	/*
 	 * Notes notation
@@ -94,7 +94,7 @@
     
     
 $(document).ready(function(){
-    document.getElementById('canvas').height = $('#container').height()-60;
+    document.getElementById('canvas').height = $('#container').height()-60-26;
 	document.getElementById('canvas').width = $('#container').width()-320;
 	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
@@ -112,7 +112,7 @@ $(document).ready(function(){
     $('.menuItem').mouseout(function(){topMenuOut(this.id)});
   });
   $(window).resize(function(){
-    document.getElementById('canvas').height = $('#container').height()-60;
+    document.getElementById('canvas').height = $('#container').height()-60-26;
 	document.getElementById('canvas').width = $('#container').width()-320;
 	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
@@ -714,7 +714,7 @@ function mousePosition(e, w){
     milli = d.getMilliseconds();
 	var count = 0;
 	var found = 0;
-	var mp=e.clientY+vOffset;
+	var mp=e.clientY+vOffset-26;
 	var y=15*lineheight+3;
 	var oldY=0;
 	for(i in lines){
@@ -2466,6 +2466,7 @@ function hideSpellCheck(){
     document.getElementById('spellcheckpopup').style.visibility='hidden';
     typeToScript=true;
     //spellIgnore=[];
+	saveTimer()
 }
 function s_ignore(){
     var tmp = document.getElementById('sHidden').value;
@@ -3124,7 +3125,7 @@ function paint(e, anchE, forceCalc, forceScroll){
     ctx.lineTo(2,document.getElementById('canvas').height-1);
     ctx.lineTo(editorWidth, document.getElementById('canvas').height-1);
     ctx.lineTo(editorWidth,2);
-    ctx.lineTo(2,2);
+    //ctx.lineTo(2,2);
     ctx.stroke();
     //
     // bottom status bar

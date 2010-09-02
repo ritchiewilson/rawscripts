@@ -44,14 +44,31 @@
     width:100%;
     border-top:2px #000 solid;
   }
+  #graphicalToolBar{
+	background: url("images/grey_bg.png") repeat-x left bottom;
+	border-bottom:1px #999 solid;
+	height:25px;
+	}
+	.graphicalToolBarItem{
+		width:26px;
+		height:24px;
+	}
+	.graphicalToolBarItem:hover, .graphicalToolBarItemLast:hover{
+		background-color:#f9f9f9;
+	}
+	.graphicalToolBarItemLast{
+		width:26px;
+		height:24px;
+		border-right:1px #aaa solid;
+	}
   .sceneItem{font-family:Courier; font-size:10pt;margin: 0px 0px 0px 10px; cursor:pointer;}
   #header{padding:0px;}
   #menu{padding-top:0px;float:left}
   #fileMenu{
     width:170px;
     position:fixed; 
-    top:63px; 
-    left:0px; 
+    top:63px;
+    left:0px;
     border-right:1px #666 solid; 
     border-bottom:1px #666 solid; 
     border-top:1px #999 solid; 
@@ -426,17 +443,36 @@
           <div id='share' class="menuItem">Share</div>
           <!--<div id='help' class="menuItem">Help</div>-->
         </div>
-          <select id="format" onchange="changeFormat(this.selectedIndex)" style="margin-top:2px; margin-left:50px;float:left">
-            <option>Slugline</option>
-            <option>Action</option>
-            <option>Character</option>
-            <option>Dialog</option>
-            <option>Parenthetical</option>
-            <option>Transition</option>
-          </select>
         <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-right:50px;float:right" onclick="save(0)" />
     </div>
   </div>
+	<div id="graphicalToolBar">
+		<table border="0" cellpadding=0 cellspacing=0>
+			<tr>
+				<td class="graphicalToolBarItem" align="center" valign="bottom" title="New" onclick="newScriptPrompt()"><img src="images/new_file.gif"></td>
+				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Save"onclick="save(0)"><img src="images/save.png"></td>
+				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Export"onclick="exportPrompt()"><img src="images/export.gif"></td>
+				
+				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Undo"onclick="undo()"><img src="images/Undo.png"></td>
+				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Redo"onclick="redo()"><img src="images/Redo.png"></td>
+				
+				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Insert Note"onclick="newThread()"><img src="images/note.png"></td>
+				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Spell Check"onclick="launchSpellCheck()"><img src="images/spellcheck.png"></td>
+				
+				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Email"onclick="emailPrompt()"><img src="images/email.gif"></td>
+				<td>
+					<select id="format" onchange="changeFormat(this.selectedIndex)" style="margin-top:2px; margin-left:200px;float:left">
+			            <option>Slugline</option>
+			            <option>Action</option>
+			            <option>Character</option>
+			            <option>Dialog</option>
+			            <option>Parenthetical</option>
+			            <option>Transition</option>
+			          </select>
+				</td>
+			</tr>
+		</table>
+	</div>
   <canvas id='canvas' width="850" style="float:left; cursor:text">
     <div style="background-color:white; width:400px; margin-left:75px; padding:100px; padding-top:50px;">
         <h2>Grrr.... Internet!</h2>
