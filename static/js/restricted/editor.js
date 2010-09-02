@@ -1253,7 +1253,9 @@ function backspace(e){
             }
             undoQue.push(['br',undoCount]);
         }
-        paint(false,false,forceCalc,false);
+		if(forceCalc==true){
+			paint(false,false,forceCalc,false);
+		}
         if (slug)sceneIndex();
     }
 }
@@ -1358,7 +1360,9 @@ function deleteButton(){
             }
             undoQue.push(['dr',undoCount]);
         }
-        paint(false,false,forceCalc,false);
+        if(forceCalc==true){
+			paint(false,false,forceCalc,false);
+		}
         if (slug)sceneIndex();
     }
 }
