@@ -815,12 +815,15 @@ function jumpTo(v){
         pos.col=lines[pos.row][0].length;
         anch.col=pos.col;
     }
-    else var e=pos.row;
+    else {var e=pos.row;}
     var scrollHeight=0;
     for(var i=0;i<e;i++){
         for(var count=0; count<pageBreaks.length; count++){
             if(pageBreaks[count][0]==i){
-                scrollHeight+=lineheight*(72-pageBreaks[count][1]);
+                scrollHeight=lineheight*72*(count*1+1);
+				if(pageBreaks[count][2]!=0){
+					scrollHeight-=lineheight*(linesNLB[i].length-pageBreaks[count][2]);
+				}
             }
         }
 		count=null;
