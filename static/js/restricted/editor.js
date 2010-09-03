@@ -700,7 +700,6 @@ function mouseDown(e){
         
         if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
             mouseDownBool=true;
-            //paint(false, false, false,false);
 			mousePosition(e,"anch")
         }
         else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
@@ -1254,9 +1253,10 @@ function backspace(e){
             undoQue.push(['br',undoCount]);
         }
 		if(forceCalc==true){
+			sceneIndex()
 			paint(false,false,forceCalc,false);
 		}
-        if (slug)sceneIndex();
+        if (slug)updateOneScene(pos.row);
     }
 }
 function deleteButton(){
@@ -1361,9 +1361,10 @@ function deleteButton(){
             undoQue.push(['dr',undoCount]);
         }
         if(forceCalc==true){
+			sceneIndex();
 			paint(false,false,forceCalc,false);
 		}
-        if (slug)sceneIndex();
+        if (slug)updateOneScene(pos.row);
     }
 }
 	
@@ -1468,7 +1469,7 @@ function handlekeypress(event) {
             undoQue.push([String.fromCharCode(event.charCode), pos.row, pos.col]);
             lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(event.charCode) +lines[pos.row][0].slice(pos.col);
             pos.col++;
-            if (lines[pos.row][1]==0)sceneIndex();
+            if (lines[pos.row][1]==0)updateOneScene(pos.row);
 			if (lines[pos.row][1]==2){
 				createSuggestBox('c');
 			}
@@ -1496,6 +1497,7 @@ function handlekeypress(event) {
 function undo(){
     saveTimer();
     if (undoQue.length==0)return;
+	var forceCalc = false;
     var dir = undoQue.pop();
 	var tmp=[];
 	for(x in dir){
@@ -1534,6 +1536,7 @@ function undo(){
         }
         else{
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
             //shift notes
             for(x in notes){
                 if(dir[1]==notes[x][0]){
@@ -1554,12 +1557,14 @@ function undo(){
         }
         else{
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[3] +lines[dir[1]][0].slice(dir[2]);
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         }
     }
     else if(dir[0]=='format'){
         lines[dir[1]][1]=dir[3];
         if(lines[dir[1]][0].charAt(0)=='(')lines[dir[1]][0]=lines[dir[1]][0].substr(1);
         if(lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
+		forceCalc = true;
     }
     else if(dir[0]=='br' || dir[0]=="dr"){
         var n=dir[1];
@@ -1583,6 +1588,7 @@ function undo(){
             }
             else{
                 lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
+				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
             }
         }
     }
@@ -1590,9 +1596,11 @@ function undo(){
         // if string and not json
         if(dir[3][0]!='[' && dir[3][1]!='['){
             lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+lines[dir[1]][0].slice(dir[2]+dir[3].length);
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         }
         // if json
         else{
+			forceCalc = true
             var d=JSON.parse(dir[3]);
             //if did not text to first line at paste
             if(dir[4]==0){
@@ -1622,6 +1630,7 @@ function undo(){
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
             dir[2]=dir[2]-1;
         }
+		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         //shift notes
         for(x in notes){
             if(dir[1]==notes[x][0]){
@@ -1633,13 +1642,15 @@ function undo(){
     pos.col=dir[2];
     anch.row = pos.row;
     anch.col=pos.col;
-    sceneIndex();
-    paint(false,false,true,false);
-    
+	if (forceCalc == true){
+		sceneIndex();
+		paint(false,false,true,false);
+    }
 }
 function redo(){
     saveTimer();
     if (redoQue.length==0)return;
+	var forceCalc=false;
     var dir = redoQue.pop();
 	var tmp =[];
 	for (x in dir){
@@ -1661,22 +1672,25 @@ function redo(){
         lines.splice(dir[1]+1,0,newArr);
 		dir[1]=dir[1]+1;
 		dir[2]=0;
+		forceCalc=true;
     }
     else if(dir[0]=='back'){
         if(dir[3]!='line'){
             lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
             dir[2]=dir[2]-1;
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         }
         else{
-            
             var j = lines[dir[1]+1][0];
             lines.splice(dir[1]+1,1);
             lines[dir[1]][0] = lines[dir[1]][0]+j;
+			forceCalc=true;
         }
     }
     else if(dir[0]=='delete'){
 		if(dir[3]!='line'){
 			lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
 		}
 		else{
 			var j =lines[dir[1]+1][0];
@@ -1697,6 +1711,7 @@ function redo(){
 			else if(j==4)lines[dir[1]][1]=3;
 			else if(j==5)lines[dir[1]][1]=0;
 		}
+		forceCalc=true;
     }
     else if(dir[0]=='br'){
 		var n=dir[1];
@@ -1711,9 +1726,11 @@ function redo(){
 				var j=lines[dir[1]+1][0]
 				lines.splice(dir[1]+1,1);
 				lines[dir[1]][0]=lines[dir[1]][0]+j;
+				forceCalc=true;
 			}
 			else{
 				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
 			}
 		}
 		dir[2]=dir[2]-1;
@@ -1731,9 +1748,11 @@ function redo(){
 				var j=lines[dir[1]+1][0]
 				lines.splice(dir[1]+1,1);
 				lines[dir[1]][0]=lines[dir[1]][0]+j;
+				forceCalc=true;
 			}
 			else{
 				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
 			}
 		}
 		dir[2]=dir[2]-1;
@@ -1742,9 +1761,11 @@ function redo(){
         //for single line, no json
         if(dir[3][0]!='[' && dir[3][1]!='['){
             lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+dir[3]+lines[dir[1]][0].slice(dir[2]);
+			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         }
         //for json
         else{
+			forceCalc=true;
             var arr=JSON.parse(dir[3]);
             if (lines[dir[1]][0]==''){
                 lines[dir[1]][1]=arr[0][1];
@@ -1787,9 +1808,12 @@ function redo(){
     else{
         lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
         dir[2]=dir[2]+1;
+		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
     }
-    sceneIndex();
-    paint(false,false,true,false);
+    if (forceCalc == true){
+		sceneIndex();
+		paint(false,false,true,false);
+    }
 }
 
 
@@ -1898,6 +1922,15 @@ function sceneIndex(){
     $(".sceneItem").mouseover(function(){$(this).css("background-color", "#ccccff");});
 	$(".sceneItem").mouseout(function(){$(this).css("background-color", "white");});
     
+}
+function updateOneScene(v){
+	try{
+		var d = document.getElementById("row"+v);	
+		var num = d.innerHTML.split(")")[0];
+		d.removeChild(d.firstChild);
+		d.appendChild(document.createTextNode(num+") "+lines[v][0].toUpperCase()));
+	}
+	catch(e){};
 }
 //notes
 function sortNotes(a,b){
