@@ -595,29 +595,23 @@ function mouseDown(e){
         if(id=='save')save(0);
         else if(id=='new'){
             if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
+                alert("Sorry, you'll have to login to start saving.");
             }
             else {newScriptPrompt();}
         }
         else if(id=='open'){
             if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
+                alert("Sorry, you'll have to login to open new scripts.");
             }
             else{openPrompt();}
         }
         else if(id=='rename'){
             if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
+                alert("Sorry, you'll have to login to rename scripts.");
             }
             else{renamePrompt();}
         }
-        else if(id=='exportas'){
-            if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
-                return;
-            }
-            else{exportPrompt();}
-        }
+        else if(id=='exportas'){exportPrompt();}
         else if(id=='duplicate'){
             if(resource_id=="Demo"){
                 alert("Sorry, you'll have to login to start doing that.");
@@ -635,7 +629,7 @@ function mouseDown(e){
         }
         else if(id=='editTitlePage'){
             if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
+                alert("Sorry, you'll have to login to start edit the title page.");
                 return;
             }
             else{window.open('/titlepage?resource_id='+resource_id);}
@@ -664,7 +658,7 @@ function mouseDown(e){
         }
         else if(id=='email'){
             if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start doing that.");
+                alert("Sorry, you'll have to login to email scripts.");
                 return;
             }
             else{emailPrompt();}
@@ -720,12 +714,12 @@ function mousePosition(e, w){
 		oldY=y;
 		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
 			if(pageBreaks[count][2]==0){
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3-26;
 				count++;
 			}
 			else{
 				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
-				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
+				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight-26;
 				if(lines[i][1]==3)y+=lineheight;
 				y-=(lineheight*linesNLB[i].length);
 				count++;
@@ -2269,6 +2263,10 @@ function renameScript(){
 }
 //exporting
 function exportPrompt(){
+	if(resource_id=="Demo"){
+        alert("Sorry, you'll have to login to start export scripts.");
+        return;
+    }
     if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("exportpopup").style.visibility="visible"
@@ -2278,8 +2276,8 @@ function hideExportPrompt(){
     document.getElementById("exportpopup").style.visibility="hidden";
 }
 function exportScripts(){
-    if (resource_id=='Demo'){
-        nope();
+    if(resource_id=="Demo"){
+        alert("Sorry, you'll have to login to export scripts.");
         return;
     }
     else{
