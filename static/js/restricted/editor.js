@@ -28,6 +28,7 @@
    var vOffset = 0;
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
+   var find = {col:0, row:0};
    var background = '#fff';
    var font = '10pt Courier';
    var fontWidth = 8;
@@ -98,7 +99,8 @@ $(document).ready(function(){
 	document.getElementById('canvas').width = $('#container').width()-320;
 	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
+    //document.getElementById('find_replace_div').style.top = headerHeight+"px";
+	//document.getElementById('find_replace_div').style.right = "450px";	
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*25);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
     $('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
@@ -106,6 +108,8 @@ $(document).ready(function(){
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
     $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
+	$('#find_replace_input').focus(function(e){typeToScript=false});
+	$('#find_replace_input').keyup(function(e){findInputKeydown()});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -252,6 +256,26 @@ function saveTimer(){
     clearTimeout(timer);
     checkSpell=true;
     timer = setTimeout('save(1)',7000);
+}
+
+function findInputKeydown(){
+	var f = document.getElementById("find_replace_input").value;
+	var r = new RegExp(f,"gi");
+	var foundArr=[];
+	var c = 0;
+	for (i in lines){
+		if(r.test(lines[i][0])!=false){
+			var j=0;
+			while(j<lines[i][0].length-f.length){
+				if(r.test(lines[i][0].substr(j,f.length))!=false){
+					foundArr.push([i,j]);
+					//console.log('hey')
+				}
+				j++;
+			}
+		}
+	}
+	console.log(foundArr.length)
 }
 
 function ajaxSpell(v, r){

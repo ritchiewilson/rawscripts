@@ -260,7 +260,28 @@
 	cursor:pointer;
 }
 #scenes{margin-top:4px;}
-
+#find_replace_div{
+	position:fixed; 
+	top:90px; 
+	right:350px;
+	padding:2px;
+	background-color:#f0f0f0;
+	border:1px #999 solid;
+	border-top:none;
+}
+#find_replace_input{
+	float:left;
+}
+#down_find_button, #up_find_button{
+	float:left;
+	width:11px;
+	height:11px;
+	font-size:7pt;
+	padding:2px;
+	margin:2px;
+	background-color:#ccc;
+	border:1px #aaa solid
+}
   </style>
   </head>
 <body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -560,6 +581,12 @@
     <div id='videos' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Videos</td></tr></table></div>
     <div id='contact' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Contact</td></tr></table></div>
   </div>
+	<div id="find_replace_div" style="">
+		<input type="text" name="find_replace_input" value="" id="find_replace_input">
+		<div id="down_find_button" align="center" valign="top">▼</div>
+		<div id="up_find_button" align="center" valign="top">▲</div>
+		
+	</div>
   <textarea id="ccp" style="position:fixed; top-9999px; left:-9999px;"></textarea>
 </body>
 </html>
