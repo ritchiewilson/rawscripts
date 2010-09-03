@@ -18,6 +18,7 @@ import logging
 from django.utils import simplejson
 import activity
 import mobileTest
+import chardet
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -678,7 +679,6 @@ class ConvertProcess (webapp.RequestHandler):
 		# New Script Setup
 		filename = "Untitled"
 		ff = self.request.get('ff')
-		logging.info(ff)
 		capture = self.request.get('filename')
 		if capture:
 			filename = capture.replace('%20', ' ')
@@ -703,6 +703,10 @@ class ConvertProcess (webapp.RequestHandler):
 		# Format file
 		data = StringIO.StringIO(self.request.get('script'))
 		if ff=='txt':
+			e = chardet.detect(data.getvalue())
+			if e["encoding"]!=None and e["encoding"]!="ascii":
+				r = data.getvalue().decode(e["encoding"])
+				data = StringIO.StringIO(r.encode("ascii", "replace"))
 			contents = convert.Text(data)
 		elif ff=='html':
 			#this was to help herrard costales migrate scritps. should be taken out
