@@ -2176,6 +2176,10 @@ function closeScript(){
 }
 // new script
 function newScriptPrompt(){
+	if(resource_id=="Demo"){
+        alert("Sorry, you'll have to login to open new scripts.");
+		return;
+    }
     typeToScript=false;
 	document.getElementById('newscriptpopup').style.visibility = 'visible';
 }
@@ -2264,7 +2268,7 @@ function renameScript(){
 //exporting
 function exportPrompt(){
 	if(resource_id=="Demo"){
-        alert("Sorry, you'll have to login to start export scripts.");
+        alert("Sorry, you'll have to login to export scripts.");
         return;
     }
     if(document.getElementById('saveButton').value=="Save")save(0);
@@ -2298,6 +2302,10 @@ function exportScripts(){
 }
 // emailing
 function emailPrompt(){
+	if(resource_id=="Demo"){
+        alert("Sorry, you'll have to login to email scripts.");
+		return;
+    }
     if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("emailpopup").style.visibility='visible'
