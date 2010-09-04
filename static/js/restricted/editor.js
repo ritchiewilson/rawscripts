@@ -10,6 +10,7 @@
    var viewNotes=true;
    var timer;
    var typeToScript=true;
+   var forcePaint = false;
    var pasting=false;
    var justPasted=false;
    var undoQue = [];
@@ -28,7 +29,7 @@
    var vOffset = 0;
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
-   var find = {col:0, row:0};
+   var findArr = [];
    var background = '#fff';
    var font = '10pt Courier';
    var fontWidth = 8;
@@ -108,7 +109,7 @@ $(document).ready(function(){
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
     $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	$('#find_replace_input').focus(function(e){typeToScript=false});
+	$('#find_replace_input').focus(function(e){typeToScript=false; forcePaint=true});
 	$('#find_replace_input').keyup(function(e){findInputKeydown()});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
@@ -122,7 +123,7 @@ $(document).ready(function(){
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
     //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
 	scroll(0);
-	paint(false,false,false,false)
+	paint(false,false,false)
   });
   $('*').keydown(function(e){
   if (commandDownBool && e.which!=16){
@@ -261,21 +262,22 @@ function saveTimer(){
 function findInputKeydown(){
 	var f = document.getElementById("find_replace_input").value;
 	var r = new RegExp(f,"gi");
-	var foundArr=[];
+	findArr=[];
+	if(f.length==0){
+		return;
+	}
 	var c = 0;
 	for (i in lines){
 		if(r.test(lines[i][0])!=false){
 			var j=0;
-			while(j<lines[i][0].length-f.length){
-				if(r.test(lines[i][0].substr(j,f.length))!=false){
-					foundArr.push([i,j]);
-					//console.log('hey')
+			while(j<lines[i][0].length){
+				if(r.test(lines[i][0].substr(j-1,f.length))!=false){
+					findArr.push([i,j-1]);
 				}
 				j++;
 			}
 		}
 	}
-	console.log(foundArr.length)
 }
 
 function ajaxSpell(v, r){
@@ -413,7 +415,7 @@ function paste(){
 	    }
 	    pasting=false;
 	    sceneIndex();
-	    paint(false,false,true,false);
+	    paint(true,false,false);
 		justPasted=true;
 		setTimeout("setJustPasted()", 50);
 		j=r=data=null;
@@ -463,7 +465,7 @@ function setup(){
     $.post('/scriptcontent', {resource_id:resource_id}, function(data){
     if(data=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
-        paint(false,false,true,false);
+        paint(true,false,false);
         return;
     }
     var p = JSON.parse(data);
@@ -514,8 +516,8 @@ function setup(){
     document.getElementById('ccp').select();
     document.getElementById('saveButton').value="Saved";
     document.getElementById('saveButton').disabled=true;
-    paint(false,false,true,false);
-    setInterval('paint(false,false, false,false)', 25);
+    paint(true,false,false);
+    setInterval('paint(false,false,false)', 25);
 	i=p=data=title=x=w=c=collabs=null;
     });
 }
@@ -819,7 +821,7 @@ function scroll(v){
 	var d= new Date();
     milli = d.getMilliseconds();
 	if(document.getElementById('suggestBox')!=null){
-		paint(false,false,false,false);
+		paint(false,false,false);
 		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
 	}
 	pagesHeight=d=null;
@@ -1004,7 +1006,7 @@ function upArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
-		if(ud<0)paint(false,false,false,false);
+		if(ud<0)paint(false,false,false);
     }
 	else if(document.getElementById('suggestBox')!=null){
 		var f=document.getElementById('focus');
@@ -1088,7 +1090,7 @@ function downArrow(){
             anch.col=pos.col;
             anch.row=pos.row;
         }
-        if(ud>document.getElementById('canvas').height-50)paint(false,false,false,false);
+        if(ud>document.getElementById('canvas').height-50)paint(false,false,false);
     }
 	else if(document.getElementById('suggestBox')!=null){
 		var f=document.getElementById('focus');
@@ -1272,7 +1274,7 @@ function backspace(e){
         }
 		if(forceCalc==true){
 			sceneIndex()
-			paint(false,false,forceCalc,false);
+			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
     }
@@ -1380,7 +1382,7 @@ function deleteButton(){
         }
         if(forceCalc==true){
 			sceneIndex();
-			paint(false,false,forceCalc,false);
+			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
     }
@@ -1420,8 +1422,8 @@ function enter(){
         pos.col=0;
         anch.row=pos.row;
         anch.col=pos.col;
-        paint(false,false,true,'enter');
-        paint(false,false,false,'enter');
+        paint(true,'enter', false);
+        paint(false,'enter',false);
     }
 	else if(document.getElementById('suggestBox')!=null){
         saveTimer();
@@ -1662,7 +1664,7 @@ function undo(){
     anch.col=pos.col;
 	if (forceCalc == true){
 		sceneIndex();
-		paint(false,false,true,false);
+		paint(true,false,false);
     }
 }
 function redo(){
@@ -1830,7 +1832,7 @@ function redo(){
     }
     if (forceCalc == true){
 		sceneIndex();
-		paint(false,false,true,false);
+		paint(true,false,false);
     }
 }
 
@@ -2013,7 +2015,7 @@ function noteIndex(){
                 pos.col=anch.col=notes[i][1];
             }
         }
-        paint(false, false, false, false);
+        paint(false,false,false);
         if(ud>document.getElementById('canvas').height)scroll(ud-document.getElementById('canvas').height+200);
         if(ud<0)scroll(ud-200);
     });
@@ -2023,7 +2025,7 @@ function newThread(){
 	tabs(1);
 	viewNotes=true;
 	document.getElementById("notesViewHide").innerHTML = "✓";
-	paint(false,false,false,false);
+	paint(false,false,false);
     noteIndex();
     typeToScript=false;
     var c = document.getElementById('noteBox');
@@ -2562,7 +2564,7 @@ function s_change(){
     }
     var tmp = document.getElementById('sHidden').value;
     spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
-    paint(false,false,true,false);
+    paint(true,false,false);
 }
 
 
@@ -2649,6 +2651,154 @@ function scrollBar(ctx, y){
 	ctx.lineWidth=2;
 	ctx.stroke()
 	height=pagesHeight=barHeight=topPixel=sh=null;
+}
+function drawFindArr(ctx,pageStartX){
+	var l = document.getElementById("find_replace_input").value.length;
+	for (iterate in findArr){
+		var startRange = {row:findArr[iterate][0], col:findArr[iterate][1]};
+        var endRange = {row:findArr[iterate][0], col:findArr[iterate][1]*1+l*1};
+		
+		//get the starting position
+	    var startHeight = lineheight*9+3;
+	    var count=0;
+	    for (var i=0; i<startRange.row;i++){
+	        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==i){
+	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            //startHeight-=(pageBreaks[count][2])*lineheight;
+	            //if(lines[i][1]==3)startHeight+=lineheight;
+	            count++;
+	            if(count==pageBreaks.length)count--;
+	        }
+	        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==i){
+	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            startHeight+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
+	            if(lines[i][1]==3)startHeight+=lineheight;
+	            count++;
+	            if(count==pageBreaks.length)count--;
+	        }
+	        else{startHeight+=lineheight*linesNLB[i].length;}
+	    }
+	    var i=0;
+	    var startRangeCol=linesNLB[startRange.row][i]+1;
+	    while(startRange.col>startRangeCol){
+	        startHeight+=lineheight;
+	        if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
+	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            if(lines[startRange.row][1]==3)startHeight+=lineheight;
+	        }
+	        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+	        //    startHeight=72*lineheight*(count+1)+9*lineheight+4;
+	        //    if(lines[startRange.row][1]==3)startHeight+=lineheight;
+	        //}
+	        i++;
+	        startRangeCol+=linesNLB[startRange.row][i]+1;
+	    }
+	    startRangeCol-=linesNLB[startRange.row][i]+1;
+	    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
+	    startWidth+=((startRange.col-startRangeCol)*fontWidth);
+	    startHeight+=lineheight;
+	    // calc notes
+	    for (note in notes){
+	        if(notes[note][0]==startRange.row){
+	            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
+	                if(notes[note][1]<startRange.col)startWidth+=fontWidth;
+	            }
+	        }
+	    }
+
+	    //getting the ending position
+
+	    var endHeight = lineheight*9+3;
+	    count=0;
+	    for (var j=0; j<endRange.row;j++){
+	        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
+	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            count++;
+	            if(count==pageBreaks.length)count--;
+	        }
+	        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
+	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
+	            if(lines[j][1]==3)endHeight+=lineheight;
+	            count++;
+	            if(count==pageBreaks.length)count--;
+	        }
+	        else{endHeight+=lineheight*linesNLB[j].length;}
+	    }
+	    var j=0;
+	    var endRangeCol=linesNLB[endRange.row][j]+1;
+	    while(endRange.col>endRangeCol){
+	        endHeight+=lineheight;
+	        if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
+	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
+	            if(lines[endRange.row][1]==3)endHeight+=lineheight;
+	        }
+	        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+	        //    endHeight=72*lineheight*(count+1)+9*lineheight+4;
+	        //    if(lines[endRange.row][1]==3)endHeight+=lineheight;
+	        //}
+	        j++;
+	        endRangeCol+=linesNLB[endRange.row][j]+1;
+	    }
+	    endRangeCol-=linesNLB[endRange.row][j]+1;
+	    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
+	    endWidth+=((endRange.col-endRangeCol)*fontWidth);
+	    endHeight+=lineheight;
+	    // calc notes
+	    for (note in notes){
+	        if(notes[note][0]==endRange.row){
+	            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
+	                if(notes[note][1]<endRange.col)endWidth+=fontWidth;
+	            }
+	        }
+	    }
+
+	    // Now compare stuff and draw blue Box
+	    ctx.fillStyle='yellow';
+	    if(endHeight==startHeight){
+	        var onlyBlueLine = startWidth;
+	        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
+	        ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
+			onlyBlueLine=null;
+	    }
+	    else{
+	        var firstLineBlue = startWidth;
+	        if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+	        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+	        while(startHeight+lineheight<endHeight){
+	            for(var counter=0; counter<pageBreaks.length; counter++){
+	                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
+	                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+	                }
+	                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
+	                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+	                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
+	                }
+	            }
+				counter=null;
+	            i++;
+	            startHeight+=lineheight;
+	            if(linesNLB[startRange.row].length<=i){
+	                startRange.row++;
+	                i=0;
+	            }
+	            if(startHeight!=endHeight){
+	                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+	                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+	                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+					blueStart=null;
+	            }
+
+	        }
+	        //ctx.fillStyle="blue";
+	        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
+	        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
+	        ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+			firstLineBlue=lastBlueLine=null;
+	    }
+		startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
+		
+	}
 }
 function drawRange(ctx, pageStartX){
     if(pos.row>anch.row){
@@ -2866,8 +3016,8 @@ function sortNumbers(a,b){
     return a - b;
 }
 
-function paint(e, anchE, forceCalc, forceScroll){
-    if(typeToScript){
+function paint(forceCalc, forceScroll){
+    if(typeToScript || forcePaint){
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -2929,6 +3079,9 @@ function paint(e, anchE, forceCalc, forceScroll){
         drawRange(ctx, pageStartX);
         if(!pasting)selection();
     }
+	if(findArr.length!=0){
+		drawFindArr(ctx, pageStartX);
+	}
     
     ctx.fillStyle=foreground;
     
@@ -2985,7 +3138,6 @@ function paint(e, anchE, forceCalc, forceScroll){
             notesArr = notesArr.sort(sortNumbers);
             var type = lines[i][1];
             //Cursor position
-            var anchOrFocus = (anchE ? anch.row : pos.row);
             if (i==pos.row){
                 var cursorY = y-lineheight;
                 if (type == 1)var cursorX =WrapVariableArray[1][1];
@@ -3021,7 +3173,6 @@ function paint(e, anchE, forceCalc, forceScroll){
             
             var wordsArr = lineContent.split(' ');
             var word = 0;
-            if(e||anchE)var wrapCounterOnClick=[];
             linesNLB[i]=[];
             // tc = total characters, used
             // mainly to put in notes
@@ -3056,7 +3207,6 @@ function paint(e, anchE, forceCalc, forceScroll){
                         linesNLB[i].push(0);
                         y+=lineheight;
                     }
-                    if(e||anchE)wrapCounterOnClick.push(printString.length);
                     if(thisRow)wrappedText.push(printString.length);
                     if(anchorThisRow)anchorWrappedText.push(printString.length);
                 }
@@ -3084,7 +3234,6 @@ function paint(e, anchE, forceCalc, forceScroll){
                     y+=lineheight;
                     word+=itr-1;
                     itr =0;
-                    if(e||anchE)wrapCounterOnClick.push(newLineToPrint.length);
                     if (thisRow)wrappedText.push(newLineToPrint.length);
                     if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
                 }
@@ -3236,10 +3385,8 @@ function paint(e, anchE, forceCalc, forceScroll){
     //Make ScrollBar
     scrollArrows(ctx);
     scrollBar(ctx, y);
-    if(anchE){
-        pos.row=anch.row;
-        pos.col=anch.col;
-    }
+
+
     if(forceCalc)pagination();
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
