@@ -108,9 +108,6 @@ handlers:
   login: required
   script: revisionhistory.py
 
-- url: /titlepage.*
-  script: scripteditor.py
-
 - url: /junkparse.*
   login: admin
   script: deletetasks.py
