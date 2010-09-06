@@ -261,23 +261,19 @@ function saveTimer(){
 
 function findInputKeydown(){
 	var f = document.getElementById("find_replace_input").value;
-	var r = new RegExp(f,"gi");
+	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
 	findArr=[];
 	if(f.length==0){
+		document.getElementById('find_number_found').innerHTML="0 found"
 		return;
 	}
 	var c = 0;
 	for (i in lines){
-		if(r.test(lines[i][0])!=false){
-			var j=0;
-			while(j<lines[i][0].length){
-				if(r.test(lines[i][0].substr(j-1,f.length))!=false){
-					findArr.push([i,j-1]);
-				}
-				j++;
-			}
+		while (r.test(lines[i][0])==true){
+			findArr.push([i,r.lastIndex-f.length])
 		}
 	}
+	document.getElementById('find_number_found').innerHTML=findArr.length+" found"
 }
 
 function ajaxSpell(v, r){
@@ -3018,6 +3014,8 @@ function sortNumbers(a,b){
 
 function paint(forceCalc, forceScroll){
     if(typeToScript || forcePaint){
+	var nd = new Date();
+	nd = nd.getTime();
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -3119,14 +3117,14 @@ function paint(forceCalc, forceScroll){
             }
         }
         //Don't render things way outside the screen
-        if(!forceCalc && !bb && (y-vOffset>1200||y-vOffset<-200)){
+        if(!forceCalc && !bb && y-vOffset<-200){
             y+=(lineheight*linesNLB[i].length);
             if(i==pos.row){
                 var cursorY=y;
                 wrappedText=[];
             }
         }
-        
+        else if(!forceCalc && !bb && y-vOffset>1200)break;
         else{
             // calc if there are notes in this line
             var notesArr=[];
@@ -3403,4 +3401,6 @@ function paint(forceCalc, forceScroll){
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
+	var nnd = new Date();
+	console.log(nnd.getTime()-nd);
 }
