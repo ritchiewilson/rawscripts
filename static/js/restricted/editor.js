@@ -110,7 +110,8 @@ $(document).ready(function(){
     $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
 	$('#find_replace_input').focus(function(e){typeToScript=false; forcePaint=true});
-	$('#find_replace_input').keyup(function(e){findInputKeydown()});
+	$('#find_replace_input').blur(function(e){typeToScript=true; forcePaint=false});
+	$('#find_replace_input').keydown(function(e){findInputKeydown(e)});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -126,6 +127,7 @@ $(document).ready(function(){
 	paint(false,false,false)
   });
   $('*').keydown(function(e){
+	if(forcePaint)return;
   if (commandDownBool && e.which!=16){
         keyboardShortcut(e)
     }
@@ -160,7 +162,7 @@ $(document).ready(function(){
   });
   
   $('*').keyup(function(e){
-  //console.log(ud);
+	  if(forcePaint==true)return;
   if(e.which==16)shiftDown=false;
   else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   if(typeToScript){
@@ -170,7 +172,8 @@ $(document).ready(function(){
   });
   
   $('*').keypress(function(e){
-    handlekeypress(e)
+    if(forcePaint==true)return;
+	handlekeypress(e)
   });
   
   $('*').mousedown(function(e){
@@ -259,7 +262,13 @@ function saveTimer(){
     timer = setTimeout('save(1)',7000);
 }
 
-function findInputKeydown(){
+function findInputKeydown(e){
+	if(e.which==13){
+		e.preventDefault();
+		findDown();
+		forcePaint=true;
+		return;
+	}
 	var f = document.getElementById("find_replace_input").value;
 	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
 	findArr=[];
@@ -274,6 +283,28 @@ function findInputKeydown(){
 		}
 	}
 	document.getElementById('find_number_found').innerHTML=findArr.length+" found"
+}
+function findDown(){
+	if (findArr.length==0)return;
+	var l = document.getElementById('find_replace_input').value.length;
+	for(i in findArr){
+		if (findArr[i][0]==pos.row && findArr[i][1]>pos.col){
+			anch.row=pos.row=findArr[i][0];
+			anch.col=findArr[i][1]*1;
+			pos.col=findArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+		if(findArr[i][0]*1>pos.row*1){
+			anch.row=pos.row=findArr[i][0]*1;
+			anch.col=findArr[i][1]*1;
+			pos.col=findArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+	}
+	pos.row=anch.row=pos.col=anch.col=0;
+	findDown();
 }
 
 function ajaxSpell(v, r){
@@ -451,8 +482,10 @@ function selection(){
     }
     var c = document.getElementById('ccp');
     c.value=sel;
-    c.focus();
-    c.select();
+	if(!forcePaint){
+		c.focus();
+		c.select();
+	}
 	startRange=endRange=sel=null;
 }
 
@@ -823,13 +856,16 @@ function scroll(v){
 	pagesHeight=d=null;
 }
 function jumpTo(v){
-    if(v!=''){
+    if(v[0]=='r'){
         var e = parseInt(v.replace('row',''));
         pos.row=e;
         anch.row=pos.row;
         pos.col=lines[pos.row][0].length;
         anch.col=pos.col;
     }
+	else if(v[0]=="f"){
+		var e = parseInt(v.replace('find',''));
+	}
     else {var e=pos.row;}
     var scrollHeight=0;
     for(var i=0;i<e;i++){
@@ -1474,6 +1510,7 @@ function tab(){
 }
 	
 function handlekeypress(event) {
+	if (forcePaint)return;
     if(typeToScript && !commandDownBool){
         event.preventDefault();
 		redoQue=[];
@@ -2674,126 +2711,128 @@ function drawFindArr(ctx,pageStartX){
 	        }
 	        else{startHeight+=lineheight*linesNLB[i].length;}
 	    }
-	    var i=0;
-	    var startRangeCol=linesNLB[startRange.row][i]+1;
-	    while(startRange.col>startRangeCol){
-	        startHeight+=lineheight;
-	        if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
-	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            if(lines[startRange.row][1]==3)startHeight+=lineheight;
-	        }
-	        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
-	        //    startHeight=72*lineheight*(count+1)+9*lineheight+4;
-	        //    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-	        //}
-	        i++;
-	        startRangeCol+=linesNLB[startRange.row][i]+1;
-	    }
-	    startRangeCol-=linesNLB[startRange.row][i]+1;
-	    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
-	    startWidth+=((startRange.col-startRangeCol)*fontWidth);
-	    startHeight+=lineheight;
-	    // calc notes
-	    for (note in notes){
-	        if(notes[note][0]==startRange.row){
-	            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
-	                if(notes[note][1]<startRange.col)startWidth+=fontWidth;
-	            }
-	        }
-	    }
+		if(startHeight-vOffset>1200)break;
+		if(startHeight-vOffset>-50){
+			var i=0;
+			var startRangeCol=linesNLB[startRange.row][i]+1;
+			while(startRange.col>startRangeCol){
+				startHeight+=lineheight;
+				if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
+					startHeight=72*lineheight*(count+1)+9*lineheight+4;
+					if(lines[startRange.row][1]==3)startHeight+=lineheight;
+				}
+				//else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
+				//    startHeight=72*lineheight*(count+1)+9*lineheight+4;
+				//    if(lines[startRange.row][1]==3)startHeight+=lineheight;
+				//}
+				i++;
+				startRangeCol+=linesNLB[startRange.row][i]+1;
+			}
+			startRangeCol-=linesNLB[startRange.row][i]+1;
+			var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
+			startWidth+=((startRange.col-startRangeCol)*fontWidth);
+			startHeight+=lineheight;
+			// calc notes
+			for (note in notes){
+				if(notes[note][0]==startRange.row){
+					if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
+						if(notes[note][1]<startRange.col)startWidth+=fontWidth;
+					}
+				}
+			}
 
-	    //getting the ending position
+			//getting the ending position
 
-	    var endHeight = lineheight*9+3;
-	    count=0;
-	    for (var j=0; j<endRange.row;j++){
-	        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
-	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            count++;
-	            if(count==pageBreaks.length)count--;
-	        }
-	        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
-	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
-	            if(lines[j][1]==3)endHeight+=lineheight;
-	            count++;
-	            if(count==pageBreaks.length)count--;
-	        }
-	        else{endHeight+=lineheight*linesNLB[j].length;}
-	    }
-	    var j=0;
-	    var endRangeCol=linesNLB[endRange.row][j]+1;
-	    while(endRange.col>endRangeCol){
-	        endHeight+=lineheight;
-	        if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
-	            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            if(lines[endRange.row][1]==3)endHeight+=lineheight;
-	        }
-	        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
-	        //    endHeight=72*lineheight*(count+1)+9*lineheight+4;
-	        //    if(lines[endRange.row][1]==3)endHeight+=lineheight;
-	        //}
-	        j++;
-	        endRangeCol+=linesNLB[endRange.row][j]+1;
-	    }
-	    endRangeCol-=linesNLB[endRange.row][j]+1;
-	    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
-	    endWidth+=((endRange.col-endRangeCol)*fontWidth);
-	    endHeight+=lineheight;
-	    // calc notes
-	    for (note in notes){
-	        if(notes[note][0]==endRange.row){
-	            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
-	                if(notes[note][1]<endRange.col)endWidth+=fontWidth;
-	            }
-	        }
-	    }
+			var endHeight = lineheight*9+3;
+			count=0;
+			for (var j=0; j<endRange.row;j++){
+				if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
+					endHeight=72*lineheight*(count+1)+9*lineheight+4;
+					count++;
+					if(count==pageBreaks.length)count--;
+				}
+				else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
+					endHeight=72*lineheight*(count+1)+9*lineheight+4;
+					endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
+					if(lines[j][1]==3)endHeight+=lineheight;
+					count++;
+					if(count==pageBreaks.length)count--;
+				}
+				else{endHeight+=lineheight*linesNLB[j].length;}
+			}
+			var j=0;
+			var endRangeCol=linesNLB[endRange.row][j]+1;
+			while(endRange.col>endRangeCol){
+				endHeight+=lineheight;
+				if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
+					endHeight=72*lineheight*(count+1)+9*lineheight+4;
+					if(lines[endRange.row][1]==3)endHeight+=lineheight;
+				}
+				//else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
+				//    endHeight=72*lineheight*(count+1)+9*lineheight+4;
+				//    if(lines[endRange.row][1]==3)endHeight+=lineheight;
+				//}
+				j++;
+				endRangeCol+=linesNLB[endRange.row][j]+1;
+			}
+			endRangeCol-=linesNLB[endRange.row][j]+1;
+			var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
+			endWidth+=((endRange.col-endRangeCol)*fontWidth);
+			endHeight+=lineheight;
+			// calc notes
+			for (note in notes){
+				if(notes[note][0]==endRange.row){
+					if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
+						if(notes[note][1]<endRange.col)endWidth+=fontWidth;
+					}
+				}
+			}
 
-	    // Now compare stuff and draw blue Box
-	    ctx.fillStyle='yellow';
-	    if(endHeight==startHeight){
-	        var onlyBlueLine = startWidth;
-	        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-	        ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
-			onlyBlueLine=null;
-	    }
-	    else{
-	        var firstLineBlue = startWidth;
-	        if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-	        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
-	        while(startHeight+lineheight<endHeight){
-	            for(var counter=0; counter<pageBreaks.length; counter++){
-	                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
-	                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-	                }
-	                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
-	                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-	                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-	                }
-	            }
-				counter=null;
-	            i++;
-	            startHeight+=lineheight;
-	            if(linesNLB[startRange.row].length<=i){
-	                startRange.row++;
-	                i=0;
-	            }
-	            if(startHeight!=endHeight){
-	                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-	                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-	                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
-					blueStart=null;
-	            }
+			// Now compare stuff and draw blue Box
+			ctx.fillStyle='yellow';
+			if(endHeight==startHeight){
+				var onlyBlueLine = startWidth;
+				if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
+				ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
+				onlyBlueLine=null;
+			}
+			else{
+				var firstLineBlue = startWidth;
+				if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
+				ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+				while(startHeight+lineheight<endHeight){
+					for(var counter=0; counter<pageBreaks.length; counter++){
+						if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
+							startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+						}
+						else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
+							startHeight=72*lineheight*(counter+1)+9*lineheight+4;
+							if(lines[startRange.row][1]==3)startHeight+=lineheight;
+						}
+					}
+					counter=null;
+					i++;
+					startHeight+=lineheight;
+					if(linesNLB[startRange.row].length<=i){
+						startRange.row++;
+						i=0;
+					}
+					if(startHeight!=endHeight){
+						var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
+						if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
+						ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+						blueStart=null;
+					}
 
-	        }
-	        //ctx.fillStyle="blue";
-	        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
-	        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-	        ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
-			firstLineBlue=lastBlueLine=null;
-	    }
-		startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
-		
+				}
+				//ctx.fillStyle="blue";
+				var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
+				if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
+				ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
+				firstLineBlue=lastBlueLine=null;
+			}
+			startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
+		}
 	}
 }
 function drawRange(ctx, pageStartX){
@@ -3014,8 +3053,8 @@ function sortNumbers(a,b){
 
 function paint(forceCalc, forceScroll){
     if(typeToScript || forcePaint){
-	var nd = new Date();
-	nd = nd.getTime();
+	//var nd = new Date();
+	//nd = nd.getTime();
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -3028,16 +3067,19 @@ function paint(forceCalc, forceScroll){
     var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
     var pageStartY = lineheight;
 	ctx.font=font;
+	ctx.lineWidth = 1;
     for(var i=0; i<=pageBreaks.length;i++){
-        ctx.fillStyle = background;
-        ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
-        ctx.strokeStyle='#999';
-        ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
-        ctx.fillStyle=foreground;
-        if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
+		if (pageStartY-vOffset>1200)break;
+		if (pageStartY-vOffset>-lineheight*72){
+			ctx.fillStyle = background;
+			ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
+			ctx.strokeStyle = '#000';
+			ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
+			ctx.strokeStyle='#999';
+			ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
+			ctx.fillStyle=foreground;
+			if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
+		}
         pageStartY+= lineheight*72;
     }
     pageStartY=null;
@@ -3067,19 +3109,20 @@ function paint(forceCalc, forceScroll){
                 }
 				j=null;
             }
+			if(greyHeight-vOffset>1200)break;
         }
 		greyHeight=wrapVars=count=i=null;
     }
-    ctx.fillStyle=foreground;
     
+	// draw finds if there are any
+	if(findArr.length!=0){
+		drawFindArr(ctx, pageStartX);
+	}
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
         drawRange(ctx, pageStartX);
         if(!pasting)selection();
     }
-	if(findArr.length!=0){
-		drawFindArr(ctx, pageStartX);
-	}
     
     ctx.fillStyle=foreground;
     
@@ -3401,6 +3444,6 @@ function paint(forceCalc, forceScroll){
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
-	var nnd = new Date();
-	console.log(nnd.getTime()-nd);
+	//var nnd = new Date();
+	//console.log(nnd.getTime()-nd);
 }
