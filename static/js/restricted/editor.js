@@ -111,7 +111,7 @@ $(document).ready(function(){
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
 	$('#find_replace_input').focus(function(e){typeToScript=false; forcePaint=true});
 	$('#find_replace_input').blur(function(e){typeToScript=true; forcePaint=false});
-	$('#find_replace_input').keydown(function(e){findInputKeydown(e)});
+	$('#find_replace_input').keyup(function(e){findInputKeyUp(e)});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -262,7 +262,7 @@ function saveTimer(){
     timer = setTimeout('save(1)',7000);
 }
 
-function findInputKeydown(e){
+function findInputKeyUp(e){
 	if(e.which==13){
 		e.preventDefault();
 		findDown();
@@ -271,6 +271,7 @@ function findInputKeydown(e){
 	}
 	var f = document.getElementById("find_replace_input").value;
 	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
+	console.log(r)
 	findArr=[];
 	if(f.length==0){
 		document.getElementById('find_number_found').innerHTML="0 found"
@@ -2686,152 +2687,29 @@ function scrollBar(ctx, y){
 	height=pagesHeight=barHeight=topPixel=sh=null;
 }
 function drawFindArr(ctx,pageStartX){
-	var l = document.getElementById("find_replace_input").value.length;
-	for (iterate in findArr){
-		var startRange = {row:findArr[iterate][0], col:findArr[iterate][1]};
-        var endRange = {row:findArr[iterate][0], col:findArr[iterate][1]*1+l*1};
-		
-		//get the starting position
-	    var startHeight = lineheight*9+3;
-	    var count=0;
-	    for (var i=0; i<startRange.row;i++){
-	        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==i){
-	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            //startHeight-=(pageBreaks[count][2])*lineheight;
-	            //if(lines[i][1]==3)startHeight+=lineheight;
-	            count++;
-	            if(count==pageBreaks.length)count--;
-	        }
-	        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==i){
-	            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-	            startHeight+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
-	            if(lines[i][1]==3)startHeight+=lineheight;
-	            count++;
-	            if(count==pageBreaks.length)count--;
-	        }
-	        else{startHeight+=lineheight*linesNLB[i].length;}
-	    }
-		if(startHeight-vOffset>1200)break;
-		if(startHeight-vOffset>-50){
-			var i=0;
-			var startRangeCol=linesNLB[startRange.row][i]+1;
-			while(startRange.col>startRangeCol){
-				startHeight+=lineheight;
-				if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
-					startHeight=72*lineheight*(count+1)+9*lineheight+4;
-					if(lines[startRange.row][1]==3)startHeight+=lineheight;
-				}
-				//else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
-				//    startHeight=72*lineheight*(count+1)+9*lineheight+4;
-				//    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-				//}
-				i++;
-				startRangeCol+=linesNLB[startRange.row][i]+1;
+	ctx.fillStyle="yellow";
+	var l = document.getElementById("find_replace_input").value.length*fontWidth;
+	var characterCount=0;
+	var iterant=0;
+	var count=0;
+	var colorHeight=lineheight*9+3;
+	for (i in linesNLB){
+		//if(colorHeight-vOffset>1200)break;
+		var characterCount=0;
+		for (j in linesNLB[i]){
+			if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
+				count++;
+				colorHeight=72*lineheight*count+9*lineheight+4;
+				if(lines[i][1]==3)colorHeight+=lineheight
 			}
-			startRangeCol-=linesNLB[startRange.row][i]+1;
-			var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
-			startWidth+=((startRange.col-startRangeCol)*fontWidth);
-			startHeight+=lineheight;
-			// calc notes
-			for (note in notes){
-				if(notes[note][0]==startRange.row){
-					if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
-						if(notes[note][1]<startRange.col)startWidth+=fontWidth;
-					}
-				}
+			colorHeight+=lineheight;
+			while(findArr[iterant][0]==i && findArr[iterant][1]>characterCount && findArr[iterant][1]<characterCount+linesNLB[i][j]+1){
+				//find the lr of where the rect should go
+				var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(findArr[iterant][1]-characterCount)*fontWidth;
+				ctx.fillRect(lr, colorHeight-vOffset, l, lineheight)
+				iterant++;
 			}
-
-			//getting the ending position
-
-			var endHeight = lineheight*9+3;
-			count=0;
-			for (var j=0; j<endRange.row;j++){
-				if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
-					endHeight=72*lineheight*(count+1)+9*lineheight+4;
-					count++;
-					if(count==pageBreaks.length)count--;
-				}
-				else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
-					endHeight=72*lineheight*(count+1)+9*lineheight+4;
-					endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
-					if(lines[j][1]==3)endHeight+=lineheight;
-					count++;
-					if(count==pageBreaks.length)count--;
-				}
-				else{endHeight+=lineheight*linesNLB[j].length;}
-			}
-			var j=0;
-			var endRangeCol=linesNLB[endRange.row][j]+1;
-			while(endRange.col>endRangeCol){
-				endHeight+=lineheight;
-				if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
-					endHeight=72*lineheight*(count+1)+9*lineheight+4;
-					if(lines[endRange.row][1]==3)endHeight+=lineheight;
-				}
-				//else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
-				//    endHeight=72*lineheight*(count+1)+9*lineheight+4;
-				//    if(lines[endRange.row][1]==3)endHeight+=lineheight;
-				//}
-				j++;
-				endRangeCol+=linesNLB[endRange.row][j]+1;
-			}
-			endRangeCol-=linesNLB[endRange.row][j]+1;
-			var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
-			endWidth+=((endRange.col-endRangeCol)*fontWidth);
-			endHeight+=lineheight;
-			// calc notes
-			for (note in notes){
-				if(notes[note][0]==endRange.row){
-					if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
-						if(notes[note][1]<endRange.col)endWidth+=fontWidth;
-					}
-				}
-			}
-
-			// Now compare stuff and draw blue Box
-			ctx.fillStyle='yellow';
-			if(endHeight==startHeight){
-				var onlyBlueLine = startWidth;
-				if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-				ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
-				onlyBlueLine=null;
-			}
-			else{
-				var firstLineBlue = startWidth;
-				if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-				ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
-				while(startHeight+lineheight<endHeight){
-					for(var counter=0; counter<pageBreaks.length; counter++){
-						if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
-							startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-						}
-						else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
-							startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-							if(lines[startRange.row][1]==3)startHeight+=lineheight;
-						}
-					}
-					counter=null;
-					i++;
-					startHeight+=lineheight;
-					if(linesNLB[startRange.row].length<=i){
-						startRange.row++;
-						i=0;
-					}
-					if(startHeight!=endHeight){
-						var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-						if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-						ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
-						blueStart=null;
-					}
-
-				}
-				//ctx.fillStyle="blue";
-				var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
-				if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-				ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
-				firstLineBlue=lastBlueLine=null;
-			}
-			startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
+			characterCount+=linesNLB[i][j]+1;
 		}
 	}
 }
@@ -2848,6 +2726,7 @@ function drawRange(ctx, pageStartX){
         var startRange = {row:pos.row, col:pos.col};
         var endRange = {row:anch.row, col:anch.col};
     }
+	consol
     
     //get the starting position
     var startHeight = lineheight*9+3;
@@ -3113,10 +2992,13 @@ function paint(forceCalc, forceScroll){
         }
 		greyHeight=wrapVars=count=i=null;
     }
-    
 	// draw finds if there are any
 	if(findArr.length!=0){
+		var nd = new Date();
+		nd = nd.getTime();
 		drawFindArr(ctx, pageStartX);
+		var nnd= new Date();
+		//console.log(nnd.getTime()-nd)
 	}
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
