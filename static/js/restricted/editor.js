@@ -10,7 +10,7 @@
    var viewNotes=true;
    var timer;
    var typeToScript=true;
-   var forcePaint = false;
+   var findForcePaint = false;
    var pasting=false;
    var justPasted=false;
    var undoQue = [];
@@ -109,8 +109,8 @@ $(document).ready(function(){
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
     $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	$('#find_replace_input').focus(function(e){typeToScript=false; forcePaint=true});
-	$('#find_replace_input').blur(function(e){typeToScript=true; forcePaint=false});
+	$('#find_replace_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
+	$('#find_replace_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
 	$('#find_replace_input').keyup(function(e){findInputKeyUp(e)});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
@@ -127,7 +127,7 @@ $(document).ready(function(){
 	paint(false,false,false)
   });
   $('*').keydown(function(e){
-	if(forcePaint)return;
+	if(findForcePaint)return;
   if (commandDownBool && e.which!=16){
         keyboardShortcut(e)
     }
@@ -162,7 +162,7 @@ $(document).ready(function(){
   });
   
   $('*').keyup(function(e){
-	  if(forcePaint==true)return;
+	  if(findForcePaint==true)return;
   if(e.which==16)shiftDown=false;
   else if((OSName=='MacOS' && (e.which==91 || e.which==93) && browser=='webkit') || (OSName=='MacOS' && e.which==224 && browser=='mozilla') || (OSName=='MacOS' && e.which==17 && browser=='opera') || (OSName!='MacOS' && e.which==17))commandDownBool=false;
   if(typeToScript){
@@ -172,7 +172,7 @@ $(document).ready(function(){
   });
   
   $('*').keypress(function(e){
-    if(forcePaint==true)return;
+    if(findForcePaint==true)return;
 	handlekeypress(e)
   });
   
@@ -263,10 +263,10 @@ function saveTimer(){
 }
 
 function findInputKeyUp(e){
-	if(e.which==13){
+	if(e.which==13 && e.which!=1000){
 		e.preventDefault();
+		console.log(e.which)
 		findDown();
-		forcePaint=true;
 		return;
 	}
 	var f = document.getElementById("find_replace_input").value;
@@ -306,6 +306,33 @@ function findDown(){
 	pos.row=anch.row=pos.col=anch.col=0;
 	findDown();
 }
+
+function findUp(){
+	if (findArr.length==0)return;
+	var l = document.getElementById('find_replace_input').value.length;
+	var i = findArr.length-1;
+	for(var i=findArr.length-1;i>=0;i--){
+		if (findArr[i][0]==pos.row && findArr[i][1]<pos.col-l-1){
+			anch.row=pos.row=findArr[i][0];
+			anch.col=findArr[i][1]*1;
+			pos.col=findArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+		if(findArr[i][0]*1<pos.row*1){
+			anch.row=pos.row=findArr[i][0]*1;
+			anch.col=findArr[i][1]*1;
+			pos.col=findArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+	}
+	pos.row=anch.row=findArr[findArr.length-1][0];
+	anch.col = findArr[findArr.length-1][1];
+	pos.col = anch.col+l;
+	jumpTo("find"+pos.row);
+}
+
 
 function ajaxSpell(v, r){
     checkSpell=false;
@@ -350,6 +377,7 @@ function keyboardShortcut(e){
         if(shiftDown && e.which==90)redo();
         else if (e.which==90)undo();
         else if (e.which==83)save(0);
+		else if (e.which==70)findPrompt();
         else if (e.which==82)window.location.href=window.location.href;
     }
 }
@@ -482,7 +510,7 @@ function selection(){
     }
     var c = document.getElementById('ccp');
     c.value=sel;
-	if(!forcePaint){
+	if(!findForcePaint){
 		c.focus();
 		c.select();
 	}
@@ -689,8 +717,16 @@ function mouseDown(e){
             }
             else{window.open('/titlepage?resource_id='+resource_id);}
         }
-		else if(id=='tag')tagPrompt();
-        else if(id=="spellCheck")launchSpellCheck();
+		else if(id=='tag'){
+			if(resource_id=="Demo"){
+                alert("Sorry, you'll have to login to start doing that.");
+                return;
+            }
+			else{tagPrompt();}
+		}
+        else if(id=='spellCheck')launchSpellCheck();
+		else if(id=='find')findPrompt();
+		else if(id=='findAndReplace')findReplacePrompt();
         //View
         else if(id=='revision'){
             if(resource_id=="Demo"){
@@ -1309,6 +1345,7 @@ function backspace(e){
 			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
+		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
     }
 }
 function deleteButton(){
@@ -1417,10 +1454,12 @@ function deleteButton(){
 			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
-    }
+    if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
+	}
 }
 	
 function enter(){
+	console.log('hey')
     if(typeToScript && document.getElementById('suggestBox')==null){
         saveTimer();
         if(checkSpell)ajaxSpell(pos.row);
@@ -1454,6 +1493,7 @@ function enter(){
         pos.col=0;
         anch.row=pos.row;
         anch.col=pos.col;
+		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
         paint(true,'enter', false);
         paint(false,'enter',false);
     }
@@ -1466,6 +1506,7 @@ function enter(){
 		pos.col=anch.col=lines[pos.row][0].length;
 	}
     sceneIndex();
+	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
 }
 
 function tab(){
@@ -1510,7 +1551,7 @@ function tab(){
 }
 	
 function handlekeypress(event) {
-	if (forcePaint)return;
+	if (findForcePaint)return;
     if(typeToScript && !commandDownBool){
         event.preventDefault();
 		redoQue=[];
@@ -1539,6 +1580,7 @@ function handlekeypress(event) {
             anch.col=pos.col;
             anch.row=pos.row;
         }
+		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
         
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
@@ -2469,6 +2511,22 @@ function tagPrompt(){
 		});
 	}
 }
+// find prompts and stuff
+function findPrompt(){
+	typeToScript=false;
+	findForcePaint=true;
+	document.getElementById('find_replace_div').style.display="block";
+	document.getElementById('find_replace_input').select();
+	document.getElementById('find_replace_input').focus();
+}
+function hideFindPrompt(){
+	typeToScript=true;
+	findForcePaint=false;
+	findArr=[];
+	document.getElementById('find_replace_div').style.display="none";
+	commandDownBool=false;
+}
+
 // spellCheck
 function launchSpellCheck(){
     typeToScript=false;
@@ -2699,7 +2757,7 @@ function drawFindArr(ctx,pageStartX){
 			if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 				count++;
 				colorHeight=72*lineheight*count+9*lineheight+4;
-				if(lines[i][1]==3)colorHeight+=lineheight
+				if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
 			}
 			colorHeight+=lineheight;
 			while(findArr[iterant]!=undefined && findArr[iterant][0]==i && findArr[iterant][1]>=characterCount && findArr[iterant][1]<characterCount+linesNLB[i][j]+1){
@@ -2938,7 +2996,7 @@ function sortNumbers(a,b){
 }
 
 function paint(forceCalc, forceScroll){
-    if(typeToScript || forcePaint){
+    if(typeToScript || findForcePaint){
 	var nd = new Date();
 	nd = nd.getTime();
     var canvas = document.getElementById('canvas');
@@ -3330,5 +3388,5 @@ function paint(forceCalc, forceScroll){
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
 	var nnd = new Date();
-	console.log(nnd.getTime()-nd);
+	//console.log(nnd.getTime()-nd);
 }
