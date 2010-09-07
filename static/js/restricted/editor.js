@@ -217,7 +217,7 @@ function createSuggestBox(d){
 				var box = document.body.appendChild(document.createElement('div'));
 				box.id='suggestBox';
 				box.style.position='fixed';
-				box.style.top=ud+70+lineheight+"px";
+				box.style.top=ud+headerHeight+1+lineheight+"px";
 				box.style.left=left;
 			}
             var found=false;
