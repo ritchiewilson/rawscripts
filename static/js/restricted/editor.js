@@ -514,6 +514,7 @@ function tabs(v){
 	t=i=null;
 }
 function changeFormat(v){
+	if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
     redoQue=[];
@@ -1413,6 +1414,7 @@ function enter(){
 
 function tab(){
 	if(typeToScript){
+		if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
 	    saveTimer();
 	    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
 	    redoQue=[];
