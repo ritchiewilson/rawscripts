@@ -197,13 +197,13 @@ function createSuggestBox(d){
 		document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'));
 	}
 	if(d=='c'){
-        v=characters;
+        var v=characters;
         var left=WrapVariableArray[2][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
     else{
-        v=scenes;
-        for(i in v){
-            v[i][0]=v[i][0].split(') ').splice(1).join(') ');
+        var v=[];
+        for(i in scenes){
+            v.push([scenes[i][0].split(') ').splice(1).join(') ')]);
         }
         var left=WrapVariableArray[0][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
