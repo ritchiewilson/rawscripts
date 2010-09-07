@@ -271,7 +271,6 @@ function findInputKeyUp(e){
 	}
 	var f = document.getElementById("find_replace_input").value;
 	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
-	console.log(r)
 	findArr=[];
 	if(f.length==0){
 		document.getElementById('find_number_found').innerHTML="0 found"
@@ -280,7 +279,7 @@ function findInputKeyUp(e){
 	var c = 0;
 	for (i in lines){
 		while (r.test(lines[i][0])==true){
-			findArr.push([i,r.lastIndex-f.length])
+			findArr.push([i*1,r.lastIndex-f.length])
 		}
 	}
 	document.getElementById('find_number_found').innerHTML=findArr.length+" found"
@@ -2688,13 +2687,13 @@ function scrollBar(ctx, y){
 }
 function drawFindArr(ctx,pageStartX){
 	ctx.fillStyle="yellow";
-	var l = document.getElementById("find_replace_input").value.length*fontWidth;
+	var l = document.getElementById("find_replace_input").value.length;
 	var characterCount=0;
 	var iterant=0;
 	var count=0;
 	var colorHeight=lineheight*9+3;
 	for (i in linesNLB){
-		//if(colorHeight-vOffset>1200)break;
+		if(colorHeight-vOffset>1200)break;
 		var characterCount=0;
 		for (j in linesNLB[i]){
 			if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
@@ -2703,10 +2702,19 @@ function drawFindArr(ctx,pageStartX){
 				if(lines[i][1]==3)colorHeight+=lineheight
 			}
 			colorHeight+=lineheight;
-			while(findArr[iterant][0]==i && findArr[iterant][1]>characterCount && findArr[iterant][1]<characterCount+linesNLB[i][j]+1){
+			while(findArr[iterant]!=undefined && findArr[iterant][0]==i && findArr[iterant][1]>=characterCount && findArr[iterant][1]<characterCount+linesNLB[i][j]+1){
 				//find the lr of where the rect should go
-				var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(findArr[iterant][1]-characterCount)*fontWidth;
-				ctx.fillRect(lr, colorHeight-vOffset, l, lineheight)
+				// but only when necessary
+				if(colorHeight-vOffset>-100){
+					var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(findArr[iterant][1]-characterCount)*fontWidth;
+					if(findArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
+						ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-findArr[iterant][1])*fontWidth, lineheight-2)
+						ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-findArr[iterant][1]+1))*fontWidth, lineheight-2)
+					}
+					else{
+						ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
+					}
+				}
 				iterant++;
 			}
 			characterCount+=linesNLB[i][j]+1;
@@ -2726,7 +2734,6 @@ function drawRange(ctx, pageStartX){
         var startRange = {row:pos.row, col:pos.col};
         var endRange = {row:anch.row, col:anch.col};
     }
-	consol
     
     //get the starting position
     var startHeight = lineheight*9+3;
@@ -2932,8 +2939,8 @@ function sortNumbers(a,b){
 
 function paint(forceCalc, forceScroll){
     if(typeToScript || forcePaint){
-	//var nd = new Date();
-	//nd = nd.getTime();
+	var nd = new Date();
+	nd = nd.getTime();
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -2994,11 +3001,7 @@ function paint(forceCalc, forceScroll){
     }
 	// draw finds if there are any
 	if(findArr.length!=0){
-		var nd = new Date();
-		nd = nd.getTime();
 		drawFindArr(ctx, pageStartX);
-		var nnd= new Date();
-		//console.log(nnd.getTime()-nd)
 	}
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
@@ -3326,6 +3329,6 @@ function paint(forceCalc, forceScroll){
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
-	//var nnd = new Date();
-	//console.log(nnd.getTime()-nd);
+	var nnd = new Date();
+	console.log(nnd.getTime()-nd);
 }
