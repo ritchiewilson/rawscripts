@@ -445,6 +445,7 @@ function setup(){
     var p = JSON.parse(data);
     var title=p[0];
     document.getElementById('title').innerHTML=title;
+	document.title = title;
     var x = p[1];
     for(var i=0; i<x.length; i++){
         lines.push([x[i][0], x[i][1]]);
@@ -2262,6 +2263,7 @@ function renameScript(){
 	var rename = document.getElementById('renameField').value;
 	if (rename==""){return;}
 	document.getElementById('title').innerHTML = rename;
+	document.title = rename;
 	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
 	hideRenamePrompt()
 }
