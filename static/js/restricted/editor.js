@@ -869,6 +869,13 @@ function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
     mouseY=e.clientY;
     if(mouseDownBool) mousePosition(e,"pos");
+	var height = document.getElementById('canvas').height;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+    var barHeight = ((height)/pagesHeight)*(height-39);
+    if (barHeight<20)barHeight=20;
+    if (barHeight>=height-39)barHeight=height-39;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+	document.getElementById('canvas').style.cursor = ((e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
 }
 function scrollBarDrag(e){
     var diff = mouseY-e.clientY;
