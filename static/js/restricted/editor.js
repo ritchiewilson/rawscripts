@@ -691,13 +691,8 @@ function mouseDown(e){
             }
             else{openPrompt();}
         }
-        else if(id=='rename'){
-            if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to rename scripts.");
-            }
-            else{renamePrompt();}
-        }
-        else if(id=='exportas'){exportPrompt();}
+        else if(id=='rename')renamePrompt();
+        else if(id=='exportas')exportPrompt();
         else if(id=='duplicate'){
             if(resource_id=="Demo"){
                 alert("Sorry, you'll have to login to start doing that.");
@@ -2391,6 +2386,10 @@ function hideRenamePrompt(){
 }
 	
 function renameScript(){
+	if(resource_id=="Demo"){
+        alert("Sorry, you'll have to login to do that.");
+        return;
+    }
 	var rename = document.getElementById('renameField').value;
 	if (rename==""){return;}
 	document.getElementById('title').innerHTML = rename;
@@ -2400,11 +2399,9 @@ function renameScript(){
 }
 //exporting
 function exportPrompt(){
-	if(resource_id=="Demo"){
-        alert("Sorry, you'll have to login to export scripts.");
-        return;
+	if(resource_id!="Demo"){
+        if(document.getElementById('saveButton').value=="Save")save(0);
     }
-    if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("exportpopup").style.visibility="visible"
 }
