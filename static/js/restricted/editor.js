@@ -948,6 +948,10 @@ function upArrow(){
             var word = 0;
             var lineLengths=[];
             while(word<wordsArr.length){
+				if(wordsArr[word].length>=wrapVars[0]){
+					lineLengths.push(wordsArr[word].length)
+					word++;
+				}
                 if(wordsArr.slice(word).join().length<=wrapVars[0]){
                     lineLengths.push(wordsArr.slice(word).join().length);
                     word=wordsArr.length
@@ -1001,7 +1005,11 @@ function upArrow(){
                     var word = 0;
                     var lineLengths=[];
                     while(word<wordsArr.length){
-                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+						if(wordsArr[word].length>=wrapVars[0]){
+							lineLengths.push(wordsArr[word].length)
+							word++;
+						}
+                        else if(wordsArr.slice(word).join().length<=wrapVars[0]){
                             lineLengths.push(wordsArr.slice(word).join().length);
                             word=wordsArr.length
                             
@@ -1058,7 +1066,11 @@ function upArrow(){
                     var word = 0;
                     var lineLengths=[];
                     while(word<wordsArr.length){
-                        if(wordsArr.slice(word).join().length<=wrapVars[0]){
+						if(wordsArr[word].length>=wrapVars[0]){
+							lineLengths.push(wordsArr[word].length)
+							word++;
+						}
+                        else if(wordsArr.slice(word).join().length<=wrapVars[0]){
                             lineLengths.push(wordsArr.slice(word).join().length);
                             word=wordsArr.length
                             
@@ -1112,7 +1124,11 @@ function downArrow(){
             var word = 0;
             var lineLengths=[];
             while(word<wordsArr.length){
-                if(wordsArr.slice(word).join().length<=wrapVars[0]){
+				if(wordsArr[word].length>=wrapVars[0]){
+					lineLengths.push(wordsArr[word].length)
+					word++;
+				}
+                else if(wordsArr.slice(word).join().length<=wrapVars[0]){
                     lineLengths.push(wordsArr.slice(word).join().length);
                     word=wordsArr.length
                     
@@ -3181,7 +3197,33 @@ function paint(forceCalc, forceScroll){
             var eFound=false;
             while(word<wordsArr.length){
                 var itr=0;
-                if (wordsArr.slice(word).join().length<wrapVars[0]){
+				//for if the one word is too big
+				if (wordsArr[word].length>=wrapVars[0]){
+					var printString = wordsArr[word];
+					if (wrapVars[3]==1)printString= printString.toUpperCase();
+					var altPrintString = printString;
+                    var notesInThisLine=[];
+                    if(viewNotes){
+                        for(note in notesArr){
+                            if (notesArr[note]>=lines[i][0].length-printString.length){
+                                altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
+                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+                                notesInThisLine.push(notesArr[note]);
+                            }
+                        }
+                    }
+					ctx.fillText(altPrintString, wrapVars[1]+pageStartX , y-vOffset);
+					linesNLB[i].push(printString.length);
+					y+=lineheight;
+					if(wrapVars[4]==2){
+                        linesNLB[i].push(0);
+                        y+=lineheight;
+                    }
+					word++;
+					if(thisRow)wrappedText.push(printString.length);
+                    if(anchorThisRow)anchorWrappedText.push(printString.length);
+				}
+                else if (wordsArr.slice(word).join().length<wrapVars[0]){
                     var printString = wordsArr.slice(word).join(' ');
                     if(lines[i][1]==2 && latestCharacter!='' && lines[i][0].toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
                     if(lines[i][1]==0)latestCharacter='';
@@ -3215,8 +3257,8 @@ function paint(forceCalc, forceScroll){
                     while(wordsArr.slice(word, word+itr).join(' ').length<wrapVars[0]){
                         newLineToPrint=wordsArr.slice(word, word+itr).join(' ');
                         itr++;
-                        if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
                     }
+					if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
                     var altNewLineToPrint = newLineToPrint;
                     var notesInThisLine=[];
                     if(viewNotes){
