@@ -708,13 +708,7 @@ function mouseDown(e){
             viewNotes=true;
             newThread();
         }
-        else if(id=='editTitlePage'){
-            if(resource_id=="Demo"){
-                alert("Sorry, you'll have to login to start edit the title page.");
-                return;
-            }
-            else{window.open('/titlepage?resource_id='+resource_id);}
-        }
+        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
 		else if(id=='tag'){
 			if(resource_id=="Demo"){
                 alert("Sorry, you'll have to login to start doing that.");

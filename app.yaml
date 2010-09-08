@@ -28,6 +28,9 @@ handlers:
 - url: /blog.*
   script: blog.py
 
+- url: /title.*
+  script: scripteditor.py
+
 - url: /sitemap.xml
   static_files: static/text/sitemap.xml
   upload: static/text/sitemap.xml

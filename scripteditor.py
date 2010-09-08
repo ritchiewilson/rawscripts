@@ -165,67 +165,95 @@ class TitlePage(webapp.RequestHandler):
 	def get(self):
 		resource_id=self.request.get('resource_id')
 		if resource_id=="Demo":
-			return
+			p = "Duck Soup"
 		else:
 			p = ownerPermission(resource_id)
 		if p==False:
 			return
 
-		if resource_id!="Demo":
+		if resource_id=="Demo":
+			template_values = { 'sign_out': "/" }
+			template_values['user'] = "test@example.com"
+			
+		else:
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
-
-		q= db.GqlQuery("SELECT * FROM TitlePageData "+
-									 "WHERE resource_id='"+resource_id+"'")
-		results = q.fetch(5)
 		
-		if not len(results)==0:
-			r=results[0]
-			template_values = {'title' : r.title,
-												 'authorOne' : r.authorOne,
-												 'authorTwo' : r.authorTwo,
-												 'authorTwoChecked' : r.authorTwoChecked,
-												 'authorThree' : r.authorThree,
-												 'authorThreeChecked': r.authorThreeChecked,
-												 'based_on' : r.based_on.replace("LINEBREAK", '\n'),
-												 'based_onChecked' : r.based_onChecked,
-												 'address' : r.address.replace("LINEBREAK", '\n'),
-												 'addressChecked' : r.addressChecked,
-												 'phone' : r.phone,
-												 'phoneChecked' : r.phoneChecked,
-												 'cell' : r.cell,
-												 'cellChecked' : r.cellChecked,
-												 'email' : r.email,
-												 'emailChecked' :r.emailChecked,
-												 'registered': r.registered,
-												 'registeredChecked' : r.registeredChecked,
-												 'other' : r.other,
-												 'otherChecked' : r.otherChecked}
+		if resource_id=="Demo":
+			template_values = {'title' : "Duck Soup",
+			'authorOne' : "Arthur Sheekman",
+			'authorTwo' : "Harry Ruby",
+			'authorTwoChecked' : "checked",
+			'authorThree' : "Bert Kalmar",
+			'authorThreeChecked': "checked",
+			'based_on' : "none",
+			'based_onChecked' : "",
+			'address' : "183 E. 93rd St\nSuite 9\nNY, NY",
+			'addressChecked' : "checked",
+			'phone' : "212-555-5555",
+			'phoneChecked' : "checked",
+			'cell' : "",
+			'cellChecked' : "",
+			'email' : "test@example.com",
+			'emailChecked' : "checked",
+			'registered': "",
+			'registeredChecked' : "",
+			'other' : "",
+			'otherChecked' : ""}
+			
 		else:
-			q = db.GqlQuery("SELECT * FROM UsersScripts "+
-											"WHERE resource_id='"+resource_id+"'")
-			results=q.fetch(5)
 
-			template_values = {'title' : results[0].title,
-												 'authorOne' : users.get_current_user().nickname(),
-												 'authorTwo' : "",
-												 'authorTwoChecked' : "",
-												 'authorThree' : "",
-												 'authorThreeChecked': "",
-												 'based_on' : "",
-												 'based_onChecked' : "",
-												 'address' : "",
-												 'addressChecked' : "",
-												 'phone' : "",
-												 'phoneChecked' : "",
-												 'cell' : "",
-												 'cellChecked' : "",
-												 'email' : users.get_current_user().email(),
-												 'emailChecked' : "checked",
-												 'registered': "",
-												 'registeredChecked' : "",
-												 'other' : "",
-												 'otherChecked' : ""}
+			q= db.GqlQuery("SELECT * FROM TitlePageData "+
+										 "WHERE resource_id='"+resource_id+"'")
+			results = q.fetch(5)
+		
+			if not len(results)==0:
+				r=results[0]
+				template_values = {'title' : r.title,
+													 'authorOne' : r.authorOne,
+													 'authorTwo' : r.authorTwo,
+													 'authorTwoChecked' : r.authorTwoChecked,
+													 'authorThree' : r.authorThree,
+													 'authorThreeChecked': r.authorThreeChecked,
+													 'based_on' : r.based_on.replace("LINEBREAK", '\n'),
+													 'based_onChecked' : r.based_onChecked,
+													 'address' : r.address.replace("LINEBREAK", '\n'),
+													 'addressChecked' : r.addressChecked,
+													 'phone' : r.phone,
+													 'phoneChecked' : r.phoneChecked,
+													 'cell' : r.cell,
+													 'cellChecked' : r.cellChecked,
+													 'email' : r.email,
+													 'emailChecked' :r.emailChecked,
+													 'registered': r.registered,
+													 'registeredChecked' : r.registeredChecked,
+													 'other' : r.other,
+													 'otherChecked' : r.otherChecked}
+			else:
+				q = db.GqlQuery("SELECT * FROM UsersScripts "+
+												"WHERE resource_id='"+resource_id+"'")
+				results=q.fetch(5)
+
+				template_values = {'title' : results[0].title,
+													 'authorOne' : users.get_current_user().nickname(),
+													 'authorTwo' : "",
+													 'authorTwoChecked' : "",
+													 'authorThree' : "",
+													 'authorThreeChecked': "",
+													 'based_on' : "",
+													 'based_onChecked' : "",
+													 'address' : "",
+													 'addressChecked' : "",
+													 'phone' : "",
+													 'phoneChecked' : "",
+													 'cell' : "",
+													 'cellChecked' : "",
+													 'email' : users.get_current_user().email(),
+													 'emailChecked' : "checked",
+													 'registered': "",
+													 'registeredChecked' : "",
+													 'other' : "",
+													 'otherChecked' : ""}
 			
 
 		path = os.path.join(os.path.dirname(__file__), 'titlepage.html')
@@ -233,7 +261,12 @@ class TitlePage(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		mobile = mobileTest.mobileTest(self.request.user_agent)
-		activity.activity("titlepage", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
+		user = users.get_current_user()
+		if user:
+			user = user.email().lower()
+		else:
+			user = "test@example.com"
+		activity.activity("titlepage", user, resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class SaveTitlePage (webapp.RequestHandler):
 	def post(self):
