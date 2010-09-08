@@ -374,6 +374,7 @@ function keyboardShortcut(e){
     // don't do anything if cut, copy or paste
     if (e.which!=67 && e.which!=86 && e.which!=88){
         e.preventDefault();
+		if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
         if(shiftDown && e.which==90)redo();
         else if (e.which==90)undo();
         else if (e.which==83)save(0);
@@ -1256,6 +1257,7 @@ function backspace(e){
                 lines[pos.row][0]=lines[pos.row][0]+j;
                 undoQue.push(['back',pos.row, pos.col,'line',4]);
                 slug=true;
+				if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
             }
             else if(pos.col==0){
                 //shift notes
@@ -1279,6 +1281,7 @@ function backspace(e){
                 undoQue.push(['back',pos.row, pos.col,'line',elem]);
                 forceCalc=true;
                 slug=true;
+				if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
             }
             else{
                 undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
@@ -1296,6 +1299,7 @@ function backspace(e){
         }
         // This is for deleting a range
         else{
+			if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
             forceCalc=true;
             //put the focus after the anchor
             var switchPos =false;
@@ -1361,6 +1365,7 @@ function deleteButton(){
     if(typeToScript){
     saveTimer();
 	redoQue=[];
+	if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
         var slug=false;
         var forceCalc=false;
         if(pos.row==anch.row&&pos.col==anch.col){
