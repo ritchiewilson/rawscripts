@@ -103,6 +103,7 @@
 	    $('.menuItem').click(function(){openMenu(this.id)});
 	    $('.menuItem').mouseover(function(){topMenuOver(this.id)});
 	    $('.menuItem').mouseout(function(){topMenuOut(this.id)});
+		setup();
 	  });
 	  $(window).resize(function(){
 	    document.getElementById('canvas').height = $('#container').height()-60;

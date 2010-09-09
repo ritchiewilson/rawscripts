@@ -6,7 +6,7 @@
   <script src="js/jquery.min.js" type="text/javascript"></script>
   <script src="js/jquery.mousewheel.min.js" type="text/javascript"></script>
   <script src="js/min/editor-min.js" type="text/javascript"></script>
-  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/json2.min.js" type="text/javascript"></script>
   <script src="js/dom.js" type="text/javascript"></script>
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
@@ -294,7 +294,7 @@
 }
   </style>
   </head>
-<body onload="setup()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
+<body onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
 <script type="text/javascript">
 
   var _gaq = _gaq || [];

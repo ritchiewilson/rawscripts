@@ -116,6 +116,7 @@ $(document).ready(function(){
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
     $('.menuItem').mouseout(function(){topMenuOut(this.id)});
+	setup();
   });
   $(window).resize(function(){
     document.getElementById('canvas').height = $('#container').height()-60-26;
@@ -265,7 +266,7 @@ function saveTimer(){
 function findInputKeyUp(e){
 	if(e.which==13 && e.which!=1000){
 		e.preventDefault();
-		console.log(e.which)
+		//console.log(e.which)
 		findDown();
 		return;
 	}
@@ -1478,7 +1479,6 @@ function deleteButton(){
 }
 	
 function enter(){
-	console.log('hey')
     if(typeToScript && document.getElementById('suggestBox')==null){
         saveTimer();
         if(checkSpell)ajaxSpell(pos.row);
@@ -2571,7 +2571,7 @@ function spellCheckCycle(firstLine, r, w){
         var word = line[w].replace("?", "").replace(".","").replace(",","").replace("(","").replace(")","");
         for (i in spellWrong){
             if (spellWrong[i][0].toUpperCase()==word.toUpperCase()){
-                found=[r,w,i,];
+                found=[r,w,i];
                 for(v in spellIgnore){
                     if (spellIgnore[v].toUpperCase()==word.toUpperCase())found=false;
                 }
@@ -3436,6 +3436,6 @@ function paint(forceCalc, forceScroll){
     }
     document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
-	var nnd = new Date();
+	//var nnd = new Date();
 	//console.log(nnd.getTime()-nd);
 }
