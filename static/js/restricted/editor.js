@@ -30,6 +30,7 @@
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
    var findArr = [];
+   var findReplaceArr=[];
    var background = '#fff';
    var font = '10pt Courier';
    var fontWidth = 8;
@@ -100,8 +101,8 @@ $(document).ready(function(){
 	document.getElementById('canvas').width = $('#container').width()-320;
 	editorWidth=$('#container').width()-323;
     document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
-    //document.getElementById('find_replace_div').style.top = headerHeight+"px";
-	//document.getElementById('find_replace_div').style.right = "450px";	
+    //document.getElementById('find_div').style.top = headerHeight+"px";
+	//document.getElementById('find_div').style.right = "450px";	
     $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*25);}});
     $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
     $('#collaborator').keyup(function(event){if(event.which==188)tokenize('collaborator')});
@@ -109,9 +110,14 @@ $(document).ready(function(){
 	$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
     $('#collaborator').keydown(function(e){if(e.which==13){e.preventDefault();shareScript()}});
 	$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
-	$('#find_replace_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
-	$('#find_replace_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
-	$('#find_replace_input').keyup(function(e){findInputKeyUp(e)});
+	$('#find_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
+	$('#find_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
+	$('#find_input').keyup(function(e){findInputKeyUp(e, "f")});
+	$('#fr_find_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
+	$('#fr_find_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
+	$('#fr_find_input').keyup(function(e){findInputKeyUp(e, "r")});
+	$('#fr_replace_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
+	$('#fr_replace_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
     //stuff for filelike menu
     $('.menuItem').click(function(){openMenu(this.id)});
     $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -263,16 +269,16 @@ function saveTimer(){
     timer = setTimeout('save(1)',7000);
 }
 
-function findInputKeyUp(e){
+function findInputKeyUp(e, w){
 	if(e.which==13 && e.which!=1000){
 		e.preventDefault();
-		//console.log(e.which)
 		findDown();
 		return;
 	}
-	var f = document.getElementById("find_replace_input").value;
+	var f = (w=="f" ? document.getElementById("find_input").value : document.getElementById("fr_find_input").value);
 	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
 	findArr=[];
+	findReplaceArr=[];
 	if(f.length==0){
 		document.getElementById('find_number_found').innerHTML="0 found"
 		return;
@@ -280,26 +286,28 @@ function findInputKeyUp(e){
 	var c = 0;
 	for (i in lines){
 		while (r.test(lines[i][0])==true){
-			findArr.push([i*1,r.lastIndex-f.length])
+			if(w=="f"){findArr.push([i*1,r.lastIndex-f.length])}
+			else{findReplaceArr.push([i*1,r.lastIndex-f.length])}
 		}
 	}
-	document.getElementById('find_number_found').innerHTML=findArr.length+" found"
+	if(w=="f"){document.getElementById('find_number_found').innerHTML=findArr.length+" found"}
 }
 function findDown(){
-	if (findArr.length==0)return;
-	var l = document.getElementById('find_replace_input').value.length;
-	for(i in findArr){
-		if (findArr[i][0]==pos.row && findArr[i][1]>pos.col){
-			anch.row=pos.row=findArr[i][0];
-			anch.col=findArr[i][1]*1;
-			pos.col=findArr[i][1]*1+l*1;
+	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
+	if (tmpArr.length==0)return;
+	var l = (findArr.length!=0 ? document.getElementById('find_input').value.length : document.getElementById('fr_find_input').value.length);
+	for(i in tmpArr){
+		if (tmpArr[i][0]==pos.row && tmpArr[i][1]>pos.col){
+			anch.row=pos.row=tmpArr[i][0];
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
 			jumpTo("find"+pos.row);
 			return;
 		}
-		if(findArr[i][0]*1>pos.row*1){
-			anch.row=pos.row=findArr[i][0]*1;
-			anch.col=findArr[i][1]*1;
-			pos.col=findArr[i][1]*1+l*1;
+		if(tmpArr[i][0]*1>pos.row*1){
+			anch.row=pos.row=tmpArr[i][0]*1;
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
 			jumpTo("find"+pos.row);
 			return;
 		}
@@ -309,27 +317,28 @@ function findDown(){
 }
 
 function findUp(){
-	if (findArr.length==0)return;
-	var l = document.getElementById('find_replace_input').value.length;
-	var i = findArr.length-1;
-	for(var i=findArr.length-1;i>=0;i--){
-		if (findArr[i][0]==pos.row && findArr[i][1]<pos.col-l-1){
-			anch.row=pos.row=findArr[i][0];
-			anch.col=findArr[i][1]*1;
-			pos.col=findArr[i][1]*1+l*1;
+	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
+	if (tmpArr.length==0)return;
+	var l = (findArr.length!=0 ? document.getElementById('find_input').value.length : document.getElementById('fr_find_input').value.length);
+	var i = tmpArr.length-1;
+	for(var i=tmpArr.length-1;i>=0;i--){
+		if (tmpArr[i][0]==pos.row && tmpArr[i][1]<pos.col-l-1){
+			anch.row=pos.row=tmpArr[i][0];
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
 			jumpTo("find"+pos.row);
 			return;
 		}
-		if(findArr[i][0]*1<pos.row*1){
-			anch.row=pos.row=findArr[i][0]*1;
-			anch.col=findArr[i][1]*1;
-			pos.col=findArr[i][1]*1+l*1;
+		if(tmpArr[i][0]*1<pos.row*1){
+			anch.row=pos.row=tmpArr[i][0]*1;
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
 			jumpTo("find"+pos.row);
 			return;
 		}
 	}
-	pos.row=anch.row=findArr[findArr.length-1][0];
-	anch.col = findArr[findArr.length-1][1];
+	pos.row=anch.row=tmpArr[tmpArr.length-1][0];
+	anch.col = tmpArr[tmpArr.length-1][1];
 	pos.col = anch.col+l;
 	jumpTo("find"+pos.row);
 }
@@ -625,7 +634,7 @@ function changeFormat(v){
     sceneIndex();
 }
 function contextmenu(e){
-	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
+	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
 		e.preventDefault();
 		var d = document.body.appendChild(document.createElement('div'));
 		d.style.position="fixed";
@@ -719,7 +728,7 @@ function mouseDown(e){
 		}
         else if(id=='spellCheck')launchSpellCheck();
 		else if(id=='find')findPrompt();
-		else if(id=='findAndReplace')findReplacePrompt();
+		else if(id=='findReplace')findReplacePrompt();
         //View
         else if(id=='revision'){
             if(resource_id=="Demo"){
@@ -776,7 +785,7 @@ function mouseDown(e){
         if (barHeight>=height-39)barHeight=height-39;
         var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
         
-        if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40){
+        if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
             mouseDownBool=true;
 			mousePosition(e,"anch")
         }
@@ -1364,7 +1373,8 @@ function backspace(e){
 			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
-		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
+		if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
     }
 }
 function deleteButton(){
@@ -1474,7 +1484,8 @@ function deleteButton(){
 			paint(forceCalc,false,false);
 		}
         if (slug)updateOneScene(pos.row);
-    if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
+    if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	}
 }
 	
@@ -1512,7 +1523,8 @@ function enter(){
         pos.col=0;
         anch.row=pos.row;
         anch.col=pos.col;
-		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
+		if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
         paint(true,'enter', false);
         paint(false,'enter',false);
     }
@@ -1525,7 +1537,8 @@ function enter(){
 		pos.col=anch.col=lines[pos.row][0].length;
 	}
     sceneIndex();
-	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
+	if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 }
 
 function tab(){
@@ -1600,8 +1613,9 @@ function handlekeypress(event) {
             anch.col=pos.col;
             anch.row=pos.row;
         }
-		if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000});
-        
+		if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+        if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+		
         document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
     }
@@ -2538,18 +2552,44 @@ function tagPrompt(){
 function findPrompt(){
 	typeToScript=false;
 	findForcePaint=true;
-	document.getElementById('find_replace_div').style.display="block";
-	document.getElementById('find_replace_input').select();
-	document.getElementById('find_replace_input').focus();
+	document.getElementById('find_div').style.display="block";
+	document.getElementById('find_input').select();
+	document.getElementById('find_input').focus();
 }
 function hideFindPrompt(){
 	typeToScript=true;
 	findForcePaint=false;
 	findArr=[];
+	document.getElementById('find_div').style.display="none";
+	commandDownBool=false;
+}
+// Find Replace Prompt
+function findReplacePrompt(){
+	typeToScript=false;
+	findForcePaint=true;
+	document.getElementById('find_replace_div').style.display="block";
+	document.getElementById('fr_find_input').select();
+	document.getElementById('fr_find_input').focus();
+}
+function hideFindReplacePrompt(){
+	typeToScript=true;
+	findForcePaint=false;
+	findReplaceArr=[];
 	document.getElementById('find_replace_div').style.display="none";
 	commandDownBool=false;
 }
-
+function replaceText(){
+	var d = document.getElementById('fr_replace_input').value;
+	if(d.length==0)return;
+	if(pos.row==anch.row && pos.col==anch.col)return;
+	if(pos.row!=anch.row)return;
+	backspace();
+	lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
+}
+function replaceAndFind(){
+	replaceText();
+	findDown();
+}
 // spellCheck
 function launchSpellCheck(){
     typeToScript=false;
@@ -2768,10 +2808,11 @@ function scrollBar(ctx, y){
 }
 function drawFindArr(ctx,pageStartX){
 	ctx.fillStyle="yellow";
-	var l = document.getElementById("find_replace_input").value.length;
+	var l = (findArr.length==0 ? document.getElementById("fr_find_input").value.length : document.getElementById("find_input").value.length);
 	var characterCount=0;
 	var iterant=0;
 	var count=0;
+	var tmpArr=(findArr.length==0 ? findReplaceArr : findArr)
 	var colorHeight=lineheight*9+3;
 	for (i in linesNLB){
 		if(colorHeight-vOffset>1200)break;
@@ -2783,14 +2824,14 @@ function drawFindArr(ctx,pageStartX){
 				if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
 			}
 			colorHeight+=lineheight;
-			while(findArr[iterant]!=undefined && findArr[iterant][0]==i && findArr[iterant][1]>=characterCount && findArr[iterant][1]<characterCount+linesNLB[i][j]+1){
+			while(tmpArr[iterant]!=undefined && tmpArr[iterant][0]==i && tmpArr[iterant][1]>=characterCount && tmpArr[iterant][1]<characterCount+linesNLB[i][j]+1){
 				//find the lr of where the rect should go
 				// but only when necessary
 				if(colorHeight-vOffset>-100){
-					var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(findArr[iterant][1]-characterCount)*fontWidth;
-					if(findArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
-						ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-findArr[iterant][1])*fontWidth, lineheight-2)
-						ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-findArr[iterant][1]+1))*fontWidth, lineheight-2)
+					var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(tmpArr[iterant][1]-characterCount)*fontWidth;
+					if(tmpArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
+						ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-tmpArr[iterant][1])*fontWidth, lineheight-2)
+						ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-tmpArr[iterant][1]+1))*fontWidth, lineheight-2)
 					}
 					else{
 						ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
@@ -3081,7 +3122,7 @@ function paint(forceCalc, forceScroll){
 		greyHeight=wrapVars=count=i=null;
     }
 	// draw finds if there are any
-	if(findArr.length!=0){
+	if(findArr.length!=0 || findReplaceArr.length!=0){
 		drawFindArr(ctx, pageStartX);
 	}
     //Draw in range if there is one
