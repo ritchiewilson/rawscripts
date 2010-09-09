@@ -40,20 +40,20 @@ handlers:
   upload: static/text/robots.txt
 
 - url: /convert
-  static_files: convert.html
-  upload: convert.html
+  static_files: html/convert.html
+  upload: html/convert.html
 
 - url: /about
-  static_files: about.html
-  upload: about.html
+  static_files: html/about.html
+  upload: html/about.html
 
 - url: /contact
-  static_files: contact.html
-  upload: contact.html
+  static_files: html/contact.html
+  upload: html/contact.html
 
 - url: /migration
-  static_files: migration.html
-  upload: migration.html
+  static_files: html/migration.html
+  upload: html/migration.html
 
 - url: /rawscripts.manifest
   static_files: rawscripts.manifest

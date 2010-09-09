@@ -193,14 +193,13 @@ class RevisionHistory(webapp.RequestHandler):
 			else:
 				sign_out="/"
 				user_email = "test@example.com"
-			path = os.path.join(os.path.dirname(__file__), 'editor.html')
 			template_values={'r':r,
 											 'title':p,
 											 'resource_id':resource_id,
 											 'sign_out':sign_out,
 											 'user': user_email,
 											 }
-			path = os.path.join(os.path.dirname(__file__), 'revisionhistory.html')
+			path = os.path.join(os.path.dirname(__file__), 'html/revisionhistory.html')
 			self.response.out.write(template.render(path, template_values))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("revisionhistory", users.get_current_user().email().lower(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)

@@ -52,12 +52,12 @@ class Blog(webapp.RequestHandler):
 			i.link= "http://www.rawscripts.com/blog/"+''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
 		template_values = { "r": r,
 							"error_message" : error_message}
-		path = os.path.join(os.path.dirname(__file__), 'blog.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/blog.html')
 		self.response.out.write(template.render(path, template_values))
 							
 class BlogPostGUI(webapp.RequestHandler):
 	def get(self):
-		path = os.path.join(os.path.dirname(__file__), 'blogpostgui.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/blogpostgui.html')
 		template_values = {}
 		self.response.out.write(template.render(path, template_values))
 

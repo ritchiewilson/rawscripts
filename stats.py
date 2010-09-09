@@ -82,7 +82,7 @@ class Stats(webapp.RequestHandler):
 			i+=1
 				
 		template_values= { 'users_scripts': simplejson.dumps(users_scripts) }
-		path = os.path.join(os.path.dirname(__file__), 'stats.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/stats.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		

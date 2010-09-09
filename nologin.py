@@ -68,10 +68,10 @@ class Welcome (webapp.RequestHandler):
 		template_values = { 'google_sign_in': users.create_login_url('/scriptlist', None, "gmail.com"),
 						'yahoo_sign_in' : users.create_login_url('/scriptlist', None, "yahoo.com"),
 						'aol_sign_in' : users.create_login_url('/scriptlist', None, "aol.com")}
-		path = os.path.join(os.path.dirname(__file__), 'welcome.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/welcome.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile == 1:
-			path = os.path.join(os.path.dirname(__file__), 'MobileWelcome.html')
+			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileWelcome.html')
 		if referer == 'http://www.rawscripts.com/scriptlist' or referer == 'http://www.rawscripts.com/' or  referer == 'http://www.rawscripts.com/about' or  referer == 'http://www.rawscripts.com/blog' or  referer == 'http://www.rawscripts.com/contact':
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
@@ -87,7 +87,7 @@ class Welcome (webapp.RequestHandler):
 class Editor (webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
-		path = os.path.join(os.path.dirname(__file__), 'editor.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
 		resource_id=self.request.get('resource_id')
 		format='editor'
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -105,7 +105,7 @@ class Editor (webapp.RequestHandler):
 			if len(r)!=0:
 				if r[0].permission=='collab':
 					format='viewer'
-					path = os.path.join(os.path.dirname(__file__), 'viewer.html')
+					path = os.path.join(os.path.dirname(__file__), 'html/viewer.html')
 					q=db.GqlQuery("SELECT * FROM ShareNotify "+
 									"WHERE user='"+user.email().lower()+"' "+
 									"AND resource_id='"+resource_id+"' "+
@@ -126,7 +126,7 @@ class Editor (webapp.RequestHandler):
 			else:
 				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
 				 					'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
-				path = os.path.join(os.path.dirname(__file__), 'login.html')
+				path = os.path.join(os.path.dirname(__file__), 'html/login.html')
 				
 		if user:
 			user=user.email().lower()

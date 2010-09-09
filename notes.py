@@ -227,7 +227,7 @@ class ViewNotes(webapp.RequestHandler):
 							"title":title,
 							"f":f
 							}
-			path = os.path.join(os.path.dirname(__file__), 'MobileViewNotes.html')
+			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
 			self.response.out.write(template.render(path, template_values))
 			
 			q = db.GqlQuery("SELECT * FROM NotesNotify "+

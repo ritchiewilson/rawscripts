@@ -142,10 +142,10 @@ class ScriptList(webapp.RequestHandler):
 
 		
 		
-		path = os.path.join(os.path.dirname(__file__), 'scriptlist.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile==1:
-			path = os.path.join(os.path.dirname(__file__), 'MobileScriptlist.html')
+			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileScriptlist.html')
 
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
@@ -256,7 +256,7 @@ class TitlePage(webapp.RequestHandler):
 													 'otherChecked' : ""}
 			
 
-		path = os.path.join(os.path.dirname(__file__), 'titlepage.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/titlepage.html')
 
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
@@ -789,7 +789,7 @@ class ConvertProcess (webapp.RequestHandler):
 		taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : resource_id})
 		
 		self.response.headers['Content-Type'] = 'text/html'
-		path = os.path.join(os.path.dirname(__file__), 'UploadComplete.html')
+		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("convert", users.get_current_user().email().lower(), resource_id, 0, len(contents), None, None, None, None,filename,ff,None,None, None)
 		
