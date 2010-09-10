@@ -24,7 +24,15 @@ p { clear: both; line-height: 1.64em; margin: 0 0 15px; }
 #content { width: 970px; margin: 0 auto; }
 	#top { color: #ccc; padding: 4px 20px 0; text-align: right; }
     #top a { color: #ccc }
-	#logo { float: left; background: url(../images/bluebg.png) repeat-x; padding: 70px 25px 15px; margin: -46px 0 20px; }
+	#logo { 
+		float: left; 
+		background: url(../images/bluebg.png) repeat-x; 
+		padding: 70px 25px 15px; 
+		margin: -46px 0 20px; 
+		-webkit-box-shadow:0px 3px 6px #666;
+		-moz-box-shadow:0px 3px 6px #666;
+		box-shadow:0px 3px 6px #666;
+	}
 		#logo h1 { text-shadow: 1px 1px 1px #003399; font-family:Courier; }
 	#menu { float: right; margin: 63px 20px 0; }
 		#menu li { display: inline; font-size: 1.3em; }
