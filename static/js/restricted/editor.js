@@ -400,6 +400,7 @@ function copy(){
 }
 function paste(){
 	if(!justPasted){
+		var forceCalc = false;
     	saveTimer();
 	    redoQue=[];
 	    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
@@ -429,6 +430,7 @@ function paste(){
 	        anch.col=pos.col;
 	    }
 	    else{
+			forceCalse = true;
 	        var arr=JSON.parse(data);
 	        if (lines[pos.row][0]==''){
 	            lines[pos.row][1]=arr[0][1];
@@ -480,8 +482,10 @@ function paste(){
 			arr=i=p=tmp=null;
 	    }
 	    pasting=false;
-	    sceneIndex();
-	    paint(true,false,false);
+		if(forceCalc){
+			sceneIndex();
+	    	paint(true,false,false);
+		}
 		justPasted=true;
 		setTimeout("setJustPasted()", 50);
 		j=r=data=null;
@@ -1633,7 +1637,6 @@ function undo(){
 		tmp.push(dir[x]);
 	}
     redoQue.push(tmp);
-    var forceCalc=false;
     if(dir[0]=='enter'){
         var j = lines[dir[1]+1][0];
         lines.splice((dir[1]+1),1);
@@ -2550,6 +2553,8 @@ function tagPrompt(){
 }
 // find prompts and stuff
 function findPrompt(){
+	hideFindReplacePrompt();
+	if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
 	typeToScript=false;
 	findForcePaint=true;
 	document.getElementById('find_div').style.display="block";
@@ -2565,6 +2570,8 @@ function hideFindPrompt(){
 }
 // Find Replace Prompt
 function findReplacePrompt(){
+	hideFindPrompt();
+	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	typeToScript=false;
 	findForcePaint=true;
 	document.getElementById('find_replace_div').style.display="block";
@@ -2583,8 +2590,13 @@ function replaceText(){
 	if(d.length==0)return;
 	if(pos.row==anch.row && pos.col==anch.col)return;
 	if(pos.row!=anch.row)return;
-	backspace();
-	lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
+	if(findReplaceArr.length==0)return;
+	document.getElementById('ccp').value=d;
+	paste();
+	anch.col=pos.col-d.length;
+	if(document.getElementById('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+	//backspace();
+	//lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
 }
 function replaceAndFind(){
 	replaceText();
