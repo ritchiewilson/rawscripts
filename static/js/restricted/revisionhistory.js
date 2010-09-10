@@ -1,3 +1,9 @@
+/**
+ * @license Rawscripts.com copywrite 2010
+ *
+ *
+ *
+ */
 $(document).ready(function(){
     document.getElementById('script').style.height = $('#container').height()-65+'px';
     document.getElementById('script').style.width = $('#container').width()-500+'px';

@@ -1,3 +1,9 @@
+/**
+ * @license Rawscripts.com copywrite 2010
+ *
+ *
+ *
+ */
 function uploadWindow(evt){
 	if (evt.data == 'uploading'){
 		document.getElementById('uploadFrame').height= '0px';

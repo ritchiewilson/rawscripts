@@ -1,3 +1,9 @@
+/**
+ * @license Rawscripts.com copywrite 2010
+ *
+ *
+ *
+ */
    var OSName="Unknown OS";
    if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
    if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
@@ -26,6 +32,9 @@
    var ctx;
    var linesNLB= [];
    var vOffset = 0;
+   var findArr = [];
+   var findReplaceArr=[];
+   var findForcePaint = false;
    var pos = { col: 0, row: 0};
    var anch = {col:0, row:0};
    var background = '#fff';
@@ -99,6 +108,9 @@
 	    $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
 		$('#recipient').keydown(function(e){if(e.which==13){e.preventDefault();}});
 		$('#subject').keydown(function(e){if(e.which==13){e.preventDefault();}});
+		$('#find_input').focus(function(e){typeToScript=false; findForcePaint=true; commandDownBool=false});
+		$('#find_input').blur(function(e){typeToScript=true; findForcePaint=false; commandDownBool=false});
+		$('#find_input').keyup(function(e){findInputKeyUp(e, "f")});
 	    //stuff for filelike menu
 	    $('.menuItem').click(function(){openMenu(this.id)});
 	    $('.menuItem').mouseover(function(){topMenuOver(this.id)});
@@ -199,8 +211,11 @@ function selection(){
     }
     var c = document.getElementById('ccp');
     c.value=sel;
-    c.focus();
-    c.select();
+	if(!findForcePaint){
+		c.focus();
+		c.select();
+	}
+	startRange=endRange=sel=null;
 }
 
 function setup(){
@@ -310,6 +325,7 @@ function mouseDown(e){
             viewNotes=true;
             newThread();
         }
+		else if(id=='find')findPrompt();
         else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
         //View
         else if(id=='revision')window.open('/revisionhistory?resource_id='+resource_id);
@@ -438,26 +454,34 @@ function scroll(v){
 	//if(document.getElementById('suggestBox')!=null)createSuggestBox('c');
 }
 function jumpTo(v){
-    if(v!=''){
+    if(v[0]=='r'){
         var e = parseInt(v.replace('row',''));
         pos.row=e;
         anch.row=pos.row;
         pos.col=lines[pos.row][0].length;
         anch.col=pos.col;
     }
-    else var e=pos.row;
+	else if(v[0]=="f"){
+		var e = parseInt(v.replace('find',''));
+	}
+    else {var e=pos.row;}
     var scrollHeight=0;
     for(var i=0;i<e;i++){
         for(var count=0; count<pageBreaks.length; count++){
             if(pageBreaks[count][0]==i){
-                scrollHeight+=lineheight*(72-pageBreaks[count][1]);
+                scrollHeight=lineheight*72*(count*1+1);
+				if(pageBreaks[count][2]!=0){
+					scrollHeight-=lineheight*(linesNLB[i].length-pageBreaks[count][2]);
+				}
             }
         }
+		count=null;
         scrollHeight+=(linesNLB[i].length*lineheight);
     }
     vOffset=scrollHeight;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-document.getElementById('canvas').height;
     if(vOffset>pagesHeight)vOffset=pagesHeight;
+	e=i=scrollHeight=pagesHeight=null;
 }
 function upArrow(){
     if(typeToScript && document.getElementById('suggestBox')==null){
@@ -1011,6 +1035,96 @@ function topMenuOut(v){
     }
 }
 
+// find prompts and stuff
+function findPrompt(){
+	if(document.getElementById('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+	typeToScript=false;
+	findForcePaint=true;
+	document.getElementById('find_div').style.display="block";
+	document.getElementById('find_input').select();
+	document.getElementById('find_input').focus();
+}
+function hideFindPrompt(){
+	typeToScript=true;
+	findForcePaint=false;
+	findArr=[];
+	document.getElementById('find_div').style.display="none";
+	commandDownBool=false;
+}
+function findInputKeyUp(e, w){
+	if(e.which==13 && e.which!=1000){
+		e.preventDefault();
+		findDown();
+		return;
+	}
+	var f = (w=="f" ? document.getElementById("find_input").value : document.getElementById("fr_find_input").value);
+	var r = new RegExp(f.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"),"gi");
+	findArr=[];
+	findReplaceArr=[];
+	if(f.length==0){
+		document.getElementById('find_number_found').innerHTML="0 found"
+		return;
+	}
+	var c = 0;
+	for (i in lines){
+		while (r.test(lines[i][0])==true){
+			if(w=="f"){findArr.push([i*1,r.lastIndex-f.length])}
+			else{findReplaceArr.push([i*1,r.lastIndex-f.length])}
+		}
+	}
+	if(w=="f"){document.getElementById('find_number_found').innerHTML=findArr.length+" found"}
+}
+function findDown(){
+	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
+	if (tmpArr.length==0)return;
+	var l = (findArr.length!=0 ? document.getElementById('find_input').value.length : document.getElementById('fr_find_input').value.length);
+	for(i in tmpArr){
+		if (tmpArr[i][0]==pos.row && tmpArr[i][1]>pos.col){
+			anch.row=pos.row=tmpArr[i][0];
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+		if(tmpArr[i][0]*1>pos.row*1){
+			anch.row=pos.row=tmpArr[i][0]*1;
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+	}
+	pos.row=anch.row=pos.col=anch.col=0;
+	findDown();
+}
+
+function findUp(){
+	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
+	if (tmpArr.length==0)return;
+	var l = (findArr.length!=0 ? document.getElementById('find_input').value.length : document.getElementById('fr_find_input').value.length);
+	var i = tmpArr.length-1;
+	for(var i=tmpArr.length-1;i>=0;i--){
+		if (tmpArr[i][0]==pos.row && tmpArr[i][1]<pos.col-l-1){
+			anch.row=pos.row=tmpArr[i][0];
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+		if(tmpArr[i][0]*1<pos.row*1){
+			anch.row=pos.row=tmpArr[i][0]*1;
+			anch.col=tmpArr[i][1]*1;
+			pos.col=tmpArr[i][1]*1+l*1;
+			jumpTo("find"+pos.row);
+			return;
+		}
+	}
+	pos.row=anch.row=tmpArr[tmpArr.length-1][0];
+	anch.col = tmpArr[tmpArr.length-1][1];
+	pos.col = anch.col+l;
+	jumpTo("find"+pos.row);
+}
+
 
 //menu options and stuff
 // closing the window
@@ -1053,7 +1167,6 @@ function createScript (){
 
 //exporting
 function exportPrompt(){
-    if(document.getElementById('saveButton').value=="Save")save(0);
     typeToScript=false;
     document.getElementById("exportpopup").style.visibility="visible"
 }
@@ -1165,6 +1278,45 @@ function scrollBar(ctx, y){
 	ctx.stroke()
 	height=pagesHeight=barHeight=topPixel=sh=null;
 }
+
+function drawFindArr(ctx,pageStartX){
+	ctx.fillStyle="yellow";
+	var l = (findArr.length==0 ? document.getElementById("fr_find_input").value.length : document.getElementById("find_input").value.length);
+	var characterCount=0;
+	var iterant=0;
+	var count=0;
+	var tmpArr=(findArr.length==0 ? findReplaceArr : findArr)
+	var colorHeight=lineheight*9+3;
+	for (i in linesNLB){
+		if(colorHeight-vOffset>1200)break;
+		var characterCount=0;
+		for (j in linesNLB[i]){
+			if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
+				count++;
+				colorHeight=72*lineheight*count+9*lineheight+4;
+				if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
+			}
+			colorHeight+=lineheight;
+			while(tmpArr[iterant]!=undefined && tmpArr[iterant][0]==i && tmpArr[iterant][1]>=characterCount && tmpArr[iterant][1]<characterCount+linesNLB[i][j]+1){
+				//find the lr of where the rect should go
+				// but only when necessary
+				if(colorHeight-vOffset>-100){
+					var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(tmpArr[iterant][1]-characterCount)*fontWidth;
+					if(tmpArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
+						ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-tmpArr[iterant][1])*fontWidth, lineheight-2)
+						ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-tmpArr[iterant][1]+1))*fontWidth, lineheight-2)
+					}
+					else{
+						ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
+					}
+				}
+				iterant++;
+			}
+			characterCount+=linesNLB[i][j]+1;
+		}
+	}
+}
+
 function drawRange(ctx, pageStartX){
     if(pos.row>anch.row){
         var startRange = {row:anch.row, col:anch.col};
@@ -1375,7 +1527,7 @@ function sortNumbers(a,b){
 }
 
 function paint(e, anchE, forceCalc, forceScroll){
-    if(typeToScript){
+    if(typeToScript || findForcePaint){
     var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0, 2000,2500);
@@ -1429,7 +1581,10 @@ function paint(e, anchE, forceCalc, forceScroll){
         }
     }
     ctx.fillStyle=foreground;
-    
+    // draw finds if there are any
+	if(findArr.length!=0 || findReplaceArr.length!=0){
+		drawFindArr(ctx, pageStartX);
+	}
     //Draw in range if there is one
     if(pos.row!=anch.row || anch.col!=pos.col){
         drawRange(ctx, pageStartX);
@@ -1659,7 +1814,6 @@ function paint(e, anchE, forceCalc, forceScroll){
         var notesSpacingDiff=0;
         for (note in notesOnThisLine){
             var n = notesOnThisLine[note];
-            console.log();
             if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
                 notesSpacingDiff++;
             }
@@ -1684,7 +1838,7 @@ function paint(e, anchE, forceCalc, forceScroll){
             try{
                 ctx.fillRect(lr,ud,2,17);
             }
-            catch(err){console.log(lines[pos.row][0]);}
+            catch(err){}
         }
     }
       
