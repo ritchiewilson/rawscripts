@@ -11,8 +11,8 @@
   <script src="js/min/editor.js" type="text/javascript"></script>
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
-  body{padding:0; margin:0;height:100%; background-color:#ccc}
-  html{height:99%; margin:0; padding:0;}
+  body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
+  html{height:100%; margin:0; padding:0; overflow:hidden;}
 	img{border:none;}
   .close{
 	position:absolute;
@@ -50,6 +50,8 @@
 	background: url("images/grey_bg.png") repeat-x left bottom;
 	border-bottom:1px #999 solid;
 	height:25px;
+	float:left;
+	width:95%;
 	}
 	.graphicalToolBarItem{
 		width:26px;
@@ -288,7 +290,7 @@
 	background-color:#f0f0f0;
 	border:1px #999 solid;
 	border-top:none;
-	width:300px;
+	width:320px;
 	display:none;
 	font-family:sans-serif;
 	font-size:10pt;
@@ -480,7 +482,7 @@
     </div>
   </div>
 	<div id="graphicalToolBar">
-		<table border="0" cellpadding=0 cellspacing=0>
+		<table border="0" cellpadding=0 cellspacing=0 style="float:left">
 			<tr>
 				<td class="graphicalToolBarItem" align="center" valign="bottom" title="New" onclick="newScriptPrompt()"><img src="images/new_file.gif" alt="Create New Screenplay"></td>
 				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Save"onclick="save(0)"><img src="images/save.png" alt="Save Screenplay"></td>
@@ -626,6 +628,6 @@
 			</tr>
 		</table>
 	</div>
-  <textarea id="ccp" style="position:fixed; top-9999px; left:-9999px;"></textarea>
+  <textarea id="ccp" style="position:absolute; top:-9999px; left:-9999px;"></textarea>
 </body>
 </html>

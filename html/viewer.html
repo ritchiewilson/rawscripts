@@ -11,8 +11,8 @@
  <script type="text/javascript" src="js/min/viewer.js"></script>
 <link rel="shortcut icon" href="/favicon.ico">
   <style>
-  body{padding:0; margin:0;height:100%; background-color:#ccc}
-  html{height:99%; margin:0; padding:0;}
+  body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc;}
+  html{height:100%; margin:0; padding:0; overflow:hidden;}
 	img{border:none;}
   .close{
 	position:absolute;
@@ -359,6 +359,6 @@
 			</tr>
 		</table>
 	</div>
-  <textarea id="ccp" style="position:fixed; top-9999px; left:-9999px;"></textarea>
+  <textarea id="ccp" style="position:fixed; top:-9999px; left:-9999px;"></textarea>
 </body>
 </html>

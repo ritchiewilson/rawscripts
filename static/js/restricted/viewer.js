@@ -99,10 +99,10 @@
     
     
 	$(document).ready(function(){
-	    document.getElementById('canvas').height = $('#container').height()-60;
+	    document.getElementById('canvas').height = $('#container').height()-65;
 		document.getElementById('canvas').width = $('#container').width()-320;
 		editorWidth=$('#container').width()-323;
-	    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+	    document.getElementById('sidebar').style.height = ($('#container').height()-70)+'px';
 	    //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
 	    $('#container').mousewheel(function(e, d){if(e.target.id=='canvas'){e.preventDefault();scroll(-d*25);}});
 	    $('#recipient').keyup(function(event){if(event.which==188)tokenize('recipient')});
@@ -118,10 +118,10 @@
 		setup();
 	  });
 	  $(window).resize(function(){
-	    document.getElementById('canvas').height = $('#container').height()-60;
+	    document.getElementById('canvas').height = $('#container').height()-65;
 		document.getElementById('canvas').width = $('#container').width()-320;
 		editorWidth=$('#container').width()-323;
-	    document.getElementById('sidebar').style.height = ($('#container').height()-65)+'px';
+	    document.getElementById('sidebar').style.height = ($('#container').height()-70)+'px';
 	    //document.getElementById('sidebar').style.width = ($('#container').width()-853)+'px';
 		paint(false,false,false,false)
 	  });
