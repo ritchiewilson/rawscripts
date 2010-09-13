@@ -10,6 +10,9 @@ handlers:
 - url: /_ah/login_required
   script: nologin.py
 
+- url: /hUoVeIFNIgngfTnTdlGQRg--.html
+  script: scripteditor.py
+
 - url: /js/restricted
   static_dir: static/js/restricted
   login: admin
