@@ -239,7 +239,9 @@ class Save (webapp.RequestHandler):
 		u = q.get()
 		v=0
 		if u==None:
-			logging.info("save for no script exists")
+			self.response.headers["Content-Type"] = "text/plain"
+			self.response.out.write('script not found')
+			logging.info('script not found')
 			return
 		else:
 			if u.user==users.get_current_user().email().lower():
