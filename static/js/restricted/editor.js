@@ -139,6 +139,17 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
+	var fMenu = new goog.ui.Menu();
+	fMenu.decorate(goog.dom.getElement('fileMenu'))
+	fMenu.setPosition(0, 63)
+	fMenu.setAllowAutoFocus(true);
+	
+	var sKeys= [['save','S'],['export', 'E']];
+	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
+	for (i in sKeys){
+		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
+		goog.dom.setTextContent(d, meta+sKeys[i][1]);
+	}
 	
     //stuff for filelike menu
 	
@@ -169,11 +180,6 @@ goog.events.listen(vsm, goog.events.EventType.RESIZE, function(e) {setElementSiz
 
 var docKh = new goog.events.KeyHandler(document);
 goog.events.listen(docKh, 'key', keyEvent)
-
-var fileMenu = new goog.ui.Menu();
-fileMenu.decorate(document.getElementById('fileMenu'))
-fileMenu.setPosition(0, 63)
-fileMenu.setAllowAutoFocus(true);
 
 function keyEvent(e){
 	if(e.metaKey){

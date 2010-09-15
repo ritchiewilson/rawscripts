@@ -11,8 +11,9 @@
   <script src="js/json2.min.js" type="text/javascript"></script>
   <script src="js/restricted/dom.js" type="text/javascript"></script>
   <!--<script src="js/min/editor.js" type="text/javascript"></script>-->
-  <link rel="stylesheet" href="/closure-library/closure/goog//css/menu.css"> 
-  <link rel="stylesheet" href="/closure-library/closure/goog//css/menuitem.css">
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/menu.css"> 
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/menuitem.css">
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/menuseparator.css"> 
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
   body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
@@ -77,9 +78,6 @@
   }
   #header{padding:0px;}
   #menu{padding-top:0px;float:left}
-  #fileMenu{
-   
-  }
   #editMenu{
     width:200px;
     position:fixed; 
@@ -553,14 +551,15 @@
   </div>
   </div>
   <div class="goog-menu" id="fileMenu">
-    <div id='new' class="goog-menuitem"><div class="goog-menuitem-accel">Ctrl+E</div>New</div>
+    <div id='new' class="goog-menuitem">New</div>
     <div id='open' class="goog-menuitem">Open</div>
     <hr>
+	<div class="goog-menuseperator"></div>
     <div id='rename' class="goog-menuitem">Rename</div>
-    <div id='save' class="goog-menuitem">Save</div>
+    <div id='save' class="goog-menuitem"><div id="save-shortcut" class="goog-menuitem-accel">+S</div>Save</div>
     <div id='duplicate' class="goog-menuitem">Duplicate</div>
 	<hr>
-    <div id='exportas' class="goog-menuitem">Export As...</div>
+    <div id='exportas' class="goog-menuitem"><div id='export-shortcut' class="goog-menuitem-accel">+E</div>Export As...</div>
 	<hr>
     <div id='close' class="goog-menuitem">Save and Close</div>
   </div>
