@@ -188,10 +188,9 @@ function init(){
 		goog.dom.setTextContent(d, meta+sKeys[i][1]);
 	}
 	
-	var toolbar = new goog.ui.Toolbar();
-	toolbar.decorate(goog.dom.getElement('gtb'));
-	
-	var button = goog.ui.decorate(goog.dom.getElement('fee'));
+	var tb = new goog.ui.Toolbar();
+	tb.decorate(goog.dom.getElement('gtb'));
+	goog.dom.getElement('gtb').style.visibility = 'visible';
 	
 	resource_id=window.location.href.split('=')[1];
 	goog.net.XhrIo.send('scriptcontent',
@@ -660,8 +659,8 @@ function setup(e){
 	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
-    document.getElementById('saveButton').value="Saved";
-    document.getElementById('saveButton').disabled=true;
+    //document.getElementById('saveButton').value="Saved";
+    //document.getElementById('saveButton').disabled=true;
     paint(true,false,false);
     setInterval('paint(false,false,false)', 25);
 	i=p=data=title=x=w=c=collabs=null;
