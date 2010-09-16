@@ -13,7 +13,10 @@
   <!--<script src="js/min/editor.js" type="text/javascript"></script>-->
   <link rel="stylesheet" href="/closure-library/closure/goog/css/menu.css"> 
   <link rel="stylesheet" href="/closure-library/closure/goog/css/menuitem.css">
-  <link rel="stylesheet" href="/closure-library/closure/goog/css/menuseparator.css"> 
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/menuseparator.css">
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/toolbar.css">  
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/button.css">
+  <link rel="stylesheet" href="/closure-library/closure/goog/css/custombutton.css"> 
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
   body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
@@ -37,39 +40,18 @@
 	font-size:10pt;
 	cursor:pointer;
   }
-  #focus{
-	background-color:#A2BAE9;
-  }
   .TEXT{
     background-color:white;
   }
   .toolBar{
     font-family:sans-serif; 
     font-size:10pt;
-    float:left; 
     background-color:#A2BAE9; 
     width:100%;
     border-top:2px #000 solid;
+	padding:0;
   }
-  #graphicalToolBar{
-	background: url("images/grey_bg.png") repeat-x left bottom;
-	border-bottom:1px #999 solid;
-	height:25px;
-	float:left;
-	width:95%;
-	}
-	.graphicalToolBarItem{
-		width:26px;
-		height:24px;
-	}
-	.graphicalToolBarItem:hover, .graphicalToolBarItemLast:hover{
-		background-color:#f9f9f9;
-	}
-	.graphicalToolBarItemLast{
-		width:26px;
-		height:24px;
-		border-right:1px #aaa solid;
-	}
+  
   .sceneItem{
 	font-family:Courier; 
 	font-size:10pt;
@@ -77,42 +59,9 @@
 	cursor:pointer;
   }
   #header{padding:0px;}
-  #menu{padding-top:0px;float:left}
-  #editMenu{
-    width:200px;
-    position:fixed; 
-    top:63px; 
-    left:34px; 
-    border-right:1px #333 solid; 
-    border-bottom:1px #333 solid; 
-    border-top:1px #999 solid; 
-    border-left:1px #999 solid;
-    background-color:#fff;
-    display:none;
-  }
-  #viewMenu{
-    width:190px;
-    position:fixed; 
-    top:63px; 
-    left:71px; 
-    border-right:1px #333 solid; 
-    border-bottom:1px #333 solid; 
-    border-top:1px #999 solid; 
-    border-left:1px #999 solid;
-    background-color:#fff;
-    display:none;
-  }
-  #shareMenu{
-    width:180px;
-    position:fixed; 
-    top:63px; 
-    left:114px; 
-    border-right:1px #333 solid; 
-    border-bottom:1px #333 solid; 
-    border-top:1px #999 solid; 
-    border-left:1px #999 solid;
-    background-color:#fff;
-    display:none;
+  #menu{
+	padding-top:0px;
+    background-color:#A2BAE9;
   }
   #helpMenu{
     width:150px;
@@ -126,22 +75,6 @@
     background-color:#fff;
     display:none;
   }
-  .submenu{
-    padding:4px 4px 4px 8px;
-    font-family:sans-serif; 
-    font-size:10pt;
-    cursor:default;
-  }
-  .submenuSplit{
-    padding:4px 4px 6px 8px;
-    margin-bottom:4px;
-    border-bottom:1px #ccc solid;
-    font-family:sans-serif; 
-    font-size:10pt;
-    cursor:default;
-  }
-  .submenu:hover{background-color:#ccf}
-  .submenuSplit:hover{background-color:#ccf}
   #context_menu{
 	background-color:white;
 	border-right:1px #666 solid;
@@ -161,6 +94,7 @@
   td{padding:0;}
   #titleBar{
     height:40px;
+    background-color:#6484DF;
   }
   #toolBar{
   }
@@ -312,6 +246,7 @@
 	font-size:10pt;
 	float:right;
 }
+
   </style>
   </head>
 <body onload="init()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
@@ -466,50 +401,52 @@
 		</div>
 	</div>
 </div>
-  <div id='container' style="width:100%; height:100%; margin:0; padding:0">
-  <div id='header' style="width:100%; height:65px; background-color:#6484df">
+<div id='container' style="width:100%; height:100%; margin:0; padding:0">
+  <div id='header' style="width:100%; height:65px;">
     <div id="titleBar">
       <div id="title" onclick="renamePrompt()" title="Rename">Screenplay Editor</div>
       <div style="float:right; margin:5px 10px 0 0;" id="user"><span id="user_email">{{ user }}</span> | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
     <div class="toolBar" id="toolBar">
-        <div id="menu">
-          <div id='file' class="menuItem">File</div>
-          <div id='edit' class="menuItem">Edit</div>
-          <div id='view' class="menuItem">View</div>
-          <div id='share' class="menuItem">Share</div>
-          <!--<div id='help' class="menuItem">Help</div>-->
-        </div>
-        <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-right:50px;float:right" onclick="save(0)" />
+        <table id="menu" cellpadding='0' cellspacing='0'>
+		  <tr>
+            <td id='file' class="menuItem">File</td>
+            <td id='edit' class="menuItem">Edit</td>
+            <td id='view' class="menuItem">View</td>
+            <td id='share' class="menuItem">Share</td>
+            <!--<td id='help' class="menuItem">Help</td>-->
+		  </tr>
+        </table>
+		<div id="fee" class="goog-custom-button">Save</div> 
+        <input id="saveButton" type="button" value="Save" style="margin-top:2px; margin-right:50px;" onclick="save(0)" />
     </div>
-  </div>
-	<div id="graphicalToolBar">
-		<table border="0" cellpadding=0 cellspacing=0 style="float:left">
-			<tr>
-				<td class="graphicalToolBarItem" align="center" valign="bottom" title="New" onclick="newScriptPrompt()"><img src="images/new_file.gif" alt="Create New Screenplay"></td>
-				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Save"onclick="save(0)"><img src="images/save.png" alt="Save Screenplay"></td>
-				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Export"onclick="exportPrompt()"><img src="images/export.gif" alt="Export Screenplay"></td>
-				
-				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Undo"onclick="undo()"><img src="images/Undo.png" alt="Undo"></td>
-				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Redo"onclick="redo()"><img src="images/Redo.png" alt="Redo"></td>
-				
-				<td class="graphicalToolBarItem" align="center" valign="bottom" title="Insert Note"onclick="newThread()"><img src="images/note.png" alt="Insert Note"></td>
-				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Spell Check"onclick="launchSpellCheck()"><img src="images/spellcheck.png" alt="SpellCheck"></td>
-				
-				<td class="graphicalToolBarItemLast" align="center" valign="bottom" title="Email Screenplay"onclick="emailPrompt()"><img src="images/email.gif" alt="Email Screenplay"></td>
-				<td>
-					<select id="format" onchange="changeFormat(this.selectedIndex)" style="margin-top:2px; margin-left:200px;float:left">
-			            <option>Slugline</option>
-			            <option>Action</option>
-			            <option>Character</option>
-			            <option>Dialog</option>
-			            <option>Parenthetical</option>
-			            <option>Transition</option>
-			          </select>
-				</td>
-			</tr>
-		</table>
+	<br>
+	<div>
+		<div id='gtb' class='goog-toolbar'>
+			<div class="goog-toolbar-button"><img src="images/new_file.gif" alt="Create New Screenplay"></div>
+			<div class="goog-toolbar-button"><img src="images/save.png" alt="Save Screenplay"></div>
+			<div class="goog-toolbar-button"><img src="images/export.gif" alt="Export Screenplay"></div>
+			<hr>
+			<div class="goog-toolbar-button"><img src="images/Undo.png" alt="Undo"></div>
+			<div class="goog-toolbar-button"><img src="images/Redo.png" alt="Redo"></div>
+			<hr>
+			<div class="goog-toolbar-button"><img src="images/note.png" alt="Insert Note"></div>
+			<div class="goog-toolbar-button"><img src="images/spellcheck.png" alt="SpellCheck"></div>
+			<div class="goog-toolbar-button"><img src="images/email.gif" alt="Email Screenplay"></div>
+			<div class="goog-toolbar-menu-button">
+				Line Format
+				<div class="goog-menu">
+					<div class="goog-menuitem">Slugline</div>
+					<div class="goog-menuitem">Action</div>
+					<div class="goog-menuitem">Character</div>
+					<div class="goog-menuitem">Dialog</div>
+					<div class="goog-menuitem">Parenthetical</div>
+					<div class="goog-menuitem">Transition</div>
+				</div>
+			</div>
+		</div>
 	</div>
+  </div>
   <canvas id='canvas' width="850" style="float:left; cursor:text">
     <div style="background-color:white; width:400px; margin-left:75px; padding:100px; padding-top:50px;">
         <h2>Grrr.... Internet!</h2>
@@ -551,48 +488,69 @@
   </div>
   </div>
   <div class="goog-menu" id="fileMenu">
-    <div id='new' class="goog-menuitem">New</div>
+    <div id='new' class="goog-menuitem"><div class="goog-menuitem-icon"><img src="images/new_file.gif" alt="Create New Screenplay"></div>New</div>
     <div id='open' class="goog-menuitem">Open</div>
     <hr>
 	<div class="goog-menuseperator"></div>
     <div id='rename' class="goog-menuitem">Rename</div>
-    <div id='save' class="goog-menuitem"><div id="save-shortcut" class="goog-menuitem-accel">+S</div>Save</div>
+    <div id='save' class="goog-menuitem"><div class="goog-menuitem-icon"><img src="images/save.png" alt="Save Screenplay"></div><div id="save-shortcut" class="goog-menuitem-accel">+S</div>Save</div>
     <div id='duplicate' class="goog-menuitem">Duplicate</div>
 	<hr>
-    <div id='exportas' class="goog-menuitem"><div id='export-shortcut' class="goog-menuitem-accel">+E</div>Export As...</div>
+    <div id='exportas' class="goog-menuitem"><div class="goog-menuitem-icon"><img src="images/export.gif" alt="Export Screenplay"></div><div id='export-shortcut' class="goog-menuitem-accel">+E</div>Export As...</div>
 	<hr>
     <div id='close' class="goog-menuitem">Save and Close</div>
   </div>
-  <div class="topMenu" id="editMenu" style="display:none">
-    <div id='undo' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/Undo.png" alt="Undo"></td><td>Undo</td></tr></table></div>
-    <div id='redo' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/Redo.png" alt="Redo"></td><td>Redo</td></tr></table></div>
-	
-	<div id='insertNote' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/note.png" alt="Insert New Note"></td><td>Insert Note</td></tr></table></div>
-    
-    <div id="editTitlePage" class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Edit Title Page</td></tr></table></div>
-    
-    <div id='spellCheck' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/spellcheck.png" alt="SpellCheck"></td><td>Spell Check</td></tr></table></div>
-
-	<div id='tag' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Tag Current Version</td></tr></table></div>
-	
-	<div id='find' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Find</td></tr></table></div>
-	<div id='findReplace' class="submenuSplit"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Find and Replace</td></tr></table></div>
-	
-    <div id="format0" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check0' style="width:25px">✓</td><td>Slugline</td></tr></table></div>
-    <div id="format1" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check1' style="width:25px"></td><td>Action</td></tr></table></div>
-    <div id="format2" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check2' style="width:25px"></td><td>Character</td></tr></table></div>
-    <div id="format3" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check3' style="width:25px"></td><td>Dialog</td></tr></table></div>
-    <div id="format4" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check4' style="width:25px"></td><td>Parenthetical</td></tr></table></div>
-    <div id="format5" class="submenu"><table cellpadding="0" cellspacing="0"><tr><td class="formatTD" id='check5' style="width:25px"></td><td>Transition</td></tr></table></div>
+  <div class="goog-menu" id="editMenu">
+    <div id='undo' class="goog-menuitem">
+		<div class="goog-menuitem-icon">
+			<img src="images/Undo.png" alt="Undo">
+		</div>
+		<div id="undo-shortcut" class="goog-menuitem-accel">+S</div>
+		Undo
+	</div>
+    <div id='redo' class="goog-menuitem">
+		<div class="goog-menuitem-icon">
+			<img src="images/Redo.png" alt="Undo">
+		</div>
+		<div id="redo-shortcut" class="goog-menuitem-accel">+S</div>
+		Redo
+	</div>
+	<hr>
+	<div id='insertNote' class="goog-menuitem">
+		<div class="goog-menuitem-icon">
+			<img src="images/note.png" alt="Insert Note">
+		</div>
+		Insert Note
+	</div>
+    <hr>
+	<div id="editTitlePage" class="goog-menuitem">Edit Title Page</div>
+	<div id='tag' class="goog-menuitem">Tag Current Version</div>
+	<hr>
+	<div id='find' class="goog-menuitem"><div id="find-shortcut" class="goog-menuitem-accel">+S</div>Find</div>
+	<div id='findReplace' class="goog-menuitem">Find and Replace</div>
+	<hr>
+	<div id='spellCheck' class="goog-menuitem">
+		<div class="goog-menuitem-icon">
+			<img src="images/spellcheck.png" alt="SpellCheck">
+		</div>
+		Spell Check
+	</div>
+	<hr>
+    <div id="format0" class="goog-menuitem goog-option">Slugline</div>
+    <div id="format1" class="goog-menuitem goog-option">Action</div>
+    <div id="format2" class="goog-menuitem goog-option">Character</div>
+    <div id="format3" class="goog-menuitem goog-option">Dialog</div>
+    <div id="format4" class="goog-menuitem goog-option">Parenthetical</div>
+    <div id="format5" class="goog-menuitem goog-option">Transition</div>
   </div>
-  <div class="topMenu" id="viewMenu" style="display:none">
+  <div class="topMenu" id="viewMenu">
     <!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Font Size</td></tr></table></div>-->
-    <div id='notes' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td id="notesViewHide" style="width:25px">✓</td><td>View Notes</td></tr></table></div>
-    <div id='revision' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Revision History</td></tr></table></div>
+    <div id='notes' class="goog-menuitem goog-option goog-option-selected">View Notes</div>
+    <div id='revision' class="goog-menuitem">Revision History</div>
   </div>
-  <div class="topMenu" id="shareMenu" style="display:none">
-    <div id='collaborators' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Collaborators</td></tr></table></div>
-    <div id='email' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px"><img src="images/email.gif" alt="Email Screenplay"></td><td>Email PDF</td></tr></table></div>
+  <div class="topMenu" id="shareMenu">
+    <div id='collaborators' class="goog-menuitem">Collaborators</div>
+    <div id='email' class="goog-menuitem"><div class="goog-menuitem-icon"><img src="images/email.gif" alt="Email Screenplay"></div>Email PDF</div>
   </div>
   <div class="topMenu" id="helpMenu" style="display:none">
     <div id='faqs' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>FAQs</td></tr></table></div>

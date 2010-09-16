@@ -92,6 +92,7 @@
     var spellWrong=[];
     var spellIgnore=[];
     var checkSpell=false;
+	var fMenu, eMenu, vMenu, sMenu;
     
 function init(){
 	setElementSizes("i");
@@ -139,23 +140,59 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
-	var fMenu = new goog.ui.Menu();
+	fMenu = new goog.ui.Menu();
 	fMenu.decorate(goog.dom.getElement('fileMenu'))
-	fMenu.setPosition(0, 63)
+	fMenu.setPosition(0, 64)
 	fMenu.setAllowAutoFocus(true);
+	fMenu.setVisible(false);
+	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.CLICK, openMenu);
+	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOVER, topMenuOver);
+	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOUT, topMenuOut);
+	goog.events.listen(fMenu, 'action', menuSelect)
 	
-	var sKeys= [['save','S'],['export', 'E']];
+	eMenu = new goog.ui.Menu();
+	eMenu.decorate(goog.dom.getElement('editMenu'))
+	eMenu.setPosition(35, 64)
+	eMenu.setAllowAutoFocus(true);
+	eMenu.setVisible(false);
+	goog.events.listen(goog.dom.getElement('edit'), goog.events.EventType.CLICK, openMenu);
+	goog.events.listen(goog.dom.getElement('edit'), goog.events.EventType.MOUSEOVER, topMenuOver);
+	goog.events.listen(goog.dom.getElement('edit'), goog.events.EventType.MOUSEOUT, topMenuOut);
+	goog.events.listen(eMenu, 'action', menuSelect)
+	
+	vMenu = new goog.ui.Menu();
+	vMenu.decorate(goog.dom.getElement('viewMenu'))
+	vMenu.setPosition(72, 64)
+	vMenu.setAllowAutoFocus(true);
+	vMenu.setVisible(false);
+	goog.events.listen(goog.dom.getElement('view'), goog.events.EventType.CLICK, openMenu);
+	goog.events.listen(goog.dom.getElement('view'), goog.events.EventType.MOUSEOVER, topMenuOver);
+	goog.events.listen(goog.dom.getElement('view'), goog.events.EventType.MOUSEOUT, topMenuOut);
+	goog.events.listen(vMenu, 'action', menuSelect)
+	
+	sMenu = new goog.ui.Menu();
+	sMenu.decorate(goog.dom.getElement('shareMenu'))
+	sMenu.setPosition(113, 64)
+	sMenu.setAllowAutoFocus(true);
+	sMenu.setVisible(false);
+	goog.events.listen(goog.dom.getElement('share'), goog.events.EventType.CLICK, openMenu);
+	goog.events.listen(goog.dom.getElement('share'), goog.events.EventType.MOUSEOVER, topMenuOver);
+	goog.events.listen(goog.dom.getElement('share'), goog.events.EventType.MOUSEOUT, topMenuOut);
+	goog.events.listen(sMenu, 'action', menuSelect)
+	
+	
+	var sKeys= [['save','S'],['export', 'E'],['undo', 'U'], ['redo', 'R'], ['find', 'F']];
 	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
 	for (i in sKeys){
 		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
 		goog.dom.setTextContent(d, meta+sKeys[i][1]);
 	}
 	
-    //stuff for filelike menu
+	var toolbar = new goog.ui.Toolbar();
+	toolbar.decorate(goog.dom.getElement('gtb'));
 	
-    $('.menuItem').click(function(){openMenu(this.id)});
-    $('.menuItem').mouseover(function(){topMenuOver(this.id)});
-    $('.menuItem').mouseout(function(){topMenuOut(this.id)});
+	var button = goog.ui.decorate(goog.dom.getElement('fee'));
+	
 	resource_id=window.location.href.split('=')[1];
 	goog.net.XhrIo.send('scriptcontent',
 		setup,
@@ -705,103 +742,22 @@ function mouseUp(e){
 		document.getElementById('ccp').focus();
         document.getElementById('ccp').select();
 	}
+	fMenu.setVisible(false)
+	eMenu.setVisible(false)
+	vMenu.setVisible(false)
+	sMenu.setVisible(false)
+	var arr=["file",'edit','view','share'];
+	for(i in arr){
+		var d = goog.dom.getElement(arr[i]);
+		d.style.backgroundColor='#A2BAE9';
+        d.style.color='black';
+	}
 }
 function mouseDown(e){
 	if(typeToScript){
 	    if(checkSpell)ajaxSpell(pos.row);
-	    var menu = false;
-	    var c = document.getElementsByTagName('div');
-	    for(var i=0;i<c.length;i++){
-	        if(c[i].className=='topMenu' && c[i].style.display=='block'){
-	            menu=true;
-	            var a=c[i];
-	        }
-	    }
-		i=c=null;
-	    if(menu){
-	        var command = e.target;
-	        while(command.nodeName!='DIV'){
-	            command=command.parentNode
-	        }
-	        id=command.id;
-	        var f = id.slice(0,-1);
-	        if (f=='format'){
-	            changeFormat(id.slice(-1));
-
-	        }
-	        //FILE
-	        if(id=='save')save(0);
-	        else if(id=='new'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to start saving.");
-	            }
-	            else {newScriptPrompt();}
-	        }
-	        else if(id=='open'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to open new scripts.");
-	            }
-	            else{openPrompt();}
-	        }
-	        else if(id=='rename')renamePrompt();
-	        else if(id=='exportas')exportPrompt();
-	        else if(id=='duplicate'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to start doing that.");
-	                return;
-	            }
-	            else{duplicate();}
-	        }
-	        else if(id=='close')closeScript();
-	        //Edit
-	        else if(id=='undo')undo();
-	        else if(id=='redo')redo();
-	        else if(id=='insertNote'){
-	            viewNotes=true;
-	            newThread();
-	        }
-	        else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
-			else if(id=='tag'){
-				if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to start doing that.");
-	                return;
-	            }
-				else{tagPrompt();}
-			}
-	        else if(id=='spellCheck')launchSpellCheck();
-			else if(id=='find')findPrompt();
-			else if(id=='findReplace')findReplacePrompt();
-	        //View
-	        else if(id=='revision'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to start doing that.");
-	                return;
-	            }
-	            else{window.open('/revisionhistory?resource_id='+resource_id);}
-	        }
-	        else if(id=='notes'){
-	            viewNotes = (viewNotes ? false : true);
-				document.getElementById("notesViewHide").innerHTML = (viewNotes == true ? "✓" : "");
-	        }
-	        //Share
-	        else if(id=='collaborators'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to start doing that.");
-	                return;
-	            }
-	            else{sharePrompt();}
-	        }
-	        else if(id=='email'){
-	            if(resource_id=="Demo"){
-	                alert("Sorry, you'll have to login to email scripts.");
-	                return;
-	            }
-	            else{emailPrompt();}
-	        }
-	        a.style.display='none';
-			a=id=f=command=null;
-	    }
-		else if(document.getElementById('suggestBox')!=null){
+	    
+		if(document.getElementById('suggestBox')!=null){
 			return;
 		}
 		else if(document.getElementById('context_menu')!=null){
@@ -2159,7 +2115,6 @@ function noteIndex(){
 function newThread(){
 	tabs(1);
 	viewNotes=true;
-	document.getElementById("notesViewHide").innerHTML = "✓";
 	paint(false,false,false);
     noteIndex();
     typeToScript=false;
@@ -2270,63 +2225,147 @@ function deleteThread(v){
 //Menu
 // function to hand the file like menu
 
-function openMenu(v){
+function openMenu(e){
+	var v = e.target.id;
+	var arr = [['file', fMenu],['edit', eMenu],['view', vMenu],['share', sMenu]];
     document.getElementById(v).style.backgroundColor='#6484df';
     document.getElementById(v).style.color='white';
-    document.getElementById(v+'Menu').style.display='block';
-    var c = document.getElementsByTagName('td');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='formatTD'){
-            if(c[i].id=='check'+lines[pos.row][1]){
-                c[i].innerHTML='';
-                c[i].appendChild(document.createTextNode('✓'));
-            }
-            else{
-                c[i].innerHTML='';
-            }
-        }
-    }
+    var open = 'notfound';
+	var t=0;
+	for (i in arr){
+		if(arr[i][1].isVisible()==true){
+			open=i;
+			arr[open][1].setVisible(false);
+		}
+		if(v==arr[i][0]){t=arr[i][1];}
+	}
+	if (open=='notfound'){
+		t.setVisible(true)
+	}
+	else if(arr[open][1]==t){
+		t.setVisible(false)
+	}
+	else{
+		arr[open][1].setVisible(false);
+		t.setVisible(true)
+	}
+	
 	i=null;
 }
-function topMenuOver(v){
-    var open=false;
-    var c = document.getElementsByTagName('div');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='menuItem'){
-            c[i].style.backgroundColor='#A2BAE9';
-            c[i].style.color='black';
-        }
-        if(c[i].className=='topMenu'){
-            if(c[i].style.display=='block'){
-                c[i].style.display='none';
-                open=true;
-            }
-        }
-    }
-    if(open){
-        document.getElementById(v+'Menu').style.display='block';
-    }
-    document.getElementById(v).style.backgroundColor='#6484df';
-    document.getElementById(v).style.color='white';
-    var c = document.getElementsByTagName('td');
-    for(var i=0; i<c.length; i++){
-        if(c[i].className=='formatTD'){
-            if(c[i].id=='check'+lines[pos.row][1]){
-                c[i].innerHTML='';
-                c[i].appendChild(document.createTextNode('✓'));
-            }
-            else{
-                c[i].innerHTML='';
-            }
-        }
-    }
-	open=c=i=null;
+
+function topMenuOver(e){
+	var v = e.target.id
+	var arr = [['file', fMenu],['edit', eMenu],['view', vMenu],['share', sMenu]];
+    var open='not open';
+	for(i in arr){
+		var d = goog.dom.getElement(arr[i][0]);
+		d.style.backgroundColor='#A2BAE9';
+        d.style.color='black';
+		if(arr[i][1].isVisible())open=i;
+		if(v==arr[i][0]){
+			var t = arr[i][1];
+			var d = goog.dom.getElement(t.id_.replace("Menu",""));
+			d.style.backgroundColor='#6484df';
+	        d.style.color='white';
+		}
+	}
+	if(open!='not open'){
+		arr[open][1].setVisible(false);
+		t.setVisible(true)
+	}
+	open=i=null;
 }
-function topMenuOut(v){
+
+function topMenuOut(e){
+	var v = e.target.id;
     if(document.getElementById(v+'Menu').style.display=='none'){
         document.getElementById(v).style.backgroundColor='#A2BAE9';
         document.getElementById(v).style.color='black';
     }
+}
+
+function menuSelect(e){
+	var id=e.target.getId();
+	if(id=='save')save(0);
+    else if(id=='new'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to start saving.");
+        }
+        else {newScriptPrompt();}
+    }
+    else if(id=='open'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to open new scripts.");
+        }
+        else{openPrompt();}
+    }
+    else if(id=='rename')renamePrompt();
+    else if(id=='exportas')exportPrompt();
+    else if(id=='duplicate'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to start doing that.");
+            return;
+        }
+        else{duplicate();}
+    }
+    else if(id=='close')closeScript();
+    //Edit
+    else if(id=='undo')undo();
+    else if(id=='redo')redo();
+    else if(id=='insertNote'){
+        viewNotes=true;
+        newThread();
+    }
+    else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
+	else if(id=='tag'){
+		if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to start doing that.");
+            return;
+        }
+		else{tagPrompt();}
+	}
+    else if(id=='spellCheck')launchSpellCheck();
+	else if(id=='find')findPrompt();
+	else if(id=='findReplace')findReplacePrompt();
+    //View
+    else if(id=='revision'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to start doing that.");
+            return;
+        }
+        else{window.open('/revisionhistory?resource_id='+resource_id);}
+    }
+    else if(id=='notes'){
+        viewNotes = (viewNotes ? false : true);
+    }
+	else if(id.substr(0,6)=='format'){
+		changeFormat(parseInt(id.replace('format','')))
+	}
+    //Share
+    else if(id=='collaborators'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to start doing that.");
+            return;
+        }
+        else{sharePrompt();}
+    }
+    else if(id=='email'){
+        if(resource_id=="Demo"){
+            alert("Sorry, you'll have to login to email scripts.");
+            return;
+        }
+        else{emailPrompt();}
+    }
+	fMenu.setVisible(false)
+	eMenu.setVisible(false)
+	vMenu.setVisible(false)
+	sMenu.setVisible(false)
+	var arr=["file",'edit','view','share'];
+	for(i in arr){
+		var d = goog.dom.getElement(arr[i])
+		d.style.backgroundColor='#A2BAE9';
+        d.style.color='black';
+	}
 }
 
 //menu options and stuff
@@ -3538,8 +3577,12 @@ function paint(forceCalc, forceScroll){
             scroll(-45);
         }
     }
-    document.getElementById('format').selectedIndex=lines[pos.row][1];
+    //document.getElementById('format').selectedIndex=lines[pos.row][1];
     }
+	
+	for(i=0; i<=5; i++){
+		eMenu.getChild('format'+i).setChecked((lines[pos.row][1]==i ? true : false))
+	}
 	//var nnd = new Date();
 	//console.log(nnd.getTime()-nd);
 }
