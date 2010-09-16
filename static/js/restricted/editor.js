@@ -202,7 +202,7 @@ function init(){
 function setElementSizes(v){
 	var s = goog.dom.getViewportSize();
 	goog.style.setSize(goog.dom.getElement('container'), s);
-	document.getElementById('canvas').height = s.height - 60-32;
+	document.getElementById('canvas').height = s.height - 60-38;
 	document.getElementById('canvas').width = s.width-320;
 	editorWidth=s.width-323;
 	document.getElementById('sidebar').style.height = (s.height-70)+'px';
@@ -659,8 +659,8 @@ function setup(e){
 	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
-    //document.getElementById('saveButton').value="Saved";
-    //document.getElementById('saveButton').disabled=true;
+    document.getElementById('saveButton').value="Saved";
+    document.getElementById('saveButton').disabled=true;
     paint(true,false,false);
     setInterval('paint(false,false,false)', 25);
 	i=p=data=title=x=w=c=collabs=null;
@@ -791,19 +791,19 @@ function mousePosition(e, w){
     milli = d.getMilliseconds();
 	var count = 0;
 	var found = 0;
-	var mp=e.clientY+vOffset-26;
+	var mp=e.clientY+vOffset-31;
 	var y=15*lineheight+3;
 	var oldY=0;
 	for(i in lines){
 		oldY=y;
 		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
 			if(pageBreaks[count][2]==0){
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3-26;
+				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3-31;
 				count++;
 			}
 			else{
 				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
-				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight-26;
+				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight-31;
 				if(lines[i][1]==3)y+=lineheight;
 				y-=(lineheight*linesNLB[i].length);
 				count++;
@@ -2157,7 +2157,15 @@ function submitNewThread(v){
         notes.push(arr);
         var data = [pos.row, pos.col, content, v];
         if(resource_id!="Demo"){
-            $.post("/notesnewthread", {resource_id:resource_id, row:pos.row, col:pos.col, content: content, thread_id:v, fromPage:'editor'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+			goog.net.XhrIo.send('/notesnewthread',
+				function(e){
+					if(e.target.getResponseText()!='sent'){
+						alert("Sorry, there was a problem sending that message. Please try again later.")
+					}
+				},
+				'POST',
+				'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+v
+			);
         }
     }
     noteIndex();
@@ -2198,7 +2206,15 @@ function submitMessage(v){
         var arr=[content, u, d]
         notes[n][2].push(arr);
         if(resource_id!="Demo"){
-            $.post("/notessubmitmessage", {resource_id:resource_id, content : content, thread_id : v, fromPage:'editor'}, function(d){if(d!='sent')alert("Sorry, there was a problem sending that message. Please try again later.")})
+			goog.net.XhrIo.send('/notessubmitmessage',
+				function(e){
+					if(d.target.getResponseText()!='sent'){
+						alert("Sorry, there was a problem sending that message. Please try again later.")
+					}
+				},
+				'POST',
+				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+v+'&fromPage=editor'
+			);
         }
 		arr=null
     }
@@ -2210,7 +2226,11 @@ function deleteThread(v){
     var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
     if(c==true){
         if(resource_id!="Demo"){
-            $.post("/notesdeletethread", {resource_id:resource_id, thread_id:v});
+			goog.net.XhrIo.send('/notesdeletethread',
+				function(e){},
+				'POST',
+				'resource_id='+resource_id+'&thread_id='+v
+			);
         }
     for (i in notes){
         if (notes[i][3]==v)var found = i;
@@ -2370,8 +2390,30 @@ function menuSelect(e){
 //menu options and stuff
 // closing the window
 function closeScript(){
+	clearTimeout(timer);
+    if(resource_id=='Demo'){
+        self.close()
+    }
     var data=JSON.stringify(lines);
-    $.post('/save', {data : data, resource_id : resource_id, autosave:0}, function(d){self.close()});
+    document.getElementById('saveButton').value='Saving...';
+    goog.net.XhrIo.send('/save', function(d){
+        self.close();
+		},
+		'POST',
+		"data="+escape(data)+"&resource_id="+resource_id+"&autosave=0"
+	);
+    var arr = []
+    for (i in notes){
+        arr.push([notes[i][0], notes[i][1], notes[i][3]])
+    }
+    if(arr.length!=0){
+		goog.net.XhrIo.send('/notesposition', 
+			function(d){},
+			'POST',
+			"positions="+escape(JSON.stringify(arr))+"&resource_id="+resource_id
+		);
+    }
+	data=arr=i=null;
 }
 // new script
 function newScriptPrompt(){
@@ -2398,20 +2440,26 @@ function createScript (){
 		document.getElementById('createScriptButton').disabled=true;
 		document.getElementById('createScriptButton').value="Creating Script...";
 		document.getElementById('createScriptIcon').style.visibility="visible";
-		$.post('/newscript', {filename:filename, fromPage:"editor"}, function(data){
-            window.open('editor?resource_id='+data);
-			hideNewScriptPrompt();
-        });
+		goog.net.XhrIo.send('/newscript',
+			function(e){
+				window.open('editor?resource_id='+e.target.getResponseText());
+				hideNewScriptPrompt();
+			},
+			'POST',
+			'filename='+escape(filename)+'&fromPage=editor'
+		);
 	}
 }
 // duplicate
 function duplicate(){
-    $.post('/duplicate',
-     {resource_id : resource_id, fromPage : 'editor'}, 
-     function(d){
-        if (d=='fail')return;
-        else{window.open(d)}
-     });
+	goog.net.XhrIo.send('/duplicate',
+		function(e){
+			if(e.target.getResponseText()=='fail')return;
+			else{window.open(e.target.getResponseText())}
+		},
+		'POST',
+		'fromPage=editor&resource_id='+resource_id
+	)
 }
 // save
 function save(v){
@@ -2423,7 +2471,6 @@ function save(v){
         return;
     }
     var data=JSON.stringify(lines);
-	//console.log("data="+data+"&resource_id="+resource_id+"&autosave="+v)
     document.getElementById('saveButton').value='Saving...';
     goog.net.XhrIo.send('/save', function(d){
         document.getElementById('saveButton').value='Saved';
