@@ -17,6 +17,7 @@ import activity
 import logging
 from django.utils import simplejson
 import mobileTest
+from google.appengine.api import memcache
 
 class Notes (db.Model):
 	resource_id = db.StringProperty()
@@ -189,12 +190,19 @@ class ScriptContent (webapp.RequestHandler):
 				if i.permission=="collab":
 					sharedwith.append(i.user)
 			
+			c = memcache.get(users.get_current_user().email().lower()+'contacts')
+			if c==None:
+				contacts = ["John <rvd@hotmail.com>", "Ritchie <777@gmail.com>"]
+			else:
+				contacts = simplejson.loads(c)
+			
 			ja=[]
 			ja.append(title)
 			ja.append(simplejson.loads(results[0].data))
 			ja.append(sp)
 			ja.append(notes)
 			ja.append(sharedwith)
+			ja.append(contacts)
 
 			content = simplejson.dumps(ja)
 			user = users.get_current_user()

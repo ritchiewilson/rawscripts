@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>RawScripts - Settings</title>
+	<link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
+	<link rel="shortcut icon" href="/favicon.ico">
+	<style type="text/css" media="screen">
+		#settingsBox{
+			background-color:#eee;
+			margin:10px;
+			padding:20px;
+			border:1px #333 double;
+		}
+	</style>
+	<script type="text/javascript" charset="utf-8">
+		function syncContacts(){
+			var d = document.getElementById('syncContacts')
+			if(d.checked){
+				window.open('/synccontacts', 'synccontacts', 'width=500px,height=400px');
+			}
+		}
+	</script>
+</head>
+
+<body>
+<script type="text/javascript">
+
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-16492540-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+
+	</script>
+
+	<div id="header" style="position:fixed; top:0; left:0; right:0; height:100pt;">
+		<div id="logo">
+			<h1><a href="/">RawScripts.com</a></h1>
+		</div>
+		<div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div>
+		<div style="width:100%; clear:both; background-color:#6490E6; padding:3px 0; position:absolute; bottom:0; border-top:2px #ccc solid; border-bottom:2px #ccc solid;">
+			<div id="static_buttons" style="padding:3px; margin-left:16px">
+				<a href="/scriptlist" style="text-decoration:none; color:black; font-size:10pt; font-weight:bold">Back to Scriptlist</a>
+			</div>
+		</div>
+	</div>
+
+
+	<div>
+
+		<div id="contents" style="background-color:#6490E6; position:absolute; right:0; left:160px; bottom:0; top:100pt;">
+
+			<div id="owned" class="folderContents" style="display:block">
+				<div id='settingsBox'>
+					<table border="0" cellspacing="10" cellpadding="10">
+						<tr>
+							<td><input type="checkbox" name="syncContacts" id="syncContacts" onclick="syncContacts()"></td>
+							<td>Sync contacts from Gmail account</td>
+						</tr>
+						<tr>
+							<td><input type="checkbox" name="autosave" value="autosave" id="autosave"></td>
+							<td>Enable autosave in editor window.</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

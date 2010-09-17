@@ -1,3 +1,4 @@
+/*
 goog.require('goog.userAgent')
 goog.require('goog.events')
 goog.require('goog.dom');
@@ -35,6 +36,7 @@ goog.require('goog.debug.DivConsole');
 goog.require('goog.debug.Logger');
 goog.require('goog.debug.LogManager');
 goog.require('goog.object');
+goog.require('goog.ui.AutoComplete.Basic');*/
 /**
  * @license Rawscripts.com copywrite 2010
  *
@@ -167,8 +169,6 @@ function init(){
 	goog.events.listen(mwh, MOUSEWHEEL, handleMouseWheel);
 	goog.events.listen(window, 'unload', function(e) {
 	goog.events.unlisten(mwh, MOUSEWHEEL, handleMouseWheel);});
-	goog.events.listen(goog.dom.getElement('recipient'), goog.events.EventType.KEYUP, function(e){if(e.keyCode==188)tokenize('recipient')});
-	goog.events.listen(goog.dom.getElement('collaborator'), goog.events.EventType.KEYUP, function(e){if(e.keyCode==188)tokenize('collaborator')});
 	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();renameScript()}});
     goog.events.listen(goog.dom.getElement('recipient'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13)e.preventDefault()});
 	goog.events.listen(goog.dom.getElement('collaborator'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();shareScript()}});
@@ -716,6 +716,9 @@ function setup(e){
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
 		TR=newA=null;
     }
+	var contacts = p[5];
+	console.log(contacts)
+	var ac = new goog.ui.AutoComplete.Basic(contacts, document.getElementById('recipient'), true)
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     tabs(0);
