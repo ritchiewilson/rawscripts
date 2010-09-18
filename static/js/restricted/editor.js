@@ -716,9 +716,7 @@ function setup(e){
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
 		TR=newA=null;
     }
-	var contacts = p[5];
-	console.log(contacts)
-	var ac = new goog.ui.AutoComplete.Basic(contacts, document.getElementById('recipient'), true)
+	var emailAutoComplete = new goog.ui.AutoComplete.Basic(['ritchie','richard','rich'], document.getElementById('recipient'), true);
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     tabs(0);
@@ -2644,7 +2642,6 @@ function emailPrompt(){
 function hideEmailPrompt(){
     document.getElementById("emailpopup").style.visibility='hidden';
     document.getElementById('recipient').value='';
-    document.getElementById('recipients').innerHTML='';
     document.getElementById('message').innerHTML='';
     typeToScript=true;
 }
