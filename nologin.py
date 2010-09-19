@@ -190,7 +190,7 @@ class ScriptContent (webapp.RequestHandler):
 				if i.permission=="collab":
 					sharedwith.append(i.user)
 			
-			c = memcache.get(users.get_current_user().email().lower()+'contacts')
+			c = memcache.get('contacts' + users.get_current_user().email().lower())
 			if c==None:
 				contacts = []
 			else:

@@ -1073,16 +1073,30 @@ class SyncContactsPage (webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 			else:
 				path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-				# can't collect contacts through taskqueue. 
-				# have to do it now, but only do it if there is no memcache
 				m = memcache.get('contacts'+user.email().lower())
 				if m == None:
 					client = gdata.contacts.client.ContactsClient()
-					response = client.get_contacts(auth_token=token)
-					
-					self.response.headers['Content-Type'] = 'text/plain'
-					self.response.out.write(response)
-					return
+					feed = client.GetContacts(auth_token=token)
+					contactlist = []
+					for entry in feed.entry:
+						for email in entry.email:
+							if str(entry.title.text)=='None':
+								contactlist.append("<"+str(email.address)+">")
+							else:
+								contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+					i=0
+					while i==0:
+						try:
+							feed = client.GetNext(feed, auth_token=token)
+							for entry in feed.entry:
+								for email in entry.email:
+									if str(entry.title.text)=='None':
+										contactlist.append("<"+str(email.address)+">")
+									else:
+										contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+						except:
+							i=1
+					memcache.set(key='contacts'+user.email().lower(), value=simplejson.dumps(contactlist))
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
@@ -1095,6 +1109,33 @@ class RemoveSyncContacts (webapp.RequestHandler):
 			gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
 			memcache.delete('contacts'+users.get_current_user().email().lower())
 		self.redirect('/synccontacts')
+
+class SyncGoogleContacts (webapp.RequestHandler):
+	def post(self):
+		client = gdata.contacts.client.ContactsClient()
+		feed = client.GetContacts(auth_token=token)
+		contactlist = []
+		for entry in feed.entry:
+			for email in entry.email:
+				if str(entry.title.text)=='None':
+					contactlist.append("<"+str(email.address)+">")
+				else:
+					contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+		i=0
+		while i==0:
+			try:
+				feed = client.GetNext(feed, auth_token=token)
+				for entry in feed.entry:
+					for email in entry.email:
+						if str(entry.title.text)=='None':
+							contactlist.append("<"+str(email.address)+">")
+						else:
+							contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+			except:
+				i=1
+		memcache.set(key='contacts'+user.email().lower(), value=simplejson.dumps(contactlist))
+		self.response.header['Content-Type'] = 'text/plain'
+		self.response.out.write('done')
 
 class OneScript (webapp.RequestHandler):
 	def get(self):
