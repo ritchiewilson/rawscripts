@@ -77,7 +77,11 @@ function newFolder(){
 	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 	if(f!=null && f!=""){
 		var id = Math.round(Math.random()*10000000000);
-		$.post("/newfolder", {folder_name:f, folder_id:id})
+		goog.net.XhrIo.send('/newfolder',
+			function(){},
+			'POST',
+			'folder_name='+escape(f)+'&folder_id='+id
+		)
 		var d = document.getElementById('user_folders').appendChild(document.createElement('div'));
 		d.className="tab";
 		d.id="Folder"+id;
@@ -152,7 +156,12 @@ function moveToFolder(v){
 			}
 		}
 		if(found==true){
-			$.post("/changefolder", {resource_id: arr.join(","), folder_id : v}, function(){refreshList()});
+			goog.net.XhrIo.send('/changefolder',
+				refreshList,
+				'POST',
+				'resource_id='+arr.join(',')+'folder_id='+v
+			)
+			//$.post("/changefolder", {resource_id: arr.join(","), folder_id : v}, function(){refreshList()});
 		}
 		document.getElementById("move_to_folder").selectedIndex=0;
 	}
@@ -160,10 +169,11 @@ function moveToFolder(v){
 
 function refreshList(v){
 	document.getElementById("refresh_icon").style.visibility="visible";
-	$.post('/list', function(data){
+	goog.net.XhrIo('/list',
+		function(d){
 	
     //update with new info
-	var j = JSON.parse(data);
+	var j = d.target.getResponseJson();
     var x=j[0];
     var z=j[1];
     var ss=j[2];
@@ -508,7 +518,9 @@ function refreshList(v){
 		sharePrompt(v);
 	}
 	document.getElementById("refresh_icon").style.visibility="hidden";
-							 });
+	},
+	'POST'
+	)
 }
 function renameFolder(){
 	var f = prompt("Rename Folder", this.parentNode.title)
@@ -521,7 +533,12 @@ function renameFolder(){
 			d.appendChild(document.createElement("img")).src="images/folder.png";
 			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
 			d.appendChild(document.createTextNode(f));
-			$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()});
+			goog.net.XhrIo('/renamefolder',
+				refreshList,
+				'POST',
+				'folder_name='+f+'&folder_id='folder_id
+			)
+			//$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()});
 		}
 	}
 }
@@ -529,7 +546,12 @@ function deleteFolder(){
 	var c = confirm("Are you sure you want to delete this folder?")
 	if(c==true){
 		var folder_id = this.parentNode.value.replace("Folder","");
-		$.post("/deletefolder", {folder_id:folder_id}, function(){refreshList()})
+		goog.net.XhrIo.send('/deletefolder',
+			refreshList,
+			'POST',
+			'folder_id='+folder_id
+		);
+		//$.post("/deletefolder", {folder_id:folder_id}, function(){refreshList()})
 	}
 }
 function selectAll(obj, which){
@@ -564,7 +586,8 @@ function deleteScript(v){
 			c[i].style.opacity = '0.5';
 		}
 	}
-	$.post("/delete", {resource_id : v}, function(){
+	goog.net.XhrIo.send('/delete',
+		function(){
         scriptDiv.parentNode.removeChild(scriptDiv);
         document.getElementById('trashList').appendChild(scriptDiv);
         scriptDiv.style.backgroundColor='#f9f9fc';
@@ -584,39 +607,50 @@ function deleteScript(v){
 				c[i].parentNode.removeChild(c[i])
 			}
 		}
-        });
+        }
+			'resource_id='+v
+		);
 }
 
 function undelete(v){
     var scriptDiv = document.getElementById(v);
 	scriptDiv.style.backgroundColor = '#ccc';
 	scriptDiv.style.opacity = '0.5';
-	$.post("/undelete", {resource_id : v}, function(){
-        scriptDiv.parentNode.removeChild(scriptDiv);
-        document.getElementById('list').appendChild(scriptDiv);
-        scriptDiv.style.backgroundColor='#f9f9fc';
-        scriptDiv.style.opacity='1';
-        var t=scriptDiv.firstChild;
-        t=(t.nodeName=='#text' ? t.nextSibling : t);
-        t=t.firstChild;
-        t=(t.nodeName=='#text' ? t.nextSibling : t);
-        var c = t.getElementsByTagName('td');
-        t.getElementsByTagName('input')[0].name='listItems';
-		t.getElementsByTagName('a')[0].href="javascript:script('"+v+"')"
-        for (i in c){
-			if (c[i].style!=undefined)c[i].style.display="table-cell"
-		}
-		document.getElementById("noentries").style.display="none";
-    });
+	goog.net.XhrIo.send('/undelete',
+	
+		function(){
+			scriptDiv.parentNode.removeChild(scriptDiv);
+			document.getElementById('list').appendChild(scriptDiv);
+			scriptDiv.style.backgroundColor='#f9f9fc';
+			scriptDiv.style.opacity='1';
+			var t=scriptDiv.firstChild;
+			t=(t.nodeName=='#text' ? t.nextSibling : t);
+			t=t.firstChild;
+			t=(t.nodeName=='#text' ? t.nextSibling : t);
+			var c = t.getElementsByTagName('td');
+			t.getElementsByTagName('input')[0].name='listItems';
+			t.getElementsByTagName('a')[0].href="javascript:script('"+v+"')"
+			for (i in c){
+				if (c[i].style!=undefined)c[i].style.display="table-cell"
+			}
+			document.getElementById("noentries").style.display="none";
+		},
+		'POST',
+		'resource_id='+v
+	);
 }
 
 function hardDelete(v){
     var scriptDiv = document.getElementById(v);
     scriptDiv.style.backgroundColor = '#ccc';
     scriptDiv.style.opacity = '0.5';
-    $.post("/harddelete", {resource_id : v}, function(){
-        scriptDiv.parentNode.removeChild(scriptDiv);
-    });
+	goog.net.Xhr.send('/harddelete',
+		function(){
+			scriptDiv.parentNode.removeChild(scriptDiv);
+		},
+		'POST',
+		'resource_id='+v
+	);
 }
 
 
@@ -670,7 +704,12 @@ function emailScript(){
 	if(subject=="")subject="Script";
 	var body_message = document.getElementById('message').innerHTML;
     var title_page = document.getElementById("emailTitle").selectedIndex;
-	$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
+	goog.net.XhrIo.send('emailscript',
+		emailComplete,
+		'POST',
+		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+escape(subject)+'&body_message='+escape(body_message)+'&fromPage=scriptlist&title_page='+title_page
+	);
+	//$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
 }
@@ -703,12 +742,17 @@ function duplicate(){
 	}
 	if(counter>1)alert("select one at a time");
 	else if (counter==1){
-        $.post('/duplicate',
-         {resource_id : resource_id, fromPage : 'editor'}, 
-         function(d){
-            if (d=='fail')return;
-            else{window.open(d),refreshList();}
-         });
+		goog.net.XhrIo.send('/duplicate',
+			function(d){
+				if(d.target.getResponseText()=='fail')return;
+				else{
+					window.open(d.target.getResponseText());
+					refreshList()
+				}
+			},
+			'POST',
+			'resource_id='+resource_id+'&fromPage=scriptlist'
+		);
     }
 }
 
@@ -747,7 +791,12 @@ function renameScript(){
 	if (rename==""){return;}
 	var id = "name"+resource_id;
 	document.getElementById(id).innerHTML = rename;
-	$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
+	goog.net.XhrIo.send('/rename',
+		function(){},,
+		'POST',
+		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
+	);
+	//$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
 	hideRenamePrompt()
 	}
 	
@@ -786,11 +835,15 @@ function createScript (){
 		document.getElementById('createScriptButton').disabled=true;
 		document.getElementById('createScriptButton').value="Creating Script...";
 		document.getElementById('createScriptIcon').style.visibility="visible";
-		$.post('/newscript', {filename:filename, fromPage:"scriptlist"}, function(data){
-            window.open('/editor?resource_id='+data);
-			hideNewScriptPrompt();
-			refreshList()
-        });
+		goog.net.XhrIo.send('/newscript',
+			function(d){
+				window.open('/editor?resource_id='+d.target.getResponseText());
+				hideNewScriptPrompt();
+				refreshList();
+			},
+			'POST',
+			'fromPage=scriptlist&filename='+escape(filename)
+		)
 	}
 }
 window.addEventListener("message", recieveMessage, false);
@@ -882,12 +935,18 @@ function removeAccess(v){
 	var bool = confirm("Are you sure you want to take away access from "+v+"?");
 	if (bool==true){
 		var resource_id = document.getElementById('shareResource_id').value;
-		$.post('/removeaccess', {resource_id : resource_id, fromPage : 'scriptlist', removePerson : v}, function(data){removeShareUser(data)})
+		goog.net.XhrIo.send('/removeaccess',
+			removeShareUser,
+			'POST',
+			'resource_id='+resource_id+'&fromPage=scriptlist&removePerson='+v
+		)
+		//$.post('/removeaccess', {resource_id : resource_id, fromPage : 'scriptlist', removePerson : v}, function(data){removeShareUser(data)})
 		document.getElementById('shared'+v.toLowerCase()).style.opacity = '0.5';
 		document.getElementById('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
 	}
 }
-function removeShareUser(data){
+function removeShareUser(d){
+	var data = d.target.getResponseText();
 	document.getElementById('shared'+data).parentNode.removeChild(document.getElementById('shared'+data));
 	refreshList();
 }
@@ -935,64 +994,12 @@ function shareScript(){
 		}
 	var collaborators = arr.join(',');
 	var resource_id = document.getElementById('shareResource_id').value;
-	$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){refreshList(resource_id);});
+	goog.net.XhrIo.send('/share',
+		fucntion(){refreshList(resource_id)},
+		'POST',
+		'resource_id='+resource_id+'&collaborators='+collaborators+'&fromPage=scriptlist'
+	);
+	//$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){refreshList(resource_id);});
 	document.getElementById('shareS').disabled = true;
 	document.getElementById('shareS').value = "Sending Invites...";
-}
-
-
-//
-//
-//
-//
-//
-//
-//tokenize
-function tokenize(kind){
-	var counter = 0;
-	var c = document.getElementsByTagName('div');
-		for(var i=0;i<c.length;i++){
-			if(c[i].className=='token'){
-				counter++;
-				}
-			}
-	if (counter>4){alert('You can only have 5 recipients at a time for now. Only the first five will be sent.');return;}
-	var txtbox = document.getElementById(kind);
-	var data = txtbox.value.replace(',','');
-	var whitespace = data.replace(/ /g, "");
-	if (whitespace==""){return;}
-	var arr = data.split(' ');
-	var email = arr.pop();
-	var name = "";
-	if(arr.length == 0){name = email;}
-	else{name = arr.join(' ').replace(/"/g, '');}
-	// Create Token div
-	var newToken = document.createElement('div');
-	var insertedToken = document.getElementById(kind+'s').appendChild(newToken);
-	insertedToken.className='token';
-	insertedToken.id = email;
-	// Create Name Area
-	var newSpan = document.createElement('span');
-	var nameSpan = insertedToken.appendChild(newSpan);
-	var nameText = document.createTextNode(name);
-	nameSpan.appendChild(nameText);
-	//Create Mailto area
-	var newSpan = document.createElement('span');
-	var emailSpan = insertedToken.appendChild(newSpan);
-	var emailText = document.createTextNode(email);
-	emailSpan.className = 'mailto';
-	emailSpan.appendChild(emailText);
-	// create X button
-	var newA = document.createElement('a');
-	var xA = insertedToken.appendChild(newA);
-	var xText = document.createTextNode(" | X");
-	xA.appendChild(xText);
-	var js = 'javascript:removeToken("'+email+'")'
-	xA.setAttribute('href', js);
-	txtbox.value='';
-	
-}
-function removeToken(v){
-	var token = document.getElementById(v);
-	token.parentNode.removeChild(token);	
 }
