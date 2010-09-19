@@ -33,3 +33,4 @@ goog.require('goog.ui.CustomButton');
 goog.require('goog.ui.CustomButtonRenderer');
 goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.object');
+goog.require('goog.format.EmailAddress');

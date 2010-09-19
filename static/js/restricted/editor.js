@@ -36,7 +36,9 @@ goog.require('goog.debug.DivConsole');
 goog.require('goog.debug.Logger');
 goog.require('goog.debug.LogManager');
 goog.require('goog.object');
-goog.require('goog.ui.AutoComplete.Basic');*/
+goog.require('goog.ui.AutoComplete.Basic');
+goog.require('goog.format.EmailAddress');
+*/
 /**
  * @license Rawscripts.com copywrite 2010
  *
@@ -169,9 +171,9 @@ function init(){
 	goog.events.listen(mwh, MOUSEWHEEL, handleMouseWheel);
 	goog.events.listen(window, 'unload', function(e) {
 	goog.events.unlisten(mwh, MOUSEWHEEL, handleMouseWheel);});
+	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();findDown()}});
+	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();findDown()}});
 	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();renameScript()}});
-    goog.events.listen(goog.dom.getElement('recipient'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13)e.preventDefault()});
-	goog.events.listen(goog.dom.getElement('collaborator'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13){e.preventDefault();shareScript()}});
     goog.events.listen(goog.dom.getElement('subject'), goog.events.EventType.KEYDOWN, function(e){if(e.keyCode==13)e.preventDefault()});
 	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.FOCUS, function(e){
 		typeToScript=false;
@@ -246,7 +248,7 @@ function init(){
 	goog.events.listen(sMenu, 'action', menuSelect)
 	
 	
-	var sKeys= [['save','S'],['export', 'E'],['undo', 'U'], ['redo', 'R'], ['find', 'F']];
+	var sKeys= [['save','S'],['export', 'E'],['undo', 'Z'], ['redo', 'Shift Z'], ['find', 'F']];
 	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
 	for (i in sKeys){
 		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
@@ -283,7 +285,7 @@ var docKh = new goog.events.KeyHandler(document);
 goog.events.listen(docKh, 'key', keyEvent)
 
 function keyEvent(e){
-	if(e.metaKey){
+	if(e.platformModifierKey){
 		return;
 	}
 	else if(e.target.id=="ccp"){
@@ -716,7 +718,8 @@ function setup(e){
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
 		TR=newA=null;
     }
-	var emailAutoComplete = new goog.ui.AutoComplete.Basic(['ritchie','richard','rich'], document.getElementById('recipient'), true);
+	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p[5], document.getElementById('recipient'), true);
+	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p[5], document.getElementById('collaborator'), true);
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     tabs(0);
@@ -2659,14 +2662,15 @@ function emailComplete(e){
 	}
 }
 function emailScript(){
-	tokenize('recipient');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
+	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('recipient').value)
+	var arr=[];
+	for(i in r){
+		if(r[i].address_!="")arr.push(r[i].address_);
+	}
+	if(arr.length==0){
+		alert('You need to add at least one email address.')
+		return;
+	}
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	if(subject=="")subject="Script";
@@ -2707,14 +2711,25 @@ function removeAccess(v){
 }
 
 function shareScript(){
-	tokenize('collaborator');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
+	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
+	var arr=[];
+	var nonValidEmail=false;
+	for(i in r){
+		var a = r[i].address_;
+		if(a!=""){
+			if(a.split('@')[1]!=undefined && (a.split('@')[1].split('.')[0]=='gmail' || a.split('@')[1].split('.')[0]=='yahoo')){
+				arr.push(a);
 			}
+			else{nonValidEmail=true}
 		}
+	}
+	if(nonValidEmail==true){
+		alert('At this time you can only collaborate with Gmail or Yahoo accounts.')
+	}
+	if(arr.length==0){
+		alert('You need to add at least one email address.')
+		return;
+	}
 	var collaborators = arr.join(',');
 	goog.net.XhrIo.send('/share',
 		function(d){
@@ -2738,7 +2753,6 @@ function shareScript(){
 	)
 	document.getElementById('shareS').disabled = true;
 	document.getElementById('shareS').value = "Sending Invites...";
-    document.getElementById('collaborators').innerHTML="";
 }
 //tag
 function tagPrompt(){

@@ -2,6 +2,7 @@ import StringIO
 import os
 import re
 import wsgiref.handlers
+from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import urlfetch
@@ -19,6 +20,23 @@ from django.utils import simplejson
 import activity
 import mobileTest
 import chardet
+import gdata.gauth
+import gdata.data
+import gdata.contacts.client
+
+
+def get_contacts_auth_token(request):
+	current_user = users.get_current_user()
+	if current_user is None or current_user.user_id() is None:
+		return False
+	token_string, token_scopes = gdata.gauth.auth_sub_string_from_url(request.url)
+	if token_string is None:
+		return gdata.gauth.ae_load('contacts' + users.get_current_user().email().lower())
+	single_use_token = gdata.gauth.AuthSubToken(token_string, token_scopes)
+	client = gdata.client.GDClient()
+	session_token = client.upgrade_token(single_use_token)
+	gdata.gauth.ae_save(session_token, 'contacts' + users.get_current_user().email().lower())
+	return session_token
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -1027,9 +1045,60 @@ class RenameFolder (webapp.RequestHandler):
 		r[0].data = simplejson.dumps(arr)
 		r[0].put()
 		self.response.out.write("1")
-		
+
+class SettingsPage (webapp.RequestHandler):
+	def get(self):
+		user = users.get_current_user()
+		if not user:
+			self.redirect('/')
+			return
+		else:
+			path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
+			template_values = { 'sign_out': users.create_logout_url('/') }
+			template_values['user'] = users.get_current_user().email()
+			self.response.headers['Content-Type'] = 'text/html'
+			self.response.out.write(template.render(path, template_values))
+			
+class SyncContactsPage (webapp.RequestHandler):
+	def get(self):
+		user = users.get_current_user()
+		if not user:
+			self.redirect('/')
+			return
+		else:
+			template_values = {}
+			token = get_contacts_auth_token(self.request)
+			if token == None:
+				template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(self.request.url, ['http://www.google.com/m8/feeds/'])
+				path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
+			else:
+				path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
+				# can't collect contacts through taskqueue. 
+				# have to do it now, but only do it if there is no memcache
+				m = memcache.get('contacts'+user.email().lower())
+				if m == None:
+					client = gdata.contacts.client.ContactsClient()
+					response = client.get_contacts(auth_token=token)
+					
+					self.response.headers['Content-Type'] = 'text/plain'
+					self.response.out.write(response)
+					return
+			self.response.headers['Content-Type'] = 'text/html'
+			self.response.out.write(template.render(path, template_values))
+			
+class RemoveSyncContacts (webapp.RequestHandler):
+	def get(self):
+		token = get_contacts_auth_token(self.request)
+		if token!=False and token!=None:
+			client = gdata.client.GDClient()
+			client.revoke_token(token)
+			gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
+			memcache.delete('contacts'+users.get_current_user().email().lower())
+		self.redirect('/synccontacts')
+
 class OneScript (webapp.RequestHandler):
 	def get(self):
+		return
 		q=db.GqlQuery("SELECT * FROM UsersScripts")
 		r=q.fetch(1000)
 		for i in r:
@@ -1070,6 +1139,9 @@ def main():
 											("/changefolder", ChangeFolder),
 											("/deletefolder", DeleteFolder),
 											('/renamefolder', RenameFolder),
+											('/settings', SettingsPage),
+											('/synccontacts', SyncContactsPage),
+											('/removesynccontacts', RemoveSyncContacts),
 											('/list', List),],
 											debug=True)
 	

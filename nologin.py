@@ -192,7 +192,7 @@ class ScriptContent (webapp.RequestHandler):
 			
 			c = memcache.get(users.get_current_user().email().lower()+'contacts')
 			if c==None:
-				contacts = ["John <rvd@hotmail.com>", "Ritchie <777@gmail.com>"]
+				contacts = []
 			else:
 				contacts = simplejson.loads(c)
 			
