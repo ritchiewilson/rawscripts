@@ -4,6 +4,102 @@
  *
  *
  */
+window['init'] = init;
+window['hideEmailPrompt'] = hideEmailPrompt;
+window['emailScript'] = emailScript;
+window['hideRenamePrompt'] = hideRenamePrompt;
+window['renameScript'] = renameScript;
+window['hideUploadPrompt'] = hideUploadPrompt;
+window['hideNewScriptPrompt'] = hideNewScriptPrompt;
+window['createScript'] = createScript;
+window['hideExportPrompt'] = hideExportPrompt;
+window['exportScripts'] = exportScripts;
+window['hideSharePrompt'] = hideSharePrompt;
+window['shareScript'] = shareScript;
+window['newScriptPrompt'] = newScriptPrompt;
+window['uploadPrompt'] = uploadPrompt;
+window['renamePrompt'] = renamePrompt;
+window['duplicate'] = duplicate;
+window['exportPrompt'] = exportPrompt;
+window['batchProcess'] = batchProcess;
+window['moveToFolder'] = moveToFolder;
+window['exportPrompt'] = exportPrompt;
+window['batchProcess'] = batchProcess;
+window['refreshList'] = refreshList;
+window['newFolder'] = newFolder;
+window['selectAll'] = selectAll;
+
+
+
+
+function init(){
+	refreshList()
+	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN,
+		function(e){
+			if(e.keyCode==13){
+				e.preventDefault();
+				renameScript()
+			}
+		}
+	);
+	goog.events.listen(goog.dom.getElement('subject'), goog.events.EventType.KEYDOWN,
+		function(e){
+			if(e.keyCode==13){
+				e.preventDefault();
+			}
+		}
+	);
+	goog.events.listen(goog.dom.getElement('newScript'), goog.events.EventType.KEYDOWN,
+		function(e){
+			if(e.keyCode==13){
+				e.preventDefault();
+				createScript();
+			}
+		}
+	);
+	var arr = ['ownedFolder', 'sharedFolder', 'trashFolder'];
+	for (i in arr){
+		var f = goog.dom.getElement(arr[i]);
+		goog.events.listen(f, goog.events.EventType.CLICK, function(e){
+			goog.dom.getElementByClass('current').style.backgroundColor='white';
+			goog.dom.getElementByClass('current').className='tab';
+			e.target.className='tab current';
+			tabs(e.target.id)
+			e.target.style.backgroundColor = '#2352AE';
+		});
+		goog.events.listen(f, goog.events.EventType.MOUSEOVER, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#ccf'
+			}
+			else{
+				e.target.style.backgroundColor = '#2352AE'
+			}
+		});
+		goog.events.listen(f, goog.events.EventType.MOUSEOUT, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#fff'
+			}
+		});
+	}
+	try{
+		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
+		if(domain=='gmail'){
+			goog.net.XhrIo.send('/syncgooglecontacts',
+				function(e){
+					if(e.target.getResponseText()=='none')return;
+					try{
+						var arr = e.target.getResponseJson();
+						var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, document.getElementById('recipient'), true);
+						var shareAutoComplete = new goog.ui.AutoComplete.Basic(arr, document.getElementById('collaborator'), true);
+					}
+					catch(e){};
+				},
+				'POST'
+			);
+		};
+	}
+	catch(e){};
+}
 function uploadWindow(evt){
 	if (evt.data == 'uploading'){
 		document.getElementById('uploadFrame').height= '0px';
@@ -18,42 +114,41 @@ function uploadWindow(evt){
 		refreshList();
 	}
 }
-window.oncontextmenu = contextmenu;
-window.onclick = click;
+goog.events.listen(window, goog.events.EventType.CLICK, click)
+goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
 function click(){
-	$(".context_unit").unbind();
-	if(document.getElementById('context_menu')!=null)document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
+	if(document.getElementById('folder_context_menu')!=null){
+		goog.dom.removeNode('folder_context_menu');
+	}
 }
+var folder_id=""
 function contextmenu(e){
-	$(".context_unit").unbind();
-	if(document.getElementById('context_menu')!=null)document.getElementById('context_menu').parentNode.removeChild(document.getElementById('context_menu'));
+	if(document.getElementById('folder_context_menu')!=null){
+		goog.dom.removeNode('folder_context_menu')
+	}
 	if(e.target.className=="tab" || e.target.className=="tab current"){
 		if(e.target.id!="ownedFolder" && e.target.id!="sharedFolder" && e.target.id!="trashFolder"){
 			e.preventDefault();
-			var cm = document.body.appendChild(document.createElement("div"));
-			cm.style.position="fixed";
-			cm.style.top=e.clientY+"px";
-			cm.style.left=e.clientX+5+"px";
-			cm.value = e.target.id;
-			cm.title = $("#"+e.target.id).text().substr(1);
-			cm.id="context_menu"
-			var d = cm.appendChild(document.createElement("div"))
-			d.appendChild(document.createTextNode("Rename"))
-			d.className = "context_unit";
-			d.addEventListener("click", renameFolder, false);
-			d = cm.appendChild(document.createElement("div"))
-			d.appendChild(document.createTextNode('Delete'))
-			d.className = "context_unit";
-			d.addEventListener("click", deleteFolder, false);
-			
-			$(".context_unit").mouseover(function(){
-				$(this).css("background-color","#6490E6");
-			});
-			$(".context_unit").mouseout(function(){
-				$(this).css("background-color","#fff");
-			})
+			folder_id=e.target.id;
+			var menu = new goog.ui.PopupMenu();
+			menu.setId('folder_context_menu');
+			menu.addItem(new goog.ui.MenuItem('Rename Folder'));
+			menu.addItem(new goog.ui.MenuItem('Delete Folder'));
+			menu.render(document.body);
+			menu.setPosition(e.clientX,e.clientY);
+			menu.setVisible(true)
+			goog.events.listen(menu, 'action', folderContextMenuAction)
 		}
 	}
+}
+function folderContextMenuAction(e){
+	if(e.target.content_=='Rename Folder'){
+		renameFolder(folder_id.replace('Folder',''))
+	}
+	else if(e.target.content_=='Delete Folder'){
+		deleteFolder(folder_id.replace('Folder',''))
+	}
+
 }
 function tabs(v){
 	var c = document.getElementsByTagName('input');
@@ -117,24 +212,24 @@ function newFolder(){
 		option.appendChild(document.createTextNode(f));
 		option.value=id;
 		td.appendChild(document.createTextNode("Last Modified"));
-		$('.tab').unbind();
-		$('.tab').click(function(e){
-			$(".current").removeClass("current").css("background-color","white");
-			$(this).addClass('current')
-			tabs(e.target.id);
-			$(this).css("background-color","#2352AE");
+		goog.events.listen(d, goog.events.EventType.CLICK, function(e){
+			goog.dom.getElementByClass('current').style.backgroundColor='white';
+			goog.dom.getElementByClass('current').className='tab';
+			e.target.className='tab current';
+			tabs(e.target.id)
+			e.target.style.backgroundColor = '#2352AE';
 		});
-		$(".tab").mouseover(function(){
-			if(!$(this).hasClass("current")){
-				$(this).css("background-color","#ccf");
+		goog.events.listen(d, goog.events.EventType.MOUSEOVER, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#ccf'
 			}
 			else{
-				$(this).css("background-color","#2352AE");
+				e.target.style.backgroundColor = '#2352AE'
 			}
 		});
-		$(".tab").mouseout(function(){
-			if(!$(this).hasClass("current")){
-				$(this).css("background-color","#fff")
+		goog.events.listen(d, goog.events.EventType.MOUSEOUT, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#fff'
 			}
 		});
 	}
@@ -159,9 +254,8 @@ function moveToFolder(v){
 			goog.net.XhrIo.send('/changefolder',
 				refreshList,
 				'POST',
-				'resource_id='+arr.join(',')+'folder_id='+v
-			)
-			//$.post("/changefolder", {resource_id: arr.join(","), folder_id : v}, function(){refreshList()});
+				'resource_id='+arr.join(',')+'&folder_id='+v
+			);
 		}
 		document.getElementById("move_to_folder").selectedIndex=0;
 	}
@@ -169,389 +263,390 @@ function moveToFolder(v){
 
 function refreshList(v){
 	document.getElementById("refresh_icon").style.visibility="visible";
-	goog.net.XhrIo('/list',
+	goog.net.XhrIo.send('/list',
 		function(d){
-	
-    //update with new info
-	var j = d.target.getResponseJson();
-    var x=j[0];
-    var z=j[1];
-    var ss=j[2];
-	var folders=j[3];
-	// know which tab is current, to be rest
-	//set up folders
-	var current = $(".current").get(0).id;
-	$('.folderContents').each(function(){
-		if(this.id!="owned" && this.id!="shared" && this.id!="trash") this.parentNode.removeChild(this)
-	});
-	var d=document.getElementById('user_folders');
-	d.innerHTML="";
-	var select = document.getElementById('move_to_folder');
-	select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
-	for(i in folders){
-		var f = d.appendChild(document.createElement('div'));
-		f.className="tab";
-		f.id="Folder"+folders[i][1];
-		f.appendChild(document.createElement('img')).src="images/folder.png";
-		f.appendChild(document.createTextNode(' '+folders[i][0]))
-		var option = select.appendChild(document.createElement('option'))
-		option.appendChild(document.createTextNode(folders[i][0]));
-		option.value=folders[i][1];
-		var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
-		folderContents.id=folders[i][1];
-		folderContents.className='folderContents';
-		folderContents.style.display="none";
-		var ch = folderContents.appendChild(document.createElement('div'))
-		ch.className="contentsHeader";
-		var table = ch.appendChild(document.createElement('table'));
-		table.width="100%";
-		tr = table.appendChild(document.createElement('tr'));
-		var td = tr.appendChild(document.createElement('td'));
-		td.style.width="15px";
-		var cb = td.appendChild(document.createElement('input'));
-		cb.type='checkbox';
-		cb.style.visibility="hidden"
-		var n = tr.appendChild(document.createElement('td'))
-		n.appendChild(document.createTextNode(folders[i][0]));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Shared With"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Email"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="160px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Last Modified"));
-		
-	}
-	$('.tab').click(function(e){
-		$(".current").removeClass("current").css("background-color","white");
-		$(this).addClass('current')
-		tabs(e.target.id);
-		$(this).css("background-color","#2352AE");
-	});
-	$(".tab").mouseover(function(){
-		if(!$(this).hasClass("current")){
-			$(this).css("background-color","#ccf");
-		}
-		else{
-			$(this).css("background-color","#2352AE");
-		}
-	});
-	$(".tab").mouseout(function(){
-		if(!$(this).hasClass("current")){
-			$(this).css("background-color","#fff")
-		}
-	});
-	document.getElementById('loading').style.display = 'none';
-    //remove old data
-    var childs = document.getElementById('content').childNodes;
-    for (var i=0; i<childs.length; i++){
-        childs[i].parentNode.removeChild(childs[i]);
-        i--;
-    }
-	var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
-    listDiv.id = 'list';
-	document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
-    for (var i=0; i<x.length; i++){
-        var title = x[i][1];
-        var resource_id = x[i][0];
-        var updated = x[i][2];
-        var shared_with=x[i][4];
-		var new_notes=x[i][5];
-		var folder = x[i][6];
-        var entryDiv = listDiv.appendChild(document.createElement('div'));
-        entryDiv.id = resource_id;
-        entryDiv.className = 'entry';
-        var entryTable = entryDiv.appendChild(document.createElement('table'));
-        entryTable.width = '100%';
-        var entryTr = entryTable.appendChild(document.createElement('tr'));
-        //make checkbox
-        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-        checkboxTd.className='checkboxCell';
-        var input = checkboxTd.appendChild(document.createElement('input'));
-        input.type='checkbox';
-        input.name = 'listItems';
-        input.value = resource_id;
-        //make title
-        var titleCell = entryTr.appendChild(document.createElement('td'));
-        var titleLink = titleCell.appendChild(document.createElement('a'));
-        titleLink.id = 'name'+resource_id;
-        if (new_notes!=0){
-            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
-            newNotesSpan.className = 'redAlertSpan';
-        }
-        var href = 'javascript:script("'+resource_id+'")';
-        titleLink.href=href;
-        titleLink.appendChild(document.createTextNode(title));
-		//folder column
-		var folderTd  = entryTr.appendChild(document.createElement('td'));
-		folderTd.align = "center";
-		folderTd.className="folderCell";
-		if(folder!="?none?"){
-			for(fold in folders){
-				if (folders[fold][1]==folder){
-					var span = folderTd.appendChild(document.createElement('span'));
-					span.appendChild(document.createTextNode(folders[fold][0]));
-					span.className="folderSpan";
+		    //update with new info
+			var j = d.target.getResponseJson();
+		    var x=j[0];
+		    var z=j[1];
+		    var ss=j[2];
+			var folders=j[3];
+			// know which tab is current, to be rest
+			//set up folders
+			var current = goog.dom.getElementByClass('current').id;
+			var fc = goog.dom.getElementsByClass('folderContents');
+			for (i in fc){
+				if(fc[i].id!='owned' && fc[i].id!='shared' && fc[i].id!='trash'){
+					goog.dom.removeNode(fc[i])
 				}
 			}
-		}
-        //shared column
-        var sharedTd = entryTr.appendChild(document.createElement('td'));
-        sharedTd.className = 'sharedCell';
-        sharedTd.align = 'right';
+			var d=document.getElementById('user_folders');
+			d.innerHTML="";
+			var select = document.getElementById('move_to_folder');
+			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
+			for(i in folders){
+				var f = d.appendChild(document.createElement('div'));
+				f.className="tab";
+				f.id="Folder"+folders[i][1];
+				f.appendChild(document.createElement('img')).src="images/folder.png";
+				f.appendChild(document.createTextNode(' '+folders[i][0]))
+				var option = select.appendChild(document.createElement('option'))
+				option.appendChild(document.createTextNode(folders[i][0]));
+				option.value=folders[i][1];
+				var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
+				folderContents.id=folders[i][1];
+				folderContents.className='folderContents';
+				folderContents.style.display="none";
+				var ch = folderContents.appendChild(document.createElement('div'))
+				ch.className="contentsHeader";
+				var table = ch.appendChild(document.createElement('table'));
+				table.width="100%";
+				tr = table.appendChild(document.createElement('tr'));
+				var td = tr.appendChild(document.createElement('td'));
+				td.style.width="15px";
+				var cb = td.appendChild(document.createElement('input'));
+				cb.type='checkbox';
+				cb.style.visibility="hidden"
+				var n = tr.appendChild(document.createElement('td'))
+				n.appendChild(document.createTextNode(folders[i][0]));
+				td = tr.appendChild(document.createElement('td'));
+				td.style.width="120px";
+				td.align = "center";
+				td.appendChild(document.createTextNode("Shared With"));
+				td = tr.appendChild(document.createElement('td'));
+				td.style.width="120px";
+				td.align = "center";
+				td.appendChild(document.createTextNode("Email"));
+				td = tr.appendChild(document.createElement('td'));
+				td.style.width="160px";
+				td.align = "center";
+				td.appendChild(document.createTextNode("Last Modified"));
+				goog.events.listen(f, goog.events.EventType.CLICK, function(e){
+					goog.dom.getElementByClass('current').style.backgroundColor='white';
+					goog.dom.getElementByClass('current').className='tab';
+					e.target.className='tab current';
+					tabs(e.target.id)
+					e.target.style.backgroundColor = '#2352AE';
+				});
+				goog.events.listen(f, goog.events.EventType.MOUSEOVER, function(e){
+					if(e.target.className!='tab current'){
+						e.target.style.backgroundColor = '#ccf'
+					}
+					else{
+						e.target.style.backgroundColor = '#2352AE'
+					}
+				});
+				goog.events.listen(f, goog.events.EventType.MOUSEOUT, function(e){
+					if(e.target.className!='tab current'){
+						e.target.style.backgroundColor = '#fff'
+					}
+				});
+			}
+			document.getElementById('loading').style.display = 'none';
+		    //remove old data
+		    var childs = document.getElementById('content').childNodes;
+		    for (var i=0; i<childs.length; i++){
+		        childs[i].parentNode.removeChild(childs[i]);
+		        i--;
+		    }
+			var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+		    listDiv.id = 'list';
+			document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
+		    for (var i=0; i<x.length; i++){
+		        var title = x[i][1];
+		        var resource_id = x[i][0];
+		        var updated = x[i][2];
+		        var shared_with=x[i][4];
+				var new_notes=x[i][5];
+				var folder = x[i][6];
+		        var entryDiv = listDiv.appendChild(document.createElement('div'));
+		        entryDiv.id = resource_id;
+		        entryDiv.className = 'entry';
+		        var entryTable = entryDiv.appendChild(document.createElement('table'));
+		        entryTable.width = '100%';
+		        var entryTr = entryTable.appendChild(document.createElement('tr'));
+		        //make checkbox
+		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+		        checkboxTd.className='checkboxCell';
+		        var input = checkboxTd.appendChild(document.createElement('input'));
+		        input.type='checkbox';
+		        input.name = 'listItems';
+		        input.value = resource_id;
+		        //make title
+		        var titleCell = entryTr.appendChild(document.createElement('td'));
+		        var titleLink = titleCell.appendChild(document.createElement('a'));
+		        titleLink.id = 'name'+resource_id;
+		        if (new_notes!=0){
+		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+		            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
+		            newNotesSpan.className = 'redAlertSpan';
+		        }
+		        var href = 'javascript:script("'+resource_id+'")';
+		        titleLink.href=href;
+		        titleLink.appendChild(document.createTextNode(title));
+				//folder column
+				var folderTd  = entryTr.appendChild(document.createElement('td'));
+				folderTd.align = "center";
+				folderTd.className="folderCell";
+				if(folder!="?none?"){
+					for(fold in folders){
+						if (folders[fold][1]==folder){
+							var span = folderTd.appendChild(document.createElement('span'));
+							span.appendChild(document.createTextNode(folders[fold][0]));
+							span.className="folderSpan";
+						}
+					}
+				}
+		        //shared column
+		        var sharedTd = entryTr.appendChild(document.createElement('td'));
+		        sharedTd.className = 'sharedCell';
+		        sharedTd.align = 'right';
         
-        if (shared_with.length==0){
-            var collabs = '';
-        }
-        else{
-            if (shared_with.length==1){
-                var collabs = '1 person ';
-            }
-            else {
-                var collabs = String(shared_with.length)+" people ";
-            }
-        }
-        sharedTd.appendChild(document.createTextNode(collabs));
-        var manage = sharedTd.appendChild(document.createElement('a'));
-        var href = "javascript:sharePrompt('"+resource_id+"')";
-        manage.href=href;
-        manage.appendChild(document.createTextNode('Manage'));
-        manage.id = 'share'+resource_id;
-        manage.title = shared_with.join('&');
+		        if (shared_with.length==0){
+		            var collabs = '';
+		        }
+		        else{
+		            if (shared_with.length==1){
+		                var collabs = '1 person ';
+		            }
+		            else {
+		                var collabs = String(shared_with.length)+" people ";
+		            }
+		        }
+		        sharedTd.appendChild(document.createTextNode(collabs));
+		        var manage = sharedTd.appendChild(document.createElement('a'));
+		        var href = "javascript:sharePrompt('"+resource_id+"')";
+		        manage.href=href;
+		        manage.appendChild(document.createTextNode('Manage'));
+		        manage.id = 'share'+resource_id;
+		        manage.title = shared_with.join('&');
         
-        //email column
-        var emailTd = entryTr.appendChild(document.createElement('td'));
-        emailTd.className = 'emailCell';
-        emailTd.align='center';
-        var emailLink = emailTd.appendChild(document.createElement('a'));
-        emailLink.className = 'emailLink';
-        href = 'javascript:emailPrompt("'+resource_id+'")';
-        emailLink.href=href;
-        emailLink.appendChild(document.createTextNode('Email'));
-        // Last updated
-        var updatedTd = entryTr.appendChild(document.createElement('td'));
-        updatedTd.className = 'updatedCell';
-        updatedTd.align='center';
-        updatedTd.appendChild(document.createTextNode(updated));
-		if(folder!="?none?"){
-			var obj = entryDiv.cloneNode(true);
-			var obj = document.getElementById(folder).appendChild(obj);
-			obj.getElementsByTagName("input")[0].name="listItems"+folder;
-		}
-	}
-    // showing sharing scripts
-    //remove old data
-    var childs = document.getElementById('sharedContent').childNodes;
-    for (var i=0; i<childs.length; i++){
-        childs[i].parentNode.removeChild(childs[i]);
-        i--;
-    }
-    document.getElementById('sharedLoading').style.display='none';
-    document.getElementById('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
-    var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
-    listDiv.id = 'sharedList';
-	var number_unopened = 0;
-    for (i in ss){
-        var resource_id=ss[i][0];
-        var title = ss[i][1];
-        var updated = ss[i][2];
-        var owner = ss[i][3];
-		var new_notes=ss[i][4];
-		var unopened = ss[i][6];
-		console.log(unopened)
-        var entryDiv = listDiv.appendChild(document.createElement('div'));
-        entryDiv.id = resource_id;
-        entryDiv.className = 'entry';
-        var entryTable = entryDiv.appendChild(document.createElement('table'));
-        entryTable.width = '100%';
-        var entryTr = entryTable.appendChild(document.createElement('tr'));
-        //make checkbox
-        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-        checkboxTd.className='checkboxCell';
-        var input = checkboxTd.appendChild(document.createElement('input'));
-        input.type='checkbox';
-        input.name = 'sharedListItems';
-        input.value = resource_id;
-        //make title
-        var titleCell = entryTr.appendChild(document.createElement('td'));
-        var titleLink = titleCell.appendChild(document.createElement('a'));
-        titleLink.id = 'name'+resource_id;
-        var href = 'javascript:script("'+resource_id+'")';
-        titleLink.href=href;
-        titleLink.appendChild(document.createTextNode(title));
-		if (unopened=="True"){
-			var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode(" New Script"));
-            newNotesSpan.className = 'redAlertSpan';
-			number_unopened++;
-		}
-		else if (new_notes!=0){
-            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note  " : " "+new_notes+' New Notes  ')));
-            newNotesSpan.className = 'redAlertSpan';
-        }
-        //show owner
-        var ownerTd = entryTr.appendChild(document.createElement('td'));
-        ownerTd.appendChild(document.createTextNode(owner));
-        ownerTd.align="right";
-        ownerTd.className='ownerCell';
-        //updated
-        var updatedTd = entryTr.appendChild(document.createElement('td'));
-        updatedTd.className="updatedCell";
-        updatedTd.align="center";
-        updatedTd.appendChild(document.createTextNode(updated));
-    }
-    document.getElementById("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
+		        //email column
+		        var emailTd = entryTr.appendChild(document.createElement('td'));
+		        emailTd.className = 'emailCell';
+		        emailTd.align='center';
+		        var emailLink = emailTd.appendChild(document.createElement('a'));
+		        emailLink.className = 'emailLink';
+		        href = 'javascript:emailPrompt("'+resource_id+'")';
+		        emailLink.href=href;
+		        emailLink.appendChild(document.createTextNode('Email'));
+		        // Last updated
+		        var updatedTd = entryTr.appendChild(document.createElement('td'));
+		        updatedTd.className = 'updatedCell';
+		        updatedTd.align='center';
+		        updatedTd.appendChild(document.createTextNode(updated));
+				if(folder!="?none?"){
+					var obj = entryDiv.cloneNode(true);
+					var obj = document.getElementById(folder).appendChild(obj);
+					obj.getElementsByTagName("input")[0].name="listItems"+folder;
+				}
+			}
+		    // showing sharing scripts
+		    //remove old data
+		    var childs = document.getElementById('sharedContent').childNodes;
+		    for (var i=0; i<childs.length; i++){
+		        childs[i].parentNode.removeChild(childs[i]);
+		        i--;
+		    }
+		    document.getElementById('sharedLoading').style.display='none';
+		    document.getElementById('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
+		    var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
+		    listDiv.id = 'sharedList';
+			var number_unopened = 0;
+		    for (i in ss){
+		        var resource_id=ss[i][0];
+		        var title = ss[i][1];
+		        var updated = ss[i][2];
+		        var owner = ss[i][3];
+				var new_notes=ss[i][4];
+				var unopened = ss[i][6];
+				console.log(unopened)
+		        var entryDiv = listDiv.appendChild(document.createElement('div'));
+		        entryDiv.id = resource_id;
+		        entryDiv.className = 'entry';
+		        var entryTable = entryDiv.appendChild(document.createElement('table'));
+		        entryTable.width = '100%';
+		        var entryTr = entryTable.appendChild(document.createElement('tr'));
+		        //make checkbox
+		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+		        checkboxTd.className='checkboxCell';
+		        var input = checkboxTd.appendChild(document.createElement('input'));
+		        input.type='checkbox';
+		        input.name = 'sharedListItems';
+		        input.value = resource_id;
+		        //make title
+		        var titleCell = entryTr.appendChild(document.createElement('td'));
+		        var titleLink = titleCell.appendChild(document.createElement('a'));
+		        titleLink.id = 'name'+resource_id;
+		        var href = 'javascript:script("'+resource_id+'")';
+		        titleLink.href=href;
+		        titleLink.appendChild(document.createTextNode(title));
+				if (unopened=="True"){
+					var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+		            newNotesSpan.appendChild(document.createTextNode(" New Script"));
+		            newNotesSpan.className = 'redAlertSpan';
+					number_unopened++;
+				}
+				else if (new_notes!=0){
+		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+		            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note  " : " "+new_notes+' New Notes  ')));
+		            newNotesSpan.className = 'redAlertSpan';
+		        }
+		        //show owner
+		        var ownerTd = entryTr.appendChild(document.createElement('td'));
+		        ownerTd.appendChild(document.createTextNode(owner));
+		        ownerTd.align="right";
+		        ownerTd.className='ownerCell';
+		        //updated
+		        var updatedTd = entryTr.appendChild(document.createElement('td'));
+		        updatedTd.className="updatedCell";
+		        updatedTd.align="center";
+		        updatedTd.appendChild(document.createTextNode(updated));
+		    }
+		    document.getElementById("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
     
-    document.getElementById('trashLoading').style.display = 'none';
-    document.getElementById('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
-    //remove old data
-    var childs = document.getElementById('trashContent').childNodes;
-    for (var i=0; i<childs.length; i++){
-        childs[i].parentNode.removeChild(childs[i]);
-        i--;
-    }
-    //update with new info
-    var listDiv = document.getElementById('trashContent').appendChild(document.createElement('div'));
-    listDiv.id = 'trashList';
-	x=z;
-    for(i in x){
-        var title = x[i][1];
-        var resource_id = x[i][0];
-        var updated = x[i][2]
-        var shared_with=x[i][4]
-		var folder = x[i][5];
-        var entryDiv = listDiv.appendChild(document.createElement('div'));
-        entryDiv.id = resource_id;
-        entryDiv.className = 'entry';
-        var entryTable = entryDiv.appendChild(document.createElement('table'));
-        entryTable.width = '100%';
-        var entryTr = entryTable.appendChild(document.createElement('tr'));
-        //make checkbox
-        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-        checkboxTd.className='checkboxCell';
-        var input = checkboxTd.appendChild(document.createElement('input'));
-        input.type='checkbox';
-        input.name = 'trashListItems';
-        input.value = resource_id;
-        //make title
-        var titleCell = entryTr.appendChild(document.createElement('td'));
-        var titleLink = titleCell.appendChild(document.createElement('a'));
-        titleLink.id = 'name'+resource_id;
-        /*
-        if (newNotes==true){
-            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
-            newNotesSpan.className = 'redAlertSpan';
-        }
-        */
-        var href = 'javascript:haveToUndelete()';
-        titleLink.href=href;
-        titleLink.appendChild(document.createTextNode(title));
-		//folder column
-		var folderTd  = entryTr.appendChild(document.createElement('td'));
-		folderTd.align = "center";
-		folderTd.className="folderCell";
-		if(folder!="?none?"){
-			for(fold in folders){
-				if (folders[fold][1]==folder){
-					var span = folderTd.appendChild(document.createElement('span'));
-					span.appendChild(document.createTextNode(folders[fold][0]));
-					span.className="folderSpan";
+		    document.getElementById('trashLoading').style.display = 'none';
+		    document.getElementById('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
+		    //remove old data
+		    var childs = document.getElementById('trashContent').childNodes;
+		    for (var i=0; i<childs.length; i++){
+		        childs[i].parentNode.removeChild(childs[i]);
+		        i--;
+		    }
+		    //update with new info
+		    var listDiv = document.getElementById('trashContent').appendChild(document.createElement('div'));
+		    listDiv.id = 'trashList';
+			x=z;
+		    for(i in x){
+		        var title = x[i][1];
+		        var resource_id = x[i][0];
+		        var updated = x[i][2]
+		        var shared_with=x[i][4]
+				var folder = x[i][5];
+		        var entryDiv = listDiv.appendChild(document.createElement('div'));
+		        entryDiv.id = resource_id;
+		        entryDiv.className = 'entry';
+		        var entryTable = entryDiv.appendChild(document.createElement('table'));
+		        entryTable.width = '100%';
+		        var entryTr = entryTable.appendChild(document.createElement('tr'));
+		        //make checkbox
+		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
+		        checkboxTd.className='checkboxCell';
+		        var input = checkboxTd.appendChild(document.createElement('input'));
+		        input.type='checkbox';
+		        input.name = 'trashListItems';
+		        input.value = resource_id;
+		        //make title
+		        var titleCell = entryTr.appendChild(document.createElement('td'));
+		        var titleLink = titleCell.appendChild(document.createElement('a'));
+		        titleLink.id = 'name'+resource_id;
+		        /*
+		        if (newNotes==true){
+		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
+		            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
+		            newNotesSpan.className = 'redAlertSpan';
+		        }
+		        */
+		        var href = 'javascript:haveToUndelete()';
+		        titleLink.href=href;
+		        titleLink.appendChild(document.createTextNode(title));
+				//folder column
+				var folderTd  = entryTr.appendChild(document.createElement('td'));
+				folderTd.align = "center";
+				folderTd.className="folderCell";
+				if(folder!="?none?"){
+					for(fold in folders){
+						if (folders[fold][1]==folder){
+							var span = folderTd.appendChild(document.createElement('span'));
+							span.appendChild(document.createTextNode(folders[fold][0]));
+							span.className="folderSpan";
+						}
+					}
 				}
-			}
-		}
-		folderTd.style.display="none";
-        //shared column
-        var sharedTd = entryTr.appendChild(document.createElement('td'));
-        sharedTd.className = 'sharedCell';
-        sharedTd.align = 'right';
+				folderTd.style.display="none";
+		        //shared column
+		        var sharedTd = entryTr.appendChild(document.createElement('td'));
+		        sharedTd.className = 'sharedCell';
+		        sharedTd.align = 'right';
         
-        if (shared_with.length==0){
-            var collabs = '';
-        }
-        else{
-            if (shared_with.length==1){
-                var collabs = '1 person ';
-            }
-            else {
-                var collabs = String(shared_with.length)+" people ";
-            }
-        }
-        sharedTd.appendChild(document.createTextNode(collabs));
-        var manage = sharedTd.appendChild(document.createElement('a'));
-        var href = "javascript:sharePrompt('"+resource_id+"')";
-        manage.href=href;
-        manage.appendChild(document.createTextNode('Manage'));
-        manage.id = 'share'+resource_id;
-        manage.title = shared_with.join('&');
-		sharedTd.style.display="none";
+		        if (shared_with.length==0){
+		            var collabs = '';
+		        }
+		        else{
+		            if (shared_with.length==1){
+		                var collabs = '1 person ';
+		            }
+		            else {
+		                var collabs = String(shared_with.length)+" people ";
+		            }
+		        }
+		        sharedTd.appendChild(document.createTextNode(collabs));
+		        var manage = sharedTd.appendChild(document.createElement('a'));
+		        var href = "javascript:sharePrompt('"+resource_id+"')";
+		        manage.href=href;
+		        manage.appendChild(document.createTextNode('Manage'));
+		        manage.id = 'share'+resource_id;
+		        manage.title = shared_with.join('&');
+				sharedTd.style.display="none";
         
-        //email column
-        var emailTd = entryTr.appendChild(document.createElement('td'));
-        emailTd.className = 'emailCell';
-        emailTd.align='center';
-        var emailLink = emailTd.appendChild(document.createElement('a'));
-        emailLink.className = 'emailLink';
-        href = 'javascript:emailPrompt("'+resource_id+'")';
-        emailLink.href=href;
-        emailLink.appendChild(document.createTextNode('Email'));
-		emailTd.style.display="none";
-        // Last updated
-        var updatedTd = entryTr.appendChild(document.createElement('td'));
-        updatedTd.className = 'updatedCell';
-        updatedTd.align='center';
-        updatedTd.appendChild(document.createTextNode(updated));
+		        //email column
+		        var emailTd = entryTr.appendChild(document.createElement('td'));
+		        emailTd.className = 'emailCell';
+		        emailTd.align='center';
+		        var emailLink = emailTd.appendChild(document.createElement('a'));
+		        emailLink.className = 'emailLink';
+		        href = 'javascript:emailPrompt("'+resource_id+'")';
+		        emailLink.href=href;
+		        emailLink.appendChild(document.createTextNode('Email'));
+				emailTd.style.display="none";
+		        // Last updated
+		        var updatedTd = entryTr.appendChild(document.createElement('td'));
+		        updatedTd.className = 'updatedCell';
+		        updatedTd.align='center';
+		        updatedTd.appendChild(document.createTextNode(updated));
 		
-    }
-	if(document.getElementById(current)==null)current="ownedFolder"
-	document.getElementById(current).className = document.getElementById(current).className.replace(" current","")+" current";
-	document.getElementById(current).style.backgroundColor="#2352AE";
-	tabs(current);
-	if(v){
-		sharePrompt(v);
-	}
-	document.getElementById("refresh_icon").style.visibility="hidden";
-	},
-	'POST'
-	)
+		    }
+			if(document.getElementById(current)==null)current="ownedFolder"
+			document.getElementById(current).className = document.getElementById(current).className.replace(" current","")+" current";
+			document.getElementById(current).style.backgroundColor="#2352AE";
+			tabs(current);
+			if(v && typeof(v)!='object'){
+				sharePrompt(v);
+			}
+			document.getElementById("refresh_icon").style.visibility="hidden";
+		},
+		'POST'
+	);
 }
-function renameFolder(){
-	var f = prompt("Rename Folder", this.parentNode.title)
+function renameFolder(v){
+	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
+	var f = prompt("Rename Folder", prev_title)
 	if(f!=null){
 		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 		if(f!=""){
-			var folder_id = this.parentNode.value.replace("Folder", "");
-			var d = document.getElementById(this.parentNode.value);
+			var folder_id = v.replace("Folder", "");
+			var d = document.getElementById(v);
 			d.innerHTML="";
 			d.appendChild(document.createElement("img")).src="images/folder.png";
 			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
 			d.appendChild(document.createTextNode(f));
-			goog.net.XhrIo('/renamefolder',
+			goog.net.XhrIo.send('/renamefolder',
 				refreshList,
 				'POST',
-				'folder_name='+f+'&folder_id='folder_id
-			)
-			//$.post("/renamefolder", {folder_name:f, folder_id: folder_id}, function(){refreshList()});
+				'folder_name='+f+'&folder_id='+folder_id
+			);
 		}
 	}
 }
 function deleteFolder(){
 	var c = confirm("Are you sure you want to delete this folder?")
 	if(c==true){
-		var folder_id = this.parentNode.value.replace("Folder","");
+		var f = folder_id.replace('Folder','');
 		goog.net.XhrIo.send('/deletefolder',
 			refreshList,
 			'POST',
-			'folder_id='+folder_id
+			'folder_id='+f
 		);
-		//$.post("/deletefolder", {folder_id:folder_id}, function(){refreshList()})
 	}
 }
 function selectAll(obj, which){
@@ -588,27 +683,28 @@ function deleteScript(v){
 	}
 	goog.net.XhrIo.send('/delete',
 		function(){
-        scriptDiv.parentNode.removeChild(scriptDiv);
-        document.getElementById('trashList').appendChild(scriptDiv);
-        scriptDiv.style.backgroundColor='#f9f9fc';
-        scriptDiv.style.opacity='1';
-        var t=scriptDiv.firstChild;
-        t=(t.nodeName=='#text' ? t.nextSibling : t);
-        t.getElementsByTagName('input')[0].name='trashListItems';
-        var c = t.getElementsByTagName('td');
-        c[2].style.display="none";
-		c[3].style.display='none';
-		c[4].style.display="none";
-		c[1].firstChild.href="javascript:haveToUndelete()";
-		document.getElementById("trashNoEntries").style.display="none";
-		var c = document.getElementsByTagName('div');
-		for (i in c){
-			if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
-				c[i].parentNode.removeChild(c[i])
+	        scriptDiv.parentNode.removeChild(scriptDiv);
+	        document.getElementById('trashList').appendChild(scriptDiv);
+	        scriptDiv.style.backgroundColor='#f9f9fc';
+	        scriptDiv.style.opacity='1';
+	        var t=scriptDiv.firstChild;
+	        t=(t.nodeName=='#text' ? t.nextSibling : t);
+	        t.getElementsByTagName('input')[0].name='trashListItems';
+	        var c = t.getElementsByTagName('td');
+	        c[2].style.display="none";
+			c[3].style.display='none';
+			c[4].style.display="none";
+			c[1].firstChild.href="javascript:haveToUndelete()";
+			document.getElementById("trashNoEntries").style.display="none";
+			var c = document.getElementsByTagName('div');
+			for (i in c){
+				if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
+					c[i].parentNode.removeChild(c[i])
+				}
 			}
-		}
-        }
-			'resource_id='+v
+        },
+		'POST',
+		'resource_id='+v
 		);
 }
 
@@ -617,7 +713,6 @@ function undelete(v){
 	scriptDiv.style.backgroundColor = '#ccc';
 	scriptDiv.style.opacity = '0.5';
 	goog.net.XhrIo.send('/undelete',
-	
 		function(){
 			scriptDiv.parentNode.removeChild(scriptDiv);
 			document.getElementById('list').appendChild(scriptDiv);
@@ -680,9 +775,10 @@ function batchProcess(v){
 }
 
 function emailComplete(e){
+	
 	document.getElementById('emailS').disabled = false;
 	document.getElementById('emailS').value = 'Send';
-	if (e=='sent'){
+	if (e.target.getResponseText()=='sent'){
 		alert("Email Sent")
 		hideEmailPrompt();
 	}
@@ -691,14 +787,15 @@ function emailComplete(e){
 	}
 }
 function emailScript(){
-	tokenize('recipient');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
-			}
-		}
+	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('recipient').value)
+	var arr=[];
+	for(i in r){
+		if(r[i].address_!="")arr.push(r[i].address_);
+	}
+	if(arr.length==0){
+		alert('You need to add at least one email address.')
+		return;
+	}
 	var recipients = arr.join(',');
 	var subject = document.getElementById('subject').value;
 	if(subject=="")subject="Script";
@@ -709,7 +806,6 @@ function emailScript(){
 		'POST',
 		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+escape(subject)+'&body_message='+escape(body_message)+'&fromPage=scriptlist&title_page='+title_page
 	);
-	//$.post("/emailscript", {resource_id : resource_id, recipients : recipients, subject :subject, body_message:body_message, fromPage : 'scriptlist', title_page: title_page }, function(e){emailComplete(e)});
 	document.getElementById('emailS').disabled = true;
 	document.getElementById('emailS').value = 'Sending...';
 }
@@ -724,7 +820,6 @@ document.getElementById('emailpopup').style.visibility = 'hidden';
 document.getElementById('recipient').value = "";
 document.getElementById('subject').value = "";
 document.getElementById('message').innerHTML = "";
-document.getElementById('recipients').innerHTML = "";
 }
 
 function duplicate(){
@@ -792,11 +887,10 @@ function renameScript(){
 	var id = "name"+resource_id;
 	document.getElementById(id).innerHTML = rename;
 	goog.net.XhrIo.send('/rename',
-		function(){},,
+		function(){},
 		'POST',
 		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
 	);
-	//$.post("/rename", {resource_id : resource_id, rename : rename, fromPage : 'scriptlist'});
 	hideRenamePrompt()
 	}
 	
@@ -806,17 +900,6 @@ function uploadPrompt(){
 function hideUploadPrompt(){
 	document.getElementById('uploadFrame').src = '/convert';
 	document.getElementById('uploadpopup').style.visibility = 'hidden';
-	}
-
-function titleChange(){
-	var filename = document.getElementById('script').value;
-	var title = filename.replace('.celtx', '');
-	document.getElementById('hidden').value = title;
-	}
-function uploadScript(){
-	var script = document.getElementById('script').files[0].getAsBinary();
-	var filename = document.getElementById('filename');
-	$.post('/convertprocess', {script : script, filename : filename})
 	}
 function newScriptPrompt(){
 	document.getElementById('newscriptpopup').style.visibility = 'visible';
@@ -843,9 +926,10 @@ function createScript (){
 			},
 			'POST',
 			'fromPage=scriptlist&filename='+escape(filename)
-		)
+		);
 	}
 }
+//window.addEventListener("message", uploadWindow, false); 
 window.addEventListener("message", recieveMessage, false);
 function recieveMessage(e){
 	if(e.origin!="http://www.rawscripts.com")return;
@@ -939,8 +1023,7 @@ function removeAccess(v){
 			removeShareUser,
 			'POST',
 			'resource_id='+resource_id+'&fromPage=scriptlist&removePerson='+v
-		)
-		//$.post('/removeaccess', {resource_id : resource_id, fromPage : 'scriptlist', removePerson : v}, function(data){removeShareUser(data)})
+		);
 		document.getElementById('shared'+v.toLowerCase()).style.opacity = '0.5';
 		document.getElementById('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
 	}
@@ -956,7 +1039,6 @@ function sharePrompt(v){
 	var collabs = (document.getElementById('share'+v).title=="" ? [] : document.getElementById('share'+v).title.split("&"));
 	var hasAccess = document.getElementById('hasAccess');
 	document.getElementById('collaborator').value = "";
-	document.getElementById('collaborators').innerHTML = "";
 	hasAccess.innerHTML="";
 	for (var i=0; i<collabs.length; i++){
 		if(collabs[i]!='none'){
@@ -980,26 +1062,35 @@ function sharePrompt(v){
 function hideSharePrompt(){
 	document.getElementById('sharepopup').style.visibility = 'hidden';
 	document.getElementById('collaborator').value = "";
-	document.getElementById('collaborators').innerHTML = "";
 	document.getElementById('hasAccess').innerHTML = '';
 }
 function shareScript(){
-	tokenize('collaborator');
-	var arr = new Array();
-	var c = document.getElementsByTagName('span');
-	for(var i=0;i<c.length; i++){
-		if (c[i].className=='mailto'){
-			arr.push(c[i].innerHTML);
+	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
+	var arr=[];
+	var nonValidEmail=false;
+	for(i in r){
+		var a = r[i].address_;
+		if(a!=""){
+			if(a.split('@')[1]!=undefined && (a.split('@')[1].split('.')[0]=='gmail' || a.split('@')[1].split('.')[0]=='yahoo')){
+				arr.push(a);
 			}
+			else{nonValidEmail=true}
 		}
+	}
+	if(nonValidEmail==true){
+		alert('At this time you can only collaborate with Gmail or Yahoo accounts.')
+	}
+	if(arr.length==0){
+		alert('You need to add at least one email address.')
+		return;
+	}
 	var collaborators = arr.join(',');
 	var resource_id = document.getElementById('shareResource_id').value;
 	goog.net.XhrIo.send('/share',
-		fucntion(){refreshList(resource_id)},
+		function(){refreshList(resource_id)},
 		'POST',
 		'resource_id='+resource_id+'&collaborators='+collaborators+'&fromPage=scriptlist'
 	);
-	//$.post("/share", {resource_id : resource_id, collaborators : collaborators, fromPage : 'scriptlist'}, function(data){refreshList(resource_id);});
 	document.getElementById('shareS').disabled = true;
 	document.getElementById('shareS').value = "Sending Invites...";
 }
