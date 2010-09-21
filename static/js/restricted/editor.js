@@ -1,4 +1,3 @@
-/*
 goog.require('goog.userAgent')
 goog.require('goog.events')
 goog.require('goog.dom');
@@ -38,13 +37,18 @@ goog.require('goog.debug.LogManager');
 goog.require('goog.object');
 goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.format.EmailAddress');
-*/
+goog.require('goog.fx');
+goog.require('goog.fx.dom');
 /**
  * @license Rawscripts.com copywrite 2010
  *
  *
  *
  */
+window['changeFormat'] = changeFormat;
+window['deleteThread'] = deleteThread;
+window['newThread'] = newThread;
+window['tabs'] = tabs;
 window['exportScripts'] = exportScripts;
 window['hideExportPrompt'] = hideExportPrompt;
 window['renameScript'] = renameScript;
@@ -55,58 +59,58 @@ window['createScript'] = createScript;
 window['hideSpellCheck'] = hideSpellCheck;
 window['s_change'] = s_change;
 window['s_ignore'] = s_ignore;
-   window['s_ignore_all'] = s_ignore_all;
-   window['replaceAndFind'] = replaceAndFind;
-   window['replaceText'] = replaceText;
-   window['hideFindReplacePrompt'] = hideFindReplacePrompt;
-   window['hideFindPrompt'] = hideFindPrompt;
-   window['findUp'] = findUp;
-   window['findDown'] = findDown;
-   window['shareScript'] = shareScript;
-   window['hideSharePrompt'] = hideSharePrompt;
-   window['hideEmailPrompt'] = hideEmailPrompt;
-   window['emailScript'] = emailScript;
-   window['save'] = save;
-   window['setJustPasted'] = setJustPasted;
-   window['paint'] = paint;
-   window['init'] = init;
-   window['paste'] = paste;
-   window['cut'] = cut;
-   var currentPage=0;
-   var currentScene=1;
-   var ud=0;
-   var viewNotes=true;
-   var timer;
-   var typeToScript=true;
-   var findForcePaint = false;
-   var pasting=false;
-   var justPasted=false;
-   var undoQue = [];
-   var redoQue = [];
-   var pageBreaks=[];
-   var mouseY=0;
-   var mouseDownBool=false;
-   var scrollBarBool=false;
-   var commandDownBool=false;
-   var characters =[];
-   var scenes=[];
-   var canvas;
-   var ctx;
-   var linesNLB= [];
-   var vOffset = 0;
-   var pos = { col: 0, row: 0};
-   var anch = {col:0, row:0};
-   var findArr = [];
-   var findReplaceArr=[];
-   var background = '#fff';
-   var font = '10pt Courier';
-   var fontWidth = 8;
-   var foreground = '#000';
-   var lineheight = 13;
-   var milli = 0;
-   var formatMenu = false;
-   var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
-   var resource_id='random123456789';
+window['s_ignore_all'] = s_ignore_all;
+window['replaceAndFind'] = replaceAndFind;
+window['replaceText'] = replaceText;
+window['hideFindReplacePrompt'] = hideFindReplacePrompt;
+window['hideFindPrompt'] = hideFindPrompt;
+window['findUp'] = findUp;
+window['findDown'] = findDown;
+window['shareScript'] = shareScript;
+window['hideSharePrompt'] = hideSharePrompt;
+window['hideEmailPrompt'] = hideEmailPrompt;
+window['emailScript'] = emailScript;
+window['save'] = save;
+window['setJustPasted'] = setJustPasted;
+window['paint'] = paint;
+window['init'] = init;
+window['paste'] = paste;
+window['cut'] = cut;
+var currentPage=0;
+var currentScene=1;
+var ud=0;
+var viewNotes=true;
+var timer;
+var typeToScript=true;
+var findForcePaint = false;
+var pasting=false;
+var justPasted=false;
+var undoQue = [];
+var redoQue = [];
+var pageBreaks=[];
+var mouseY=0;
+var mouseDownBool=false;
+var scrollBarBool=false;
+var commandDownBool=false;
+var characters =[];
+var scenes=[];
+var canvas;
+var ctx;
+var linesNLB= [];
+var vOffset = 0;
+var pos = { col: 0, row: 0};
+var anch = {col:0, row:0};
+var findArr = [];
+var findReplaceArr=[];
+var background = '#fff';
+var font = '10pt Courier';
+var fontWidth = 8;
+var foreground = '#000';
+var lineheight = 13;
+var milli = 0;
+var formatMenu = false;
+var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
+var resource_id='random123456789';
    // Use the same wrapping procedure over and over
    // just define an array to pass into it
     //wrapVars[0]=character length before wrap
@@ -123,12 +127,12 @@ window['s_ignore'] = s_ignore;
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
-    var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
+ var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
     
     //if ($.browser.mozilla)fontWidth=9;
-    var editorWidth = 850;
-    var headerHeight=65+26;
-	var lines = [];
+var editorWidth = 850;
+var headerHeight=65+26;
+var lines = [];
 	/*
 	 * Notes notation
 	 * notes[x] refers to thread
@@ -157,11 +161,11 @@ window['s_ignore'] = s_ignore;
      *
 	 * */
 	//var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
-    notes=[];
-    var spellWrong=[];
-    var spellIgnore=[];
-    var checkSpell=false;
-	var fMenu, eMenu, vMenu, sMenu;
+notes=[];
+var spellWrong=[];
+var spellIgnore=[];
+var checkSpell=false;
+var fMenu, eMenu, vMenu, sMenu;
     
 function init(){
 	setElementSizes("i");
@@ -254,10 +258,6 @@ function init(){
 		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
 		goog.dom.setTextContent(d, meta+sKeys[i][1]);
 	}
-	
-	var tb = new goog.ui.Toolbar();
-	tb.decorate(goog.dom.getElement('gtb'));
-	goog.dom.getElement('gtb').style.visibility = 'visible';
 	
 	resource_id=window.location.href.split('=')[1];
 	goog.net.XhrIo.send('scriptcontent',
@@ -674,8 +674,23 @@ function selection(){
 	}
 	startRange=endRange=sel=null;
 }
-
+function toolbarActions(e){
+	var c = e.target.getId().replace('toolbar','')
+	if(c=='New')newScriptPrompt();
+	else if(c=='Save')save(0);
+	else if(c=='Export')exportPrompt();
+	else if(c=='Undo')undo();
+	else if(c=='Redo')redo();
+	else if(c=='InsertNote')newThread();
+	else if(c=='Spellcheck')launchSpellCheck();
+	else if(c=='Email')emailPrompt();
+}
 function setup(e){
+	var tb = new goog.ui.Toolbar();
+	tb.decorate(goog.dom.getElement('gtb'));
+	goog.events.listen(tb, goog.ui.Component.EventType.ACTION, toolbarActions)
+	goog.dom.getElement('gtb').style.visibility = 'visible';
+	goog.dom.getElement('sidebar').style.visibility = 'visible';
     if(e.target.getResponseText()=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
         paint(true,false,false);
@@ -733,6 +748,9 @@ function setup(e){
     paint(true,false,false);
     setInterval('paint(false,false,false)', 25);
 	i=p=data=title=x=w=c=collabs=null;
+	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
+	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
+	n.play()
 }
 function tabs(v){
     var t = ["sceneTab","noteTab"]

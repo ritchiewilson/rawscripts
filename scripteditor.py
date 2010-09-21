@@ -1209,10 +1209,10 @@ def main():
 											("/changefolder", ChangeFolder),
 											("/deletefolder", DeleteFolder),
 											('/renamefolder', RenameFolder),
-											('/settings', SettingsPage),
-											('/synccontacts', SyncContactsPage),
-											('/removesynccontacts', RemoveSyncContacts),
-											('/syncgooglecontacts', SyncGoogleContacts),
+											#('/settings', SettingsPage),
+											#('/synccontacts', SyncContactsPage),
+											#('/removesynccontacts', RemoveSyncContacts),
+											#('/syncgooglecontacts', SyncGoogleContacts),
 											('/list', List),],
 											debug=True)
 	

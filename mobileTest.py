@@ -1,6 +1,6 @@
 import re
 def mobileTest(s):
-	patt = re.compile('android|avantgo|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)|plucker|pocket|psp|symbian|treo|vodafone|wap|windows (ce|phone)|xda|xiino', flags=re.I)
+	patt = re.compile('android|avantgo|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|opera m(ob|in)i|palm( os)?|phone|pixi|plucker|pocket|psp|symbian|treo|vodafone|wap|windows (ce|phone)|xda|xiino', flags=re.I)
 	m = re.search(patt, s)
 	if m:
 		return 1
