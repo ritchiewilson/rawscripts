@@ -1661,7 +1661,7 @@ function tab(){
 function handlekeypress(e) {
 	//console.log(e.keyCode)
 	if (findForcePaint)return;
-	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32){
+	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32 || e.keyCode==186){
     	if(typeToScript && !commandDownBool){
 	        e.preventDefault();
 			redoQue=[];
