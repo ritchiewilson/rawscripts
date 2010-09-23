@@ -616,7 +616,7 @@ function mouseMove(e){
 	document.getElementById('canvas').style.cursor = ((e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
 }
 function handleMouseWheel(e){
-	scroll(e.deltaY*10)
+	scroll(e.deltaY*2)
 }
 function scrollBarDrag(e){
     var diff = mouseY-e.clientY;

@@ -474,9 +474,9 @@ def Pdf(data, title, title_page, resource_id):
   # default font
   self._font="/Courier"
   # default font size
-  self._ptSize=11
+  self._ptSize=12
   # default vert space
-  self._vertSpace=12
+  self._vertSpace=11
   self._lines=60
   # number of characters in a row
   self._cols=80
@@ -580,7 +580,7 @@ def StartPage(self):
     ws(self, "BT\n");
     buf = "".join(("/F1 ", str(self._ptSize), " Tf\n"))
     ws(self, buf)
-    buf = "".join(("1 0 0 1 50 ", str(self._pageHt - 40), " Tm\n"))
+    buf = "".join(("1 0 0 1 50 ", str(self._pageHt - 45), " Tm\n"))
     ws(self, buf)
     buf = "".join((str(self._vertSpace), " TL\n"))
     ws(self, buf)

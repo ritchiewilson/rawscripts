@@ -608,13 +608,15 @@ class EmailScript (webapp.RequestHandler):
 				self.response.headers['Content-Type'] = 'text/plain'
 				self.response.out.write('not sent')
 				return
-		J = simplejson.loads(results[0].export)
-		t=str(datetime.datetime.today())
+		ownerTest = db.get(db.Key.from_path('UsersScripts', 'owner'+users.get_current_user().email().lower()+resource_id))
+		if ownerTest!=None:
+			J = simplejson.loads(results[0].export)
+			t=str(datetime.datetime.today())
 
-		for recipient in recipients:
-			J[0].append([recipient, t])
-		results[0].export=simplejson.dumps(J)
-		results[0].put()
+			for recipient in recipients:
+				J[0].append([recipient, t])
+				results[0].export=simplejson.dumps(J)
+				results[0].put()
 	 
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
