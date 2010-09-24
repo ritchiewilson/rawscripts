@@ -8,18 +8,50 @@
 
 <url>
   <loc>http://www.rawscripts.com/</loc>
-  <changefreq>daily</changefreq>
+  <changefreq>weekly</changefreq>
 </url>
 <url>
   <loc>http://www.rawscripts.com/about</loc>
-  <changefreq>daily</changefreq>
+  <changefreq>weekly</changefreq>
 </url>
 <url>
   <loc>http://www.rawscripts.com/blog</loc>
-  <changefreq>daily</changefreq>
+  <changefreq>weekly</changefreq>
 </url>
 <url>
   <loc>http://www.rawscripts.com/contact</loc>
-  <changefreq>daily</changefreq>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/editor?resource_id=Demo</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Better-Faster-Stronger-For-More-People</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Get-Organized-With-Folders</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Improved-Note-Notification</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Welcome-Yahoo</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Mange-Your-Scripts-From-Your-Smartphone</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/blog/Rawscripts-Is-Up-And-Running</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://www.rawscripts.com/titlepage?resource_id=Demo</loc>
+  <changefreq>weekly</changefreq>
 </url>
 </urlset>
