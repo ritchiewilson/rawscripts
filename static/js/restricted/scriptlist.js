@@ -118,7 +118,7 @@ function init(){
 	try{
 		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
 		if(domain=='gmail'){
-			goog.net.XhrIo.send('/syncgooglecontacts',
+			goog.net.XhrIo.send('/synccontacts',
 				function(e){
 					if(e.target.getResponseText()=='none')return;
 					try{

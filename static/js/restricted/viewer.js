@@ -218,6 +218,24 @@ function init(){
 		goog.dom.setTextContent(d, meta+sKeys[i][1]);
 	}
 	
+	try{
+		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
+		if(domain=='gmail'){
+			goog.net.XhrIo.send('/synccontacts',
+				function(e){
+					if(e.target.getResponseText()=='none')return;
+					try{
+						var arr = e.target.getResponseJson();
+						var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, document.getElementById('recipient'), true);
+					}
+					catch(e){};
+				},
+				'POST'
+			);
+		};
+	}
+	catch(e){};
+	
 	resource_id=window.location.href.split('=')[1];
 	goog.net.XhrIo.send('scriptcontent',
 		setup,

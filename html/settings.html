@@ -16,10 +16,7 @@
 	</style>
 	<script type="text/javascript" charset="utf-8">
 		function syncContacts(){
-			var d = document.getElementById('syncContacts')
-			if(d.checked){
-				window.open('/synccontacts', 'synccontacts', 'width=500px,height=400px');
-			}
+			window.open('/synccontactspage', 'synccontactspage', 'width=500px,height=500px');
 		}
 	</script>
 </head>
@@ -60,13 +57,14 @@ _gaq.push(['_trackPageview']);
 				<div id='settingsBox'>
 					<table border="0" cellspacing="10" cellpadding="10">
 						<tr>
-							<td><input type="checkbox" name="syncContacts" id="syncContacts" onclick="syncContacts()"></td>
-							<td>Sync contacts from Gmail account</td>
+							<td><b>Sync {{ domain }} Contacts:</b></td>
+							<td>{{  syncContactsText  }}</td>
 						</tr>
-						<tr>
-							<td><input type="checkbox" name="autosave" value="autosave" id="autosave"></td>
-							<td>Enable autosave in editor window.</td>
-						</tr>
+						<!--<tr>
+							<td><b>Enable AutoSave</b></td>
+							<td><input type="radio" name="enable" id="enable"> Enable autosave in editor window.<br>
+								<input type="radio" name="disable" id="disable"> Disable autosave in editor window.</td>
+						</tr>-->
 					</table>
 				</div>
 			</div>

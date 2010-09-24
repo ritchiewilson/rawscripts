@@ -205,7 +205,7 @@
             <br /><br />
 			<label for="recipient">Recipients (max 5, comma seperated)</label>
 			<br />
-			<textarea name="recipient" rows="2" id='recipient' class="TEXT"></textarea>
+			<textarea name="recipient" rows="3" id='recipient' class="TEXT"></textarea>
 			<br />
 			<label for="subject">Subject</label>
 			<br />
@@ -315,14 +315,14 @@
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
 		<div class="popup">
 			<a href="javascript:hideSharePrompt()" class="close"><img src="/images/close.png" alt="Close Popup"></a>
-			<br /><br />
+			<br>
             Share Script: <b id="shareTitle"></b>
-            <br /><br>
+            <br>
 			<table id="hasAccess" width="350px" cellspacing=0>
             </table>
             <br>
             <p>To be added: (comma seperated)</p>
-			<textarea class="TEXT" type='text' name='collaborator' id='collaborator'></textarea>
+			<textarea rows='3' class="TEXT" type='text' name='collaborator' id='collaborator'></textarea>
 			<br />
             <p>Note: You can only share with Gmail or Yahoo users.</p>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />

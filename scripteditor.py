@@ -1068,6 +1068,16 @@ class SettingsPage (webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
+			if user.email().lower().split('@')[1].split('.')[0]=='gmail':
+				template_values['domain'] = 'Google'
+				token = get_contacts_google_token(self.request)
+				if token==False or token==None:
+					template_values['syncContactsText']='Syncing with Google Contacts is OFF. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a>'
+				else:
+					template_values['syncContactsText']='Syncing with Google Contacts is ON. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a>'
+			elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+				template_values['domain'] = 'Yahoo'
+				
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
@@ -1080,6 +1090,7 @@ class SyncContactsPage (webapp.RequestHandler):
 		else:
 			template_values = {}
 			if user.email().lower().split('@')[1].split('.')[0]=='gmail':
+				template_values['domain'] = 'Google'
 				google_token = get_contacts_google_token(self.request)
 				if google_token == None:
 					template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(self.request.url, ['http://www.google.com/m8/feeds/'])
@@ -1087,6 +1098,7 @@ class SyncContactsPage (webapp.RequestHandler):
 				else:
 					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 			elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+				template_values['domain'] = 'Yahoo'
 				#yahoo_token = get_contacts_yahoo_token(self.request)
 				import yahoo.application
 				
@@ -1095,14 +1107,14 @@ class SyncContactsPage (webapp.RequestHandler):
 					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
 					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
 					APPLICATION_ID    = 't73LcW32'
-					CALLBACK_URL      = 'http://www.rawscripts.com/synccontacts'
+					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
 					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
 					request_token = oauthapp.get_request_token(CALLBACK_URL)
 					redirect_url  = oauthapp.get_authorization_url(request_token)
 					template_values['auth_url'] = redirect_url
 					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 				else:
-					CALLBACK_URL = 'http://www.rawscripts.com/synccontacts'
+					CALLBACK_URL = 'http://www.rawscripts.com/synccontactspage'
 					request_token = oauthapp.get_request_token(CALLBACK_URL)
 					access_token  = oauthapp.get_access_token(request_token, verifier)
 					m = YahooOAuthTokens(key_name = 'yahoo_oauth_token_'+users.get_current_user().email().lower(),
@@ -1122,9 +1134,9 @@ class RemoveSyncContacts (webapp.RequestHandler):
 			client.revoke_token(token)
 			gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
 			memcache.delete('contacts'+users.get_current_user().email().lower())
-		self.redirect('/synccontacts')
+		self.redirect('/synccontactspage')
 
-class SyncGoogleContacts (webapp.RequestHandler):
+class SyncContacts (webapp.RequestHandler):
 	def post(self):
 		try:
 			user = users.get_current_user()
@@ -1132,30 +1144,33 @@ class SyncGoogleContacts (webapp.RequestHandler):
 				return
 			d = memcache.get('contacts'+user.email().lower())
 			if d == None:
-				token = get_contacts_google_token(self.request)
-				client = gdata.contacts.client.ContactsClient()
-				feed = client.GetContacts(auth_token=token)
-				contactlist = []
-				for entry in feed.entry:
-					for email in entry.email:
-						if str(entry.title.text)=='None':
-							contactlist.append("<"+str(email.address)+">")
-						else:
-							contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-				i=0
-				while i==0:
-					try:
-						feed = client.GetNext(feed, auth_token=token)
-						for entry in feed.entry:
-							for email in entry.email:
-								if str(entry.title.text)=='None':
-									contactlist.append("<"+str(email.address)+">")
-								else:
-									contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-					except:
-						i=1
-				output = simplejson.dumps(contactlist)
-				memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
+				if user.email().lower().split('@')[1].split('.')[0]=='gmail':
+					token = get_contacts_google_token(self.request)
+					client = gdata.contacts.client.ContactsClient()
+					feed = client.GetContacts(auth_token=token)
+					contactlist = []
+					for entry in feed.entry:
+						for email in entry.email:
+							if str(entry.title.text)=='None':
+								contactlist.append("<"+str(email.address)+">")
+							else:
+								contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+					i=0
+					while i==0:
+						try:
+							feed = client.GetNext(feed, auth_token=token)
+							for entry in feed.entry:
+								for email in entry.email:
+									if str(entry.title.text)=='None':
+										contactlist.append("<"+str(email.address)+">")
+									else:
+										contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+						except:
+							i=1
+					output = simplejson.dumps(contactlist)
+					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
+				elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+					output = '[]'
 			else:
 				output=d
 		except:
@@ -1164,9 +1179,6 @@ class SyncGoogleContacts (webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(output)
 
-#class SyncYahooContacts (webapp.RequestHandler):
-#	def post(self):
-		
 
 class OneScript (webapp.RequestHandler):
 	def get(self):
@@ -1211,10 +1223,10 @@ def main():
 											("/changefolder", ChangeFolder),
 											("/deletefolder", DeleteFolder),
 											('/renamefolder', RenameFolder),
-											#('/settings', SettingsPage),
-											#('/synccontacts', SyncContactsPage),
-											#('/removesynccontacts', RemoveSyncContacts),
-											#('/syncgooglecontacts', SyncGoogleContacts),
+											('/settings', SettingsPage),
+											('/synccontactspage', SyncContactsPage),
+											('/removesynccontacts', RemoveSyncContacts),
+											('/synccontacts', SyncContacts),
 											('/list', List),],
 											debug=True)
 	
