@@ -3727,7 +3727,8 @@ function paint(forceCalc, forceScroll){
     scrollBar(ctx, y);
 
 
-    if(forceCalc)pagination();
+	pagination();
+		
     if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
     if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
     if(forceScroll=="enter"){

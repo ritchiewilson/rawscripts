@@ -18,6 +18,11 @@
 		function syncContacts(){
 			window.open('/synccontactspage', 'synccontactspage', 'width=500px,height=500px');
 		}
+		function autosaveRadio(e){
+			document.getElementById('autosaveEnable').checked=false;
+			document.getElementById('autosaveDisable').checked=false;
+			e.checked=true;
+		}
 	</script>
 </head>
 
@@ -58,13 +63,13 @@ _gaq.push(['_trackPageview']);
 					<table border="0" cellspacing="10" cellpadding="10">
 						<tr>
 							<td><b>Sync {{ domain }} Contacts:</b></td>
-							<td>{{  syncContactsText  }}</td>
+							<td>Syncing with Google Contacts is {{ syncContactsText }}. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a></td>
 						</tr>
-						<!--<tr>
-							<td><b>Enable AutoSave</b></td>
-							<td><input type="radio" name="enable" id="enable"> Enable autosave in editor window.<br>
-								<input type="radio" name="disable" id="disable"> Disable autosave in editor window.</td>
-						</tr>-->
+						<tr>
+							<td><b>Enable AutoSave (not yet hooked up):</b></td>
+							<td><input type="radio" name="enable" id="autosaveEnable" onclick='autosaveRadio(this)' {{ autosaveEnabled }}> Enable autosave in editor window.<br>
+								<input type="radio" name="disable" id="autosaveDisable" onclick='autosaveRadio(this)' {{ autosaveDisabled }}> Disable autosave in editor window.</td>
+						</tr>
 					</table>
 				</div>
 			</div>

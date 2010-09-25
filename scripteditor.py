@@ -157,6 +157,9 @@ class Folders (db.Model):
 	data = db.StringProperty()
 	user = db.StringProperty()
 
+class UsersSettings(db.Model):
+	autosave = db.BooleanProperty()
+
 class YahooOAuthTokens (db.Model):
 	t = db.BlobProperty()
 
@@ -1072,12 +1075,32 @@ class SettingsPage (webapp.RequestHandler):
 				template_values['domain'] = 'Google'
 				token = get_contacts_google_token(self.request)
 				if token==False or token==None:
-					template_values['syncContactsText']='Syncing with Google Contacts is OFF. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a>'
+					template_values['syncContactsText']='OFF'
 				else:
-					template_values['syncContactsText']='Syncing with Google Contacts is ON. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a>'
+					template_values['syncContactsText']='ON'
 			elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
 				template_values['domain'] = 'Yahoo'
-				
+				template_values['syncContactsText']='OFF'
+			
+			try:
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+			except:
+				us = None
+			if us==None:
+				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+									autosave=True)
+				us.put()
+				template_values['autosaveEnabled']='checked'
+				template_values['autosaveDisabled']=''
+			
+			else:
+				if us.autosave==True:
+					template_values['autosaveEnabled']='checked'
+					template_values['autosaveDisabled']=''
+				else:
+					template_values['autosaveEnabled']=''
+					template_values['autosaveDisabled']='checked'
+			
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
