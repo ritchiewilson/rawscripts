@@ -1103,6 +1103,32 @@ class SettingsPage (webapp.RequestHandler):
 			
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
+
+
+class ChangeUserSetting(webapp.RequestHandler):
+	def post(self):
+		user = users.get_current_user()
+		if not user:
+			return
+		else:
+			k = self.request.get('k')
+			v = self.request.get('v')
+			try:
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+			except:
+				us = None
+			if us==None:
+				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+									autosave=True)
+			if k=='autosave':
+				if v=='Enable':
+					value=True
+				else:
+					value=False
+				us.autosave=value
+				us.put()
+			self.response.headers['Content-Type'] = 'text/plain'
+			self.response.out.write('sent')
 			
 class SyncContactsPage (webapp.RequestHandler):
 	def get(self):
@@ -1250,6 +1276,7 @@ def main():
 											('/synccontactspage', SyncContactsPage),
 											('/removesynccontacts', RemoveSyncContacts),
 											('/synccontacts', SyncContacts),
+											('/changeusersetting', ChangeUserSetting),
 											('/list', List),],
 											debug=True)
 	

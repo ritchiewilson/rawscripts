@@ -198,6 +198,18 @@ class ScriptContent (webapp.RequestHandler):
 				contacts = []
 			else:
 				contacts = simplejson.loads(c)
+		
+			try:
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+			except:
+				us = None
+			if us==None:
+				autosave='true'
+			else:
+				if us.autosave==True:
+					autosave='true'
+				else:
+					autosave='false'
 			
 			ja=[]
 			ja.append(title)
@@ -206,6 +218,7 @@ class ScriptContent (webapp.RequestHandler):
 			ja.append(notes)
 			ja.append(sharedwith)
 			ja.append(contacts)
+			ja.append(autosave)
 
 			content = simplejson.dumps(ja)
 			user = users.get_current_user()
@@ -278,9 +291,11 @@ class Save (webapp.RequestHandler):
 			for i in results:
 				i.last_updated=datetime.datetime.today()
 				i.put()
-
+			
+			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('1')
 		else:
+			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('0')
 		activity.activity("save", users.get_current_user().email().lower(), resource_id, None, len(data), None, int(autosave), None, None,None,None,None,None, None)
 

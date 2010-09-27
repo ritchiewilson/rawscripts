@@ -4,6 +4,7 @@
 	<meta http-equiv="X-UA-Compatible" content="chrome=1">
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>RawScripts - Settings</title>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<link href="css/scriptlist.css" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="/favicon.ico">
 	<style type="text/css" media="screen">
@@ -22,6 +23,18 @@
 			document.getElementById('autosaveEnable').checked=false;
 			document.getElementById('autosaveDisable').checked=false;
 			e.checked=true;
+			$.post('/changeusersetting',
+				{k : 'autosave', v : e.id.replace('autosave','')},
+				function(d){
+					if(d!='sent'){
+						alert('That change could not be saved. Please try again later.')
+					}
+					else{
+						document.getElementById('autosaveSaved').style.display='block';
+						$('#autosaveSaved').fadeOut(3000, function(){document.getElementById('autosaveSaved').style.display='none';})
+					}
+				}
+			)
 		}
 	</script>
 </head>
@@ -63,12 +76,13 @@ _gaq.push(['_trackPageview']);
 					<table border="0" cellspacing="10" cellpadding="10">
 						<tr>
 							<td><b>Sync {{ domain }} Contacts:</b></td>
-							<td>Syncing with Google Contacts is {{ syncContactsText }}. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a></td>
+							<td>Syncing with {{ domain }} Contacts is {{ syncContactsText }}. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a></td>
 						</tr>
 						<tr>
-							<td><b>Enable AutoSave (not yet hooked up):</b></td>
+							<td><b>Enable AutoSave:</b></td>
 							<td><input type="radio" name="enable" id="autosaveEnable" onclick='autosaveRadio(this)' {{ autosaveEnabled }}> Enable autosave in editor window.<br>
 								<input type="radio" name="disable" id="autosaveDisable" onclick='autosaveRadio(this)' {{ autosaveDisabled }}> Disable autosave in editor window.</td>
+							<td><span id='autosaveSaved' style='background-color:yellow; padding:3px; display:none'>Saved Change</span></td>
 						</tr>
 					</table>
 				</div>

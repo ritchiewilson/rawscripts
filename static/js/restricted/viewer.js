@@ -2240,16 +2240,16 @@ function paint(forceCalc, forceScroll){
     ctx.beginPath()
     ctx.moveTo(1.5,document.getElementById('canvas').height-25.5);
     ctx.lineTo(1.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-25.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-1.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-25.5);
     ctx.closePath();
 	ctx.strokeStyle = "#999";
     ctx.stroke();
     ctx.beginPath()
     ctx.moveTo(0.5,document.getElementById('canvas').height-24.5);
     ctx.lineTo(0.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-24.5);
+    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-0.5);
+    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-24.5);
     ctx.closePath();
     // write current page number
     ctx.strokeStyle = "#333";

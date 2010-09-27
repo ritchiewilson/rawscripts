@@ -111,6 +111,7 @@ var milli = 0;
 var formatMenu = false;
 var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
 var resource_id='random123456789';
+var autosaveBool = true;
    // Use the same wrapping procedure over and over
    // just define an array to pass into it
     //wrapVars[0]=character length before wrap
@@ -127,7 +128,7 @@ var resource_id='random123456789';
     //wrapvariablearray[3]=d
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
- var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
+var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
     
     //if ($.browser.mozilla)fontWidth=9;
 var editorWidth = 850;
@@ -429,11 +430,13 @@ function createSuggestBox(d){
 var googSuggestMenu;
 
 function saveTimer(){
-    document.getElementById('saveButton').disabled=false;
-    document.getElementById('saveButton').value='Save';
-    clearTimeout(timer);
-    checkSpell=true;
-    timer = setTimeout('save(1)',7000);
+	document.getElementById('saveButton').disabled=false;
+	document.getElementById('saveButton').value='Save';
+	checkSpell=true;
+	if(autosaveBool){
+		clearTimeout(timer);
+		timer = setTimeout('save(1)',7000);
+	}
 }
 
 function findInputKeyUp(e, w){
@@ -753,6 +756,7 @@ function setup(e){
     }
 	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p[5], document.getElementById('recipient'), true);
 	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p[5], document.getElementById('collaborator'), true);
+	autosaveBool = (p[6]=='true' ? true : false);
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     tabs(0);
@@ -2573,6 +2577,15 @@ function duplicate(){
 	)
 }
 // save
+goog.events.listen(goog.dom.getElement('saveError'), goog.events.EventType.CLICK, function(e){
+	var n = new goog.fx.dom.FadeOut(goog.dom.getElement('saveError'), 500);
+	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){
+		goog.dom.getElement('saveError').style.display='none';
+		goog.dom.getElement('saveError').style.opacity='100'
+		
+	})
+	n.play()
+});
 function save(v){
     clearTimeout(timer);
     if(resource_id=='Demo'){
@@ -2584,8 +2597,17 @@ function save(v){
     var data=JSON.stringify(lines);
     document.getElementById('saveButton').value='Saving...';
     goog.net.XhrIo.send('/save', function(d){
-        document.getElementById('saveButton').value='Saved';
-        document.getElementById('saveButton').disabled=true;},
+			if(d.target.getResponseText()=='1'){
+	        	goog.dom.getElement('saveButton').value='Saved';
+	        	goog.dom.getElement('saveButton').disabled=true;
+				goog.dom.getElement('saveError').style.display='none';
+			}
+			else{
+				goog.dom.getElement('saveButton').value='Save';
+	        	goog.dom.getElement('saveButton').disabled=false;
+				goog.dom.getElement('saveError').style.display='table';
+			}
+		},
 		'POST',
 		"data="+escape(data)+"&resource_id="+resource_id+"&autosave="+v
 	);
@@ -3695,16 +3717,16 @@ function paint(forceCalc, forceScroll){
     ctx.beginPath()
     ctx.moveTo(1.5,document.getElementById('canvas').height-25.5);
     ctx.lineTo(1.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-23.5,document.getElementById('canvas').height-25.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-1.5);
+    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-25.5);
     ctx.closePath();
 	ctx.strokeStyle = "#999";
     ctx.stroke();
     ctx.beginPath()
     ctx.moveTo(0.5,document.getElementById('canvas').height-24.5);
     ctx.lineTo(0.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-24.5);
+    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-0.5);
+    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-24.5);
     ctx.closePath();
     // write current page number
     ctx.strokeStyle = "#333";
