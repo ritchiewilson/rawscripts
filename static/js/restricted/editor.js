@@ -836,6 +836,9 @@ function contextmenu(e){
 	}
 }
 function mouseUp(e){
+	if(document.getElementById('suggestBox')!=null){
+		goog.dom.removeNode(document.getElementById('suggestBox'));
+	}
 	if(typeToScript){
 	    mouseDownBool=false;
 	    scrollBarBool=false;
@@ -3351,6 +3354,11 @@ function sortNumbers(a,b){
 }
 
 function paint(forceCalc, forceScroll){
+	//var nd = new Date().getDate()
+	
+	var linesLength = lines.length;
+	var linesNLBLength = linesNLB.length;
+	var linesLV = lines;
     if(typeToScript || findForcePaint){
 	var nd = new Date();
 	nd = nd.getTime();
@@ -3384,28 +3392,29 @@ function paint(forceCalc, forceScroll){
     pageStartY=null;
     // use this opportunity to put in the grey backing
 	// also figure out the current page
+	
     if(!forceCalc){
 		var greyHeight = lineheight*9+2;
 	    var wrapVars=WrapVariableArray[0];
 	    ctx.fillStyle='#ddd';
         var count=0;
-        for (var i=0;i<lines.length;i++){
+        for (var i=0;i<linesLength;i++){
 			if(pos.row==i)currentPage=count*1+1;
             if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
 				if(pos.row==i)currentPage+=1;
                 greyHeight=72*lineheight*(count+1)+9*lineheight+2;
                 if(pageBreaks[count][2]!=0){
                     greyHeight-=pageBreaks[count][2]*lineheight;
-                    if(lines[i][1]==3)greyHeight+=lineheight;
+                    if(linesLV[i][1]==3)greyHeight+=lineheight;
                 }
                 count++;
             }
             if(i<linesNLB.length){
                 for(var j=0; j<linesNLB[i].length; j++){
                     greyHeight+=lineheight;
-                    if (lines[i][1]==0){
+                    if (linesLV[i][1]==0){
                        if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-                       if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+                       if(linesLV[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
                     }
                 }
 				j=null;
@@ -3432,24 +3441,28 @@ function paint(forceCalc, forceScroll){
     var latestCharacter = '';
     var count = 0;
     var sceneCount=0;
+	var pageBreaksLength = pageBreaks.length;
     //Stary Cycling through lines
-	for (var i=0; i<lines.length; i++){
-        if (lines[i][1]==0)sceneCount++;
+	for (var i=0; i<linesLength; i++){
+		var thisLineText = linesLV[i][0];
+		var thisLineType = linesLV[i][1];
+        if (thisLineType==0)sceneCount++;
         //make sure there are parenthesese for parenthetics
-        if(lines[i][1]==4){
-            if(lines[i][0].charAt(0)!='(')lines[i][0]='('+lines[i][0];
-            if(lines[i][0].charAt(lines[i][0].length-1)!=')')lines[i][0]=lines[i][0]+')';
+        if(thisLineType==4){
+            if(thisLineText.charAt(0)!='(')thisLineText='('+thisLineText;
+            if(thisLineText.charAt(thisLineText.length-1)!=')')thisLineText=thisLineText+')';
+			lines[i][0]=thisLineText;
         }
         //set correct line height
         //on page breaks
         var bb=false;
         if(!forceCalc){
-            if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+            if(pageBreaksLength!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
                 if(pageBreaks[count][2]==0){
                     y=72*lineheight*(count+1)+11*lineheight;
                     count++;
-                    if(count>=pageBreaks.length){
-                        count=pageBreaks.length-2;
+                    if(count>=pageBreaksLength){
+                        count=pageBreaksLength-2;
                     }
                 }
                 else{
@@ -3475,16 +3488,16 @@ function paint(forceCalc, forceScroll){
                 }
             }
             notesArr = notesArr.sort(sortNumbers);
-            var type = lines[i][1];
+            var type = thisLineType;
+			var lineLengthInCharacters = WrapVariableArray[thisLineType][0];
+			var distanceFromEdge = WrapVariableArray[thisLineType][1];
+			var ifAlignRight = WrapVariableArray[thisLineType][2];
+			var ifUppercase = WrapVariableArray[thisLineType][3];
+			var lineBreaksAfter = WrapVariableArray[thisLineType][4];
             //Cursor position
             if (i==pos.row){
                 var cursorY = y-lineheight;
-                if (type == 1)var cursorX =WrapVariableArray[1][1];
-                else if (type == 0)var cursorX =WrapVariableArray[0][1];
-                else if (type == 3)var cursorX =WrapVariableArray[3][1];
-                else if (type == 2)var cursorX =WrapVariableArray[2][1];
-                else if (type == 4)var cursorX =WrapVariableArray[4][1];
-                else if (type == 5)var cursorX =WrapVariableArray[5][1];
+                var cursorX = distanceFromEdge;
                 var thisRow = true;
                 var wrappedText = [];
             }
@@ -3494,23 +3507,7 @@ function paint(forceCalc, forceScroll){
                 var anchorWrappedText = []
             }
             
-            var lineContent = lines[i][0];
-            
-            // Use the same wrapping procedure over and over
-            // just define an array to pass into it
-            //wrapVars[0]=character length before wrap
-            //wrapVars[1]= distace from edge it should be placed ay
-            //wrapVars[2]= bool, align right
-            //wrapVars[3]= bool, uppercase
-            //wrapVars[4]=number of line breaks after
-            if (type==0)var wrapVars=WrapVariableArray[0];
-            else if(type==1) var wrapVars = WrapVariableArray[1];
-            else if(type==2) var wrapVars = WrapVariableArray[2];
-            else if(type==3) var wrapVars =  WrapVariableArray[3];
-            else if(type==4) var wrapVars = WrapVariableArray[4];
-            else if(type==5) var wrapVars = WrapVariableArray[5];
-            
-            var wordsArr = lineContent.split(' ');
+            var wordsArr = thisLineText.split(' ');
             var word = 0;
             linesNLB[i]=[];
             // tc = total characters, used
@@ -3521,24 +3518,24 @@ function paint(forceCalc, forceScroll){
             while(word<wordsArr.length){
                 var itr=0;
 				//for if the one word is too big
-				if (wordsArr[word].length>=wrapVars[0]){
+				if (wordsArr[word].length>=lineLengthInCharacters){
 					var printString = wordsArr[word];
-					if (wrapVars[3]==1)printString= printString.toUpperCase();
+					if (ifUppercase==1)printString= printString.toUpperCase();
 					var altPrintString = printString;
                     var notesInThisLine=[];
                     if(viewNotes){
                         for(note in notesArr){
-                            if (notesArr[note]>=lines[i][0].length-printString.length){
+                            if (notesArr[note]>=thisLineText.length-printString.length){
                                 altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
                                 notesInThisLine.push(notesArr[note]);
                             }
                         }
                     }
-					ctx.fillText(altPrintString, wrapVars[1]+pageStartX , y-vOffset);
+					ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
 					linesNLB[i].push(printString.length);
 					y+=lineheight;
-					if(wrapVars[4]==2){
+					if(lineBreaksAfter==2){
                         linesNLB[i].push(0);
                         y+=lineheight;
                     }
@@ -3546,29 +3543,29 @@ function paint(forceCalc, forceScroll){
 					if(thisRow)wrappedText.push(printString.length);
                     if(anchorThisRow)anchorWrappedText.push(printString.length);
 				}
-                else if (wordsArr.slice(word).join().length<wrapVars[0]){
+                else if (wordsArr.slice(word).join().length<lineLengthInCharacters){
                     var printString = wordsArr.slice(word).join(' ');
-                    if(lines[i][1]==2 && latestCharacter!='' && lines[i][0].toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
-                    if(lines[i][1]==0)latestCharacter='';
-                    if (wrapVars[3]==1)printString= printString.toUpperCase();
-                    if (wrapVars[2]==1)ctx.textAlign='right';
+                    if (thisLineType==2 && latestCharacter!='' && thisLineText.toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
+                    if (thisLineType==0)latestCharacter='';
+                    if (ifUppercase==1)printString= printString.toUpperCase();
+                    if (ifAlignRight==1)ctx.textAlign='right';
                     var altPrintString = printString;
                     var notesInThisLine=[];
                     if(viewNotes){
                         for(note in notesArr){
-                            if (notesArr[note]>=lines[i][0].length-printString.length){
+                            if (notesArr[note]>=thisLineText.length-printString.length){
                                 altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
                                 notesInThisLine.push(notesArr[note]);
                             }
                         }
                     }
-                    if(printString!='')ctx.fillText(altPrintString, wrapVars[1]+pageStartX , y-vOffset);
+                    if(printString!='')ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
                     ctx.textAlign='left';
                     word=wordsArr.length;
                     linesNLB[i].push(printString.length);
                     y+=lineheight;
-                    if(wrapVars[4]==2){
+                    if(lineBreaksAfter==2){
                         linesNLB[i].push(0);
                         y+=lineheight;
                     }
@@ -3577,24 +3574,24 @@ function paint(forceCalc, forceScroll){
                 }
                 else{
                     var itr=0;
-                    while(wordsArr.slice(word, word+itr).join(' ').length<wrapVars[0]){
+                    while(wordsArr.slice(word, word+itr).join(' ').length<lineLengthInCharacters){
                         newLineToPrint=wordsArr.slice(word, word+itr).join(' ');
                         itr++;
                     }
-					if (wrapVars[3]==1)newLineToPrint= newLineToPrint.toUpperCase();
+					if (ifUppercase==1)newLineToPrint= newLineToPrint.toUpperCase();
                     var altNewLineToPrint = newLineToPrint;
                     var notesInThisLine=[];
                     if(viewNotes){
                         for(note in notesArr){
                             if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
                                 altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(wrapVars[1], y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
                                 notesInThisLine.push(notesArr[note]);
                             }
                         }
                     }
                     tc+=newLineToPrint.length+1;
-                    ctx.fillText(altNewLineToPrint, wrapVars[1]+pageStartX, y-vOffset);
+                    ctx.fillText(altNewLineToPrint, distanceFromEdge+pageStartX, y-vOffset);
                     linesNLB[i].push(newLineToPrint.length);
                     y+=lineheight;
                     word+=itr-1;
@@ -3604,15 +3601,15 @@ function paint(forceCalc, forceScroll){
                 }
                 //remve a line if it's dialog
                 //followed by parenthetics
-                if(lines[i][1]==3 && i+1!=lines.length && lines[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
+                if(thisLineType==3 && i+1!=linesLength && linesLV[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
                     linesNLB[i].pop();
                     y-=lineheight;
                 }
                 
                 if(bb && linesNLB[i].length==pageBreaks[count][2]){
-                    if(lines[i][1]==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
+                    if(thisLineType==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
                     y=72*lineheight*(count+1)+11*lineheight;
-                    if(lines[i][1]==3){
+                    if(thisLineType==3){
                         ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
                         y+=lineheight;
                     }
@@ -3625,18 +3622,18 @@ function paint(forceCalc, forceScroll){
             var anchorThisRow=false;
         }
         //setup stuff of Con't
-        if(lines[i][1]==2)var latestCharacter = lines[i][0];
+        if(thisLineType==2)var latestCharacter = thisLineText;
         if(i==pos.row){
             currentScene=sceneCount;
             var notesOnThisLine=notesArr; 
         }
-        if(count>=pageBreaks.length){
-            count=pageBreaks.length-2;
+        if(count>=pageBreaksLength){
+            count=pageBreaksLength-2;
         }
     }
     // End Looping through lines
     // delete extra data in linesNLB
-    while(lines.length<linesNLB.length){
+    while(linesLength<linesNLB.length){
         linesNLB.pop();
     }
       
@@ -3675,18 +3672,18 @@ function paint(forceCalc, forceScroll){
         //console.log(notesSpacingDiff);
         if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
             cursorY=72*cos[0]*lineheight+9*lineheight;
-            if(lines[pos.row][1]==3){
+            if(linesLV[pos.row][1]==3){
                 cursorY+=lineheight*2;
                 wrapCounter-=pageBreaks[cos[0]-1][2];
             }
-            else if(lines[pos.row][1]==1){
+            else if(linesLV[pos.row][1]==1){
                 wrapCounter-=pageBreaks[cos[0]-1][2];
                 cursorY+=lineheight;
             }
         }
         if(cursor){
             var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth)+pageStartX;
-            if(lines[pos.row][1]==5)lr -= lines[pos.row][0].length*fontWidth;
+            if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
             ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
             try{
                 ctx.fillRect(lr,ud,2,17);
@@ -3731,14 +3728,14 @@ function paint(forceCalc, forceScroll){
     // write current page number
     ctx.strokeStyle = "#333";
     ctx.stroke();
-    var tp=pageBreaks.length+1;
+    var tp=pageBreaksLength+1;
     var pages="Page "+currentPage+" of "+tp;
     ctx.font="10pt sans-serif";
     ctx.fillStyle="#000"
     ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
     // write enter and tab directions
     var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"];
-    ctx.fillText(wordArr[lines[pos.row][1]], 15, document.getElementById('canvas').height-8);
+    ctx.fillText(wordArr[linesLV[pos.row][1]], 15, document.getElementById('canvas').height-8);
     // write current scene number
     var txt="Scene "+ currentScene + " of " + scenes.length;
     ctx.fillText(txt, (editorWidth/2)-30, document.getElementById('canvas').height-8);
@@ -3764,11 +3761,11 @@ function paint(forceCalc, forceScroll){
             scroll(-45);
         }
     }
-    document.getElementById('format').selectedIndex=lines[pos.row][1];
+    document.getElementById('format').selectedIndex=linesLV[pos.row][1];
     }
 	
 	for(i=0; i<=5; i++){
-		eMenu.getChild('format'+i).setChecked((lines[pos.row][1]==i ? true : false))
+		eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false))
 	}
 	//var nnd = new Date();
 	//console.log(nnd.getTime()-nd);

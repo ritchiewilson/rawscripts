@@ -1152,25 +1152,26 @@ class SyncContactsPage (webapp.RequestHandler):
 				import yahoo.application
 				
 				verifier  = self.request.get('oauth_verifier') 
+				CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
+				CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
+				APPLICATION_ID    = 't73LcW32'
+				CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
+				oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
+				request_token = oauthapp.get_request_token(CALLBACK_URL)
 				if verifier=='':
-					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
-					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
-					APPLICATION_ID    = 't73LcW32'
-					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
-					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
-					request_token = oauthapp.get_request_token(CALLBACK_URL)
 					redirect_url  = oauthapp.get_authorization_url(request_token)
 					template_values['auth_url'] = redirect_url
 					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 				else:
-					CALLBACK_URL = 'http://www.rawscripts.com/synccontactspage'
-					request_token = oauthapp.get_request_token(CALLBACK_URL)
-					access_token  = oauthapp.get_access_token(request_token, verifier)
+					access_token = oauthapp.get_access_token(request_token, verifier)
 					m = YahooOAuthTokens(key_name = 'yahoo_oauth_token_'+users.get_current_user().email().lower(),
 										t=db.Blob(access_token))
 					m.put()
-					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-					
+					oauthapp.token = access_token
+					contacts = oauthapp.getContacts()
+					self.response.out.write(contacts)
+					#path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
+					return
 			
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
