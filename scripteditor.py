@@ -1163,10 +1163,9 @@ class SyncContactsPage (webapp.RequestHandler):
 					template_values['auth_url'] = redirect_url
 					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 				else:
+					token=self.request.get('oauth_token')
+					oauthapp = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL, token=token)
 					access_token = oauthapp.get_access_token(request_token, verifier)
-					m = YahooOAuthTokens(key_name = 'yahoo_oauth_token_'+users.get_current_user().email().lower(),
-										t=db.Blob(access_token))
-					m.put()
 					oauthapp.token = access_token
 					contacts = oauthapp.getContacts()
 					self.response.out.write(contacts)

@@ -885,7 +885,7 @@ function mouseDown(e){
 	        if (barHeight>=height-39)barHeight=height-39;
 	        var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
         
-	        if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
+	        if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
 	            mouseDownBool=true;
 				mousePosition(e,"anch")
 	        }
@@ -3354,419 +3354,411 @@ function sortNumbers(a,b){
 }
 
 function paint(forceCalc, forceScroll){
-	//var nd = new Date().getDate()
-	
 	var linesLength = lines.length;
 	var linesNLBLength = linesNLB.length;
 	var linesLV = lines;
-    if(typeToScript || findForcePaint){
-	var nd = new Date();
-	nd = nd.getTime();
-    var canvas = document.getElementById('canvas');
-	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0, 2000,2500);
-	ctx.fillStyle = '#ccc';
-	ctx.fillRect(0, 0, editorWidth, document.getElementById('canvas').height);
-    ctx.fillStyle = foreground;
-    
-    
-    //draw pages
-    var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
-    var pageStartY = lineheight;
-	ctx.font=font;
-	ctx.lineWidth = 1;
-    for(var i=0; i<=pageBreaks.length;i++){
-		if (pageStartY-vOffset>1200)break;
-		if (pageStartY-vOffset>-lineheight*72){
-			ctx.fillStyle = background;
-			ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
-			ctx.strokeStyle = '#000';
-			ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
-			ctx.strokeStyle='#999';
-			ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
-			ctx.fillStyle=foreground;
-			if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
-		}
-        pageStartY+= lineheight*72;
-    }
-    pageStartY=null;
-    // use this opportunity to put in the grey backing
-	// also figure out the current page
-	
-    if(!forceCalc){
-		var greyHeight = lineheight*9+2;
-	    var wrapVars=WrapVariableArray[0];
-	    ctx.fillStyle='#ddd';
-        var count=0;
-        for (var i=0;i<linesLength;i++){
-			if(pos.row==i)currentPage=count*1+1;
-            if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-				if(pos.row==i)currentPage+=1;
-                greyHeight=72*lineheight*(count+1)+9*lineheight+2;
-                if(pageBreaks[count][2]!=0){
-                    greyHeight-=pageBreaks[count][2]*lineheight;
-                    if(linesLV[i][1]==3)greyHeight+=lineheight;
-                }
-                count++;
-            }
-            if(i<linesNLB.length){
-                for(var j=0; j<linesNLB[i].length; j++){
-                    greyHeight+=lineheight;
-                    if (linesLV[i][1]==0){
-                       if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-                       if(linesLV[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-                    }
-                }
-				j=null;
-            }
-			if(greyHeight-vOffset>1200)break;
-        }
-		greyHeight=wrapVars=count=i=null;
-    }
-	// draw finds if there are any
-	if(findArr.length!=0 || findReplaceArr.length!=0){
-		drawFindArr(ctx, pageStartX);
-	}
-    //Draw in range if there is one
-    if(pos.row!=anch.row || anch.col!=pos.col){
-        drawRange(ctx, pageStartX);
-        if(!pasting)selection();
-    }
-    
-    ctx.fillStyle=foreground;
-    
-    ctx.font=font;
-	var y = lineheight*11;
-    var cos=[];
-    var latestCharacter = '';
-    var count = 0;
-    var sceneCount=0;
-	var pageBreaksLength = pageBreaks.length;
-    //Stary Cycling through lines
-	for (var i=0; i<linesLength; i++){
-		var thisLineText = linesLV[i][0];
-		var thisLineType = linesLV[i][1];
-        if (thisLineType==0)sceneCount++;
-        //make sure there are parenthesese for parenthetics
-        if(thisLineType==4){
-            if(thisLineText.charAt(0)!='(')thisLineText='('+thisLineText;
-            if(thisLineText.charAt(thisLineText.length-1)!=')')thisLineText=thisLineText+')';
-			lines[i][0]=thisLineText;
-        }
-        //set correct line height
-        //on page breaks
-        var bb=false;
-        if(!forceCalc){
-            if(pageBreaksLength!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-                if(pageBreaks[count][2]==0){
-                    y=72*lineheight*(count+1)+11*lineheight;
-                    count++;
-                    if(count>=pageBreaksLength){
-                        count=pageBreaksLength-2;
-                    }
-                }
-                else{
-                    bb=true;
-                }
-            }
-        }
-        //Don't render things way outside the screen
-        if(!forceCalc && !bb && y-vOffset<-200){
-            y+=(lineheight*linesNLB[i].length);
-            if(i==pos.row){
-                var cursorY=y;
-                wrappedText=[];
-            }
-        }
-        else if(!forceCalc && !bb && y-vOffset>1200)break;
-        else{
-            // calc if there are notes in this line
-            var notesArr=[];
-            if(viewNotes){
-                for (note in notes){
-                    if(notes[note][0]==i)notesArr.push(notes[note][1]);
-                }
-            }
-            notesArr = notesArr.sort(sortNumbers);
-            var type = thisLineType;
-			var lineLengthInCharacters = WrapVariableArray[thisLineType][0];
-			var distanceFromEdge = WrapVariableArray[thisLineType][1];
-			var ifAlignRight = WrapVariableArray[thisLineType][2];
-			var ifUppercase = WrapVariableArray[thisLineType][3];
-			var lineBreaksAfter = WrapVariableArray[thisLineType][4];
-            //Cursor position
-            if (i==pos.row){
-                var cursorY = y-lineheight;
-                var cursorX = distanceFromEdge;
-                var thisRow = true;
-                var wrappedText = [];
-            }
-            if (i==anch.row){
-                var anchorY = y-lineheight;
-                var anchorThisRow = true;
-                var anchorWrappedText = []
-            }
-            
-            var wordsArr = thisLineText.split(' ');
-            var word = 0;
-            linesNLB[i]=[];
-            // tc = total characters, used
-            // mainly to put in notes
-            var tc = 0;
-            var anchEFound=false;
-            var eFound=false;
-            while(word<wordsArr.length){
-                var itr=0;
-				//for if the one word is too big
-				if (wordsArr[word].length>=lineLengthInCharacters){
-					var printString = wordsArr[word];
-					if (ifUppercase==1)printString= printString.toUpperCase();
-					var altPrintString = printString;
-                    var notesInThisLine=[];
-                    if(viewNotes){
-                        for(note in notesArr){
-                            if (notesArr[note]>=thisLineText.length-printString.length){
-                                altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-                                notesInThisLine.push(notesArr[note]);
-                            }
-                        }
-                    }
-					ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
-					linesNLB[i].push(printString.length);
-					y+=lineheight;
-					if(lineBreaksAfter==2){
-                        linesNLB[i].push(0);
-                        y+=lineheight;
-                    }
-					word++;
-					if(thisRow)wrappedText.push(printString.length);
-                    if(anchorThisRow)anchorWrappedText.push(printString.length);
-				}
-                else if (wordsArr.slice(word).join().length<lineLengthInCharacters){
-                    var printString = wordsArr.slice(word).join(' ');
-                    if (thisLineType==2 && latestCharacter!='' && thisLineText.toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
-                    if (thisLineType==0)latestCharacter='';
-                    if (ifUppercase==1)printString= printString.toUpperCase();
-                    if (ifAlignRight==1)ctx.textAlign='right';
-                    var altPrintString = printString;
-                    var notesInThisLine=[];
-                    if(viewNotes){
-                        for(note in notesArr){
-                            if (notesArr[note]>=thisLineText.length-printString.length){
-                                altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-                                notesInThisLine.push(notesArr[note]);
-                            }
-                        }
-                    }
-                    if(printString!='')ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
-                    ctx.textAlign='left';
-                    word=wordsArr.length;
-                    linesNLB[i].push(printString.length);
-                    y+=lineheight;
-                    if(lineBreaksAfter==2){
-                        linesNLB[i].push(0);
-                        y+=lineheight;
-                    }
-                    if(thisRow)wrappedText.push(printString.length);
-                    if(anchorThisRow)anchorWrappedText.push(printString.length);
-                }
-                else{
-                    var itr=0;
-                    while(wordsArr.slice(word, word+itr).join(' ').length<lineLengthInCharacters){
-                        newLineToPrint=wordsArr.slice(word, word+itr).join(' ');
-                        itr++;
-                    }
-					if (ifUppercase==1)newLineToPrint= newLineToPrint.toUpperCase();
-                    var altNewLineToPrint = newLineToPrint;
-                    var notesInThisLine=[];
-                    if(viewNotes){
-                        for(note in notesArr){
-                            if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
-                                altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
-                                drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-                                notesInThisLine.push(notesArr[note]);
-                            }
-                        }
-                    }
-                    tc+=newLineToPrint.length+1;
-                    ctx.fillText(altNewLineToPrint, distanceFromEdge+pageStartX, y-vOffset);
-                    linesNLB[i].push(newLineToPrint.length);
-                    y+=lineheight;
-                    word+=itr-1;
-                    itr =0;
-                    if (thisRow)wrappedText.push(newLineToPrint.length);
-                    if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
-                }
-                //remve a line if it's dialog
-                //followed by parenthetics
-                if(thisLineType==3 && i+1!=linesLength && linesLV[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
-                    linesNLB[i].pop();
-                    y-=lineheight;
-                }
-                
-                if(bb && linesNLB[i].length==pageBreaks[count][2]){
-                    if(thisLineType==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
-                    y=72*lineheight*(count+1)+11*lineheight;
-                    if(thisLineType==3){
-                        ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
-                        y+=lineheight;
-                    }
-                    count++;
-                    bb=false;
-                    if(pos.row==i){cos.push(count);}
-                }
-            }
-            var thisRow=false;
-            var anchorThisRow=false;
-        }
-        //setup stuff of Con't
-        if(thisLineType==2)var latestCharacter = thisLineText;
-        if(i==pos.row){
-            currentScene=sceneCount;
-            var notesOnThisLine=notesArr; 
-        }
-        if(count>=pageBreaksLength){
-            count=pageBreaksLength-2;
-        }
-    }
-    // End Looping through lines
-    // delete extra data in linesNLB
-    while(linesLength<linesNLB.length){
-        linesNLB.pop();
-    }
-      
-    // Cursor
-	var d= new Date();
-	var newMilli = d.getMilliseconds();
-	var diff = newMilli-milli;
-	var cursor = false;
-	if (diff>0 && diff<500){
-        cursor = true;
-    }
-    if (diff<0 && diff<-500){
-        cursor = true;
-    }
-	d=newMilli=diff=i=null;
-    if(wrappedText){
-        var wrapCounter=0;
-        var lrPosDiff = pos.col;
-        var totalCharacters=wrappedText[wrapCounter];
-        while (pos.col>totalCharacters){
-            wrapCounter++;
-            totalCharacters+=1+wrappedText[wrapCounter];
-        }
-        totalCharacters-=wrappedText[wrapCounter];
-        //count notes on this line
-        // and figure which is before the cursor
-        var notesSpacingDiff=0;
-        for (note in notesOnThisLine){
-            var n = notesOnThisLine[note];
-            if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
-                notesSpacingDiff++;
-            }
-			n=null;
-        }
-		note=null;
-        //console.log(notesSpacingDiff);
-        if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
-            cursorY=72*cos[0]*lineheight+9*lineheight;
-            if(linesLV[pos.row][1]==3){
-                cursorY+=lineheight*2;
-                wrapCounter-=pageBreaks[cos[0]-1][2];
-            }
-            else if(linesLV[pos.row][1]==1){
-                wrapCounter-=pageBreaks[cos[0]-1][2];
-                cursorY+=lineheight;
-            }
-        }
-        if(cursor){
-            var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth)+pageStartX;
-            if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
-            ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-            try{
-                ctx.fillRect(lr,ud,2,17);
-            }
-            catch(err){}
-			lr=null;
-        }
-		wrapCounter=lrPosDiff=totalCharacters=null;
-    }
-      
-    
-    //Start work on frame and buttons and stuff
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#ddd';
-    ctx.beginPath();
-    ctx.moveTo(2,2);
-    ctx.lineTo(2,document.getElementById('canvas').height-1);
-    ctx.lineTo(editorWidth, document.getElementById('canvas').height-1);
-    ctx.lineTo(editorWidth,2);
-    //ctx.lineTo(2,2);
-    ctx.stroke();
-    //
-    // bottom status bar
-    ctx.fillStyle = "#ccc";
-    ctx.fillRect(2,document.getElementById('canvas').height-24, editorWidth-25, 24);
-    ctx.strokeStyle = "#aaa";
-    ctx.lineWidth = 1;
-    ctx.beginPath()
-    ctx.moveTo(1.5,document.getElementById('canvas').height-25.5);
-    ctx.lineTo(1.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-1.5);
-    ctx.lineTo(editorWidth-22.5,document.getElementById('canvas').height-25.5);
-    ctx.closePath();
-	ctx.strokeStyle = "#999";
-    ctx.stroke();
-    ctx.beginPath()
-    ctx.moveTo(0.5,document.getElementById('canvas').height-24.5);
-    ctx.lineTo(0.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-0.5);
-    ctx.lineTo(editorWidth-21.5,document.getElementById('canvas').height-24.5);
-    ctx.closePath();
-    // write current page number
-    ctx.strokeStyle = "#333";
-    ctx.stroke();
-    var tp=pageBreaksLength+1;
-    var pages="Page "+currentPage+" of "+tp;
-    ctx.font="10pt sans-serif";
-    ctx.fillStyle="#000"
-    ctx.fillText(pages, editorWidth-150, document.getElementById('canvas').height-8);
-    // write enter and tab directions
-    var wordArr=["Enter : Action  --  Tab : Character","Enter : Character  --  Tab : Slugline","Enter : Dialog  --  Tab : Action","Enter : Character  --  Tab : Parenthetical","Enter : Dialog  --  Tab : Dialog","Enter : Slugline  --  Tab : Slugline"];
-    ctx.fillText(wordArr[linesLV[pos.row][1]], 15, document.getElementById('canvas').height-8);
-    // write current scene number
-    var txt="Scene "+ currentScene + " of " + scenes.length;
-    ctx.fillText(txt, (editorWidth/2)-30, document.getElementById('canvas').height-8);
-    ctx.font = font;
-	txt=wordArr=pages=tp=null;
-    //Make ScrollBar
-    scrollArrows(ctx);
-    scrollBar(ctx, y);
-
-
-	pagination();
+	var canvasHeight = document.getElementById('canvas').height;
+	if(typeToScript || findForcePaint){
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		ctx.fillStyle = '#ccc';
+		ctx.fillRect(0, 0, editorWidth, canvasHeight);
 		
-    if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
-    if(mouseDownBool && pos.row>anch.row && mouseY>document.getElementById('canvas').height-50)scroll(20);
-    if(forceScroll=="enter"){
-        if (ud>document.getElementById('canvas').height)scroll(600);
-    }
-    else if(forceScroll){
-        if((2+cursorY+(wrapCounter*lineheight)-vOffset)>document.getElementById('canvas').height-60){
-            scroll(45);
-        }
-        else if(ud<45){
-            scroll(-45);
-        }
-    }
-    document.getElementById('format').selectedIndex=linesLV[pos.row][1];
-    }
+		//draw pages
+		var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
+		var pageStartY = lineheight;
+		ctx.font=font;
+		ctx.lineWidth = 1;
+		for(var i=0; i<=pageBreaks.length;i++){
+			if (pageStartY-vOffset>1200)break;
+			if (pageStartY-vOffset>-lineheight*72){
+				ctx.fillStyle = background;
+				ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
+				ctx.strokeStyle = '#000';
+				ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
+				ctx.strokeStyle = '#999';
+				ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
+				ctx.fillStyle = foreground;
+				if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
+			}
+			pageStartY+= lineheight*72;
+		}
+		pageStartY=null;
+		// use this opportunity to put in the grey backing
+		// also figure out the current page
+		
+		if(!forceCalc){
+			var greyHeight = lineheight*9+2;
+			var wrapVars=WrapVariableArray[0];
+			ctx.fillStyle='#ddd';
+			var count=0;
+			for (var i=0;i<linesLength;i++){
+				if(pos.row==i)currentPage=count*1+1;
+				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+					if(pos.row==i)currentPage+=1;
+					greyHeight=72*lineheight*(count+1)+9*lineheight+2;
+					if(pageBreaks[count][2]!=0){
+						greyHeight-=pageBreaks[count][2]*lineheight;
+						if(linesLV[i][1]==3)greyHeight+=lineheight;
+					}
+					count++;
+				}
+				if(i<linesNLB.length){
+					for(var j=0; j<linesNLB[i].length; j++){
+						greyHeight+=lineheight;
+						if (linesLV[i][1]==0){
+							if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+							if(linesLV[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+						}
+					}
+					j=null;
+				}
+				if(greyHeight-vOffset>1200)break;
+			}
+			greyHeight=wrapVars=count=i=null;
+		}
+		// draw finds if there are any
+		if(findArr.length!=0 || findReplaceArr.length!=0){
+			drawFindArr(ctx, pageStartX);
+		}
+		//Draw in range if there is one
+		if(pos.row!=anch.row || anch.col!=pos.col){
+			drawRange(ctx, pageStartX);
+			if(!pasting)selection();
+		}
+    
+		ctx.fillStyle=foreground;
+    
+		ctx.font=font;
+		var y = lineheight*11;
+		var cos=[];
+		var latestCharacter = '';
+		var count = 0;
+		var sceneCount=0;
+		var pageBreaksLength = pageBreaks.length;
+		//Stary Cycling through lines
+		for (var i=0; i<linesLength; i++){
+			var thisLineText = linesLV[i][0];
+			var thisLineType = linesLV[i][1];
+			if (thisLineType==0)sceneCount++;
+			//make sure there are parenthesese for parenthetics
+			if(thisLineType==4){
+				if(thisLineText.charAt(0)!='(')thisLineText='('+thisLineText;
+				if(thisLineText.charAt(thisLineText.length-1)!=')')thisLineText=thisLineText+')';
+				lines[i][0]=thisLineText;
+			}
+			//set correct line height
+			//on page breaks
+			var bb=false;
+			if(!forceCalc){
+				if(pageBreaksLength!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+					if(pageBreaks[count][2]==0){
+						y=72*lineheight*(count+1)+11*lineheight;
+						count++;
+						if(count>=pageBreaksLength){
+							count=pageBreaksLength-2;
+						}
+					}
+					else{
+						bb=true;
+					}
+				}
+			}
+			//Don't render things way outside the screen
+			if(!forceCalc && !bb && y-vOffset<-200){
+				y+=(lineheight*linesNLB[i].length);
+				if(i==pos.row){
+					var cursorY=y;
+					wrappedText=[];
+				}
+			}
+			else if(!forceCalc && !bb && y-vOffset>1200)break;
+			else{
+				// calc if there are notes in this line
+				var notesArr=[];
+				if(viewNotes){
+					for (note in notes){
+						if(notes[note][0]==i)notesArr.push(notes[note][1]);
+					}
+				}
+				notesArr = notesArr.sort(sortNumbers);
+				var type = thisLineType;
+				var lineLengthInCharacters = WrapVariableArray[thisLineType][0];
+				var distanceFromEdge = WrapVariableArray[thisLineType][1];
+				var ifAlignRight = WrapVariableArray[thisLineType][2];
+				var ifUppercase = WrapVariableArray[thisLineType][3];
+				var lineBreaksAfter = WrapVariableArray[thisLineType][4];
+				//Cursor position
+				if (i==pos.row){
+					var cursorY = y-lineheight;
+					var cursorX = distanceFromEdge;
+					var thisRow = true;
+					var wrappedText = [];
+				}
+				if (i==anch.row){
+					var anchorY = y-lineheight;
+					var anchorThisRow = true;
+					var anchorWrappedText = []
+				}
+            
+				var wordsArr = thisLineText.split(' ');
+				var word = 0;
+				linesNLB[i]=[];
+				// tc = total characters, used
+				// mainly to put in notes
+				var tc = 0;
+				var anchEFound=false;
+				var eFound=false;
+				while(word<wordsArr.length){
+					var itr=0;
+					//for if the one word is too big
+					if (wordsArr[word].length>=lineLengthInCharacters){
+						var printString = wordsArr[word];
+						if (ifUppercase==1)printString= printString.toUpperCase();
+						var altPrintString = printString;
+						var notesInThisLine=[];
+						if(viewNotes){
+							for(note in notesArr){
+							    if (notesArr[note]>=thisLineText.length-printString.length){
+							        altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
+							        drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+							        notesInThisLine.push(notesArr[note]);
+							    }
+							}
+						}
+						ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
+						linesNLB[i].push(printString.length);
+						y+=lineheight;
+						if(lineBreaksAfter==2){
+							linesNLB[i].push(0);
+							y+=lineheight;
+						}
+						word++;
+						if(thisRow)wrappedText.push(printString.length);
+						if(anchorThisRow)anchorWrappedText.push(printString.length);
+					}
+					else if (wordsArr.slice(word).join().length<lineLengthInCharacters){
+						var printString = wordsArr.slice(word).join(' ');
+						if (thisLineType==2 && latestCharacter!='' && thisLineText.toUpperCase()==latestCharacter.toUpperCase())printString+=" (Cont'd)";
+						if (thisLineType==0)latestCharacter='';
+						if (ifUppercase==1)printString= printString.toUpperCase();
+						if (ifAlignRight==1)ctx.textAlign='right';
+						var altPrintString = printString;
+						var notesInThisLine=[];
+						if(viewNotes){
+							for(note in notesArr){
+								if (notesArr[note]>=thisLineText.length-printString.length){
+									altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+									notesInThisLine.push(notesArr[note]);
+								}
+							}
+						}
+						if(printString!='')ctx.fillText(altPrintString, distanceFromEdge+pageStartX , y-vOffset);
+						ctx.textAlign='left';
+						word=wordsArr.length;
+						linesNLB[i].push(printString.length);
+						y+=lineheight;
+						if(lineBreaksAfter==2){
+							linesNLB[i].push(0);
+							y+=lineheight;
+						}
+						if(thisRow)wrappedText.push(printString.length);
+						if(anchorThisRow)anchorWrappedText.push(printString.length);
+					}
+					else{
+						var itr=0;
+						while(wordsArr.slice(word, word+itr).join(' ').length<lineLengthInCharacters){
+							newLineToPrint=wordsArr.slice(word, word+itr).join(' ');
+							itr++;
+						}
+						if (ifUppercase==1)newLineToPrint= newLineToPrint.toUpperCase();
+						var altNewLineToPrint = newLineToPrint;
+						var notesInThisLine=[];
+						if(viewNotes){
+							for(note in notesArr){
+								if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
+									altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
+									notesInThisLine.push(notesArr[note]);
+								}
+							}
+						}
+						tc+=newLineToPrint.length+1;
+						ctx.fillText(altNewLineToPrint, distanceFromEdge+pageStartX, y-vOffset);
+						linesNLB[i].push(newLineToPrint.length);
+						y+=lineheight;
+						word+=itr-1;
+						itr =0;
+						if (thisRow)wrappedText.push(newLineToPrint.length);
+						if(anchorThisRow)anchorWrappedText.push(newLineToPrint.length);
+					}
+					//remve a line if it's dialog
+					//followed by parenthetics
+					if(thisLineType==3 && i+1!=linesLength && linesLV[i+1][1]==4 && linesNLB[i][linesNLB[i].length-1]==0){
+						linesNLB[i].pop();
+						y-=lineheight;
+					}
+					
+					if(bb && linesNLB[i].length==pageBreaks[count][2]){
+						if(thisLineType==3)ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
+						y=72*lineheight*(count+1)+11*lineheight;
+						if(thisLineType==3){
+							ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset);
+							y+=lineheight;
+						}
+						count++;
+						bb=false;
+						if(pos.row==i){cos.push(count);}
+					}
+				}
+				var thisRow=false;
+				var anchorThisRow=false;
+			}
+			//setup stuff of Con't
+			if(thisLineType==2)var latestCharacter = thisLineText;
+			if(i==pos.row){
+				currentScene=sceneCount;
+				var notesOnThisLine=notesArr; 
+			}
+			if(count>=pageBreaksLength){
+				count=pageBreaksLength-2;
+			}
+		}
+		// End Looping through lines
+		// delete extra data in linesNLB
 	
-	for(i=0; i<=5; i++){
-		eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false))
+		while(linesLength<linesNLB.length){
+			linesNLB.pop();
+		}
+      
+		// Cursor
+		var d= new Date();
+		var newMilli = d.getMilliseconds();
+		var diff = newMilli-milli;
+		var cursor = false;
+		if (diff>0 && diff<500){
+			cursor = true;
+		}
+		if (diff<0 && diff<-500){
+			cursor = true;
+		}
+		d=newMilli=diff=i=null;
+		if(wrappedText){
+			var wrapCounter=0;
+			var lrPosDiff = pos.col;
+			var totalCharacters=wrappedText[wrapCounter];
+			while (pos.col>totalCharacters){
+				wrapCounter++;
+				totalCharacters+=1+wrappedText[wrapCounter];
+			}
+			totalCharacters-=wrappedText[wrapCounter];
+			//count notes on this line
+			// and figure which is before the cursor
+			var notesSpacingDiff=0;
+			for (note in notesOnThisLine){
+				var n = notesOnThisLine[note];
+				if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
+					notesSpacingDiff++;
+				}
+				n=null;
+			}
+			note=null;
+			//console.log(notesSpacingDiff);
+			if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
+				cursorY=72*cos[0]*lineheight+9*lineheight;
+				if(linesLV[pos.row][1]==3){
+					cursorY+=lineheight*2;
+					wrapCounter-=pageBreaks[cos[0]-1][2];
+				}
+				else if(linesLV[pos.row][1]==1){
+					wrapCounter-=pageBreaks[cos[0]-1][2];
+					cursorY+=lineheight;
+				}
+			}
+			if(cursor){
+				var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth)+pageStartX;
+				if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
+				ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+				try{
+					ctx.fillRect(lr,ud,2,17);
+				}
+				catch(err){}
+				lr=null;
+			}
+			wrapCounter=lrPosDiff=totalCharacters=null;
+		}
+      
+    
+		//Start work on frame and buttons and stuff
+		ctx.lineWidth = 4;
+		ctx.strokeStyle = '#ddd';
+		ctx.beginPath();
+		ctx.moveTo(2,2);
+		ctx.lineTo(2,canvasHeight-1);
+		ctx.lineTo(editorWidth, canvasHeight-1);
+		ctx.lineTo(editorWidth,2);
+		//ctx.lineTo(2,2);
+		ctx.stroke();
+		//
+		// bottom status bar
+		ctx.fillStyle = "#ccc";
+		ctx.fillRect(2,canvasHeight-24, editorWidth-25, 24);
+		ctx.strokeStyle = "#aaa";
+		ctx.lineWidth = 1;
+		ctx.beginPath()
+		ctx.moveTo(1.5,canvasHeight-25.5);
+		ctx.lineTo(1.5,canvasHeight-1.5);
+		ctx.lineTo(editorWidth-22.5,canvasHeight-1.5);
+		ctx.lineTo(editorWidth-22.5,canvasHeight-25.5);
+		ctx.closePath();
+		ctx.strokeStyle = "#999";
+		ctx.stroke();
+		ctx.beginPath()
+		ctx.moveTo(0.5,canvasHeight-24.5);
+		ctx.lineTo(0.5,canvasHeight-0.5);
+		ctx.lineTo(editorWidth-21.5,canvasHeight-0.5);
+		ctx.lineTo(editorWidth-21.5,canvasHeight-24.5);
+		ctx.closePath();
+		//write current page number
+		ctx.strokeStyle = "#333";
+		ctx.stroke();
+		var tp=pageBreaksLength+1;
+		var pages="Page "+currentPage+" of "+tp;
+		ctx.font="10pt sans-serif";
+		ctx.fillStyle="#000"
+		ctx.fillText(pages, editorWidth-150, canvasHeight-8);
+		//write enter and tab directions
+		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
+		ctx.fillText(wordArr[linesLV[pos.row][1]], 15, canvasHeight-8);
+		//write current scene number
+		var txt="Scene "+ currentScene + " of " + scenes.length;
+		ctx.fillText(txt, (editorWidth/2)-30, canvasHeight-8);
+		ctx.font = font;
+		txt=wordArr=pages=tp=null;
+		//Make ScrollBar
+		scrollArrows(ctx);
+		scrollBar(ctx, y);
+
+		pagination();
+		
+		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
+		if(mouseDownBool && pos.row>anch.row && mouseY>canvasHeight-50)scroll(20);
+		if(forceScroll=="enter"){
+			if (ud>canvasHeight)scroll(600);
+			else if(forceScroll){
+				if((2+cursorY+(wrapCounter*lineheight)-vOffset)>canvasHeight-60){
+					scroll(45);
+				}
+				else if(ud<45){
+					scroll(-45);
+				}
+			}
+			document.getElementById('format').selectedIndex=linesLV[pos.row][1];
+		}
+	
+		for(i=0; i<=5; i++){
+			eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false))
+		}
 	}
-	//var nnd = new Date();
-	//console.log(nnd.getTime()-nd);
 }
