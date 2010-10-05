@@ -1300,6 +1300,11 @@ class OneScript (webapp.RequestHandler):
 			u.put()
 		self.response.headers["Content-Type"]="text/plain"
 		self.response.out.write(len(r))
+		
+class YahooVerification(webapp.RequestHandler):
+	def get(self):
+		self.response.headers["content-Type"]="text/html"
+		self.response.out.write("")
 
 def main():
 	application = webapp.WSGIApplication([('/scriptlist', ScriptList),
@@ -1326,7 +1331,8 @@ def main():
 											('/removesynccontacts', RemoveSyncContacts),
 											('/synccontacts', SyncContacts),
 											('/changeusersetting', ChangeUserSetting),
-											('/list', List),],
+											('/list', List),
+											('/hUoVeIFNIgngfTnTdlGQRg--.html', YahooVerification),],
 											debug=True)
 	
 	wsgiref.handlers.CGIHandler().run(application)
