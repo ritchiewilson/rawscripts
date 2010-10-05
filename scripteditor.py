@@ -1,6 +1,4 @@
-import StringIO
-import os
-import re
+import StringIO, os, cgi, re
 import wsgiref.handlers
 from google.appengine.api import memcache
 from google.appengine.api import users
@@ -161,7 +159,7 @@ class UsersSettings(db.Model):
 	autosave = db.BooleanProperty()
 
 class YahooOAuthTokens (db.Model):
-	t = db.BlobProperty()
+	t = db.TextProperty()
 
 class ScriptList(webapp.RequestHandler):
 	"""Requests the list of the user's Screenplays in the RawScripts folder."""
@@ -1071,16 +1069,21 @@ class SettingsPage (webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
-			if user.email().lower().split('@')[1].split('.')[0]=='gmail':
+			domain = user.email().lower().split('@')[1].split('.')[0]
+			if domain=='gmail' or domain=='googlemail':
 				template_values['domain'] = 'Google'
 				token = get_contacts_google_token(self.request)
 				if token==False or token==None:
 					template_values['syncContactsText']='OFF'
 				else:
 					template_values['syncContactsText']='ON'
-			elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
 				template_values['domain'] = 'Yahoo'
-				template_values['syncContactsText']='OFF'
+				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+				if at==None or at==False:
+					template_values['syncContactsText']='OFF'
+				else:
+					template_values['syncContactsText']='ON'
 			
 			try:
 				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
@@ -1138,7 +1141,8 @@ class SyncContactsPage (webapp.RequestHandler):
 			return
 		else:
 			template_values = {}
-			if user.email().lower().split('@')[1].split('.')[0]=='gmail':
+			domain = user.email().lower().split('@')[1].split('.')[0]
+			if domain=='gmail' or domain=='googlemail':
 				template_values['domain'] = 'Google'
 				google_token = get_contacts_google_token(self.request)
 				if google_token == None:
@@ -1146,55 +1150,69 @@ class SyncContactsPage (webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 				else:
 					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-			elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
 				template_values['domain'] = 'Yahoo'
-				#yahoo_token = get_contacts_yahoo_token(self.request)
-				import yahoo.application
-				
-				verifier  = self.request.get('oauth_verifier') 
-				CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
-				CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
-				APPLICATION_ID    = 't73LcW32'
-				CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
-				oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
-				request_token = oauthapp.get_request_token(CALLBACK_URL)
-				if verifier=='':
-					redirect_url  = oauthapp.get_authorization_url(request_token)
-					template_values['auth_url'] = redirect_url
-					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
+				token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+				if token!=None and token!=False:
+					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 				else:
-					token=self.request.get('oauth_token')
-					oauthapp = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL, token=token)
-					access_token = oauthapp.get_access_token(request_token, verifier)
-					oauthapp.token = access_token
-					contacts = oauthapp.getContacts()
-					self.response.out.write(contacts)
-					#path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-					return
+					import yahoo.application
+					verifier  = self.request.get('oauth_verifier') 
+					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
+					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
+					APPLICATION_ID    = 't73LcW32'
+					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
+					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
+					if verifier=='':
+						request_token = oauthapp.get_request_token(CALLBACK_URL)
+						memcache.set(key='request_token'+user.email().lower(), value=request_token.to_string(), time=3600)
+						redirect_url  = oauthapp.get_authorization_url(request_token)
+						template_values['auth_url'] = redirect_url
+						path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
+					else:
+						r = memcache.get('request_token'+user.email().lower())
+						request_token = yahoo.oauth.RequestToken.from_string(r)
+						logging.info(request_token)
+						access_token = oauthapp.get_access_token(request_token, verifier)
+						oauthapp.token = access_token
+						y = YahooOAuthTokens(key_name='yahoo_oauth_token'+user.email().lower(),
+											t = access_token.to_string())
+						y.put()
+						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 			
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
 class RemoveSyncContacts (webapp.RequestHandler):
 	def get(self):
-		token = get_contacts_google_token(self.request)
-		if token!=False and token!=None:
-			client = gdata.client.GDClient()
-			client.revoke_token(token)
-			gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
-			memcache.delete('contacts'+users.get_current_user().email().lower())
+		domain = users.get_current_user().email().lower().split('@')[1].split('.')[0]
+		if domain=='gmail' or domain=='googlemail':
+			token = get_contacts_google_token(self.request)
+			if token!=False and token!=None:
+				client = gdata.client.GDClient()
+				client.revoke_token(token)
+				gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
+				memcache.delete('contacts'+users.get_current_user().email().lower())
+		elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+			token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+			if token!=None and token!=False:
+				memcache.delete('contacts'+users.get_current_user().email().lower())
+				token.delete()
 		self.redirect('/synccontactspage')
 
 class SyncContacts (webapp.RequestHandler):
 	def post(self):
-		try:
-			user = users.get_current_user()
-			if not user:
-				return
-			d = memcache.get('contacts'+user.email().lower())
-			if d == None:
-				if user.email().lower().split('@')[1].split('.')[0]=='gmail':
-					token = get_contacts_google_token(self.request)
+		#try:
+		user = users.get_current_user()
+		if not user:
+			return
+		memcache.delete('contactsritchieafwilson@yahoo.com')
+		d = memcache.get('contacts'+user.email().lower())
+		if d == None:
+			domain = user.email().lower().split('@')[1].split('.')[0]
+			if domain=='gmail' or domain=='googlemail':
+				token = get_contacts_google_token(self.request)
+				if token!=False and token!=None:
 					client = gdata.contacts.client.ContactsClient()
 					feed = client.GetContacts(auth_token=token)
 					contactlist = []
@@ -1218,12 +1236,43 @@ class SyncContacts (webapp.RequestHandler):
 							i=1
 					output = simplejson.dumps(contactlist)
 					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
-				elif user.email().lower().split('@')[1].split('.')[0]=='yahoo':
+			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+				if at!=None and at!=False:
+					import yahoo.application
+					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
+					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
+					APPLICATION_ID    = 't73LcW32'
+					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
+					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
+					oauthapp.token = yahoo.oauth.AccessToken.from_string(at.t)
+					oauthapp.token = oauthapp.refresh_access_token(oauthapp.token)
+					#new_at_entry = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+					#new_at_entry.t=oauthapp.token.to_string()
+					#new_at_entry.put()
+					J = oauthapp.getContacts()
+					logging.info('refresh')
+					email_list = []
+					for entry in J['contacts']['contact']:
+						n = None
+						for f in entry['fields']:
+							if f['type']=='name':
+								n = '"'+f['value']['givenName']+" "+f['value']['familyName']+'"'
+						for field in entry['fields']:
+							if field['type']=='email':
+								if n==None:
+									email_list.append('<'+field['value']+'>')
+								else:
+									email_list.append(n+' <'+field['value']+'>')
+					output = simplejson.dumps(email_list)
+					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
+				else:
 					output = '[]'
-			else:
-				output=d
-		except:
-			output = '[]'
+				
+		else:
+			output=d
+		#except:
+		#	output = '[]'
 		
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(output)
