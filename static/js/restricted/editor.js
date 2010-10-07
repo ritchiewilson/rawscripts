@@ -45,6 +45,7 @@ goog.require('goog.fx.dom');
  *
  *
  */
+window['EOV'] = EOV;
 window['changeFormat'] = changeFormat;
 window['deleteThread'] = deleteThread;
 window['newThread'] = newThread;
@@ -169,6 +170,62 @@ var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
     
 function init(){
+	if (EOV=='viewer'){
+		var f = goog.dom.getElement('format');
+		f.style.visibility='hidden'
+		f.disabled=true;
+		goog.dom.removeNode(goog.dom.getElement('toolbarSave'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('toolbarRedo')));
+		goog.dom.removeNode(goog.dom.getElement('toolbarRedo'));
+		goog.dom.removeNode(goog.dom.getElement('toolbarUndo'));
+		goog.dom.removeNode(goog.dom.getElement('toolbarSpellcheck'));
+		goog.dom.removeNode(goog.dom.getElement('rename'));
+		goog.dom.removeNode(goog.dom.getElement('save'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('duplicate')));
+		goog.dom.removeNode(goog.dom.getElement('duplicate'));
+		goog.dom.removeNode(goog.dom.getElement('undo'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('redo')));
+		goog.dom.removeNode(goog.dom.getElement('redo'));
+		goog.dom.removeNode(goog.dom.getElement('editTitlePage'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('tag')));
+		goog.dom.removeNode(goog.dom.getElement('tag'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('spellCheck')));
+		goog.dom.removeNode(goog.dom.getElement('spellCheck'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('findReplace')));
+		goog.dom.removeNode(goog.dom.getElement('findReplace'));
+		goog.dom.removeNode(goog.dom.getElement('format0'));
+		goog.dom.removeNode(goog.dom.getElement('format1'));
+		goog.dom.removeNode(goog.dom.getElement('format2'));
+		goog.dom.removeNode(goog.dom.getElement('format3'));
+		goog.dom.removeNode(goog.dom.getElement('format4'));
+		goog.dom.removeNode(goog.dom.getElement('format5'));
+		goog.dom.removeNode(goog.dom.getElement('revision'));
+		goog.dom.removeNode(goog.dom.getElement('collaborators'));
+		
+		
+	}
+	else{
+		var f = goog.dom.getElement('saveButton');
+		f.style.visibility='visible';
+		f.disabled=false;
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.MOUSEOVER, function(e){
+			var d = goog.dom.getElement('title');
+			d.style.backgroundColor = 'LightSkyBlue';
+			d.style.border = '1px #666 solid';
+			d.style.margin = '0';
+			d.style.textShadow = 'none'
+		})
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.MOUSEOUT, function(e){
+			var d = goog.dom.getElement('title');
+			d.style.backgroundColor = '#6484DF';
+			d.style.border = 'none';
+			d.style.margin = '3px';
+			d.style.textShadow = '1px 1px 1px #999'
+		})
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.CLICK, function(){
+			renamePrompt()
+		})
+	}
 	setElementSizes("i");
 	var MouseWheelHandler = goog.events.MouseWheelHandler;
 	var MOUSEWHEEL = MouseWheelHandler.EventType.MOUSEWHEEL;
@@ -256,8 +313,8 @@ function init(){
 	var sKeys= [['save','S'],['export', 'E'],['undo', 'Z'], ['redo', 'Shift Z'], ['find', 'F']];
 	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
 	for (i in sKeys){
-		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
-		goog.dom.setTextContent(d, meta+sKeys[i][1]);
+		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut');
+		if (d!=null){goog.dom.setTextContent(d, meta+sKeys[i][1]);}
 	}
 	try{
 		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
@@ -318,7 +375,7 @@ function keyEvent(e){
       else if(e.keyCode==46)deleteButton();
 	  else if(e.keyCode==16)return;
       else if(e.keyCode==9){e.preventDefault(); tab();}
-	  else(handlekeypress(e))
+	  else{handlekeypress(e)}
       if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8){
         scroll(ud-400);
       }
@@ -362,6 +419,7 @@ window.oncontextmenu = contextmenu;
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
 
 function createSuggestBox(d){
+	if(EOV=='viewer')return;
 	if(document.getElementById('suggestBox')!=null){
 		goog.dom.removeNode(document.getElementById('suggestBox'));
 	}
@@ -430,6 +488,7 @@ function createSuggestBox(d){
 var googSuggestMenu;
 
 function saveTimer(){
+	if(EOV=='viewer')return;
 	document.getElementById('saveButton').disabled=false;
 	document.getElementById('saveButton').value='Save';
 	checkSpell=true;
@@ -515,6 +574,7 @@ function findUp(){
 
 
 function ajaxSpell(v, r){
+	if(EOV=='viewer')return;
     checkSpell=false;
     var data = lines[v][0];
     if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
@@ -556,12 +616,15 @@ function ajaxSpell(v, r){
 
 
 function cut(){
+	if(EOV=='viewer')return;
     if(pos.row!=anch.row || pos.col!=anch.col)backspace();
     saveTimer();
 }
 function copy(){
+	if(EOV=='viewer')return;
 }
 function paste(){
+	if(EOV=='viewer')return;
 	if(!justPasted){
 		var forceCalc = false;
     	saveTimer();
@@ -656,6 +719,7 @@ function paste(){
 	}
 }
 function setJustPasted(){
+	if(EOV=='viewer')return;
 	justPasted=false;
 }
 function selection(){
@@ -792,6 +856,7 @@ function tabs(v){
 	t=i=null;
 }
 function changeFormat(v){
+	if(EOV=='viewer')return;
 	if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
@@ -818,6 +883,7 @@ function changeFormat(v){
     sceneIndex();
 }
 function contextmenu(e){
+	if(EOV=='viewer')return;
 	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
 		e.preventDefault();
 		var d = document.body.appendChild(document.createElement('div'));
@@ -1337,6 +1403,7 @@ function rightArrow(e){
 }
 
 function backspace(e){
+	if(EOV=='viewer')return;
     if(typeToScript){
         saveTimer();
 		redoQue=[];
@@ -1475,6 +1542,7 @@ function backspace(e){
     }
 }
 function deleteButton(){
+	if(EOV=='viewer')return;
     if(typeToScript){
     saveTimer();
 	redoQue=[];
@@ -1588,6 +1656,7 @@ function deleteButton(){
 }
 	
 function enter(){
+	if(EOV=='viewer')return;
     if(typeToScript && document.getElementById('suggestBox')==null){
         saveTimer();
         if(checkSpell)ajaxSpell(pos.row);
@@ -1641,6 +1710,7 @@ function enter(){
 }
 
 function tab(){
+	if(EOV=='viewer')return;
 	if(typeToScript){
 		if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
 	    saveTimer();
@@ -1683,6 +1753,7 @@ function tab(){
 }
 	
 function handlekeypress(e) {
+	if(EOV=='viewer')return;
 	//console.log(e.keyCode)
 	if (findForcePaint)return;
 	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32 || e.keyCode==186){
@@ -1726,6 +1797,7 @@ function handlekeypress(e) {
 // Managining arrays
 // calcing data
 function undo(){
+	if(EOV=='viewer')return;
     saveTimer();
     if (undoQue.length==0)return;
 	var forceCalc = false;
@@ -1879,6 +1951,7 @@ function undo(){
     }
 }
 function redo(){
+	if(EOV=='viewer')return;
     saveTimer();
     if (redoQue.length==0)return;
 	var forceCalc=false;
@@ -2180,18 +2253,20 @@ function noteIndex(){
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='thread';
-        var header = newDiv.appendChild(document.createElement('table'));
-        header.width="100%";
-        var TR = header.appendChild(document.createElement('tr'));
-        TR.appendChild(document.createElement('td'));
-        var TD = TR.appendChild(document.createElement('td'));
-        TD.align="right";
-        var newA = TD.appendChild(document.createElement('a'));
-        newA.style.backgroundColor="orange";
-        newA.appendChild(document.createTextNode('Delete'));
-        newA.href="javascript:deleteThread('"+notes[x][3]+"')";
-        newA.style.textDecoration="none";
-        newA.style.color = "black";
+		if(EOV=='editor'){
+        	var header = newDiv.appendChild(document.createElement('table'));
+        	header.width="100%";
+        	var TR = header.appendChild(document.createElement('tr'));
+        	TR.appendChild(document.createElement('td'));
+        	var TD = TR.appendChild(document.createElement('td'));
+        	TD.align="right";
+        	var newA = TD.appendChild(document.createElement('a'));
+        	newA.style.backgroundColor="orange";
+        	newA.appendChild(document.createTextNode('Delete'));
+        	newA.href="javascript:deleteThread('"+notes[x][3]+"')";
+        	newA.style.textDecoration="none";
+        	newA.style.color = "black";
+		}
 		for (y in notes[x][2]){
 			var msgDiv = newDiv.appendChild(document.createElement('div'));
             var contentDiv = msgDiv.appendChild(document.createElement('div'));
@@ -2509,7 +2584,7 @@ function menuSelect(e){
 // closing the window
 function closeScript(){
 	clearTimeout(timer);
-    if(resource_id=='Demo'){
+    if(resource_id=='Demo' || EOV=='viewer'){
         self.close()
     }
     var data=JSON.stringify(lines);
@@ -2570,6 +2645,7 @@ function createScript (){
 }
 // duplicate
 function duplicate(){
+	if(EOV=='viewer')return;
 	goog.net.XhrIo.send('/duplicate',
 		function(e){
 			if(e.target.getResponseText()=='fail')return;
@@ -2590,6 +2666,7 @@ goog.events.listen(goog.dom.getElement('saveError'), goog.events.EventType.CLICK
 	n.play()
 });
 function save(v){
+	if(EOV=='viewer')return;
     clearTimeout(timer);
     if(resource_id=='Demo'){
         if(v==0){
@@ -2634,6 +2711,7 @@ function openPrompt(){
 
 //rename
 function renamePrompt(){
+	if(EOV=='viewer')return;
     typeToScript=false;
     document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
     document.getElementById('renameField').value = document.getElementById('title').innerHTML;
@@ -2641,12 +2719,14 @@ function renamePrompt(){
 }
 
 function hideRenamePrompt(){
+	if(EOV=='viewer')return;
 	document.getElementById('renameField').value = "";
 	document.getElementById('renamepopup').style.visibility = 'hidden';
     typeToScript=true;
 }
 	
 function renameScript(){
+	if(EOV=='viewer')return;
 	if(resource_id=="Demo"){
         alert("Sorry, you'll have to login to do that.");
         return;
@@ -2750,15 +2830,18 @@ function emailScript(){
 
 //Sharing scripts
 function sharePrompt(){
+	if(EOV=='viewer')return;
 typeToScript=false;
     document.getElementById("sharepopup").style.visibility="visible";
 }
 function hideSharePrompt(){
+	if(EOV=='viewer')return;
     typeToScript=true;
     document.getElementById("sharepopup").style.visibility="hidden";
     document.getElementById("collaborator").value="";
 }
 function removeAccess(v){
+	if(EOV=='viewer')return;
     var c = confirm("Are you sure you want to remove access for this user?");
     if(c==true){
         var c = document.getElementById(v);
@@ -2774,6 +2857,7 @@ function removeAccess(v){
 }
 
 function shareScript(){
+	if(EOV=='viewer')return;
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
 	var arr=[];
 	var nonValidEmail=false;
@@ -2819,6 +2903,7 @@ function shareScript(){
 }
 //tag
 function tagPrompt(){
+	if(EOV=='viewer')return;
 	save(0);
 	var t = prompt("Leave a tag for this version:");
 	if (t!=null && t!=""){
@@ -2868,6 +2953,7 @@ function hideFindReplacePrompt(){
 	commandDownBool=false;
 }
 function replaceText(){
+	if(EOV=='viewer')return;
 	var d = document.getElementById('fr_replace_input').value;
 	if(d.length==0)return;
 	if(pos.row==anch.row && pos.col==anch.col)return;
@@ -2881,11 +2967,13 @@ function replaceText(){
 	//lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
 }
 function replaceAndFind(){
+	if(EOV=='viewer')return;
 	replaceText();
 	findDown();
 }
 // spellCheck
 function launchSpellCheck(){
+	if(EOV=='viewer')return;
     typeToScript=false;
     ajaxSpell(pos.row)
     var firstLine = (pos.row==0 ? true : false);
@@ -2894,6 +2982,7 @@ function launchSpellCheck(){
     
 }
 function spellCheckCycle(firstLine, r, w){
+	if(EOV=='viewer')return;
     if(r=='finished'){
         alert('Spell Check Complete');
         hideSpellCheck();
@@ -3728,9 +3817,11 @@ function paint(forceCalc, forceScroll){
 		ctx.font="10pt sans-serif";
 		ctx.fillStyle="#000"
 		ctx.fillText(pages, editorWidth-150, canvasHeight-8);
-		//write enter and tab directions
-		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
-		ctx.fillText(wordArr[linesLV[pos.row][1]], 15, canvasHeight-8);
+		if(EOV=='editor'){
+			//write enter and tab directions
+			var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
+			ctx.fillText(wordArr[linesLV[pos.row][1]], 15, canvasHeight-8);
+		}
 		//write current scene number
 		var txt="Scene "+ currentScene + " of " + scenes.length;
 		ctx.fillText(txt, (editorWidth/2)-30, canvasHeight-8);
@@ -3756,9 +3847,10 @@ function paint(forceCalc, forceScroll){
 			}
 			document.getElementById('format').selectedIndex=linesLV[pos.row][1];
 		}
-	
-		for(i=0; i<=5; i++){
-			eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false))
+		if(EOV=='editor'){
+			for(i=0; i<=5; i++){
+				eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false));
+			}
 		}
 	}
 }

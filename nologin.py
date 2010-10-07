@@ -89,6 +89,8 @@ class Editor (webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
 		path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+		template_values = {}
+		template_values['EOV'] = """'editor'"""
 		resource_id=self.request.get('resource_id')
 		format='editor'
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -97,7 +99,7 @@ class Editor (webapp.RequestHandler):
 			activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
 			return;
 		if user and resource_id!="Demo":
-			template_values = { 'sign_out': users.create_logout_url('/') }
+			template_values['sign_out'] = users.create_logout_url('/')
 			template_values['user'] = users.get_current_user().email()
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"' "+
@@ -106,7 +108,8 @@ class Editor (webapp.RequestHandler):
 			if len(r)!=0:
 				if r[0].permission=='collab':
 					format='viewer'
-					path = os.path.join(os.path.dirname(__file__), 'html/viewer.html')
+					path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+					template_values['EOV'] = """'viewer'"""
 					q=db.GqlQuery("SELECT * FROM ShareNotify "+
 									"WHERE user='"+user.email().lower()+"' "+
 									"AND resource_id='"+resource_id+"' "+
@@ -122,7 +125,7 @@ class Editor (webapp.RequestHandler):
 		else:
 			resource_id=self.request.get('resource_id')
 			if resource_id=='Demo':
-				template_values = { 'sign_out': '/' }
+				template_values['sign_out'] =  '/'
 				template_values['user'] = "test@example.com"
 			else:
 				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),

@@ -97,12 +97,6 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
     float:left;
 	cursor:text;
   }
-  #title:hover{
-	background-color:LightSkyBlue;
-	border:1px #666 solid;
-	margin:0;
-	text-shadow:none;
-}
   .thread{
     border:1px #666 solid;
     padding:5px;
