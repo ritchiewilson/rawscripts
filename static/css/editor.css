@@ -219,3 +219,11 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	font-size:10pt;
 	float:right;
 }
+.noteListUnit{
+	background-color:Khaki;
+	padding:4px;
+	margin:5px;
+	font-size:10pt;
+	cursor:pointer;
+	border:1px #666 solid;
+}

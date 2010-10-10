@@ -151,11 +151,13 @@ var lines = [];
      *          <text></text>
      *          <user></user>
      *          <timestampt></timestamp>
+	 *			<unread>bool</unread>
      *      </messageOne>
      *      <messageTwo>
      *          <text></text>
      *          <user></user>
      *          <timestampt></timestamp>
+	 *			<unread>bool</unread>
      *      </messageTWo>
      *  </content>
      *  <id></id>
@@ -2245,58 +2247,52 @@ function sortNotesCol(a,b){
 }
 function noteIndex(){
     notes.sort(sortNotes);
-	var c = document.getElementById('noteBox');
-	for(var i=0;i<c.childNodes.length;i++){
-		c.removeChild(c.firstChild);
-		i--;
-	}
+	var c = goog.dom.getElement('noteBox')
+	goog.dom.removeChildren(c);
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
-		newDiv.className='thread';
-		if(EOV=='editor'){
-        	var header = newDiv.appendChild(document.createElement('table'));
-        	header.width="100%";
-        	var TR = header.appendChild(document.createElement('tr'));
-        	TR.appendChild(document.createElement('td'));
-        	var TD = TR.appendChild(document.createElement('td'));
-        	TD.align="right";
-        	var newA = TD.appendChild(document.createElement('a'));
-        	newA.style.backgroundColor="orange";
-        	newA.appendChild(document.createTextNode('Delete'));
-        	newA.href="javascript:deleteThread('"+notes[x][3]+"')";
-        	newA.style.textDecoration="none";
-        	newA.style.color = "black";
+		newDiv.className='noteListUnit';
+		//get note snippet
+		var tmpEl = goog.dom.createElement('div');
+		tmpEl.innerHTML = notes[x][2][0][0];
+		var snippet = goog.dom.getTextContent(tmpEl);
+		if (snippet.length>80)snippet = snippet.substr(0,77)+'...';
+		snippet = '"'+snippet+'"';
+		// figre out reply text
+		var replySpan = goog.dom.createElement('span');
+		if(notes[x][2].length==2){
+			replySpan.appendChild(goog.dom.createTextNode('1 Reply'));
 		}
+		else if(notes[x][2].length>2){
+			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+'2 Reply'));
+		}
+		//figure out how many new replies
+		var r = 0;
 		for (y in notes[x][2]){
-			var msgDiv = newDiv.appendChild(document.createElement('div'));
-            var contentDiv = msgDiv.appendChild(document.createElement('div'));
-			contentDiv.innerHTML = notes[x][2][y][0];
-            var infoDiv = msgDiv.appendChild(document.createElement('div'));
-            infoDiv.appendChild(document.createTextNode(notes[x][2][y][1].split("@")[0]));
-            infoDiv.align='right';
-            infoDiv.className="msgInfo";
-			msgDiv.className='msg';
-            msgDiv.id=notes[x][3]+"msg";
-			goog.events.listen(msgDiv, goog.events.EventType.CLICK, function(e){
-				var j = e.target;
-				while(j.className!='msg'){j=j.parentNode;}
-				for (i in notes){
-		            if (String(notes[i][3])==String(j.id.replace("msg",""))){
-		                pos.row=anch.row=notes[i][0];
-		                pos.col=anch.col=notes[i][1];
-		            }
-		        }
-		        paint(false,false,false);
-		        jumpTo("find"+pos.row)
-			})
-			msgDiv=contentDiv=infoDiv=null;
+			//FAKE IT FOR NOW
+			var t = (y==0 ? 0.6 : Math.random());
+			notes[x][2][y].push((t>0.5 ? '0' : '1'))
+			if(String(notes[x][2][y][3])=='1')r++;
 		}
-		var cont=newDiv.appendChild(document.createElement('div'));
-		cont.className='respond';
-		cont.appendChild(document.createTextNode('Respond'));
-		cont.id=notes[x][3];
-		goog.events.listen(cont, goog.events.EventType.CLICK, newMessage)
-		newDiv=TR=TD=newA=cont=null;
+		var newReplySpan = goog.dom.createElement('span');
+		newReplySpan.style.color = 'red';
+		if(r!=0)newReplySpan.appendChild(goog.dom.createTextNode("("+r+" New)"))
+		//build table
+		var table = newDiv.appendChild(document.createElement('table'));
+		table.style.fontFamily='sans-serif';
+		table.width='100%';
+		var tr = table.appendChild(document.createElement('tr'));
+		var td = tr.appendChild(document.createElement('td'));
+		td.appendChild(goog.dom.createTextNode('Page 1 -'));
+		td.width='20%';
+		td.vAlign='top';
+		tr.appendChild(document.createElement('td')).appendChild(goog.dom.createTextNode(snippet));
+		tr = table.appendChild(document.createElement('tr'));
+		tr.appendChild(document.createElement('td')).appendChild(replySpan);
+		tr.appendChild(document.createElement('td')).appendChild(newReplySpan);
+		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){
+			
+		})
 	}
     typeToScript=true;
 	x=i=null;
