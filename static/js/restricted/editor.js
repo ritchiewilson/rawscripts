@@ -39,6 +39,7 @@ goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.fx');
 goog.require('goog.fx.dom');
+goog.require('goog.ui.Dialog');
 /**
  * @license Rawscripts.com copywrite 2010
  *
@@ -828,7 +829,6 @@ function setup(e){
     tabs(0);
     characterInit();
     sceneIndex();
-	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
     document.getElementById('saveButton').value="Saved";
@@ -839,6 +839,7 @@ function setup(e){
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
 	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
 	n.play()
+	noteIndex();
 }
 function tabs(v){
     var t = ["sceneTab","noteTab"]
@@ -2252,6 +2253,7 @@ function noteIndex(){
 	for (x in notes){
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='noteListUnit';
+		newDiv.id = 'noteListUnit'+notes[x][3];
 		//get note snippet
 		var tmpEl = goog.dom.createElement('div');
 		tmpEl.innerHTML = notes[x][2][0][0];
@@ -2264,7 +2266,7 @@ function noteIndex(){
 			replySpan.appendChild(goog.dom.createTextNode('1 Reply'));
 		}
 		else if(notes[x][2].length>2){
-			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+'2 Reply'));
+			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+' Reply'));
 		}
 		//figure out how many new replies
 		var r = 0;
@@ -2291,8 +2293,44 @@ function noteIndex(){
 		tr.appendChild(document.createElement('td')).appendChild(replySpan);
 		tr.appendChild(document.createElement('td')).appendChild(newReplySpan);
 		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){
-			
-		})
+			var c = e.target;
+			while(c.nodeName!='DIV')c=c.parentNode;
+			var id = parseInt(c.id.replace('noteListUnit',""));
+			var d = new goog.ui.Dialog()
+			d.setModal(false);
+			d.setTitle('Leave a Note');
+			//figure out what to put in there
+			var str = "";
+			var user = document.getElementById('user_email').innerHTML.toLowerCase();
+			for (i in notes){
+				if(notes[i][3]==id){
+					for(j in notes[i][2]){
+						str+="<div class='noteMessage'>";
+						str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
+						str+=notes[i][2][j][0];
+						//edit controls
+						var edit = "";
+						if(notes[i][2][j][1].toLowerCase()==user){
+							edit+=" <a href='#'>edit</a> |"
+						}
+						if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
+							edit+=" <a href='#'>delete</a>"
+						}
+						if(j==0 && EOV=='editor'){
+							edit+=" | <a href='#'>delete all</a>"
+						}
+						if(edit!=""){
+							str+="<div align='right'>"+edit+"</div>"
+						}
+						str+="</div>";
+					}
+				}
+			}
+			str+='<input type="button" value="Reply">'
+			d.setContent(str);
+			d.setButtonSet(null);
+			d.setVisible(true)
+		});
 	}
     typeToScript=true;
 	x=i=null;

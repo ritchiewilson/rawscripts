@@ -227,3 +227,14 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	cursor:pointer;
 	border:1px #666 solid;
 }
+.noteMessage{
+	background-color:lightYellow;
+	font-family:sans-serif;
+	font-size:10pt;
+	padding:3px;
+	margin:3px;
+	border:1px #aaa solid;
+}
+.modal-dialog{
+	width:430px;
+}
