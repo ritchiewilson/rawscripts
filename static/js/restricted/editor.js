@@ -40,6 +40,20 @@ goog.require('goog.format.EmailAddress');
 goog.require('goog.fx');
 goog.require('goog.fx.dom');
 goog.require('goog.ui.Dialog');
+goog.require('goog.editor.Command');
+goog.require('goog.editor.Field');
+goog.require('goog.editor.plugins.BasicTextFormatter');
+goog.require('goog.editor.plugins.EnterHandler');
+goog.require('goog.editor.plugins.HeaderFormatter');
+goog.require('goog.editor.plugins.LinkBubble');
+goog.require('goog.editor.plugins.LinkDialogPlugin');
+goog.require('goog.editor.plugins.ListTabHandler');
+goog.require('goog.editor.plugins.LoremIpsum');
+goog.require('goog.editor.plugins.RemoveFormatting');
+goog.require('goog.editor.plugins.SpacesTabHandler');
+goog.require('goog.editor.plugins.UndoRedo');
+goog.require('goog.ui.editor.DefaultToolbar');
+goog.require('goog.ui.editor.ToolbarController');
 /**
  * @license Rawscripts.com copywrite 2010
  *
@@ -2311,7 +2325,7 @@ function noteIndex(){
 						//edit controls
 						var edit = "";
 						if(notes[i][2][j][1].toLowerCase()==user){
-							edit+=" <a href='#'>edit</a> |"
+							edit+=" <span style='color:blue; cursor:pointer' onclick='newMessage(this)'>edit</span> |"
 						}
 						if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
 							edit+=" <a href='#'>delete</a>"
@@ -2329,7 +2343,10 @@ function noteIndex(){
 			str+='<input type="button" value="Reply">'
 			d.setContent(str);
 			d.setButtonSet(null);
-			d.setVisible(true)
+			d.setVisible(true);
+			var mdc = d.getContentElement();
+			var reply = mdc.getElementsByTagName('input')[0];
+			goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
 		});
 	}
     typeToScript=true;
@@ -2395,28 +2412,62 @@ function submitNewThread(e){
     }
     noteIndex();
 }
-function newMessage(e){
-	var v = e.target.id;
-    noteIndex();
+function newMessage(t){
     typeToScript=false;
-    var c=document.getElementById(v);
-    var n=c.parentNode.insertBefore(document.createElement('div'),c);
-    n.className='respondControls';
-    var i=n.appendChild(document.createElement('div'));
-    i.contentEditable=true;
-    i.id='nmi';
-    var sb = n.appendChild(document.createElement('input'));
-    sb.type='button';
-    sb.value='Save';
-    sb.id='noteSave'+v;
-    var cb = n.appendChild(document.createElement('input'));
-    cb.type='button';
-    cb.value='Cancel';
-    cb.id="noteCancel"
-    c.parentNode.removeChild(c);
+	if (this.nodeName=='INPUT'){
+		var el = this;
+	}
+	else{
+		var el = t;
+		while (el.className!='noteMessage')el=el.parentNode;
+		while (t.nodeName!='DIV')t=t.parentNode;
+		goog.dom.removeNode(t);
+		
+		var content = goog.dom.getTextContent(el);
+	}
+	var tb = goog.dom.createElement('div')
+	goog.dom.insertSiblingAfter(tb,el);
+	goog.dom.removeNode(el);
+	var editMe = goog.dom.createElement('div')
+	editMe.className='messageEditBox';
+	editMe.id = 'editMe';
+	goog.dom.insertSiblingAfter(editMe, tb);
+	var sb = goog.dom.createElement('input');
+	sb.type='button';
+	sb.value = 'Save';
+	goog.dom.insertSiblingAfter(sb, editMe);
+	var cb = goog.dom.createElement('input');
+	cb.type='button';
+	cb.value = 'Cancel';
+	goog.dom.insertSiblingAfter(cb, sb);
+	var myField = new goog.editor.Field('editMe');
+	myField.registerPlugin(new goog.editor.plugins.BasicTextFormatter());
+	myField.registerPlugin(new goog.editor.plugins.RemoveFormatting());
+	myField.registerPlugin(new goog.editor.plugins.UndoRedo());
+	myField.registerPlugin(new goog.editor.plugins.ListTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.SpacesTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.EnterHandler());
+	myField.registerPlugin(new goog.editor.plugins.HeaderFormatter());
+	var buttons = [
+	    goog.editor.Command.BOLD,
+	    goog.editor.Command.ITALIC,
+	    goog.editor.Command.UNDERLINE,
+	    goog.editor.Command.FONT_COLOR,
+	    goog.editor.Command.BACKGROUND_COLOR,
+	    goog.editor.Command.FONT_SIZE,
+	    goog.editor.Command.UNDO,
+	    goog.editor.Command.REDO,
+	    goog.editor.Command.UNORDERED_LIST,
+	    goog.editor.Command.ORDERED_LIST,
+	    goog.editor.Command.STRIKE_THROUGH,
+	    goog.editor.Command.REMOVE_FORMAT
+	  ];
+	var myToolbar = goog.ui.editor.DefaultToolbar.makeToolbar(buttons,tb);
+	var myToolbarController = new goog.ui.editor.ToolbarController(myField, myToolbar);
+	myField.makeEditable();
+	myField.focusAndPlaceCursorAtStart();
 	goog.events.listen(sb, goog.events.EventType.CLICK, submitMessage)
-	goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
-    i.focus();
+	//goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
 }
 
 function submitMessage(e){

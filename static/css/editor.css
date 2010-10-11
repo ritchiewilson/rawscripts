@@ -243,3 +243,8 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	overflow:auto;
 	max-height:500px;
 }
+.messageEditBox{
+	width:432px;
+	height:200px;
+	border: 1px Grey solid;
+}
