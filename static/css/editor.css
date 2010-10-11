@@ -236,5 +236,10 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	border:1px #aaa solid;
 }
 .modal-dialog{
-	width:430px;
+	width:450px;
+	max-height:70%;
+}
+.modal-dialog-content{
+	overflow:auto;
+	max-height:500px;
 }
