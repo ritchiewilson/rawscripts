@@ -35,6 +35,7 @@ goog.require('goog.ui.PopupMenu')
  *
  *
  */
+window['removeAccess'] = removeAccess;
 window['haveToUndelete'] = haveToUndelete;
 window['sharePrompt'] = sharePrompt;
 window['init'] = init;
