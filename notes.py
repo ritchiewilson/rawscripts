@@ -50,6 +50,12 @@ class NotesNotify (db.Model):
 	user = db.StringProperty()
 	new_notes= db.IntegerProperty()
 
+class UnreadNotes (db.Model):
+	resource_id = db.StringProperty()
+	thread_id = db.StringProperty()
+	user = db.StringProperty()
+	msg_id = db.StringProperty()
+
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()
 	data = db.TextProperty()
@@ -105,13 +111,14 @@ class NewThread(webapp.RequestHandler):
 			r=q.fetch(500)
 			for i in r:
 				if not i.user==users.get_current_user().email().lower():
-					nn = NotesNotify(resource_id=resource_id,
+					nn = UnreadNotes(key_name=i.user+resource_id+thread_id+d,
+									resource_id=resource_id,
 									user=i.user,
-									new_notes=1,
-									thread_id=thread_id)
+									thread_id=thread_id,
+									msg_id=d)
 					nn.put()
 			self.response.headers["Content-Type"]="text/plain"
-			self.response.out.write('sent')
+			self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("newthread", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None, thread_id, None,None,p,None,fromPage, None)
 							
@@ -122,42 +129,46 @@ class SubmitMessage(webapp.RequestHandler):
 			return
 		p = permission(resource_id)
 		if not p==False:
-			user=users.get_current_user().email()
+			user=users.get_current_user().email().lower()
 			thread_id = self.request.get('thread_id')
 			content = self.request.get('content')
+			msg_id = self.request.get('msg_id')
 			fromPage = self.request.get('fromPage')
 			d = str(datetime.datetime.today())
 
 			q = db.GqlQuery("SELECT * FROM Notes "+
 									 "WHERE resource_id='"+resource_id+"' "+
 									 "AND thread_id='"+thread_id+"'")
-			r=q.fetch(1)
-			J = simplejson.loads(r[0].data)
-			J.append([content,user,d])
-			r[0].data=simplejson.dumps(J)
-			r[0].put()
+			r=q.get()
+			J = simplejson.loads(r.data)
+			found = False
+			for i in J:
+				if i[2]==msg_id:
+					if i[1] == user:
+						i[0]=content
+						user = i[1]
+						d = i[2]
+					found=True
+			if found==False:
+				J.append([content,user,d])
+			r.data=simplejson.dumps(J)
+			r.put()
+			output = simplejson.dumps([content, d, user, thread_id])
 			
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 							"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(500)
 			for i in r:
 				if not i.user==user.lower():
-					q=db.GqlQuery("SELECT * FROM NotesNotify "+
-									"WHERE resource_id='"+resource_id+"' "+
-									"AND thread_id='"+thread_id+"' "+
-									"AND user='"+i.user+"'")
-					n=q.fetch(1)
-					if len(n)==0:
-						n = NotesNotify(resource_id=resource_id,
-										thread_id=thread_id,
-										user=i.user,
-										new_notes=1)
-						n.put()
-					else:
-						n[0].new_notes = n[0].new_notes+1
-						n[0].put()
+					n = UnreadNotes(key_name=i.user+resource_id+thread_id+d,
+									resource_id=resource_id,
+									thread_id=thread_id,
+									user=i.user,
+									msg_id=d)
+					n.put()
+						
 			self.response.headers["Content-Type"]="text/plain"
-			self.response.out.write('sent')
+			self.response.out.write(output)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("notesresponse", users.get_current_user().email().lower(), resource_id, mobile, len(content), None, None, thread_id, None,None,p,None,fromPage, None)
 
@@ -197,15 +208,75 @@ class DeleteThread (webapp.RequestHandler):
 			r=q.fetch(1)
 			r[0].delete()
 			
-			q=db.GqlQuery("SELECT * FROM NotesNotify "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+thread_id+"'")
-			r=q.fetch(1000)
-			for i in r:
+			q=db.GqlQuery("SELECT * FROM UnreadNotes "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND thread_id='"+thread_id+"'")
+			un=q.fetch(1000)
+			for i in un:
 				i.delete()
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("deletethread", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, thread_id, None,None,None,None,fromPage, None)
 
+class DeleteMessage(webapp.RequestHandler):
+	def post(self):
+		resource_id = self.request.get('resource_id')
+		thread_id=self.request.get('thread_id')
+		msg_id=self.request.get('msgId')
+		if resource_id=="Demo":
+			self.response.out.write('deleted')
+			return
+		else:
+			q=db.GqlQuery("SELECT * FROM Notes "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND thread_id='"+thread_id+"'")
+			r=q.get()
+			if r==None:
+				self.response.out.write('no thread')
+				return
+			else:
+				p = ownerPermission(resource_id)
+				J = simplejson.loads(r.data)
+				newJ=[]
+				deleted=False
+				for i in J:
+					if i[2]==msg_id:
+						if p!=False or i[1]==users.get_current_user().email().lower():
+							deleted=True
+						else:
+							newJ.append(i)
+					else:
+						newJ.append(i)
+				if len(newJ)==0:
+					r.delete()
+				else:
+					r.data=simplejson.dumps(newJ)
+					r.put()
+				self.response.headers['Content-Type'] = 'text/plain'
+				if deleted==True:
+					q=db.GqlQuery("SELECT * FROM UnreadNotes "+
+									"WHERE resource_id='"+resource_id+"' "+
+									"AND thread_id='"+thread_id+"'")
+					un=q.fetch(1000)
+					for i in un:
+						if i.msg_id==msg_id:
+							i.delete()
+					self.response.out.write('deleted')
+				else:
+					self.response.out.write('error')
+
+class MarkAsRead(webapp.RequestHandler):
+	def post(self):
+		user = users.get_current_user().email().lower()
+		msg_id = self.request.get('msg_id')
+		thread_id = self.request.get('thread_id')
+		resource_id = self.request.get('resource_id')
+		logging.info(user+resource_id+thread_id+msg_id)
+		un = db.get(db.Key.from_path('UnreadNotes', user+resource_id+thread_id+msg_id))
+		if un!=None:
+			un.delete()
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write('ok')
+		
 class ViewNotes(webapp.RequestHandler):
 	def get(self):
 		resource_id=self.request.get('resource_id')
@@ -230,20 +301,15 @@ class ViewNotes(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
 			self.response.out.write(template.render(path, template_values))
 			
-			q = db.GqlQuery("SELECT * FROM NotesNotify "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND user='"+users.get_current_user().email().lower()+"'")
-			r = q.fetch(500)
-			l=len(r)
-			for i in r:
-				i.delete()
 			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, l, None, None, None,None,title,None,None, None)
 
 def main():
 	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
 																				('/notesposition', Position),
 																				('/notesdeletethread', DeleteThread),
-										('/notesview', ViewNotes),
+																				('/notesview', ViewNotes),
+																				('/notesdeletemessage', DeleteMessage),
+																				('/notesmarkasread', MarkAsRead),
 																				('/notesnewthread', NewThread)],
 																			 debug=True)
 	

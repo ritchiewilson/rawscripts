@@ -60,6 +60,10 @@ goog.require('goog.ui.editor.ToolbarController');
  *
  *
  */
+window['markAsRead'] = markAsRead;
+window['newMessage'] = newMessage;
+window['deleteMessage'] = deleteMessage;
+window['deleteThread'] = deleteThread;
 window['EOV'] = EOV;
 window['changeFormat'] = changeFormat;
 window['deleteThread'] = deleteThread;
@@ -295,6 +299,7 @@ function init(){
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOVER, topMenuOver);
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOUT, topMenuOut);
 	goog.events.listen(fMenu, 'action', menuSelect)
+	goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, function(e){typeToScript=true})
 	
 	eMenu = new goog.ui.Menu();
 	eMenu.decorate(goog.dom.getElement('editMenu'))
@@ -2280,15 +2285,12 @@ function noteIndex(){
 			replySpan.appendChild(goog.dom.createTextNode('1 Reply'));
 		}
 		else if(notes[x][2].length>2){
-			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+' Reply'));
+			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+' Replies'));
 		}
 		//figure out how many new replies
 		var r = 0;
 		for (y in notes[x][2]){
-			//FAKE IT FOR NOW
-			var t = (y==0 ? 0.6 : Math.random());
-			notes[x][2][y].push((t>0.5 ? '0' : '1'))
-			if(String(notes[x][2][y][3])=='1')r++;
+			if(String(notes[x][2][y][3])=='0')r++;
 		}
 		var newReplySpan = goog.dom.createElement('span');
 		newReplySpan.style.color = 'red';
@@ -2306,62 +2308,95 @@ function noteIndex(){
 		tr = table.appendChild(document.createElement('tr'));
 		tr.appendChild(document.createElement('td')).appendChild(replySpan);
 		tr.appendChild(document.createElement('td')).appendChild(newReplySpan);
-		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){
-			var c = e.target;
-			while(c.nodeName!='DIV')c=c.parentNode;
-			var id = parseInt(c.id.replace('noteListUnit',""));
-			var d = new goog.ui.Dialog()
-			d.setModal(false);
-			d.setTitle('Leave a Note');
-			//figure out what to put in there
-			var str = "";
-			var user = document.getElementById('user_email').innerHTML.toLowerCase();
-			for (i in notes){
-				if(notes[i][3]==id){
-					for(j in notes[i][2]){
-						str+="<div class='noteMessage'>";
-						str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
-						str+=notes[i][2][j][0];
-						//edit controls
-						var edit = "";
-						if(notes[i][2][j][1].toLowerCase()==user){
-							edit+=" <span style='color:blue; cursor:pointer' onclick='newMessage(this)'>edit</span> |"
-						}
-						if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
-							edit+=" <a href='#'>delete</a>"
-						}
-						if(j==0 && EOV=='editor'){
-							edit+=" | <a href='#'>delete all</a>"
-						}
-						if(edit!=""){
-							str+="<div align='right'>"+edit+"</div>"
-						}
-						str+="</div>";
-					}
-				}
-			}
-			str+='<input type="button" value="Reply">'
-			d.setContent(str);
-			d.setButtonSet(null);
-			d.setVisible(true);
-			var mdc = d.getContentElement();
-			var reply = mdc.getElementsByTagName('input')[0];
-			goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
-		});
+		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){notesDialog(e, false, false, false)});
 	}
     typeToScript=true;
 	x=i=null;
 }
+function notesDialog(e, id, top, left){
+	if (e){
+		var c = e.target;
+		while(c.nodeName!='DIV')c=c.parentNode;
+		var id = parseInt(c.id.replace('noteListUnit',""));
+	}
+	var d = new goog.ui.Dialog();
+	d.setModal(false);
+	d.setTitle('Leave a Note');
+	//figure out what to put in there
+	var str = "";
+	var user = document.getElementById('user_email').innerHTML.toLowerCase();
+	for (i in notes){
+		if(notes[i][3]==id){
+			for(j in notes[i][2]){
+				var classN = (parseInt(notes[i][2][j][3])==0 ? 'noteMessageUnread' : 'noteMessage')
+				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
+				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
+				str+=notes[i][2][j][0];
+				//edit controls
+				var edit = "";
+				if(notes[i][2][j][1].toLowerCase()==user){
+					edit+=" <span class='noteControls' onclick='newMessage(this)'>edit</span> |"
+				}
+				if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
+					edit+=" <span class='noteControls' onclick='deleteMessage(this)'>delete</span>"
+				}
+				if(j==0 && EOV=='editor'){
+					edit+=" | <span class='noteControls' onclick='deleteThread(this)'>delete all</a>"
+				}
+				if(edit!=""){
+					str+="<div align='right'>"+edit+"</div>"
+				}
+				str+="</div>";
+			}
+		}
+	}
+	str+='<input type="button" value="Reply">';
+	d.setContent(str);
+	d.setButtonSet(null);
+	d.setVisible(true);
+	d.setDisposeOnHide(true);
+	d.getDialogElement().id='modal-dialog'+id;
+	if(top){
+		d.getDialogElement().style.top=top;
+		d.getDialogElement().style.left=left;
+	}
+	d.getDialogElement().style.paddingBottom='10px';
+	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
+	var mdc = d.getContentElement();
+	var reply = mdc.getElementsByTagName('input')[0];
+	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
+}
+function markAsRead(e){
+	var el = e;
+	while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+	if(el.className=='noteMessage')return;
+	var msg_id=el.id;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id=parseInt(el.id.replace('modal-dialog',''));
+	goog.net.XhrIo.send('/notesmarkasread',
+		function(){
+			var anim = new goog.fx.dom.BgColorTransform(e, [250, 128, 114], [255, 255, 224], 500);
+			goog.events.listen(anim, goog.fx.Animation.EventType.END, function() {
+				e.className='noteMessage'
+			});
+			anim.play();
+			for (i in notes){
+				if (notes[i][3]==thread_id){
+					for(j in notes[i][2]){
+						if (notes[i][2][j][2]==msg_id){
+							notes[i][2][j][3]=1;
+						}
+					}
+				}
+			}
+			noteIndex();
+		},
+		'POST',
+		'resource_id='+resource_id+'&thread_id='+thread_id+'&msg_id='+escape(msg_id)
+	)
+}
 function newThread(){
-	tabs(1);
-	viewNotes=true;
-	paint(false,false,false);
-    noteIndex();
-    typeToScript=false;
-    var c = document.getElementById('noteBox');
-    var newDiv=c.appendChild(document.createElement('div'));
-    newDiv.className='thread';
-	id=Math.round(Math.random()*1000000000);
+	var id=Math.round(Math.random()*1000000000);
     var found=true;
     while (found==true){
         found=false;
@@ -2372,65 +2407,24 @@ function newThread(){
             }
         }
     }
-    var n = newDiv.appendChild(document.createElement('div'));
-    n.className='respondControls';
-    var i=n.appendChild(document.createElement('div'));
-    i.contentEditable=true;
-    i.id='nmi';
-    var sb = n.appendChild(document.createElement('input'));
-    sb.type='button';
-    sb.value='Save';
-    sb.id=id;
-    var cb = n.appendChild(document.createElement('input'));
-    cb.type='button';
-    cb.value='Cancel';
-    cb.id="noteCancel"
-	goog.events.listen(sb, goog.events.EventType.CLICK, submitNewThread)
-	goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
-    i.focus();
-}
-function submitNewThread(e){
-	var v = e.target.id;
-    var content = document.getElementById('nmi').innerHTML
-    var u =document.getElementById('user_email').innerHTML;
-    var d = new Date();
-    if (content!=""){
-        var arr = [pos.row, pos.col, [[content,u,d]], v];
-        notes.push(arr);
-        var data = [pos.row, pos.col, content, v];
-        if(resource_id!="Demo"){
-			goog.net.XhrIo.send('/notesnewthread',
-				function(e){
-					if(e.target.getResponseText()!='sent'){
-						alert("Sorry, there was a problem sending that message. Please try again later.")
-					}
-				},
-				'POST',
-				'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+v
-			);
-        }
-    }
-    noteIndex();
-}
-function newMessage(t){
-    typeToScript=false;
-	if (this.nodeName=='INPUT'){
-		var el = this;
-	}
-	else{
-		var el = t;
-		while (el.className!='noteMessage')el=el.parentNode;
-		while (t.nodeName!='DIV')t=t.parentNode;
-		goog.dom.removeNode(t);
-		
-		var content = goog.dom.getTextContent(el);
-	}
-	var tb = goog.dom.createElement('div')
-	goog.dom.insertSiblingAfter(tb,el);
-	goog.dom.removeNode(el);
-	var editMe = goog.dom.createElement('div')
-	editMe.className='messageEditBox';
+	notes.push([pos.row, pos.col, ['temp', 'temp', 'temp'],id])
+	viewNotes=true;
+	paint(false,false,false);
+	//set up dialog box
+	var d = new goog.ui.Dialog();
+	d.setModal(false);
+	d.setTitle('Leave a Note');
+	d.setContent('')
+	d.setButtonSet(null);
+	d.setVisible(true);
+	d.setDisposeOnHide(true);
+	d.getDialogElement().id='modal-dialog'+id;
+	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
+	var c = d.getContentElement();
+	var tb = c.appendChild(goog.dom.createElement('div'));
+	var editMe = goog.dom.createElement('div');
 	editMe.id = 'editMe';
+	editMe.className='messageEditBox';
 	goog.dom.insertSiblingAfter(editMe, tb);
 	var sb = goog.dom.createElement('input');
 	sb.type='button';
@@ -2441,6 +2435,7 @@ function newMessage(t){
 	cb.value = 'Cancel';
 	goog.dom.insertSiblingAfter(cb, sb);
 	var myField = new goog.editor.Field('editMe');
+	editMe.removeAttribute('id');
 	myField.registerPlugin(new goog.editor.plugins.BasicTextFormatter());
 	myField.registerPlugin(new goog.editor.plugins.RemoveFormatting());
 	myField.registerPlugin(new goog.editor.plugins.UndoRedo());
@@ -2449,58 +2444,230 @@ function newMessage(t){
 	myField.registerPlugin(new goog.editor.plugins.EnterHandler());
 	myField.registerPlugin(new goog.editor.plugins.HeaderFormatter());
 	var buttons = [
-	    goog.editor.Command.BOLD,
-	    goog.editor.Command.ITALIC,
-	    goog.editor.Command.UNDERLINE,
-	    goog.editor.Command.FONT_COLOR,
-	    goog.editor.Command.BACKGROUND_COLOR,
-	    goog.editor.Command.FONT_SIZE,
-	    goog.editor.Command.UNDO,
-	    goog.editor.Command.REDO,
-	    goog.editor.Command.UNORDERED_LIST,
-	    goog.editor.Command.ORDERED_LIST,
-	    goog.editor.Command.STRIKE_THROUGH,
-	    goog.editor.Command.REMOVE_FORMAT
-	  ];
+		goog.editor.Command.BOLD,
+		goog.editor.Command.ITALIC,
+		goog.editor.Command.UNDERLINE,
+		goog.editor.Command.FONT_COLOR,
+		goog.editor.Command.FONT_SIZE,
+		goog.editor.Command.UNDO,
+		goog.editor.Command.REDO,
+		goog.editor.Command.UNORDERED_LIST,
+		goog.editor.Command.ORDERED_LIST,
+		goog.editor.Command.STRIKE_THROUGH,
+		goog.editor.Command.REMOVE_FORMAT
+	];
 	var myToolbar = goog.ui.editor.DefaultToolbar.makeToolbar(buttons,tb);
 	var myToolbarController = new goog.ui.editor.ToolbarController(myField, myToolbar);
 	myField.makeEditable();
 	myField.focusAndPlaceCursorAtStart();
-	goog.events.listen(sb, goog.events.EventType.CLICK, submitMessage)
-	//goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
+	goog.events.listen(myField, goog.events.EventType.BLUR, function(e){typeToScript=true});
+	goog.events.listen(myField, goog.events.EventType.FOCUS, function(e){typeToScript=false});
+	goog.events.listen(sb, goog.events.EventType.CLICK, submitNewThread);
+	goog.events.listen(cb, goog.events.EventType.CLICK, cancelNewThread);
 }
-
-function submitMessage(e){
-	var v = parseInt(e.target.id.replace('noteSave',''));
-	for (x in notes){
-		if (notes[x][3]==v){
-			var n=x;
+function cancelNewThread(){
+	var el = this;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var id = parseInt(el.id.replace('modal-dialog',''));
+	for(i in notes){
+		if(notes[i][3]==id){
+			notes.splice(i,1);
+			break;
 		}
 	}
+	goog.dom.removeNode(el);
+}
+function submitNewThread(){
+	var el = this;
+	while(el.className!='messageEditBox editable')el=el.previousSibling;
+    var content = el.contentWindow.document.body.innerHTML;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id = parseInt(el.id.replace('modal-dialog', ''));
+	var top = el.style.top;
+	var left = el.style.left;
+	if(resource_id!="Demo"){
+		goog.net.XhrIo.send('/notesnewthread',
+			function(e){
+				var r = e.target.getResponseJson();
+				if(r[0]=='error'){
+					alert("Sorry, there was a problem sending that message. Please try again later.")
+				}
+				else{
+					var row = r[0];
+					var col = r[1];
+					var thread_id = r[2];
+					var msg_id = r[3];
+					var user = r[4];
+					for (i in notes){
+						if (notes[i][3]==thread_id){
+							notes[i][2]=[[content, user, msg_id]];
+						}
+					}
+					noteIndex();
+					goog.dom.removeNode(el);
+					notesDialog(false, thread_id, top, left);
+				}
+			},
+			'POST',
+			'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+thread_id
+		);
+	};
+	this.disabled = true;
+	this.value = 'Saving...';
+}
+function newMessage(t){
+    typeToScript=false;
+	if (this.nodeName=='INPUT'){
+		var el = this;
+		var content = "";
+		var id = 'new'+ new Date().getTime();
+	}
+	else{
+		var el = t;
+		while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+		while (t.nodeName!='DIV')t=t.parentNode;
+		goog.dom.removeNode(t);
+		var c = el.childNodes;
+		for (i in c){
+			if(c[i].nodeName=='B'){
+				goog.dom.removeNode(c[i]);
+				break;
+			}
+		}
+		var content = el.innerHTML;
+		var id = el.id;
+		var reply = el;
+		while(reply.value!='Reply')reply=reply.nextSibling;
+		goog.dom.removeNode(reply);
+	}
+	var tb = goog.dom.createElement('div')
+	goog.dom.insertSiblingAfter(tb,el);
+	goog.dom.removeNode(el);
+	var editMe = goog.dom.createElement('div')
+	editMe.className='messageEditBox';
+	editMe.id = id;
+	goog.dom.insertSiblingAfter(editMe, tb);
+	var sb = goog.dom.createElement('input');
+	sb.type='button';
+	sb.value = 'Save';
+	goog.dom.insertSiblingAfter(sb, editMe);
+	var cb = goog.dom.createElement('input');
+	cb.type='button';
+	cb.value = 'Cancel';
+	goog.dom.insertSiblingAfter(cb, sb);
+	goog.dom.removeNode(this);
+	var myField = new goog.editor.Field(id);
+	myField.registerPlugin(new goog.editor.plugins.BasicTextFormatter());
+	myField.registerPlugin(new goog.editor.plugins.RemoveFormatting());
+	myField.registerPlugin(new goog.editor.plugins.UndoRedo());
+	myField.registerPlugin(new goog.editor.plugins.ListTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.SpacesTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.EnterHandler());
+	myField.registerPlugin(new goog.editor.plugins.HeaderFormatter());
+	var buttons = [
+		goog.editor.Command.BOLD,
+		goog.editor.Command.ITALIC,
+		goog.editor.Command.UNDERLINE,
+		goog.editor.Command.FONT_COLOR,
+		goog.editor.Command.FONT_SIZE,
+		goog.editor.Command.UNDO,
+		goog.editor.Command.REDO,
+		goog.editor.Command.UNORDERED_LIST,
+		goog.editor.Command.ORDERED_LIST,
+		goog.editor.Command.STRIKE_THROUGH,
+		goog.editor.Command.REMOVE_FORMAT
+	];
+	var myToolbar = goog.ui.editor.DefaultToolbar.makeToolbar(buttons,tb);
+	var myToolbarController = new goog.ui.editor.ToolbarController(myField, myToolbar);
+	myField.makeEditable();
+	myField.setHtml(false, content);
+	myField.focusAndPlaceCursorAtStart();
+	goog.events.listen(myField, goog.events.EventType.BLUR, function(e){typeToScript=true});
+	goog.events.listen(myField, goog.events.EventType.FOCUS, function(e){typeToScript=false});
+	goog.events.listen(sb, goog.events.EventType.CLICK, submitMessage);
+	goog.events.listen(cb, goog.events.EventType.CLICK, cancelMessage);
+}
+
+function cancelMessage(){
+	var el = this;
+	while(el.className!='modal-dialog'){el=el.parentNode}
+	var top = el.style.top;
+	var left = el.style.left;
+	var id = parseInt(el.id.replace('modal-dialog',''));
+	goog.dom.removeNode(el)
+	typeToScript=true;
+	notesDialog(false, id, top, left);
+}
+
+function submitMessage(){
+	this.disabled=true;
+	this.value='Saving...'
+	var el = this;
+	while(el.className!='messageEditBox editable')el=el.previousSibling;
+	var editorBox = el;
+	var content = el.contentWindow.document.body.innerHTML;
+	var msg_id=el.id;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id=parseInt(el.id.replace('modal-dialog',''));
     var d = new Date();
-    var content = document.getElementById('nmi').innerHTML
-    var u =document.getElementById('user_email').innerHTML;
     if(content!=""){
-        var arr=[content, u, d]
-        notes[n][2].push(arr);
         if(resource_id!="Demo"){
 			goog.net.XhrIo.send('/notessubmitmessage',
 				function(e){
-					if(e.target.getResponseText()!='sent'){
+					try{
+						var r = e.target.getResponseJson()
+					}
+					catch(e){
 						alert("Sorry, there was a problem sending that message. Please try again later.")
+						return;
+					}
+					if(r[0]=='error'){
+						alert("Sorry, there was a problem sending that message. Please try again later.")
+					}
+					else{
+						var new_content = r[0];
+						var timestamp = r[1];
+						var user = r[2];
+						var thread_id = r[3];
+						var top = el.style.top;
+						var left = el.style.left;
+						goog.dom.removeNode(el)
+						for(i in notes){
+							if(notes[i][3]==thread_id){
+								var found = false;
+								for(j in notes[i][2]){
+									if(notes[i][2][j][2]==timestamp){
+										notes[i][2][j][0]=new_content;
+										found=true;
+									}
+								}
+								if(!found){
+									notes[i][2].push([new_content, user, timestamp])
+								}
+							}
+						}
+						noteIndex();
+						notesDialog(false, thread_id, top, left)
 					}
 				},
 				'POST',
-				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+v+'&fromPage=editor'
+				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
 			);
         }
+		else{
+			//what to do if it's the demo
+		}
 		arr=null
     }
+	else{cancelMessage()}
 	noteIndex();
 	x=d=content=u=n=null;
 }
 
 function deleteThread(v){
+	var el = v;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	v=parseInt(el.id.replace('modal-dialog',''));
     var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
     if(c==true){
         if(resource_id!="Demo"){
@@ -2513,10 +2680,63 @@ function deleteThread(v){
     for (i in notes){
         if (notes[i][3]==v)var found = i;
     }
-	c=i=null;
+	goog.dom.removeNode(el)
     notes.splice(found,1);
     noteIndex();
     }
+}
+
+function deleteMessage(v){
+	var c = confirm("Are you sure you want to delete this message? This cannot be undone.")
+	if(c==true){
+		var el = v;
+		while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+		var msgId = el.id;
+		el.style.backgroundColor='grey';
+		while(el.className!='modal-dialog'){el=el.parentNode}
+		var threadId = parseInt(el.id.replace('modal-dialog',''))
+		goog.net.XhrIo.send('/notesdeletemessage',
+			function(e){
+				var r = e.target.getResponseText();
+				if (r=='deleted'){
+					for(i in notes){
+						if(notes[i][3]==threadId){
+							for (j in notes[i][2]){
+								if(notes[i][2][j][2]==msgId){
+									notes[i][2].splice(j,1)
+									if(notes[i][2].length==0){
+										notes.splice(i,1);
+										var el = goog.dom.getElement(msgId);
+										while(el.className!='modal-dialog')el=el.parentNode;
+										goog.dom.removeNode(el);
+									}
+									else{
+										goog.dom.removeNode(goog.dom.getElement(msgId));
+									}
+								}
+							}
+						}
+					}
+					noteIndex();
+				}
+				else{
+					msgId.style.backgroundColor='lightYellow';
+					alert("There was a problem deleting that message. Please try again later.")
+				}
+			},
+			'POST',
+			'resource_id='+resource_id+'&thread_id='+threadId+'&msgId='+escape(msgId)
+		);
+	}
+}
+
+function bringDialogToFront(){
+	var z=0;
+	var c = goog.dom.getElementsByClass('modal-dialog');
+	for(i in c){
+		if(c[i].nodeName=='DIV' && c[i].style.zIndex>z)z=c[i].style.zIndex*1;
+	}
+	this.style.zIndex=z*1+1;
 }
 
 //Menu
@@ -2878,7 +3098,6 @@ function hideEmailPrompt(){
 }
 
 function emailComplete(e){
-	console.log()
 	document.getElementById('emailS').disabled = false;
 	document.getElementById('emailS').value = 'Send';
 	if (e.target.getResponseText()=='sent'){

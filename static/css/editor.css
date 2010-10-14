@@ -235,6 +235,14 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	margin:3px;
 	border:1px #aaa solid;
 }
+.noteMessageUnread{
+	background-color:Salmon;
+	font-family:sans-serif;
+	font-size:10pt;
+	padding:3px;
+	margin:3px;
+	border:1px #aaa solid;
+}
 .modal-dialog{
 	width:450px;
 	max-height:70%;
@@ -244,7 +252,11 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	max-height:500px;
 }
 .messageEditBox{
-	width:432px;
+	width:100%;
 	height:200px;
 	border: 1px Grey solid;
+}
+.noteControls{
+	color:#06c;
+	cursor:pointer;
 }

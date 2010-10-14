@@ -106,6 +106,12 @@ class NotesNotify (db.Model):
 	user = db.StringProperty()
 	new_notes= db.IntegerProperty()
 
+class UnreadNotes (db.Model):
+	resource_id = db.StringProperty()
+	thread_id = db.StringProperty()
+	user = db.StringProperty()
+	msg_id = db.StringProperty()
+
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()
 	data = db.TextProperty()
@@ -346,6 +352,10 @@ class List (webapp.RequestHandler):
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		user = users.get_current_user().email().lower()
 		
+		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
+						"WHERE user='"+user+"'")
+		unread = q.fetch(1000)
+		
 		q=db.GqlQuery("SELECT * FROM ShareNotify "+
 						"WHERE user='"+user+"' "+
 						"AND opened=False")
@@ -370,19 +380,15 @@ class List (webapp.RequestHandler):
 			else:
 				i.updated = "Seconds ago"
 				
-			
-			#getting notesnotification info for scripts
-			nnq=db.GqlQuery("SELECT * FROM NotesNotify "+
-							"WHERE resource_id='"+i.resource_id+"' "+
-							"AND user='"+user+"'")
-			nn=nnq.fetch(500)
+			#Count notes
 			new_notes=0
-			for c in nn:
-				new_notes=new_notes+c.new_notes		
+			for c in unread:
+				if c.resource_id==i.resource_id:
+					new_notes=new_notes+1		
 			#now put these bits in the right array
 			if i.permission=='owner':
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
-											"WHERE resource_id='"+i.resource_id+"'")
+								"WHERE resource_id='"+i.resource_id+"'")
 				p=q.fetch(500)
 				sharingArr=[]
 				for j in p:
@@ -968,7 +974,7 @@ class RemoveAccess (webapp.RequestHandler):
 										"AND user='"+person.lower()+"'")
 			r=q.fetch(1)
 			r[0].delete()
-			q=db.GqlQuery("SELECT * FROM NotesNotify "+
+			q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 							"WHERE resource_id='"+resource_id+"' "+
 							"AND user='"+person.lower()+"'")
 			r=q.fetch(500)
