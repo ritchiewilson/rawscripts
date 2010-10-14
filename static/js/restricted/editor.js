@@ -2270,9 +2270,20 @@ function noteIndex(){
 	var c = goog.dom.getElement('noteBox')
 	goog.dom.removeChildren(c);
 	for (x in notes){
+		//build box
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='noteListUnit';
 		newDiv.id = 'noteListUnit'+notes[x][3];
+		// figure out what page its on
+		if(pageBreaks.length==0){var pn = 1}
+		else{
+			var i=0;
+			while(notes[x][0]*1+1*1>pageBreaks[i][0]){
+				i++;
+				if(i==pageBreaks.length)break
+			}
+			var pn=i*1+1;
+		}
 		//get note snippet
 		var tmpEl = goog.dom.createElement('div');
 		tmpEl.innerHTML = notes[x][2][0][0];
@@ -2301,14 +2312,28 @@ function noteIndex(){
 		table.width='100%';
 		var tr = table.appendChild(document.createElement('tr'));
 		var td = tr.appendChild(document.createElement('td'));
-		td.appendChild(goog.dom.createTextNode('Page 1 -'));
+		td.appendChild(goog.dom.createTextNode('Page '+pn+' -'));
 		td.width='20%';
 		td.vAlign='top';
 		tr.appendChild(document.createElement('td')).appendChild(goog.dom.createTextNode(snippet));
 		tr = table.appendChild(document.createElement('tr'));
 		tr.appendChild(document.createElement('td')).appendChild(replySpan);
 		tr.appendChild(document.createElement('td')).appendChild(newReplySpan);
-		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){notesDialog(e, false, false, false)});
+		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){
+			var el = e.target;
+			while(el.className!='noteListUnit')el=el.parentNode;
+			var id = parseInt(el.id.replace('noteListUnit',''));
+			for(i in notes){
+				if (notes[i][3]==id){
+					var row = notes[i][0];
+					var col = notes[i][1];
+					pos.row=anch.row=row;
+					pos.col=anch.col=col;
+				}
+			}
+			jumpTo('find'+row);
+			notesDialog(e, false, false, false)
+		});
 	}
     typeToScript=true;
 	x=i=null;
@@ -2318,6 +2343,13 @@ function notesDialog(e, id, top, left){
 		var c = e.target;
 		while(c.nodeName!='DIV')c=c.parentNode;
 		var id = parseInt(c.id.replace('noteListUnit',""));
+	}
+	var c = goog.dom.getElementsByClass('modal-dialog')
+	for (i in c){
+		if(c[i].id=='modal-dialog'+id){
+			bringDialogToFront(id);
+			return;
+		}
 	}
 	var d = new goog.ui.Dialog();
 	d.setModal(false);
@@ -2365,6 +2397,7 @@ function notesDialog(e, id, top, left){
 	var mdc = d.getContentElement();
 	var reply = mdc.getElementsByTagName('input')[0];
 	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
+	bringDialogToFront(id);
 }
 function markAsRead(e){
 	var el = e;
@@ -2730,13 +2763,15 @@ function deleteMessage(v){
 	}
 }
 
-function bringDialogToFront(){
+function bringDialogToFront(id){
 	var z=0;
 	var c = goog.dom.getElementsByClass('modal-dialog');
 	for(i in c){
 		if(c[i].nodeName=='DIV' && c[i].style.zIndex>z)z=c[i].style.zIndex*1;
 	}
-	this.style.zIndex=z*1+1;
+	if((typeof id)=='number'){var el = goog.dom.getElement('modal-dialog'+id)}
+	else{var el = this}
+	el.style.zIndex=z*1+1;
 }
 
 //Menu
@@ -4136,6 +4171,7 @@ function paint(forceCalc, forceScroll){
 		scrollBar(ctx, y);
 
 		pagination();
+		if(forceCalc){noteIndex()}
 		
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
 		if(mouseDownBool && pos.row>anch.row && mouseY>canvasHeight-50)scroll(20);
