@@ -39,12 +39,32 @@ goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.fx');
 goog.require('goog.fx.dom');
+goog.require('goog.ui.Dialog');
+goog.require('goog.editor.Command');
+goog.require('goog.editor.Field');
+goog.require('goog.editor.plugins.BasicTextFormatter');
+goog.require('goog.editor.plugins.EnterHandler');
+goog.require('goog.editor.plugins.HeaderFormatter');
+goog.require('goog.editor.plugins.LinkBubble');
+goog.require('goog.editor.plugins.LinkDialogPlugin');
+goog.require('goog.editor.plugins.ListTabHandler');
+goog.require('goog.editor.plugins.LoremIpsum');
+goog.require('goog.editor.plugins.RemoveFormatting');
+goog.require('goog.editor.plugins.SpacesTabHandler');
+goog.require('goog.editor.plugins.UndoRedo');
+goog.require('goog.ui.editor.DefaultToolbar');
+goog.require('goog.ui.editor.ToolbarController');
 /**
  * @license Rawscripts.com copywrite 2010
  *
  *
  *
  */
+window['markAsRead'] = markAsRead;
+window['newMessage'] = newMessage;
+window['deleteMessage'] = deleteMessage;
+window['deleteThread'] = deleteThread;
+window['EOV'] = EOV;
 window['changeFormat'] = changeFormat;
 window['deleteThread'] = deleteThread;
 window['newThread'] = newThread;
@@ -150,11 +170,13 @@ var lines = [];
      *          <text></text>
      *          <user></user>
      *          <timestampt></timestamp>
+	 *			<unread>bool</unread>
      *      </messageOne>
      *      <messageTwo>
      *          <text></text>
      *          <user></user>
      *          <timestampt></timestamp>
+	 *			<unread>bool</unread>
      *      </messageTWo>
      *  </content>
      *  <id></id>
@@ -167,8 +189,67 @@ var spellWrong=[];
 var spellIgnore=[];
 var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
-    
+var notesPosition=[];
+
+
 function init(){
+	if (EOV=='viewer'){
+		var f = goog.dom.getElement('format');
+		f.style.visibility='hidden'
+		f.disabled=true;
+		goog.dom.removeNode(goog.dom.getElement('toolbarSave'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('toolbarRedo')));
+		goog.dom.removeNode(goog.dom.getElement('toolbarRedo'));
+		goog.dom.removeNode(goog.dom.getElement('toolbarUndo'));
+		goog.dom.removeNode(goog.dom.getElement('toolbarSpellcheck'));
+		goog.dom.removeNode(goog.dom.getElement('rename'));
+		goog.dom.removeNode(goog.dom.getElement('save'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('duplicate')));
+		goog.dom.removeNode(goog.dom.getElement('duplicate'));
+		goog.dom.removeNode(goog.dom.getElement('undo'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('redo')));
+		goog.dom.removeNode(goog.dom.getElement('redo'));
+		goog.dom.removeNode(goog.dom.getElement('editTitlePage'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('tag')));
+		goog.dom.removeNode(goog.dom.getElement('tag'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('spellCheck')));
+		goog.dom.removeNode(goog.dom.getElement('spellCheck'));
+		goog.dom.removeNode(goog.dom.getNextElementSibling(goog.dom.getElement('findReplace')));
+		goog.dom.removeNode(goog.dom.getElement('findReplace'));
+		goog.dom.removeNode(goog.dom.getElement('format0'));
+		goog.dom.removeNode(goog.dom.getElement('format1'));
+		goog.dom.removeNode(goog.dom.getElement('format2'));
+		goog.dom.removeNode(goog.dom.getElement('format3'));
+		goog.dom.removeNode(goog.dom.getElement('format4'));
+		goog.dom.removeNode(goog.dom.getElement('format5'));
+		goog.dom.removeNode(goog.dom.getElement('revision'));
+		goog.dom.removeNode(goog.dom.getElement('collaborators'));
+		goog.dom.removeNode(goog.dom.getElement('titlePageHref'));
+		
+		
+	}
+	else{
+		var f = goog.dom.getElement('saveButton');
+		f.style.visibility='visible';
+		f.disabled=false;
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.MOUSEOVER, function(e){
+			var d = goog.dom.getElement('title');
+			d.style.backgroundColor = 'LightSkyBlue';
+			d.style.border = '1px #666 solid';
+			d.style.margin = '0';
+			d.style.textShadow = 'none'
+		})
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.MOUSEOUT, function(e){
+			var d = goog.dom.getElement('title');
+			d.style.backgroundColor = '#6484DF';
+			d.style.border = 'none';
+			d.style.margin = '3px';
+			d.style.textShadow = '1px 1px 1px #999'
+		})
+		goog.events.listen(goog.dom.getElement('title'), goog.events.EventType.CLICK, function(){
+			renamePrompt()
+		})
+	}
 	setElementSizes("i");
 	var MouseWheelHandler = goog.events.MouseWheelHandler;
 	var MOUSEWHEEL = MouseWheelHandler.EventType.MOUSEWHEEL;
@@ -221,6 +302,7 @@ function init(){
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOVER, topMenuOver);
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOUT, topMenuOut);
 	goog.events.listen(fMenu, 'action', menuSelect)
+	goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, function(e){typeToScript=true})
 	
 	eMenu = new goog.ui.Menu();
 	eMenu.decorate(goog.dom.getElement('editMenu'))
@@ -256,8 +338,8 @@ function init(){
 	var sKeys= [['save','S'],['export', 'E'],['undo', 'Z'], ['redo', 'Shift Z'], ['find', 'F']];
 	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
 	for (i in sKeys){
-		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut')
-		goog.dom.setTextContent(d, meta+sKeys[i][1]);
+		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut');
+		if (d!=null){goog.dom.setTextContent(d, meta+sKeys[i][1]);}
 	}
 	try{
 		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
@@ -318,7 +400,7 @@ function keyEvent(e){
       else if(e.keyCode==46)deleteButton();
 	  else if(e.keyCode==16)return;
       else if(e.keyCode==9){e.preventDefault(); tab();}
-	  else(handlekeypress(e))
+	  else{handlekeypress(e)}
       if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8){
         scroll(ud-400);
       }
@@ -362,6 +444,7 @@ window.oncontextmenu = contextmenu;
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
 
 function createSuggestBox(d){
+	if(EOV=='viewer')return;
 	if(document.getElementById('suggestBox')!=null){
 		goog.dom.removeNode(document.getElementById('suggestBox'));
 	}
@@ -430,6 +513,7 @@ function createSuggestBox(d){
 var googSuggestMenu;
 
 function saveTimer(){
+	if(EOV=='viewer')return;
 	document.getElementById('saveButton').disabled=false;
 	document.getElementById('saveButton').value='Save';
 	checkSpell=true;
@@ -515,6 +599,7 @@ function findUp(){
 
 
 function ajaxSpell(v, r){
+	if(EOV=='viewer')return;
     checkSpell=false;
     var data = lines[v][0];
     if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
@@ -556,12 +641,15 @@ function ajaxSpell(v, r){
 
 
 function cut(){
+	if(EOV=='viewer')return;
     if(pos.row!=anch.row || pos.col!=anch.col)backspace();
     saveTimer();
 }
 function copy(){
+	if(EOV=='viewer')return;
 }
 function paste(){
+	if(EOV=='viewer')return;
 	if(!justPasted){
 		var forceCalc = false;
     	saveTimer();
@@ -656,6 +744,7 @@ function paste(){
 	}
 }
 function setJustPasted(){
+	if(EOV=='viewer')return;
 	justPasted=false;
 }
 function selection(){
@@ -762,7 +851,6 @@ function setup(e){
     tabs(0);
     characterInit();
     sceneIndex();
-	noteIndex();
     document.getElementById('ccp').focus();
     document.getElementById('ccp').select();
     document.getElementById('saveButton').value="Saved";
@@ -773,6 +861,7 @@ function setup(e){
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
 	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
 	n.play()
+	noteIndex();
 }
 function tabs(v){
     var t = ["sceneTab","noteTab"]
@@ -792,6 +881,7 @@ function tabs(v){
 	t=i=null;
 }
 function changeFormat(v){
+	if(EOV=='viewer')return;
 	if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
     saveTimer();
     undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
@@ -818,6 +908,7 @@ function changeFormat(v){
     sceneIndex();
 }
 function contextmenu(e){
+	if(EOV=='viewer')return;
 	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
 		e.preventDefault();
 		var d = document.body.appendChild(document.createElement('div'));
@@ -971,14 +1062,47 @@ function mousePosition(e, w){
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
     mouseY=e.clientY;
-    if(mouseDownBool) mousePosition(e,"pos");
+    if (mouseDownBool) mousePosition(e,"pos");
 	var height = document.getElementById('canvas').height;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight;
     var barHeight = ((height)/pagesHeight)*(height-39);
     if (barHeight<20)barHeight=20;
     if (barHeight>=height-39)barHeight=height-39;
     var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
-	document.getElementById('canvas').style.cursor = ((e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
+		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	}
+	else{
+		var found=false;
+		for(i in notesPosition){
+			if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
+				if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
+					found=notesPosition[i][2];
+					break;
+				}
+			}
+		}
+		if (found!=false){
+			goog.dom.getElement('canvas').style.cursor='pointer';
+			goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+		else{
+			goog.dom.getElement('canvas').style.cursor = 'text';
+			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+	}
+}
+function notesDialogFromScript(e){
+	// This is a weird loophole to get 
+	//the notesDialog going on script click
+	for(i in notesPosition){
+		if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
+			if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
+				notesDialog(false, notesPosition[i][2], false, false);
+				break;
+			}
+		}
+	}
 }
 function handleMouseWheel(e){
 	scroll(e.deltaY*2)
@@ -1337,6 +1461,7 @@ function rightArrow(e){
 }
 
 function backspace(e){
+	if(EOV=='viewer')return;
     if(typeToScript){
         saveTimer();
 		redoQue=[];
@@ -1475,6 +1600,7 @@ function backspace(e){
     }
 }
 function deleteButton(){
+	if(EOV=='viewer')return;
     if(typeToScript){
     saveTimer();
 	redoQue=[];
@@ -1588,6 +1714,7 @@ function deleteButton(){
 }
 	
 function enter(){
+	if(EOV=='viewer')return;
     if(typeToScript && document.getElementById('suggestBox')==null){
         saveTimer();
         if(checkSpell)ajaxSpell(pos.row);
@@ -1641,6 +1768,7 @@ function enter(){
 }
 
 function tab(){
+	if(EOV=='viewer')return;
 	if(typeToScript){
 		if(document.getElementById('suggestBox')!=null){document.getElementById('suggestBox').parentNode.removeChild(document.getElementById('suggestBox'))};
 	    saveTimer();
@@ -1683,6 +1811,7 @@ function tab(){
 }
 	
 function handlekeypress(e) {
+	if(EOV=='viewer')return;
 	//console.log(e.keyCode)
 	if (findForcePaint)return;
 	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32 || e.keyCode==186){
@@ -1726,6 +1855,7 @@ function handlekeypress(e) {
 // Managining arrays
 // calcing data
 function undo(){
+	if(EOV=='viewer')return;
     saveTimer();
     if (undoQue.length==0)return;
 	var forceCalc = false;
@@ -1879,6 +2009,7 @@ function undo(){
     }
 }
 function redo(){
+	if(EOV=='viewer')return;
     saveTimer();
     if (redoQue.length==0)return;
 	var forceCalc=false;
@@ -2172,70 +2303,170 @@ function sortNotesCol(a,b){
 }
 function noteIndex(){
     notes.sort(sortNotes);
-	var c = document.getElementById('noteBox');
-	for(var i=0;i<c.childNodes.length;i++){
-		c.removeChild(c.firstChild);
-		i--;
-	}
+	var c = goog.dom.getElement('noteBox')
+	goog.dom.removeChildren(c);
 	for (x in notes){
+		//build box
 		var newDiv=c.appendChild(document.createElement('div'));
-		newDiv.className='thread';
-        var header = newDiv.appendChild(document.createElement('table'));
-        header.width="100%";
-        var TR = header.appendChild(document.createElement('tr'));
-        TR.appendChild(document.createElement('td'));
-        var TD = TR.appendChild(document.createElement('td'));
-        TD.align="right";
-        var newA = TD.appendChild(document.createElement('a'));
-        newA.style.backgroundColor="orange";
-        newA.appendChild(document.createTextNode('Delete'));
-        newA.href="javascript:deleteThread('"+notes[x][3]+"')";
-        newA.style.textDecoration="none";
-        newA.style.color = "black";
-		for (y in notes[x][2]){
-			var msgDiv = newDiv.appendChild(document.createElement('div'));
-            var contentDiv = msgDiv.appendChild(document.createElement('div'));
-			contentDiv.innerHTML = notes[x][2][y][0];
-            var infoDiv = msgDiv.appendChild(document.createElement('div'));
-            infoDiv.appendChild(document.createTextNode(notes[x][2][y][1].split("@")[0]));
-            infoDiv.align='right';
-            infoDiv.className="msgInfo";
-			msgDiv.className='msg';
-            msgDiv.id=notes[x][3]+"msg";
-			goog.events.listen(msgDiv, goog.events.EventType.CLICK, function(e){
-				var j = e.target;
-				while(j.className!='msg'){j=j.parentNode;}
-				for (i in notes){
-		            if (String(notes[i][3])==String(j.id.replace("msg",""))){
-		                pos.row=anch.row=notes[i][0];
-		                pos.col=anch.col=notes[i][1];
-		            }
-		        }
-		        paint(false,false,false);
-		        jumpTo("find"+pos.row)
-			})
-			msgDiv=contentDiv=infoDiv=null;
+		newDiv.className='noteListUnit';
+		newDiv.id = 'noteListUnit'+notes[x][3];
+		// figure out what page its on
+		if(pageBreaks.length==0){var pn = 1}
+		else{
+			var i=0;
+			while(notes[x][0]*1+1*1>pageBreaks[i][0]){
+				i++;
+				if(i==pageBreaks.length)break
+			}
+			var pn=i*1+1;
 		}
-		var cont=newDiv.appendChild(document.createElement('div'));
-		cont.className='respond';
-		cont.appendChild(document.createTextNode('Respond'));
-		cont.id=notes[x][3];
-		goog.events.listen(cont, goog.events.EventType.CLICK, newMessage)
-		newDiv=TR=TD=newA=cont=null;
+		//get note snippet
+		var tmpEl = goog.dom.createElement('div');
+		tmpEl.innerHTML = notes[x][2][0][0];
+		var snippet = goog.dom.getTextContent(tmpEl);
+		if (snippet.length>80)snippet = snippet.substr(0,77)+'...';
+		snippet = '"'+snippet+'"';
+		// figre out reply text
+		var replySpan = goog.dom.createElement('span');
+		if(notes[x][2].length==2){
+			replySpan.appendChild(goog.dom.createTextNode('1 Reply'));
+		}
+		else if(notes[x][2].length>2){
+			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+' Replies'));
+		}
+		//figure out how many new replies
+		var r = 0;
+		for (y in notes[x][2]){
+			if(String(notes[x][2][y][3])=='0')r++;
+		}
+		var newReplySpan = goog.dom.createElement('span');
+		newReplySpan.style.color = 'red';
+		if(r!=0)newReplySpan.appendChild(goog.dom.createTextNode("("+r+" New)"))
+		//build table
+		var table = newDiv.appendChild(document.createElement('table'));
+		table.style.fontFamily='sans-serif';
+		table.width='100%';
+		var tr = table.appendChild(document.createElement('tr'));
+		var td = tr.appendChild(document.createElement('td'));
+		td.appendChild(goog.dom.createTextNode('Page '+pn+' -'));
+		td.width='23%';
+		td.vAlign='top';
+		tr.appendChild(document.createElement('td')).appendChild(goog.dom.createTextNode(snippet));
+		tr = table.appendChild(document.createElement('tr'));
+		tr.appendChild(document.createElement('td')).appendChild(replySpan);
+		tr.appendChild(document.createElement('td')).appendChild(newReplySpan);
+		goog.events.listen(newDiv, goog.events.EventType.CLICK, function(e){
+			var el = e.target;
+			while(el.className!='noteListUnit')el=el.parentNode;
+			var id = parseInt(el.id.replace('noteListUnit',''));
+			for(i in notes){
+				if (notes[i][3]==id){
+					var row = notes[i][0];
+					var col = notes[i][1];
+					pos.row=anch.row=row;
+					pos.col=anch.col=col;
+				}
+			}
+			jumpTo('find'+row);
+			notesDialog(e, false, false, false)
+		});
 	}
     typeToScript=true;
 	x=i=null;
 }
+function notesDialog(e, id, top, left){
+	if (e){
+		var c = e.target;
+		while(c.nodeName!='DIV')c=c.parentNode;
+		var id = parseInt(c.id.replace('noteListUnit',""));
+	}
+	var c = goog.dom.getElementsByClass('modal-dialog')
+	for (i in c){
+		if(c[i].id=='modal-dialog'+id){
+			bringDialogToFront(id);
+			return;
+		}
+	}
+	var d = new goog.ui.Dialog();
+	d.setModal(false);
+	d.setTitle('Leave a Note');
+	//figure out what to put in there
+	var str = "";
+	var user = document.getElementById('user_email').innerHTML.toLowerCase();
+	for (i in notes){
+		if(notes[i][3]==id){
+			for(j in notes[i][2]){
+				var classN = (parseInt(notes[i][2][j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
+				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
+				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
+				str+=notes[i][2][j][0];
+				//edit controls
+				var edit = "";
+				if(notes[i][2][j][1].toLowerCase()==user){
+					edit+=" <span class='noteControls' onclick='newMessage(this)'>edit</span> |"
+				}
+				if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
+					edit+=" <span class='noteControls' onclick='deleteMessage(this)'>delete</span>"
+				}
+				if(j==0 && EOV=='editor'){
+					edit+=" | <span class='noteControls' onclick='deleteThread(this)'>delete all</a>"
+				}
+				if(edit!=""){
+					str+="<div align='right'>"+edit+"</div>"
+				}
+				str+="</div>";
+			}
+		}
+	}
+	str+='<input type="button" value="Reply">';
+	d.setContent(str);
+	d.setButtonSet(null);
+	d.setVisible(true);
+	d.setDisposeOnHide(true);
+	d.getDialogElement().id='modal-dialog'+id;
+	if(top){
+		d.getDialogElement().style.top=top;
+		d.getDialogElement().style.left=left;
+	}
+	d.getDialogElement().style.paddingBottom='10px';
+	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
+	var mdc = d.getContentElement();
+	var reply = mdc.getElementsByTagName('input')[0];
+	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
+	bringDialogToFront(id);
+}
+function markAsRead(e){
+	var el = e;
+	while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+	if(el.className=='noteMessage')return;
+	var msg_id=el.id;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id=parseInt(el.id.replace('modal-dialog',''));
+	goog.net.XhrIo.send('/notesmarkasread',
+		function(){
+			var anim = new goog.fx.dom.BgColorTransform(e, [250, 128, 114], [255, 255, 224], 500);
+			goog.events.listen(anim, goog.fx.Animation.EventType.END, function() {
+				e.className='noteMessage'
+				e.removeAttribute('title');
+			});
+			anim.play();
+			for (i in notes){
+				if (notes[i][3]==thread_id){
+					for(j in notes[i][2]){
+						if (notes[i][2][j][2]==msg_id){
+							notes[i][2][j][3]=1;
+						}
+					}
+				}
+			}
+			noteIndex();
+		},
+		'POST',
+		'resource_id='+resource_id+'&thread_id='+thread_id+'&msg_id='+escape(msg_id)
+	)
+}
 function newThread(){
-	tabs(1);
-	viewNotes=true;
-	paint(false,false,false);
-    noteIndex();
-    typeToScript=false;
-    var c = document.getElementById('noteBox');
-    var newDiv=c.appendChild(document.createElement('div'));
-    newDiv.className='thread';
-	id=Math.round(Math.random()*1000000000);
+	var id=Math.round(Math.random()*1000000000);
     var found=true;
     while (found==true){
         found=false;
@@ -2246,101 +2477,267 @@ function newThread(){
             }
         }
     }
-    var n = newDiv.appendChild(document.createElement('div'));
-    n.className='respondControls';
-    var i=n.appendChild(document.createElement('div'));
-    i.contentEditable=true;
-    i.id='nmi';
-    var sb = n.appendChild(document.createElement('input'));
-    sb.type='button';
-    sb.value='Save';
-    sb.id=id;
-    var cb = n.appendChild(document.createElement('input'));
-    cb.type='button';
-    cb.value='Cancel';
-    cb.id="noteCancel"
-	goog.events.listen(sb, goog.events.EventType.CLICK, submitNewThread)
-	goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
-    i.focus();
+	notes.push([pos.row, pos.col, ['temp', 'temp', 'temp'],id])
+	viewNotes=true;
+	paint(false,false,false);
+	//set up dialog box
+	var d = new goog.ui.Dialog();
+	d.setModal(false);
+	d.setTitle('Leave a Note');
+	d.setContent('')
+	d.setButtonSet(null);
+	d.setVisible(true);
+	d.setDisposeOnHide(true);
+	d.getDialogElement().id='modal-dialog'+id;
+	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
+	var c = d.getContentElement();
+	var tb = c.appendChild(goog.dom.createElement('div'));
+	var editMe = goog.dom.createElement('div');
+	editMe.id = 'editMe';
+	editMe.className='messageEditBox';
+	goog.dom.insertSiblingAfter(editMe, tb);
+	var sb = goog.dom.createElement('input');
+	sb.type='button';
+	sb.value = 'Save';
+	goog.dom.insertSiblingAfter(sb, editMe);
+	var cb = goog.dom.createElement('input');
+	cb.type='button';
+	cb.value = 'Cancel';
+	goog.dom.insertSiblingAfter(cb, sb);
+	var myField = new goog.editor.Field('editMe');
+	editMe.removeAttribute('id');
+	myField.registerPlugin(new goog.editor.plugins.BasicTextFormatter());
+	myField.registerPlugin(new goog.editor.plugins.RemoveFormatting());
+	myField.registerPlugin(new goog.editor.plugins.UndoRedo());
+	myField.registerPlugin(new goog.editor.plugins.ListTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.SpacesTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.EnterHandler());
+	myField.registerPlugin(new goog.editor.plugins.HeaderFormatter());
+	var buttons = [
+		goog.editor.Command.BOLD,
+		goog.editor.Command.ITALIC,
+		goog.editor.Command.UNDERLINE,
+		goog.editor.Command.FONT_COLOR,
+		goog.editor.Command.FONT_SIZE,
+		goog.editor.Command.UNDO,
+		goog.editor.Command.REDO,
+		goog.editor.Command.UNORDERED_LIST,
+		goog.editor.Command.ORDERED_LIST,
+		goog.editor.Command.STRIKE_THROUGH,
+		goog.editor.Command.REMOVE_FORMAT
+	];
+	var myToolbar = goog.ui.editor.DefaultToolbar.makeToolbar(buttons,tb);
+	var myToolbarController = new goog.ui.editor.ToolbarController(myField, myToolbar);
+	myField.makeEditable();
+	myField.focusAndPlaceCursorAtStart();
+	goog.events.listen(myField, goog.events.EventType.BLUR, function(e){typeToScript=true});
+	goog.events.listen(myField, goog.events.EventType.FOCUS, function(e){typeToScript=false});
+	goog.events.listen(sb, goog.events.EventType.CLICK, submitNewThread);
+	goog.events.listen(cb, goog.events.EventType.CLICK, cancelNewThread);
 }
-function submitNewThread(e){
-	var v = e.target.id;
-    var content = document.getElementById('nmi').innerHTML
-    var u =document.getElementById('user_email').innerHTML;
-    var d = new Date();
-    if (content!=""){
-        var arr = [pos.row, pos.col, [[content,u,d]], v];
-        notes.push(arr);
-        var data = [pos.row, pos.col, content, v];
-        if(resource_id!="Demo"){
-			goog.net.XhrIo.send('/notesnewthread',
-				function(e){
-					if(e.target.getResponseText()!='sent'){
-						alert("Sorry, there was a problem sending that message. Please try again later.")
-					}
-				},
-				'POST',
-				'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+v
-			);
-        }
-    }
-    noteIndex();
-}
-function newMessage(e){
-	var v = e.target.id;
-    noteIndex();
-    typeToScript=false;
-    var c=document.getElementById(v);
-    var n=c.parentNode.insertBefore(document.createElement('div'),c);
-    n.className='respondControls';
-    var i=n.appendChild(document.createElement('div'));
-    i.contentEditable=true;
-    i.id='nmi';
-    var sb = n.appendChild(document.createElement('input'));
-    sb.type='button';
-    sb.value='Save';
-    sb.id='noteSave'+v;
-    var cb = n.appendChild(document.createElement('input'));
-    cb.type='button';
-    cb.value='Cancel';
-    cb.id="noteCancel"
-    c.parentNode.removeChild(c);
-	goog.events.listen(sb, goog.events.EventType.CLICK, submitMessage)
-	goog.events.listen(cb, goog.events.EventType.CLICK, noteIndex)
-    i.focus();
-}
-
-function submitMessage(e){
-	var v = parseInt(e.target.id.replace('noteSave',''));
-	for (x in notes){
-		if (notes[x][3]==v){
-			var n=x;
+function cancelNewThread(){
+	var el = this;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var id = parseInt(el.id.replace('modal-dialog',''));
+	for(i in notes){
+		if(notes[i][3]==id){
+			notes.splice(i,1);
+			break;
 		}
 	}
+	goog.dom.removeNode(el);
+}
+function submitNewThread(){
+	var el = this;
+	while(el.className!='messageEditBox editable')el=el.previousSibling;
+    var content = el.contentWindow.document.body.innerHTML;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id = parseInt(el.id.replace('modal-dialog', ''));
+	var top = el.style.top;
+	var left = el.style.left;
+	if(resource_id!="Demo"){
+		goog.net.XhrIo.send('/notesnewthread',
+			function(e){
+				var r = e.target.getResponseJson();
+				if(r[0]=='error'){
+					alert("Sorry, there was a problem sending that message. Please try again later.")
+				}
+				else{
+					var row = r[0];
+					var col = r[1];
+					var thread_id = r[2];
+					var msg_id = r[3];
+					var user = r[4];
+					for (i in notes){
+						if (notes[i][3]==thread_id){
+							notes[i][2]=[[content, user, msg_id]];
+						}
+					}
+					noteIndex();
+					goog.dom.removeNode(el);
+					notesDialog(false, thread_id, top, left);
+				}
+			},
+			'POST',
+			'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+thread_id
+		);
+	};
+	this.disabled = true;
+	this.value = 'Saving...';
+}
+function newMessage(t){
+    typeToScript=false;
+	if (this.nodeName=='INPUT'){
+		var el = this;
+		var content = "";
+		var id = 'new'+ new Date().getTime();
+	}
+	else{
+		var el = t;
+		while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+		while (t.nodeName!='DIV')t=t.parentNode;
+		goog.dom.removeNode(t);
+		var c = el.childNodes;
+		for (i in c){
+			if(c[i].nodeName=='B'){
+				goog.dom.removeNode(c[i]);
+				break;
+			}
+		}
+		var content = el.innerHTML;
+		var id = el.id;
+		var reply = el;
+		while(reply.value!='Reply')reply=reply.nextSibling;
+		goog.dom.removeNode(reply);
+	}
+	var tb = goog.dom.createElement('div')
+	goog.dom.insertSiblingAfter(tb,el);
+	goog.dom.removeNode(el);
+	var editMe = goog.dom.createElement('div')
+	editMe.className='messageEditBox';
+	editMe.id = id;
+	goog.dom.insertSiblingAfter(editMe, tb);
+	var sb = goog.dom.createElement('input');
+	sb.type='button';
+	sb.value = 'Save';
+	goog.dom.insertSiblingAfter(sb, editMe);
+	var cb = goog.dom.createElement('input');
+	cb.type='button';
+	cb.value = 'Cancel';
+	goog.dom.insertSiblingAfter(cb, sb);
+	goog.dom.removeNode(this);
+	var myField = new goog.editor.Field(id);
+	myField.registerPlugin(new goog.editor.plugins.BasicTextFormatter());
+	myField.registerPlugin(new goog.editor.plugins.RemoveFormatting());
+	myField.registerPlugin(new goog.editor.plugins.UndoRedo());
+	myField.registerPlugin(new goog.editor.plugins.ListTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.SpacesTabHandler());
+	myField.registerPlugin(new goog.editor.plugins.EnterHandler());
+	myField.registerPlugin(new goog.editor.plugins.HeaderFormatter());
+	var buttons = [
+		goog.editor.Command.BOLD,
+		goog.editor.Command.ITALIC,
+		goog.editor.Command.UNDERLINE,
+		goog.editor.Command.FONT_COLOR,
+		goog.editor.Command.FONT_SIZE,
+		goog.editor.Command.UNDO,
+		goog.editor.Command.REDO,
+		goog.editor.Command.UNORDERED_LIST,
+		goog.editor.Command.ORDERED_LIST,
+		goog.editor.Command.STRIKE_THROUGH,
+		goog.editor.Command.REMOVE_FORMAT
+	];
+	var myToolbar = goog.ui.editor.DefaultToolbar.makeToolbar(buttons,tb);
+	var myToolbarController = new goog.ui.editor.ToolbarController(myField, myToolbar);
+	myField.makeEditable();
+	myField.setHtml(false, content);
+	myField.focusAndPlaceCursorAtStart();
+	goog.events.listen(myField, goog.events.EventType.BLUR, function(e){typeToScript=true});
+	goog.events.listen(myField, goog.events.EventType.FOCUS, function(e){typeToScript=false});
+	goog.events.listen(sb, goog.events.EventType.CLICK, submitMessage);
+	goog.events.listen(cb, goog.events.EventType.CLICK, cancelMessage);
+}
+
+function cancelMessage(){
+	var el = this;
+	while(el.className!='modal-dialog'){el=el.parentNode}
+	var top = el.style.top;
+	var left = el.style.left;
+	var id = parseInt(el.id.replace('modal-dialog',''));
+	goog.dom.removeNode(el)
+	typeToScript=true;
+	notesDialog(false, id, top, left);
+}
+
+function submitMessage(){
+	this.disabled=true;
+	this.value='Saving...'
+	var el = this;
+	while(el.className!='messageEditBox editable')el=el.previousSibling;
+	var editorBox = el;
+	var content = el.contentWindow.document.body.innerHTML;
+	var msg_id=el.id;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	var thread_id=parseInt(el.id.replace('modal-dialog',''));
     var d = new Date();
-    var content = document.getElementById('nmi').innerHTML
-    var u =document.getElementById('user_email').innerHTML;
     if(content!=""){
-        var arr=[content, u, d]
-        notes[n][2].push(arr);
         if(resource_id!="Demo"){
 			goog.net.XhrIo.send('/notessubmitmessage',
 				function(e){
-					if(e.target.getResponseText()!='sent'){
+					try{
+						var r = e.target.getResponseJson()
+					}
+					catch(e){
 						alert("Sorry, there was a problem sending that message. Please try again later.")
+						return;
+					}
+					if(r[0]=='error'){
+						alert("Sorry, there was a problem sending that message. Please try again later.")
+					}
+					else{
+						var new_content = r[0];
+						var timestamp = r[1];
+						var user = r[2];
+						var thread_id = r[3];
+						var top = el.style.top;
+						var left = el.style.left;
+						goog.dom.removeNode(el)
+						for(i in notes){
+							if(notes[i][3]==thread_id){
+								var found = false;
+								for(j in notes[i][2]){
+									if(notes[i][2][j][2]==timestamp){
+										notes[i][2][j][0]=new_content;
+										found=true;
+									}
+								}
+								if(!found){
+									notes[i][2].push([new_content, user, timestamp])
+								}
+							}
+						}
+						noteIndex();
+						notesDialog(false, thread_id, top, left)
 					}
 				},
 				'POST',
-				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+v+'&fromPage=editor'
+				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
 			);
         }
+		else{
+			//what to do if it's the demo
+		}
 		arr=null
     }
+	else{cancelMessage()}
 	noteIndex();
 	x=d=content=u=n=null;
 }
 
 function deleteThread(v){
+	var el = v;
+	while(el.className!='modal-dialog')el=el.parentNode;
+	v=parseInt(el.id.replace('modal-dialog',''));
     var c = confirm("Are you sure you want to Delete this thread? This cannot be undone.");
     if(c==true){
         if(resource_id!="Demo"){
@@ -2353,10 +2750,65 @@ function deleteThread(v){
     for (i in notes){
         if (notes[i][3]==v)var found = i;
     }
-	c=i=null;
+	goog.dom.removeNode(el)
     notes.splice(found,1);
     noteIndex();
     }
+}
+
+function deleteMessage(v){
+	var c = confirm("Are you sure you want to delete this message? This cannot be undone.")
+	if(c==true){
+		var el = v;
+		while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
+		var msgId = el.id;
+		el.style.backgroundColor='grey';
+		while(el.className!='modal-dialog'){el=el.parentNode}
+		var threadId = parseInt(el.id.replace('modal-dialog',''))
+		goog.net.XhrIo.send('/notesdeletemessage',
+			function(e){
+				var r = e.target.getResponseText();
+				if (r=='deleted'){
+					for(i in notes){
+						if(notes[i][3]==threadId){
+							for (j in notes[i][2]){
+								if(notes[i][2][j][2]==msgId){
+									notes[i][2].splice(j,1)
+									if(notes[i][2].length==0){
+										notes.splice(i,1);
+										var el = goog.dom.getElement(msgId);
+										while(el.className!='modal-dialog')el=el.parentNode;
+										goog.dom.removeNode(el);
+									}
+									else{
+										goog.dom.removeNode(goog.dom.getElement(msgId));
+									}
+								}
+							}
+						}
+					}
+					noteIndex();
+				}
+				else{
+					msgId.style.backgroundColor='lightYellow';
+					alert("There was a problem deleting that message. Please try again later.")
+				}
+			},
+			'POST',
+			'resource_id='+resource_id+'&thread_id='+threadId+'&msgId='+escape(msgId)
+		);
+	}
+}
+
+function bringDialogToFront(id){
+	var z=0;
+	var c = goog.dom.getElementsByClass('modal-dialog');
+	for(i in c){
+		if(c[i].nodeName=='DIV' && c[i].style.zIndex>z)z=c[i].style.zIndex*1;
+	}
+	if((typeof id)=='number'){var el = goog.dom.getElement('modal-dialog'+id)}
+	else{var el = this}
+	el.style.zIndex=z*1+1;
 }
 
 //Menu
@@ -2509,7 +2961,7 @@ function menuSelect(e){
 // closing the window
 function closeScript(){
 	clearTimeout(timer);
-    if(resource_id=='Demo'){
+    if(resource_id=='Demo' || EOV=='viewer'){
         self.close()
     }
     var data=JSON.stringify(lines);
@@ -2570,6 +3022,7 @@ function createScript (){
 }
 // duplicate
 function duplicate(){
+	if(EOV=='viewer')return;
 	goog.net.XhrIo.send('/duplicate',
 		function(e){
 			if(e.target.getResponseText()=='fail')return;
@@ -2590,6 +3043,7 @@ goog.events.listen(goog.dom.getElement('saveError'), goog.events.EventType.CLICK
 	n.play()
 });
 function save(v){
+	if(EOV=='viewer')return;
     clearTimeout(timer);
     if(resource_id=='Demo'){
         if(v==0){
@@ -2634,6 +3088,7 @@ function openPrompt(){
 
 //rename
 function renamePrompt(){
+	if(EOV=='viewer')return;
     typeToScript=false;
     document.getElementById('renameTitle').innerHTML = "Rename: " + document.getElementById('title').innerHTML;
     document.getElementById('renameField').value = document.getElementById('title').innerHTML;
@@ -2641,12 +3096,14 @@ function renamePrompt(){
 }
 
 function hideRenamePrompt(){
+	if(EOV=='viewer')return;
 	document.getElementById('renameField').value = "";
 	document.getElementById('renamepopup').style.visibility = 'hidden';
     typeToScript=true;
 }
 	
 function renameScript(){
+	if(EOV=='viewer')return;
 	if(resource_id=="Demo"){
         alert("Sorry, you'll have to login to do that.");
         return;
@@ -2713,7 +3170,6 @@ function hideEmailPrompt(){
 }
 
 function emailComplete(e){
-	console.log()
 	document.getElementById('emailS').disabled = false;
 	document.getElementById('emailS').value = 'Send';
 	if (e.target.getResponseText()=='sent'){
@@ -2750,15 +3206,18 @@ function emailScript(){
 
 //Sharing scripts
 function sharePrompt(){
+	if(EOV=='viewer')return;
 typeToScript=false;
     document.getElementById("sharepopup").style.visibility="visible";
 }
 function hideSharePrompt(){
+	if(EOV=='viewer')return;
     typeToScript=true;
     document.getElementById("sharepopup").style.visibility="hidden";
     document.getElementById("collaborator").value="";
 }
 function removeAccess(v){
+	if(EOV=='viewer')return;
     var c = confirm("Are you sure you want to remove access for this user?");
     if(c==true){
         var c = document.getElementById(v);
@@ -2774,6 +3233,7 @@ function removeAccess(v){
 }
 
 function shareScript(){
+	if(EOV=='viewer')return;
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
 	var arr=[];
 	var nonValidEmail=false;
@@ -2819,6 +3279,7 @@ function shareScript(){
 }
 //tag
 function tagPrompt(){
+	if(EOV=='viewer')return;
 	save(0);
 	var t = prompt("Leave a tag for this version:");
 	if (t!=null && t!=""){
@@ -2868,6 +3329,7 @@ function hideFindReplacePrompt(){
 	commandDownBool=false;
 }
 function replaceText(){
+	if(EOV=='viewer')return;
 	var d = document.getElementById('fr_replace_input').value;
 	if(d.length==0)return;
 	if(pos.row==anch.row && pos.col==anch.col)return;
@@ -2881,11 +3343,13 @@ function replaceText(){
 	//lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
 }
 function replaceAndFind(){
+	if(EOV=='viewer')return;
 	replaceText();
 	findDown();
 }
 // spellCheck
 function launchSpellCheck(){
+	if(EOV=='viewer')return;
     typeToScript=false;
     ajaxSpell(pos.row)
     var firstLine = (pos.row==0 ? true : false);
@@ -2894,6 +3358,7 @@ function launchSpellCheck(){
     
 }
 function spellCheckCycle(firstLine, r, w){
+	if(EOV=='viewer')return;
     if(r=='finished'){
         alert('Spell Check Complete');
         hideSpellCheck();
@@ -3293,8 +3758,9 @@ function drawRange(ctx, pageStartX){
 }
 
 
-function drawNote(width, height, col, ctx, i, pageStartX){
+function drawNote(width, height, col, ctx, i, pageStartX, id){
     if(lines[i][1]==5){
+		notesPosition.push([width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3, id]);
         ctx.fillStyle="gold";
         ctx.beginPath();
         ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3);
@@ -3321,6 +3787,7 @@ function drawNote(width, height, col, ctx, i, pageStartX){
         ctx.stroke();
     }
     else{
+		notesPosition.push([width+fontWidth*col+pageStartX, height-vOffset-lineheight+3, id])
         ctx.fillStyle="gold";
         ctx.beginPath();
         ctx.moveTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3);
@@ -3354,6 +3821,7 @@ function sortNumbers(a,b){
 }
 
 function paint(forceCalc, forceScroll){
+	notesPosition=[];
 	var linesLength = lines.length;
 	var linesNLBLength = linesNLB.length;
 	var linesLV = lines;
@@ -3478,7 +3946,7 @@ function paint(forceCalc, forceScroll){
 				var notesArr=[];
 				if(viewNotes){
 					for (note in notes){
-						if(notes[note][0]==i)notesArr.push(notes[note][1]);
+						if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
 					}
 				}
 				notesArr = notesArr.sort(sortNumbers);
@@ -3519,10 +3987,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-							    if (notesArr[note]>=thisLineText.length-printString.length){
-							        altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-							        drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-							        notesInThisLine.push(notesArr[note]);
+							    if (notesArr[note][0]>=thisLineText.length-printString.length){
+							        altPrintString=altPrintString.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note][0]-tc+notesInThisLine.length);
+							        drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+							        notesInThisLine.push(notesArr[note][0]);
 							    }
 							}
 						}
@@ -3547,10 +4015,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-								if (notesArr[note]>=thisLineText.length-printString.length){
-									altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-									notesInThisLine.push(notesArr[note]);
+								if (notesArr[note][0]>=thisLineText.length-printString.length){
+									altPrintString=altPrintString.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note][0]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+									notesInThisLine.push(notesArr[note][0]);
 								}
 							}
 						}
@@ -3577,10 +4045,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-								if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
-									altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
-									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-									notesInThisLine.push(notesArr[note]);
+								if (notesArr[note][0]>=tc && notesArr[note][0]<=tc+newLineToPrint.length){
+									altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note][0]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+									notesInThisLine.push(notesArr[note][0]);
 								}
 							}
 						}
@@ -3728,9 +4196,11 @@ function paint(forceCalc, forceScroll){
 		ctx.font="10pt sans-serif";
 		ctx.fillStyle="#000"
 		ctx.fillText(pages, editorWidth-150, canvasHeight-8);
-		//write enter and tab directions
-		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
-		ctx.fillText(wordArr[linesLV[pos.row][1]], 15, canvasHeight-8);
+		if(EOV=='editor'){
+			//write enter and tab directions
+			var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
+			ctx.fillText(wordArr[linesLV[pos.row][1]], 15, canvasHeight-8);
+		}
 		//write current scene number
 		var txt="Scene "+ currentScene + " of " + scenes.length;
 		ctx.fillText(txt, (editorWidth/2)-30, canvasHeight-8);
@@ -3741,6 +4211,7 @@ function paint(forceCalc, forceScroll){
 		scrollBar(ctx, y);
 
 		pagination();
+		if(forceCalc){noteIndex()}
 		
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
 		if(mouseDownBool && pos.row>anch.row && mouseY>canvasHeight-50)scroll(20);
@@ -3756,9 +4227,10 @@ function paint(forceCalc, forceScroll){
 			}
 			document.getElementById('format').selectedIndex=linesLV[pos.row][1];
 		}
-	
-		for(i=0; i<=5; i++){
-			eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false))
+		if(EOV=='editor'){
+			for(i=0; i<=5; i++){
+				eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false));
+			}
 		}
 	}
 }

@@ -97,12 +97,6 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
     float:left;
 	cursor:text;
   }
-  #title:hover{
-	background-color:LightSkyBlue;
-	border:1px #666 solid;
-	margin:0;
-	text-shadow:none;
-}
   .thread{
     border:1px #666 solid;
     padding:5px;
@@ -224,4 +218,46 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	color:#666;
 	font-size:10pt;
 	float:right;
+}
+.noteListUnit{
+	background-color:Khaki;
+	padding:4px;
+	margin:5px;
+	font-size:10pt;
+	cursor:pointer;
+	border:1px #666 solid;
+}
+.noteMessage{
+	background-color:lightYellow;
+	font-family:sans-serif;
+	font-size:10pt;
+	padding:3px;
+	margin:3px;
+	border:1px #aaa solid;
+}
+.noteMessageUnread{
+	background-color:Salmon;
+	font-family:sans-serif;
+	font-size:10pt;
+	padding:3px;
+	margin:3px;
+	border:1px #aaa solid;
+	cursor:pointer;
+}
+.modal-dialog{
+	width:450px;
+	max-height:70%;
+}
+.modal-dialog-content{
+	overflow:auto;
+	max-height:500px;
+}
+.messageEditBox{
+	width:100%;
+	height:200px;
+	border: 1px Grey solid;
+}
+.noteControls{
+	color:#06c;
+	cursor:pointer;
 }

@@ -33,6 +33,12 @@ class NotesNotify (db.Model):
 	user = db.StringProperty()
 	new_notes= db.IntegerProperty()
 
+class UnreadNotes (db.Model):
+	resource_id = db.StringProperty()
+	thread_id = db.StringProperty()
+	user = db.StringProperty()
+	msg_id = db.StringProperty()
+
 class SpellingData (db.Model):
 	resource_id = db.StringProperty()
 	wrong = db.TextProperty()
@@ -89,6 +95,8 @@ class Editor (webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
 		path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+		template_values = {}
+		template_values['EOV'] = """'editor'"""
 		resource_id=self.request.get('resource_id')
 		format='editor'
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -97,7 +105,7 @@ class Editor (webapp.RequestHandler):
 			activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
 			return;
 		if user and resource_id!="Demo":
-			template_values = { 'sign_out': users.create_logout_url('/') }
+			template_values['sign_out'] = users.create_logout_url('/')
 			template_values['user'] = users.get_current_user().email()
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"' "+
@@ -106,7 +114,8 @@ class Editor (webapp.RequestHandler):
 			if len(r)!=0:
 				if r[0].permission=='collab':
 					format='viewer'
-					path = os.path.join(os.path.dirname(__file__), 'html/viewer.html')
+					path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+					template_values['EOV'] = """'viewer'"""
 					q=db.GqlQuery("SELECT * FROM ShareNotify "+
 									"WHERE user='"+user.email().lower()+"' "+
 									"AND resource_id='"+resource_id+"' "+
@@ -122,7 +131,7 @@ class Editor (webapp.RequestHandler):
 		else:
 			resource_id=self.request.get('resource_id')
 			if resource_id=='Demo':
-				template_values = { 'sign_out': '/' }
+				template_values['sign_out'] =  '/'
 				template_values['user'] = "test@example.com"
 			else:
 				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
@@ -176,11 +185,31 @@ class ScriptContent (webapp.RequestHandler):
 			q=db.GqlQuery("SELECT * FROM Notes "+
 										"WHERE resource_id='"+resource_id+"'")
 			noteresults = q.fetch(1000)
+			user = users.get_current_user()
+			if user:
+				q=db.GqlQuery("SELECT * FROM UnreadNotes "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND user='"+user.email().lower()+"'")
+				un=q.fetch(500)
+			else:
+				un=None
 			notes=[]
 			for i in noteresults:
-				arr = [i.row, i.col, simplejson.loads(i.data), i.thread_id]
+				msgs = simplejson.loads(i.data)
+				if un==None:
+					for unit in msgs:
+						unit.append(1)
+				else:
+					for unit in msgs:
+						found=False
+						for j in un:
+							if j.msg_id==unit[2]:
+								unit.append(0)
+								found=True
+						if found==False:
+							unit.append(1)
+				arr = [i.row, i.col, msgs, i.thread_id]
 				notes.append(arr)
-
 
 			sharedwith=[]
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -221,17 +250,6 @@ class ScriptContent (webapp.RequestHandler):
 			ja.append(autosave)
 
 			content = simplejson.dumps(ja)
-			user = users.get_current_user()
-			if user:
-				q=db.GqlQuery("SELECT * FROM NotesNotify "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND user='"+users.get_current_user().email().lower()+"'")
-				nn=q.fetch(500)
-				NN=len(nn)
-				for i in nn:
-					i.delete()
-			else:
-				NN=0
 			
 			self.response.headers["Content-Type"]='text/plain'
 			self.response.out.write(content)
@@ -240,7 +258,7 @@ class ScriptContent (webapp.RequestHandler):
 				user=user.email().lower()
 			else:
 				user="unknown"
-			activity.activity("scriptcontent", user, resource_id, mobile, len(results[0].data), NN, None, None, None,title,None,None,None, None)
+			activity.activity("scriptcontent", user, resource_id, mobile, len(results[0].data), None, None, None, None,title,None,None,None, None)
 
 
 class Save (webapp.RequestHandler):
