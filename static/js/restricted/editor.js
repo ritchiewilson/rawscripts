@@ -2389,7 +2389,7 @@ function notesDialog(e, id, top, left){
 	}
 	var d = new goog.ui.Dialog();
 	d.setModal(false);
-	d.setTitle('Leave a Note');
+	d.setTitle('Notes');
 	//figure out what to put in there
 	var str = "";
 	var user = document.getElementById('user_email').innerHTML.toLowerCase();
@@ -2483,8 +2483,8 @@ function newThread(){
 	//set up dialog box
 	var d = new goog.ui.Dialog();
 	d.setModal(false);
-	d.setTitle('Leave a Note');
-	d.setContent('')
+	d.setTitle('Notes');
+	d.setContent('');
 	d.setButtonSet(null);
 	d.setVisible(true);
 	d.setDisposeOnHide(true);
@@ -2555,33 +2555,31 @@ function submitNewThread(){
 	var thread_id = parseInt(el.id.replace('modal-dialog', ''));
 	var top = el.style.top;
 	var left = el.style.left;
-	if(resource_id!="Demo"){
-		goog.net.XhrIo.send('/notesnewthread',
-			function(e){
-				var r = e.target.getResponseJson();
-				if(r[0]=='error'){
-					alert("Sorry, there was a problem sending that message. Please try again later.")
-				}
-				else{
-					var row = r[0];
-					var col = r[1];
-					var thread_id = r[2];
-					var msg_id = r[3];
-					var user = r[4];
-					for (i in notes){
-						if (notes[i][3]==thread_id){
-							notes[i][2]=[[content, user, msg_id]];
-						}
+	goog.net.XhrIo.send('/notesnewthread',
+		function(e){
+			var r = e.target.getResponseJson();
+			if(r[0]=='error'){
+				alert("Sorry, there was a problem sending that message. Please try again later.")
+			}
+			else{
+				var row = r[0];
+				var col = r[1];
+				var thread_id = r[2];
+				var msg_id = r[3];
+				var user = r[4];
+				for (i in notes){
+					if (notes[i][3]==thread_id){
+						notes[i][2]=[[content, user, msg_id]];
 					}
-					noteIndex();
-					goog.dom.removeNode(el);
-					notesDialog(false, thread_id, top, left);
 				}
-			},
-			'POST',
-			'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+thread_id
-		);
-	};
+				noteIndex();
+				goog.dom.removeNode(el);
+				notesDialog(false, thread_id, top, left);
+			}
+		},
+		'POST',
+		'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+thread_id
+	);
 	this.disabled = true;
 	this.value = 'Saving...';
 }
@@ -2680,56 +2678,47 @@ function submitMessage(){
 	while(el.className!='modal-dialog')el=el.parentNode;
 	var thread_id=parseInt(el.id.replace('modal-dialog',''));
     var d = new Date();
-    if(content!=""){
-        if(resource_id!="Demo"){
-			goog.net.XhrIo.send('/notessubmitmessage',
-				function(e){
-					try{
-						var r = e.target.getResponseJson()
-					}
-					catch(e){
-						alert("Sorry, there was a problem sending that message. Please try again later.")
-						return;
-					}
-					if(r[0]=='error'){
-						alert("Sorry, there was a problem sending that message. Please try again later.")
-					}
-					else{
-						var new_content = r[0];
-						var timestamp = r[1];
-						var user = r[2];
-						var thread_id = r[3];
-						var top = el.style.top;
-						var left = el.style.left;
-						goog.dom.removeNode(el)
-						for(i in notes){
-							if(notes[i][3]==thread_id){
-								var found = false;
-								for(j in notes[i][2]){
-									if(notes[i][2][j][2]==timestamp){
-										notes[i][2][j][0]=new_content;
-										found=true;
-									}
-								}
-								if(!found){
-									notes[i][2].push([new_content, user, timestamp])
-								}
+	goog.net.XhrIo.send('/notessubmitmessage',
+		function(e){
+			try{
+				var r = e.target.getResponseJson()
+			}
+			catch(e){
+				alert("Sorry, there was a problem sending that message. Please try again later.")
+				return;
+			}
+			if(r[0]=='error'){
+				alert("Sorry, there was a problem sending that message. Please try again later.")
+			}
+			else{
+				var new_content = r[0];
+				var timestamp = r[1];
+				var user = r[2];
+				var thread_id = r[3];
+				var top = el.style.top;
+				var left = el.style.left;
+				goog.dom.removeNode(el)
+				for(i in notes){
+					if(notes[i][3]==thread_id){
+						var found = false;
+						for(j in notes[i][2]){
+							if(notes[i][2][j][2]==timestamp){
+								notes[i][2][j][0]=new_content;
+								found=true;
 							}
 						}
-						noteIndex();
-						notesDialog(false, thread_id, top, left)
+						if(!found){
+							notes[i][2].push([new_content, user, timestamp])
+						}
 					}
-				},
-				'POST',
-				'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
-			);
-        }
-		else{
-			//what to do if it's the demo
-		}
-		arr=null
-    }
-	else{cancelMessage()}
+				}
+				noteIndex();
+				notesDialog(false, thread_id, top, left)
+			}
+		},
+		'POST',
+		'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
+	);
 	noteIndex();
 	x=d=content=u=n=null;
 }

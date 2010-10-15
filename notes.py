@@ -87,17 +87,23 @@ class SpellingData (db.Model):
 class NewThread(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
+		fromPage=self.request.get('fromPage')
+		try:
+			user=users.get_current_user().email()
+		except:
+			user = 'test@example.com'
+		row = self.request.get('row')
+		col = self.request.get('col')
+		thread_id = self.request.get('thread_id')
+		content = self.request.get('content')
+		d = str(datetime.datetime.today())
 		if resource_id=="Demo":
+			logging.info('hey')
+			self.response.headers["Content-Type"]="text/plain"
+			self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
 			return
 		p = permission(resource_id)
 		if not p==False:
-			fromPage=self.request.get('fromPage')
-			user=users.get_current_user().email()
-			row = self.request.get('row')
-			col = self.request.get('col')
-			thread_id = self.request.get('thread_id')
-			content = self.request.get('content')
-			d = str(datetime.datetime.today())
 			arr = [[content, user, d]]
 			data = simplejson.dumps(arr)
 			n=Notes(resource_id=resource_id,
@@ -125,16 +131,22 @@ class NewThread(webapp.RequestHandler):
 class SubmitMessage(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
+		try:
+			user=users.get_current_user().email()
+		except:
+			user = 'test@example.com'
+		thread_id = self.request.get('thread_id')
+		content = self.request.get('content')
+		msg_id = self.request.get('msg_id')
+		fromPage = self.request.get('fromPage')
+		d = str(datetime.datetime.today())
 		if resource_id=="Demo":
+			output = simplejson.dumps([content, msg_id, user, thread_id])
+			self.response.headers["Content-Type"]="text/plain"
+			self.response.out.write(output)
 			return
 		p = permission(resource_id)
 		if not p==False:
-			user=users.get_current_user().email().lower()
-			thread_id = self.request.get('thread_id')
-			content = self.request.get('content')
-			msg_id = self.request.get('msg_id')
-			fromPage = self.request.get('fromPage')
-			d = str(datetime.datetime.today())
 
 			q = db.GqlQuery("SELECT * FROM Notes "+
 									 "WHERE resource_id='"+resource_id+"' "+
@@ -266,7 +278,10 @@ class DeleteMessage(webapp.RequestHandler):
 
 class MarkAsRead(webapp.RequestHandler):
 	def post(self):
-		user = users.get_current_user().email().lower()
+		try:
+			user=users.get_current_user().email()
+		except:
+			user = 'test@example.com'
 		msg_id = self.request.get('msg_id')
 		thread_id = self.request.get('thread_id')
 		resource_id = self.request.get('resource_id')
