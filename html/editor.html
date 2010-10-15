@@ -215,8 +215,8 @@
 	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:15%; padding:10px; border:double">
 		<div class="popup">
 			<a href="javascript:hideEmailPrompt()" class="close"><img src="/images/close.png" alt="Close Popup"></a>
-			<br /><br />
-            Send Script
+			<br>
+            Email PDF
             <br /><br />
 			<label for="recipient">Recipients (max 5, comma seperated)</label>
 			<br />
@@ -234,7 +234,7 @@
                 <option>Without title Page</option>
                 <option>With title Page</option>
             </select>
-            <a href="/titlepage?resource_id={{  resource_id }}" target="_blank">Edit Title Page</a>
+            <a href="/titlepage?resource_id={{  resource_id }}" target="_blank" id='titlePageHref'>Edit Title Page</a>
 			<br /><br>
 			<input type='button' id="emailS" onClick='emailScript()' value='Send' />
             <br />

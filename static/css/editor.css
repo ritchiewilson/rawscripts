@@ -242,6 +242,7 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 	padding:3px;
 	margin:3px;
 	border:1px #aaa solid;
+	cursor:pointer;
 }
 .modal-dialog{
 	width:450px;

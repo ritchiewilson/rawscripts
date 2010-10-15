@@ -189,7 +189,9 @@ var spellWrong=[];
 var spellIgnore=[];
 var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
-    
+var notesPosition=[];
+
+
 function init(){
 	if (EOV=='viewer'){
 		var f = goog.dom.getElement('format');
@@ -222,6 +224,7 @@ function init(){
 		goog.dom.removeNode(goog.dom.getElement('format5'));
 		goog.dom.removeNode(goog.dom.getElement('revision'));
 		goog.dom.removeNode(goog.dom.getElement('collaborators'));
+		goog.dom.removeNode(goog.dom.getElement('titlePageHref'));
 		
 		
 	}
@@ -1059,14 +1062,47 @@ function mousePosition(e, w){
 function mouseMove(e){
     if(scrollBarBool)scrollBarDrag(e);
     mouseY=e.clientY;
-    if(mouseDownBool) mousePosition(e,"pos");
+    if (mouseDownBool) mousePosition(e,"pos");
 	var height = document.getElementById('canvas').height;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight;
     var barHeight = ((height)/pagesHeight)*(height-39);
     if (barHeight<20)barHeight=20;
     if (barHeight>=height-39)barHeight=height-39;
     var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
-	document.getElementById('canvas').style.cursor = ((e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
+		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	}
+	else{
+		var found=false;
+		for(i in notesPosition){
+			if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
+				if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
+					found=notesPosition[i][2];
+					break;
+				}
+			}
+		}
+		if (found!=false){
+			goog.dom.getElement('canvas').style.cursor='pointer';
+			goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+		else{
+			goog.dom.getElement('canvas').style.cursor = 'text';
+			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+	}
+}
+function notesDialogFromScript(e){
+	// This is a weird loophole to get 
+	//the notesDialog going on script click
+	for(i in notesPosition){
+		if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
+			if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
+				notesDialog(false, notesPosition[i][2], false, false);
+				break;
+			}
+		}
+	}
 }
 function handleMouseWheel(e){
 	scroll(e.deltaY*2)
@@ -2313,7 +2349,7 @@ function noteIndex(){
 		var tr = table.appendChild(document.createElement('tr'));
 		var td = tr.appendChild(document.createElement('td'));
 		td.appendChild(goog.dom.createTextNode('Page '+pn+' -'));
-		td.width='20%';
+		td.width='23%';
 		td.vAlign='top';
 		tr.appendChild(document.createElement('td')).appendChild(goog.dom.createTextNode(snippet));
 		tr = table.appendChild(document.createElement('tr'));
@@ -2360,7 +2396,7 @@ function notesDialog(e, id, top, left){
 	for (i in notes){
 		if(notes[i][3]==id){
 			for(j in notes[i][2]){
-				var classN = (parseInt(notes[i][2][j][3])==0 ? 'noteMessageUnread' : 'noteMessage')
+				var classN = (parseInt(notes[i][2][j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
 				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
 				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
 				str+=notes[i][2][j][0];
@@ -2411,6 +2447,7 @@ function markAsRead(e){
 			var anim = new goog.fx.dom.BgColorTransform(e, [250, 128, 114], [255, 255, 224], 500);
 			goog.events.listen(anim, goog.fx.Animation.EventType.END, function() {
 				e.className='noteMessage'
+				e.removeAttribute('title');
 			});
 			anim.play();
 			for (i in notes){
@@ -3721,8 +3758,9 @@ function drawRange(ctx, pageStartX){
 }
 
 
-function drawNote(width, height, col, ctx, i, pageStartX){
+function drawNote(width, height, col, ctx, i, pageStartX, id){
     if(lines[i][1]==5){
+		notesPosition.push([width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3, id]);
         ctx.fillStyle="gold";
         ctx.beginPath();
         ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3);
@@ -3749,6 +3787,7 @@ function drawNote(width, height, col, ctx, i, pageStartX){
         ctx.stroke();
     }
     else{
+		notesPosition.push([width+fontWidth*col+pageStartX, height-vOffset-lineheight+3, id])
         ctx.fillStyle="gold";
         ctx.beginPath();
         ctx.moveTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3);
@@ -3782,6 +3821,7 @@ function sortNumbers(a,b){
 }
 
 function paint(forceCalc, forceScroll){
+	notesPosition=[];
 	var linesLength = lines.length;
 	var linesNLBLength = linesNLB.length;
 	var linesLV = lines;
@@ -3906,7 +3946,7 @@ function paint(forceCalc, forceScroll){
 				var notesArr=[];
 				if(viewNotes){
 					for (note in notes){
-						if(notes[note][0]==i)notesArr.push(notes[note][1]);
+						if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
 					}
 				}
 				notesArr = notesArr.sort(sortNumbers);
@@ -3947,10 +3987,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-							    if (notesArr[note]>=thisLineText.length-printString.length){
-							        altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-							        drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-							        notesInThisLine.push(notesArr[note]);
+							    if (notesArr[note][0]>=thisLineText.length-printString.length){
+							        altPrintString=altPrintString.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note][0]-tc+notesInThisLine.length);
+							        drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+							        notesInThisLine.push(notesArr[note][0]);
 							    }
 							}
 						}
@@ -3975,10 +4015,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-								if (notesArr[note]>=thisLineText.length-printString.length){
-									altPrintString=altPrintString.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note]-tc+notesInThisLine.length);
-									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-									notesInThisLine.push(notesArr[note]);
+								if (notesArr[note][0]>=thisLineText.length-printString.length){
+									altPrintString=altPrintString.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altPrintString.substr(notesArr[note][0]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+									notesInThisLine.push(notesArr[note][0]);
 								}
 							}
 						}
@@ -4005,10 +4045,10 @@ function paint(forceCalc, forceScroll){
 						var notesInThisLine=[];
 						if(viewNotes){
 							for(note in notesArr){
-								if (notesArr[note]>=tc && notesArr[note]<=tc+newLineToPrint.length){
-									altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note]-tc+notesInThisLine.length);
-									drawNote(distanceFromEdge, y, notesArr[note]-tc+notesInThisLine.length, ctx, i, pageStartX);
-									notesInThisLine.push(notesArr[note]);
+								if (notesArr[note][0]>=tc && notesArr[note][0]<=tc+newLineToPrint.length){
+									altNewLineToPrint=altNewLineToPrint.substr(0,notesArr[note][0]-tc+notesInThisLine.length)+" "+altNewLineToPrint.substr(notesArr[note][0]-tc+notesInThisLine.length);
+									drawNote(distanceFromEdge, y, notesArr[note][0]-tc+notesInThisLine.length, ctx, i, pageStartX, notesArr[note][1]);
+									notesInThisLine.push(notesArr[note][0]);
 								}
 							}
 						}
