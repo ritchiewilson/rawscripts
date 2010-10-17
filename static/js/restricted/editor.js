@@ -2488,6 +2488,7 @@ function newThread(){
 	d.setButtonSet(null);
 	d.setVisible(true);
 	d.setDisposeOnHide(true);
+	d.setHasTitleCloseButton(false);
 	d.getDialogElement().id='modal-dialog'+id;
 	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
 	var c = d.getContentElement();

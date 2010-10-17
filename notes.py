@@ -316,7 +316,7 @@ class ViewNotes(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
 			self.response.out.write(template.render(path, template_values))
 			
-			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, l, None, None, None,None,title,None,None, None)
+			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, None, None, None, None,None,title,None,None, None)
 
 def main():
 	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),

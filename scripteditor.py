@@ -1250,7 +1250,7 @@ class SyncContacts (webapp.RequestHandler):
 					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
 					APPLICATION_ID    = 't73LcW32'
 					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
-					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
+					oauthapp = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
 					oauthapp.token = yahoo.oauth.AccessToken.from_string(at.t)
 					oauthapp.token = oauthapp.refresh_access_token(oauthapp.token)
 					#new_at_entry = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
