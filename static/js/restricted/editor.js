@@ -2419,13 +2419,6 @@ function notesDialog(e, id, top, left){
 		}
 	}
 	str+='<input type="button" value="Reply">';
-	var strArr = str.split(' ');
-	for (i in strArr){
-		if(goog.editor.Link.isLikelyUrl(strArr[i].slice(0,-1))==true){
-			strArr[i] = '<a href="'+ (strArr[i].substr(0,4).toLowerCase()=='http' ? strArr[i] : 'http://'+strArr[i]) +'" target="_blank">'+ strArr[i] + '</a>'
-		}
-	}
-	str=strArr.join(' ');
 	d.setContent(str);
 	d.setButtonSet(null);
 	d.setVisible(true);
@@ -2437,9 +2430,22 @@ function notesDialog(e, id, top, left){
 	}
 	d.getDialogElement().style.paddingBottom='10px';
 	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
+	var c = goog.dom.getTextContent(d.getContentElement()).split(' ');
+	var arr = []
+	for(i in c){
+		if (goog.editor.Link.isLikelyUrl(c[i].slice(0,-1))){
+			if(c[i].length>2){
+				arr.push(c[i])
+			}
+		}
+	}
+	for (i in arr){
+		var t = String(arr[i]);
+		d.getContentElement().innerHTML = d.getContentElement().innerHTML.replace(t, "<a href='"+(t.substr(0,4)=='http' ? t : 'http://'+t)+"' target='_blank'>"+t+'</a>')
+	}
 	var mdc = d.getContentElement();
 	var reply = mdc.getElementsByTagName('input')[0];
-	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage)
+	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage);
 	bringDialogToFront(id);
 }
 function markAsRead(e){
