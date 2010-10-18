@@ -2398,7 +2398,7 @@ function notesDialog(e, id, top, left){
 			for(j in notes[i][2]){
 				var classN = (parseInt(notes[i][2][j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
 				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
-				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b>";
+				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b><span> </span> ";
 				str+=notes[i][2][j][0];
 				//edit controls
 				var edit = "";
@@ -2412,13 +2412,20 @@ function notesDialog(e, id, top, left){
 					edit+=" | <span class='noteControls' onclick='deleteThread(this)'>delete all</a>"
 				}
 				if(edit!=""){
-					str+="<div align='right'>"+edit+"</div>"
+					str+=" <div align='right'>"+edit+"</div>"
 				}
 				str+="</div>";
 			}
 		}
 	}
 	str+='<input type="button" value="Reply">';
+	var strArr = str.split(' ');
+	for (i in strArr){
+		if(goog.editor.Link.isLikelyUrl(strArr[i])==true){
+			strArr[i] = '<a href="'+ (strArr[i].substr(0,4).toLowerCase()=='http' ? strArr[i] : 'http://'+strArr[i]) +'" target="_blank">'+ strArr[i] + '</a>'
+		}
+	}
+	str=strArr.join(' ');
 	d.setContent(str);
 	d.setButtonSet(null);
 	d.setVisible(true);
@@ -2602,6 +2609,10 @@ function newMessage(t){
 				goog.dom.removeNode(c[i]);
 				break;
 			}
+		}
+		var c = el.getElementsByTagName('*');
+		for (i in c){
+			if(c[i].nodeName=='A')goog.dom.flattenElement(c[i])
 		}
 		var content = el.innerHTML;
 		var id = el.id;
