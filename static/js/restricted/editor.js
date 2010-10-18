@@ -2440,8 +2440,8 @@ function notesDialog(e, id, top, left){
 		}
 	}
 	for (i in arr){
-		var t = String(arr[i]);
-		d.getContentElement().innerHTML = d.getContentElement().innerHTML.replace(t, "<a href='"+(t.substr(0,4)=='http' ? t : 'http://'+t)+"' target='_blank'>"+t+'</a>')
+		var t =  new RegExp(arr[i], 'gi')
+		d.getContentElement().innerHTML = d.getContentElement().innerHTML.replace(t, "<a href='"+(arr[i].substr(0,4)=='http' ? arr[i] : 'http://'+arr[i])+"' target='_blank'>"+arr[i]+'</a>')
 	}
 	var mdc = d.getContentElement();
 	var reply = mdc.getElementsByTagName('input')[0];
