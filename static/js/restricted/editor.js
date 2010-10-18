@@ -2421,7 +2421,7 @@ function notesDialog(e, id, top, left){
 	str+='<input type="button" value="Reply">';
 	var strArr = str.split(' ');
 	for (i in strArr){
-		if(goog.editor.Link.isLikelyUrl(strArr[i])==true){
+		if(goog.editor.Link.isLikelyUrl(strArr[i].slice(0,-1))==true){
 			strArr[i] = '<a href="'+ (strArr[i].substr(0,4).toLowerCase()=='http' ? strArr[i] : 'http://'+strArr[i]) +'" target="_blank">'+ strArr[i] + '</a>'
 		}
 	}
