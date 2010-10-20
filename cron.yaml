@@ -1,0 +1,4 @@
+cron:
+- description: daily email notes
+  url: /notessummaryemail
+  schedule: every 24 hours
