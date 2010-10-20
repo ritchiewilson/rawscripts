@@ -8,7 +8,7 @@ function post(){
 function titleChange(){
 	var filename = document.getElementById('file').value;
 	var arr = filename.split('.');
-	if (arr[arr.length-1]!='celtx' && arr[arr.length-1]!='txt' && arr[arr.length-1]!='html'){
+	if (arr[arr.length-1]!='celtx' && arr[arr.length-1]!='txt' && arr[arr.length-1]!='fdx'){
 		document.getElementById('warning').style.display = 'block';
 		document.getElementById('submit').disabled = true;
 		return;
@@ -17,7 +17,7 @@ function titleChange(){
 	document.getElementById('submit').disabled = false;
 	var title = filename.replace('.celtx', '');
     title = title.replace('.txt', '');
-    title = title.replace('.html', '');
+	title = title.replace('.fdx', '');
 	document.getElementById('hidden').value = title;
     var ff = arr[arr.length-1];
     document.getElementById('ff').value = ff;
@@ -39,8 +39,8 @@ function titleChange(){
   })();
 
 </script>
-<p>Upload a .celtx file, or a .txt file from any competitor (celtx, FD, Scripped)</p>
-<p id="warning" style='display:none'><b>We can only accept .txt or .celtx files at the moment</b></p>
+<p>Upload a .fdx, .celtx, or a .txt file (<a href="/uploadhelp" onclick="window.open(this.href, 'popupwindow', 'width=450,height=500,scrollbars,resizable'); return false;">?</a>)</p>
+<p id="warning" style='display:none; background-color:salmon'><b>We can only accept .fdx, .celtx or .txt files at the moment</b></p>
 <form onSubmit="post()" id='target' method="post" enctype="multipart/form-data" action="/convertprocess">
 
 <input id="hidden" type="hidden" value="blank" name="filename">

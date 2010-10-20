@@ -53,9 +53,9 @@ handlers:
   static_files: html/contact.html
   upload: html/contact.html
 
-- url: /migration
-  static_files: html/migration.html
-  upload: html/migration.html
+- url: /uploadhelp
+  static_files: html/uploadhelp.html
+  upload: html/uploadhelp.html
 
 - url: /rawscripts.manifest
   static_files: rawscripts.manifest
