@@ -38,7 +38,7 @@
 <div style="width:500px; font-size:15px;font-family:serif;">
 <p>USER has shared the script SCRIPTTITLE with you.</p>
 <p>Read it and leave notes <a href="SCRIPTURL">here</a>.</p>
-<p>Or copy and paste this address into your browser:SCRIPTURL</p>
+<p>Or copy and paste this address into your browser: SCRIPTURL</p>
 </div>
 <br><br><br>
 <hr>
