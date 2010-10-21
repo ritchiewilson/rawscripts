@@ -7,6 +7,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.api import mail
 from google.appengine.api.labs import taskqueue
 import random
 import datetime
@@ -37,6 +38,10 @@ def ownerPermission (resource_id):
 				p=i.title
 	return p
 
+class Users (db.Model):
+	name = db.StringProperty()
+	firstUse = db.DateTimeProperty(auto_now_add=True)
+	
 class Notes (db.Model):
 	resource_id = db.StringProperty()
 	thread_id=db.StringProperty()
@@ -125,7 +130,7 @@ class NewThread(webapp.RequestHandler):
 									thread_id=thread_id,
 									msg_id=d)
 					nn.put()
-					#taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'user' : i.user, 'msg_id' : d, 'thread_id' : thread_id})
+					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'user' : i.user, 'msg_id' : d, 'thread_id' : thread_id})
 					
 			self.response.headers["Content-Type"]="text/plain"
 			if fromPage=='mobileviewnotes':
@@ -355,11 +360,11 @@ class Notification(webapp.RequestHandler):
 				send=False
 		
 		q = db.GqlQuery("SELECT * FROM Users")
-		r = q.fetch(1000)
+		uTest = q.fetch(1000)
 		#check if user exists in db (ue)
 		#need a better way to do this.
 		ue=False
-		for i in r:
+		for i in uTest:
 			if i.name.lower()==user.lower():
 				ue=True
 		
@@ -367,7 +372,7 @@ class Notification(webapp.RequestHandler):
 			q = db.GqlQuery("SELECT * FROM Notes "+
 							"WHERE resource_id='"+resource_id+"' "+
 							"AND thread_id='"+thread_id+"'")
-			J=simplejson.loads(q.get())
+			J=simplejson.loads(q.get().data)
 			data=None
 			for i in J:
 				if i[2]==msg_id:
@@ -384,7 +389,7 @@ class Notification(webapp.RequestHandler):
 					html = htmlbody.replace("SCRIPTTITLE", r.title)
 					html = html.replace("USER", user)
 					html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
-					html = html.replace("NOTETEXT", m.data)
+					html = html.replace("NOTETEXT", data)
 				
 				body = body_message + """
 
@@ -397,6 +402,7 @@ class Notification(webapp.RequestHandler):
 								body = body,
 								html = html)
 				self.response.out.write('1')
+				logging.info(html)
 
 class SummaryEmail(webapp.RequestHandler):
 	def post(self):
