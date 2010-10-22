@@ -36,13 +36,7 @@
 <td bgcolor="#FFFFFF" valign="top" style="font-size:12px;color:#000000;line-height:150%;font-family:trebuchet ms; border-left:2px #666 solid; border-right:2px #666 solid">
 
 <div style="width:600px; font-size:15px;font-family:serif;">
-<h3>USER Left A Note On The Script "SCRIPTTITLE".</h3>
-<div style='width:290px; margin-left:50px'>
-	"NOTETEXT"
-</div>
-<div style="width:300px" align='right'><b>--USER</b></div><br><br><br>
-<p>Read this, the script, and other notes <a href="SCRIPTURL">here</a>.</p>
-<p>Or copy and paste this address into your browser: SCRIPTURL</p>
+BODYHTML
 </div>
 
 <p>To stop getting these email, or to change their frequency, login and go to your <a href='http://www.rawscripts.com/settings'>settings page</a>.</p>
