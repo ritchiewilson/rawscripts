@@ -22,6 +22,12 @@ indexes:
   - name: version
     direction: desc
 
+- kind: UnreadNotes
+  properties:
+  - name: user
+  - name: resource_id
+    direction: desc
+
 - kind: UsersScripts
   properties:
   - name: permission
