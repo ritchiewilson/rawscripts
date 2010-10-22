@@ -402,7 +402,7 @@ class Notification(webapp.RequestHandler):
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
 			
-				mail.send_mail(sender='admin@rawscripts.com',
+				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
 								to=to_user,
 								subject=subject,
 								body = body,
@@ -444,7 +444,8 @@ class SendSummaryEmail(webapp.RequestHandler):
 					arr = [[i.resource_id, i.thread_id, i.msg_id]]
 			out.append(arr)
 			body=""
-			logging.info(len(out))
+			if len(out)==0:
+				return
 			for i in out:
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 								"WHERE resource_id='"+i[0][0]+"'")
@@ -463,7 +464,26 @@ class SendSummaryEmail(webapp.RequestHandler):
 						body+='<div class="text">"'+found[0]+'"</div>'
 						body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
 				body+='</div>'
-			logging.info(body)
+			
+			#now create the email and send it.
+			subject = 'Daily Notes Summary'
+			body_message="http://www.rawscripts.com/"
+			result = urlfetch.fetch("http://www.rawscripts.com/text/dailysummary.txt")
+			htmlbody = result.content
+			html = htmlbody.replace("HTMLBODY", body)
+			
+			body = body_message + """
+
+
+	--- This Script written and sent from RawScripts.com. Check it out ---"""
+		
+			mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+							to=to_user,
+							subject=subject,
+							body = body,
+							html = html)
+			self.response.out.write('1')
+			logging.info(html)
 
 def main():
 	application=webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
