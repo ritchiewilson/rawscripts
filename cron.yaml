@@ -1,4 +1,4 @@
 cron:
 - description: daily email notes
-  url: /notessummaryemail
+  url: /notessummaryemailinit
   schedule: every 24 hours
