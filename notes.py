@@ -429,9 +429,10 @@ class SendSummaryEmail(webapp.RequestHandler):
 		recent = []
 		for i in notes:
 			t = now-i.timestamp
-			if t.days != 10:
+			if t.days == -1:
 				recent.append(i)
 		if len(recent)!=0:
+			settings = db.get(db.Key.from_path('UsersSettings', "settings"+user))
 			out = []
 			cur = recent[0].resource_id
 			arr = []
@@ -448,42 +449,52 @@ class SendSummaryEmail(webapp.RequestHandler):
 				return
 			for i in out:
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
-								"WHERE resource_id='"+i[0][0]+"'")
-				body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
-				body +="This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a><div style='width:400px'>"
-				for j in i:
-					q=db.GqlQuery("SELECT  FROM Notes "+
-									"WHERE resource_id='"+j[0]+"' "+
-									"AND thread_id='"+j[1]+"'")
-					J = simplejson.loads(q.get().data)
-					found=False
-					for u in J:
-						if u[2]==j[2]:
-							found=u
-					if found!=False:
-						body+='<div class="text">"'+found[0]+'"</div>'
-						body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
-				body+='</div>'
+								"WHERE resource_id='"+i[0][0]+"' "+
+								"AND user='"+user.lower()+"'")
+				us = q.get()
+				notify=False
+				if us.permission=="collab":
+					if settings.shared_notify=='daily':
+						notify=True
+				elif us.permission=='owner':
+					if settings.owned_notify=='daily':
+						notify=True
+				if notify==True:
+					body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
+					body +="This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a><div style='width:400px'>"
+					for j in i:
+						q=db.GqlQuery("SELECT  FROM Notes "+
+										"WHERE resource_id='"+j[0]+"' "+
+										"AND thread_id='"+j[1]+"'")
+						J = simplejson.loads(q.get().data)
+						found=False
+						for u in J:
+							if u[2]==j[2]:
+								found=u
+						if found!=False:
+							body+='<div class="text">"'+found[0]+'"</div>'
+							body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
+					body+='</div>'
+			if body!="":
+				#now create the email and send it.
+				subject = 'Daily Notes Summary'
+				body_message="http://www.rawscripts.com/"
+				result = urlfetch.fetch("http://www.rawscripts.com/text/dailysummary.txt")
+				htmlbody = result.content
+				html = htmlbody.replace("BODYHTML", body)
 			
-			#now create the email and send it.
-			subject = 'Daily Notes Summary'
-			body_message="http://www.rawscripts.com/"
-			result = urlfetch.fetch("http://www.rawscripts.com/text/dailysummary.txt")
-			htmlbody = result.content
-			html = htmlbody.replace("HTMLBODY", body)
-			
-			body = body_message + """
+				body = body_message + """
 
 
-	--- This Script written and sent from RawScripts.com. Check it out ---"""
+		--- This Script written and sent from RawScripts.com. Check it out ---"""
 		
-			mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
-							to=to_user,
-							subject=subject,
-							body = body,
-							html = html)
-			self.response.out.write('1')
-			logging.info(html)
+				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+								to=user,
+								subject=subject,
+								body = body,
+								html = html)
+				self.response.out.write('1')
+				logging.info(html)
 
 def main():
 	application=webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
