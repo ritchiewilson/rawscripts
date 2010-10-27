@@ -774,12 +774,14 @@ class ConvertProcess (webapp.RequestHandler):
 		# Format file
 		data = StringIO.StringIO(self.request.get('script'))
 		if ff=='txt':
+			data = StringIO.StringIO(data.getvalue().replace('’', "'").replace("“",'"').replace('”', '"').replace("‘","'"))
 			e = chardet.detect(data.getvalue())
 			if e["encoding"]!=None and e["encoding"]!="ascii":
 				r = data.getvalue().decode(e["encoding"])
 				data = StringIO.StringIO(r.encode("ascii", "replace"))
 			contents = convert.Text(data)
 		elif ff=='fdx':
+			data = StringIO.StringIO(data.getvalue().replace('’', "'").replace("“",'"').replace('”', '"').replace("‘","'"))
 			contents = convert.FinalDraft(data)
 		else:
 			contents = convert.Celtx(data)
