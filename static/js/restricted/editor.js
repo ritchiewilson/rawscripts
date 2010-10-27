@@ -2430,19 +2430,7 @@ function notesDialog(e, id, top, left){
 	}
 	d.getDialogElement().style.paddingBottom='10px';
 	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
-	var c = goog.dom.getTextContent(d.getContentElement()).split(' ');
-	var arr = []
-	for(i in c){
-		if (goog.editor.Link.isLikelyUrl(c[i].slice(0,-1))){
-			if(c[i].length>2){
-				arr.push(c[i])
-			}
-		}
-	}
-	for (i in arr){
-		var t =  new RegExp(arr[i], 'gi')
-		d.getContentElement().innerHTML = d.getContentElement().innerHTML.replace(t, "<a href='"+(arr[i].substr(0,4)=='http' ? arr[i] : 'http://'+arr[i])+"' target='_blank'>"+arr[i]+'</a>')
-	}
+	
 	var mdc = d.getContentElement();
 	var reply = mdc.getElementsByTagName('input')[0];
 	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage);

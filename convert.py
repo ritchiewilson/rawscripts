@@ -8,6 +8,34 @@ import time
 import zipfile
 import logging
 
+def FinalDraft(data):
+	from xml.dom import minidom
+	x = minidom.parse(data)
+	c = x.getElementsByTagName('Content')[0].getElementsByTagName('Paragraph')
+	d=[]
+	for i in c:
+	    s = ''
+	    t = i.getElementsByTagName('Text')
+	    for j in t:
+	        if j.firstChild!=None:
+	            s+=j.firstChild.data
+	    t = i.getAttribute('Type')
+	    if t == 'Scene Heading':
+	        e=0
+	    elif t == 'Character':
+	        e=2
+	    elif t == 'Dialogue':
+	        e=3
+	    elif t == 'Parenthetical':
+	        e=4
+	    elif t == 'Transition':
+	        e=5
+	    else:
+	        e=1
+	    d.append([s,e])
+	return simplejson.dumps(d)
+	
+
 def Text(data):
     t = data.read()
     lines = t.split('\n')

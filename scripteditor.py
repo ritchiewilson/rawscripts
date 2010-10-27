@@ -755,6 +755,7 @@ class ConvertProcess (webapp.RequestHandler):
 		capture = self.request.get('filename')
 		if capture:
 			filename = capture.replace('%20', ' ')
+			filename = filename.replace('C:\\fakepath\\', '')
 		user=users.get_current_user().email()
 		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 		resource_id=''
@@ -776,32 +777,20 @@ class ConvertProcess (webapp.RequestHandler):
 		# Format file
 		data = StringIO.StringIO(self.request.get('script'))
 		if ff=='txt':
+			data = StringIO.StringIO(data.getvalue().replace('\xe2', "'"))
 			e = chardet.detect(data.getvalue())
 			if e["encoding"]!=None and e["encoding"]!="ascii":
 				r = data.getvalue().decode(e["encoding"])
+				r = r.replace(u"\u201c", "\"").replace(u"\u201d", "\"") #strip double curly quotes
+				r = r.replace(u"\u2018", "'").replace(u"\u2019", "'").replace(u"\u02BC", "'") #strip single curly quotes
 				data = StringIO.StringIO(r.encode("ascii", "replace"))
 			contents = convert.Text(data)
-		elif ff=='html':
-			#this was to help herrard costales migrate scritps. should be taken out
-			myparser = MyParser()
-			myparser.parse(data.read())
-			l = myparser.get_hyperlinks()
-			i=0
-			while i<len(l):
-				if l[i][0]=='':
-					l.pop(i)
-				else:
-					i+=1
-			i=0
-			while i<len(l):
-				if l[i][1]==7:
-					l.pop(i)
-					l.pop(i)
-					l[i-1][0]=l[i-1][0]+" "+l[i][0]
-					l.pop(i)
-				else:
-					i+=1
-			contents = simplejson.dumps(l)
+		elif ff=='fdx':
+			s=data.getvalue().decode('utf-8')
+			s = s.replace(u"\u201c", "\"").replace(u"\u201d", "\"") #strip double curly quotes
+			s = s.replace(u"\u2018", "'").replace(u"\u2019", "'").replace(u"\u02BC", "'") #strip single curly quotes
+			data = StringIO.StringIO(s.encode("ascii", "replace"))
+			contents = convert.FinalDraft(data)
 		else:
 			contents = convert.Celtx(data)
 		
@@ -832,56 +821,6 @@ class ConvertProcess (webapp.RequestHandler):
 		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("convert", users.get_current_user().email().lower(), resource_id, 0, len(contents), None, None, None, None,filename,ff,None,None, None)
-		
-
-import sgmllib
-
-class MyParser(sgmllib.SGMLParser):
-		"A simple parser class."
-		def parse(self, s):
-				"Parse the given string 's'."
-				self.feed(s)
-				self.close()
-
-		def __init__(self, verbose=0):
-				"Initialise an object, passing 'verbose' to the superclass."
-
-				sgmllib.SGMLParser.__init__(self, verbose)
-				self.hyperlinks = []
-				self.startT = None
-
-		def handle_data(self, data):
-				if self.startT is not None:
-						data = data.replace('\r\n','').replace('\n','')
-						data= data.strip()
-						self.hyperlinks.append([data, self.startT])
-				
-		def start_h1(self, attributes):
-				self.startT=0
-		def start_h2(self, attributes):
-				self.startT=1
-		def start_h3(self, attributes):
-				if len(attributes)!=0 and attributes[0][1]=='more':
-						self.startT=7
-				else:
-						self.startT=2
-		def start_h4(self, attributes):
-				self.startT=3
-		def start_h5(self, attributes):
-				if len(attributes)!=0 and attributes[0][1]=='pn':
-						self.startT=None
-				else:
-					 self.startT=4 
-		def start_h6(self, attributes):
-				self.startT=5
-		def start_div(self, attributes):
-				self.startT=None
-		def start_span(self, attributes):
-				self.startT=None
-
-		def get_hyperlinks(self):
-				"Return the list of hyperlinks."
-				return self.hyperlinks
 
 class Share (webapp.RequestHandler):
 	def post(self):
