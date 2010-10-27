@@ -429,7 +429,7 @@ class SendSummaryEmail(webapp.RequestHandler):
 		recent = []
 		for i in notes:
 			t = now-i.timestamp
-			if t.days == -1:
+			if t.days == 0:
 				recent.append(i)
 		if len(recent)!=0:
 			settings = db.get(db.Key.from_path('UsersSettings', "settings"+user))
@@ -461,7 +461,7 @@ class SendSummaryEmail(webapp.RequestHandler):
 						notify=True
 				if notify==True:
 					body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
-					body +="This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a><div style='width:400px'>"
+					body +="<p>This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a></p><div style='width:400px'>"
 					for j in i:
 						q=db.GqlQuery("SELECT  FROM Notes "+
 										"WHERE resource_id='"+j[0]+"' "+
@@ -476,6 +476,7 @@ class SendSummaryEmail(webapp.RequestHandler):
 							body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
 					body+='</div>'
 			if body!="":
+				
 				#now create the email and send it.
 				subject = 'Daily Notes Summary'
 				body_message="http://www.rawscripts.com/"
@@ -494,7 +495,6 @@ class SendSummaryEmail(webapp.RequestHandler):
 								body = body,
 								html = html)
 				self.response.out.write('1')
-				logging.info(html)
 
 def main():
 	application=webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
