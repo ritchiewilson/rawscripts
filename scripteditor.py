@@ -774,14 +774,19 @@ class ConvertProcess (webapp.RequestHandler):
 		# Format file
 		data = StringIO.StringIO(self.request.get('script'))
 		if ff=='txt':
-			data = StringIO.StringIO(data.getvalue().replace('’', "'").replace("“",'"').replace('”', '"').replace("‘","'"))
+			data = StringIO.StringIO(data.getvalue().replace('\xe2', "'"))
 			e = chardet.detect(data.getvalue())
 			if e["encoding"]!=None and e["encoding"]!="ascii":
 				r = data.getvalue().decode(e["encoding"])
+				r = r.replace(u"\u201c", "\"").replace(u"\u201d", "\"") #strip double curly quotes
+				r = r.replace(u"\u2018", "'").replace(u"\u2019", "'").replace(u"\u02BC", "'") #strip single curly quotes
 				data = StringIO.StringIO(r.encode("ascii", "replace"))
 			contents = convert.Text(data)
 		elif ff=='fdx':
-			data = StringIO.StringIO(data.getvalue().replace('’', "'").replace("“",'"').replace('”', '"').replace("‘","'"))
+			s=data.getvalue().decode('utf-8')
+			s = s.replace(u"\u201c", "\"").replace(u"\u201d", "\"") #strip double curly quotes
+			s = s.replace(u"\u2018", "'").replace(u"\u2019", "'").replace(u"\u02BC", "'") #strip single curly quotes
+			data = StringIO.StringIO(s.encode("ascii", "replace"))
 			contents = convert.FinalDraft(data)
 		else:
 			contents = convert.Celtx(data)
