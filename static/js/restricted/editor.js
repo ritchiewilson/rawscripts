@@ -372,6 +372,7 @@ function setElementSizes(v){
 	document.getElementById('canvas').height = s.height - 60-38;
 	document.getElementById('canvas').width = s.width-320;
 	editorWidth=s.width-323;
+	goog.dom.getElement('insertNewNote').style.marginLeft=editorWidth-630*1+"px";
 	document.getElementById('sidebar').style.height = (s.height-70)+'px';
 	if(v=="r"){
 		scroll(0);
