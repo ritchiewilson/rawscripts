@@ -111,6 +111,7 @@ class UnreadNotes (db.Model):
 	thread_id = db.StringProperty()
 	user = db.StringProperty()
 	msg_id = db.StringProperty()
+	timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()
@@ -163,6 +164,8 @@ class Folders (db.Model):
 
 class UsersSettings(db.Model):
 	autosave = db.BooleanProperty()
+	owned_notify = db.StringProperty()
+	shared_notify = db.StringProperty()
 
 class YahooOAuthTokens (db.Model):
 	t = db.TextProperty()
@@ -1036,10 +1039,18 @@ class SettingsPage (webapp.RequestHandler):
 				us = None
 			if us==None:
 				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
-									autosave=True)
+									autosave=True,
+									owned_notify = 'every',
+									shared_notify = 'every')
 				us.put()
 				template_values['autosaveEnabled']='checked'
 				template_values['autosaveDisabled']=''
+				template_values['owned_every_selected']='selected'
+				template_values['owned_daily_selected']=''
+				template_values['owned_none_selected']=''
+				template_values['shared_every_selected']='selected'
+				template_values['shared_daily_selected']=''
+				template_values['shared_none_selected']=''
 			
 			else:
 				if us.autosave==True:
@@ -1048,6 +1059,30 @@ class SettingsPage (webapp.RequestHandler):
 				else:
 					template_values['autosaveEnabled']=''
 					template_values['autosaveDisabled']='checked'
+				if us.owned_notify=='every':
+					template_values['owned_every_selected']='selected'
+					template_values['owned_daily_selected']=''
+					template_values['owned_none_selected']=''
+				elif us.owned_notify=='daily':
+					template_values['owned_every_selected']=''
+					template_values['owned_daily_selected']='selected'
+					template_values['owned_none_selected']=''
+				else:
+					template_values['owned_every_selected']=''
+					template_values['owned_daily_selected']=''
+					template_values['owned_none_selected']='selected'
+				if us.shared_notify=='every':
+					template_values['shared_every_selected']='selected'
+					template_values['shared_daily_selected']=''
+					template_values['shared_none_selected']=''
+				elif us.shared_notify=='daily':
+					template_values['shared_every_selected']=''
+					template_values['shared_daily_selected']='selected'
+					template_values['shared_none_selected']=''
+				else:
+					template_values['shared_every_selected']=''
+					template_values['shared_daily_selected']=''
+					template_values['shared_none_selected']='selected'
 			
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
@@ -1067,7 +1102,9 @@ class ChangeUserSetting(webapp.RequestHandler):
 				us = None
 			if us==None:
 				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
-									autosave=True)
+									autosave=True,
+									owned_notify = 'every',
+									shared_notify = 'every')
 			if k=='autosave':
 				if v=='Enable':
 					value=True
@@ -1075,8 +1112,17 @@ class ChangeUserSetting(webapp.RequestHandler):
 					value=False
 				us.autosave=value
 				us.put()
+				output = "sent"
+			elif k=='owned_notify':
+				us.owned_notify=v
+				us.put()
+				output = 'owned_notifySaved'
+			elif k=='shared_notify':
+				us.shared_notify = v
+				us.put()
+				output = 'shared_notifySaved'
 			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.out.write('sent')
+			self.response.out.write(output)
 			
 class SyncContactsPage (webapp.RequestHandler):
 	def get(self):

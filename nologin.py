@@ -38,6 +38,7 @@ class UnreadNotes (db.Model):
 	thread_id = db.StringProperty()
 	user = db.StringProperty()
 	msg_id = db.StringProperty()
+	timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class SpellingData (db.Model):
 	resource_id = db.StringProperty()

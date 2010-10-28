@@ -7,6 +7,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.api import mail
+from google.appengine.api.labs import taskqueue
 import random
 import datetime
 import logging
@@ -36,6 +38,15 @@ def ownerPermission (resource_id):
 				p=i.title
 	return p
 
+class Users (db.Model):
+	name = db.StringProperty()
+	firstUse = db.DateTimeProperty(auto_now_add=True)
+
+class UsersSettings(db.Model):
+	autosave = db.BooleanProperty()
+	owned_notify = db.StringProperty()
+	shared_notify = db.StringProperty()
+	
 class Notes (db.Model):
 	resource_id = db.StringProperty()
 	thread_id=db.StringProperty()
@@ -55,6 +66,7 @@ class UnreadNotes (db.Model):
 	thread_id = db.StringProperty()
 	user = db.StringProperty()
 	msg_id = db.StringProperty()
+	timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()
@@ -123,8 +135,13 @@ class NewThread(webapp.RequestHandler):
 									thread_id=thread_id,
 									msg_id=d)
 					nn.put()
+					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+					
 			self.response.headers["Content-Type"]="text/plain"
-			self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
+			if fromPage=='mobileviewnotes':
+				self.response.out.write('sent')
+			else:
+				self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("newthread", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None, thread_id, None,None,p,None,fromPage, None)
 							
@@ -178,9 +195,13 @@ class SubmitMessage(webapp.RequestHandler):
 									user=i.user,
 									msg_id=d)
 					n.put()
+					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
 						
 			self.response.headers["Content-Type"]="text/plain"
-			self.response.out.write(output)
+			if fromPage=='mobileviewnotes':
+				self.response.out.write('sent')
+			else:
+				self.response.out.write(output)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("notesresponse", users.get_current_user().email().lower(), resource_id, mobile, len(content), None, None, thread_id, None,None,p,None,fromPage, None)
 
@@ -318,15 +339,175 @@ class ViewNotes(webapp.RequestHandler):
 			
 			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, None, None, None, None,None,title,None,None, None)
 
+class Notification(webapp.RequestHandler):
+	def post(self):
+		resource_id = self.request.get('resource_id')
+		to_user = self.request.get('to_user')
+		from_user = self.request.get('from_user')
+		thread_id = self.request.get('thread_id')
+		msg_id = self.request.get('msg_id')
+		q = db.GqlQuery("SELECT * FROM UsersScripts "+
+						"WHERE user='"+to_user+"' "+
+						"AND resource_id='"+resource_id+"'")
+		r = q.get()
+		s = db.get(db.Key.from_path('UsersSettings', 'settings'+to_user))
+		send = False
+		if s == None:
+			send = True
+		elif r.permission=='owner':
+			if s.owned_notify == 'every':
+				send=True
+			else:
+				send=False
+		else:
+			if s.shared_notify=='every':
+				send=True
+			else:
+				send=False
+		
+		q = db.GqlQuery("SELECT * FROM Users")
+		uTest = q.fetch(1000)
+		#check if user exists in db (ue)
+		#need a better way to do this.
+		ue=False
+		for i in uTest:
+			if i.name.lower()==to_user.lower():
+				ue=True
+		
+		if send==True and ue==True:
+			q = db.GqlQuery("SELECT * FROM Notes "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"AND thread_id='"+thread_id+"'")
+			J=simplejson.loads(q.get().data)
+			data=None
+			for i in J:
+				if i[2]==msg_id:
+					data=i[0]
+			
+			if not data==None:
+				subject = from_user + ' Left A Note On The Script "' + r.title + '"'
+				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+				result = urlfetch.fetch("http://www.rawscripts.com/text/notes.txt")
+				htmlbody = result.content
+				i = 0
+				while i<2:
+					i+=1
+					html = htmlbody.replace("SCRIPTTITLE", r.title)
+					html = html.replace("USER", from_user)
+					html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+					html = html.replace("NOTETEXT", data)
+				
+				body = body_message + """
+
+
+		--- This Script written and sent from RawScripts.com. Check it out ---"""
+			
+				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+								to=to_user,
+								subject=subject,
+								body = body,
+								html = html)
+				self.response.out.write('1')
+				logging.info(html)
+
+class SummaryEmailInit(webapp.RequestHandler):
+	def get(self):
+		q = db.GqlQuery("SELECT * FROM UsersSettings")
+		r=q.fetch(1000)
+		for i in r:
+			if i.owned_notify=="daily" or i.shared_notify=="daily":
+				taskqueue.add(url="/notessendsummaryemail", params= {'user' : i.key().name().replace('settings','')})
+				
+class SendSummaryEmail(webapp.RequestHandler):
+	def post(self):
+		user = self.request.get('user')
+		now = datetime.datetime.now()
+		q = db.GqlQuery("SELECT * From UnreadNotes "+
+						"WHERE user='"+user+"' "+
+						"ORDER BY resource_id DESC")
+		notes = q.fetch(1000)
+		recent = []
+		for i in notes:
+			t = now-i.timestamp
+			if t.days == 0:
+				recent.append(i)
+		if len(recent)!=0:
+			settings = db.get(db.Key.from_path('UsersSettings', "settings"+user))
+			out = []
+			cur = recent[0].resource_id
+			arr = []
+			for i in recent:
+				if i.resource_id == cur:
+					arr.append([i.resource_id, i.thread_id, i.msg_id])
+				else:
+					out.append(arr)
+					cur = i.resource_id
+					arr = [[i.resource_id, i.thread_id, i.msg_id]]
+			out.append(arr)
+			body=""
+			if len(out)==0:
+				return
+			for i in out:
+				q=db.GqlQuery("SELECT * FROM UsersScripts "+
+								"WHERE resource_id='"+i[0][0]+"' "+
+								"AND user='"+user.lower()+"'")
+				us = q.get()
+				notify=False
+				if us.permission=="collab":
+					if settings.shared_notify=='daily':
+						notify=True
+				elif us.permission=='owner':
+					if settings.owned_notify=='daily':
+						notify=True
+				if notify==True:
+					body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
+					body +="<p>This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a></p><div style='width:400px'>"
+					for j in i:
+						q=db.GqlQuery("SELECT  FROM Notes "+
+										"WHERE resource_id='"+j[0]+"' "+
+										"AND thread_id='"+j[1]+"'")
+						J = simplejson.loads(q.get().data)
+						found=False
+						for u in J:
+							if u[2]==j[2]:
+								found=u
+						if found!=False:
+							body+='<div class="text">"'+found[0]+'"</div>'
+							body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
+					body+='</div>'
+			if body!="":
+				
+				#now create the email and send it.
+				subject = 'Daily Notes Summary'
+				body_message="http://www.rawscripts.com/"
+				result = urlfetch.fetch("http://www.rawscripts.com/text/dailysummary.txt")
+				htmlbody = result.content
+				html = htmlbody.replace("BODYHTML", body)
+			
+				body = body_message + """
+
+
+		--- This Script written and sent from RawScripts.com. Check it out ---"""
+		
+				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+								to=user,
+								subject=subject,
+								body = body,
+								html = html)
+				self.response.out.write('1')
+
 def main():
-	application = webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
-																				('/notesposition', Position),
-																				('/notesdeletethread', DeleteThread),
-																				('/notesview', ViewNotes),
-																				('/notesdeletemessage', DeleteMessage),
-																				('/notesmarkasread', MarkAsRead),
-																				('/notesnewthread', NewThread)],
-																			 debug=True)
+	application=webapp.WSGIApplication([('/notessubmitmessage', SubmitMessage),
+										('/notesposition', Position),
+										('/notesdeletethread', DeleteThread),
+										('/notesview', ViewNotes),
+										('/notesdeletemessage', DeleteMessage),
+										('/notesmarkasread', MarkAsRead),
+										('/notesnotification', Notification),
+										('/notessummaryemailinit', SummaryEmailInit),
+										('/notessendsummaryemail', SendSummaryEmail),
+										('/notesnewthread', NewThread)],
+										debug=True)
 	
 	wsgiref.handlers.CGIHandler().run(application)
 

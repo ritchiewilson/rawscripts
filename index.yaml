@@ -26,6 +26,11 @@ indexes:
   properties:
   - name: user
   - name: resource_id
+
+- kind: UnreadNotes
+  properties:
+  - name: user
+  - name: resource_id
     direction: desc
 
 - kind: UsersScripts

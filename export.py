@@ -280,7 +280,7 @@ def Pdf(data, title, title_page, resource_id):
 
   lines[0].insert(0,'')
   lines[0].insert(0,'')
-  lines[0].insert(0,'')
+  #lines[0].insert(0,'') # Keep changing the sizes in the pdfs. This looks best.
 
   i=0
   chara=''
@@ -476,7 +476,7 @@ def Pdf(data, title, title_page, resource_id):
   # default font size
   self._ptSize=12
   # default vert space
-  self._vertSpace=11
+  self._vertSpace=12
   self._lines=60
   # number of characters in a row
   self._cols=80

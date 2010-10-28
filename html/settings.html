@@ -34,7 +34,24 @@
 						$('#autosaveSaved').fadeOut(3000, function(){document.getElementById('autosaveSaved').style.display='none';})
 					}
 				}
-			)
+			);
+		}
+		function NotesEmail(va){
+			var t = va.split('_')[0];
+			var w = va.split('_')[1];
+			$.post('/changeusersetting',
+				{k : t+'_notify', v : w},
+				function(d){
+					console.log(d)
+					if(d!='owned_notifySaved' && d!='shared_notifySaved'){
+						alert('That change could not be saved. Please try again later.')
+					}
+					else{
+						document.getElementById(d).style.display='block';
+						$('#'+d).fadeOut(3000, function(){document.getElementById(d).style.display='none';})
+					}
+				}
+			);
 		}
 	</script>
 </head>
@@ -58,7 +75,7 @@ _gaq.push(['_trackPageview']);
 		<div id="logo">
 			<h1><a href="/">RawScripts.com</a></h1>
 		</div>
-		<div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div>
+		<div style="float:right; margin:5px 10px 0 0;"><b id="user">{{  user  }}</b>  |  <a href="/contact" target="_blank">Contact</a>  |  <a href="/">Home</a>  |  <a href="{{ sign_out }}">Sign Out</a></div>
 		<div style="width:100%; clear:both; background-color:#6490E6; padding:3px 0; position:absolute; bottom:0; border-top:2px #ccc solid; border-bottom:2px #ccc solid;">
 			<div id="static_buttons" style="padding:3px; margin-left:16px">
 				<a href="/scriptlist" style="text-decoration:none; color:black; font-size:10pt; font-weight:bold">Back to Scriptlist</a>
@@ -73,16 +90,52 @@ _gaq.push(['_trackPageview']);
 
 			<div id="owned" class="folderContents" style="display:block">
 				<div id='settingsBox'>
-					<table border="0" cellspacing="10" cellpadding="10">
-						<tr>
+					<table border="0" cellspacing="10" cellpadding="10" width='100%'>
+						<!--<tr>
 							<td><b>Sync {{ domain }} Contacts:</b></td>
 							<td>Syncing with {{ domain }} Contacts is {{ syncContactsText }}. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a></td>
-						</tr>
+							<td width='20%'></td>
+							<td width='15%'></td>
+						</tr>-->
 						<tr>
 							<td><b>Enable AutoSave:</b></td>
 							<td><input type="radio" name="enable" id="autosaveEnable" onclick='autosaveRadio(this)' {{ autosaveEnabled }}> Enable autosave in editor window.<br>
 								<input type="radio" name="disable" id="autosaveDisable" onclick='autosaveRadio(this)' {{ autosaveDisabled }}> Disable autosave in editor window.</td>
-							<td><span id='autosaveSaved' style='background-color:yellow; padding:3px; display:none'>Saved Change</span></td>
+							<td width='20%'><div id='autosaveSaved' style='background-color:yellow; padding:3px; display:none' align='center'>Saved Change</div></td>
+							<td width='15%'></td>
+						</tr>
+						<tr>
+							<td><b>Notes Notification:</b></td>
+							<td>
+								<p>RawScripts can email you when notes are added to your scripts.</p>
+								<div>For scripts I own, email: <select name="email_owned" id="email_owned" onchange="NotesEmail(this.options[this.selectedIndex].value);">
+									<option value="owned_every" {{ owned_every_selected }}>Every New Note</option>
+									<option value="owned_daily" {{ owned_daily_selected }}>Daily Summary</option>
+									<option value='owned_none' {{ owned_none_selected }}>No Emails</option>
+								</select>
+								</div>
+							</td>
+							<td width='20%' valign="bottom"><div id='owned_notifySaved' style='background-color:yellow; padding:3px; display:none' align='center'>Saved Change</div></td>
+							<td width='15%'></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>
+								<div>For scripts shared with me, email: <select name="email_shared" id="email_shared" onchange="NotesEmail(this.options[this.selectedIndex].value);">
+									<option value="shared_every" {{ shared_every_selected }}>Every New Note</option>
+									<option value="shared_daily" {{ shared_daily_selected }}>Daily Summary</option>
+									<option value='shared_none' {{ shared_none_selected }}>No Emails</option>
+								</select>
+								</div>
+							</td>
+							<td width='20%'><div id='shared_notifySaved' style='background-color:yellow; padding:3px; display:none' align='center'>Saved Change</div></td>
+							<td width='15%'></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
 						</tr>
 					</table>
 				</div>
