@@ -193,6 +193,12 @@ var notesPosition=[];
 
 
 function init(){
+	if(goog.userAgent.IE==true){
+		goog.dom.removeNode(goog.dom.getElement('loading'));
+		goog.dom.flattenElement(goog.dom.getElement('canvas'));
+		goog.dom.removeNode(goog.dom.getElement('gtb'));
+		return;
+	}
 	if (EOV=='viewer'){
 		var f = goog.dom.getElement('format');
 		f.style.visibility='hidden'
@@ -858,7 +864,6 @@ function setup(e){
     document.getElementById('saveButton').disabled=true;
     paint(true,false,false);
     setInterval('paint(false,false,false)', 25);
-	i=p=data=title=x=w=c=collabs=null;
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
 	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
 	n.play()
