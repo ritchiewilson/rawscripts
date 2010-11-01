@@ -35,7 +35,7 @@
 <tr>
 <td bgcolor="#FFFFFF" valign="top" style="font-size:12px;color:#000000;line-height:150%;font-family:trebuchet ms; border-left:2px #666 solid; border-right:2px #666 solid">
 
-<div style="width:600px; font-size:15px;font-family:serif;">
+<div style="width:600px; font-family:serif;">
 BODYHTML
 </div>
 

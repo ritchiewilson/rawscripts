@@ -205,6 +205,9 @@ class TitlePage(webapp.RequestHandler):
 		if resource_id=="Demo":
 			p = "Duck Soup"
 		else:
+			user = users.get_current_user()
+			if not user:
+				self.redirect('/')
 			p = ownerPermission(resource_id)
 		if p==False:
 			return
@@ -1193,11 +1196,9 @@ class RemoveSyncContacts (webapp.RequestHandler):
 
 class SyncContacts (webapp.RequestHandler):
 	def post(self):
-		#try:
 		user = users.get_current_user()
 		if not user:
 			return
-		memcache.delete('contactsritchieafwilson@yahoo.com')
 		d = memcache.get('contacts'+user.email().lower())
 		if d == None:
 			domain = user.email().lower().split('@')[1].split('.')[0]
@@ -1227,6 +1228,9 @@ class SyncContacts (webapp.RequestHandler):
 							i=1
 					output = simplejson.dumps(contactlist)
 					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
+				else:
+					# if no token
+					output = "[]"
 			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
 				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
 				if at!=None and at!=False:
@@ -1242,7 +1246,6 @@ class SyncContacts (webapp.RequestHandler):
 					#new_at_entry.t=oauthapp.token.to_string()
 					#new_at_entry.put()
 					J = oauthapp.getContacts()
-					logging.info('refresh')
 					email_list = []
 					for entry in J['contacts']['contact']:
 						n = None
@@ -1258,13 +1261,14 @@ class SyncContacts (webapp.RequestHandler):
 					output = simplejson.dumps(email_list)
 					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
 				else:
+					#if no yahoo token
 					output = '[]'
-				
+			else:
+				# if can't figure out the domain name
+				output = '[]'
 		else:
+			#if memecache is good
 			output=d
-		#except:
-		#	output = '[]'
-		
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(output)
 
