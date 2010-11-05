@@ -1047,6 +1047,27 @@ function mousePosition(e, w){
 			else{
 				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]+(lines[i][0].length*fontWidth))/fontWidth);
 			}
+			//now change r for inline notes
+			//start and end of this line in this row is tc and tc+linesNLB[i][j]
+			for (note in notes){
+				// if it's in the correct row
+				if (i*1==notes[note][0]*1){
+					//do one thing for transition
+					// one thing elsewise
+					
+					if(lines[i][1]!=5){
+						if(notes[note][1]>=tc && notes[note][1]<=tc+r){
+							r--;
+						}
+					}
+					else{
+						if(notes[note][1]>r){
+							r++;
+						}
+					}
+				}
+			}
+			
 			if(r<0)r=0;
 			if(r>linesNLB[i][j])r=linesNLB[i][j];
 			tc+=r;
@@ -2809,7 +2830,10 @@ function bringDialogToFront(id){
 	}
 	if((typeof id)=='number'){var el = goog.dom.getElement('modal-dialog'+id)}
 	else{var el = this}
-	el.style.zIndex=z*1+1;
+	try{
+		el.style.zIndex=z*1+1;
+	}
+	catch(err){};
 }
 
 //Menu
@@ -4126,14 +4150,18 @@ function paint(forceCalc, forceScroll){
 			// and figure which is before the cursor
 			var notesSpacingDiff=0;
 			for (note in notesOnThisLine){
-				var n = notesOnThisLine[note];
-				if(n<pos.col && n>totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
-					notesSpacingDiff++;
+				var n = parseInt(notesOnThisLine[note]);
+				if(lines[pos.row][1]!=5){
+					if(n<pos.col && n>=totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
+						notesSpacingDiff++;
+					}
 				}
-				n=null;
+				else{
+					if(n>=pos.col){
+						notesSpacingDiff++;
+					}
+				}
 			}
-			note=null;
-			//console.log(notesSpacingDiff);
 			if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
 				cursorY=72*cos[0]*lineheight+9*lineheight;
 				if(linesLV[pos.row][1]==3){
@@ -4146,7 +4174,8 @@ function paint(forceCalc, forceScroll){
 				}
 			}
 			if(cursor){
-				var lr = cursorX+((pos.col-totalCharacters+notesSpacingDiff)*fontWidth)+pageStartX;
+				//if(lines[pos.row][1]==5)console.log(notesSpacingDiff)
+				var lr = cursorX+((pos.col-totalCharacters+(lines[pos.row][1]==5 ? notesSpacingDiff*-1 : notesSpacingDiff))*fontWidth)+pageStartX;
 				if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
 				ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
 				try{
