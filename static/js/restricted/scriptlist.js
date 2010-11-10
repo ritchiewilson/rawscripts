@@ -1,4 +1,3 @@
-/*
 goog.require('goog.userAgent')
 goog.require('goog.events')
 goog.require('goog.dom');
@@ -28,7 +27,7 @@ goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.object');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.ui.PopupMenu')
-*/
+
 /**
  * @license Rawscripts.com copywrite 2010
  *
@@ -64,6 +63,8 @@ window['newFolder'] = newFolder;
 window['selectAll'] = selectAll;
 window['script'] = script;
 window['emailPrompt'] = emailPrompt;
+window['emailNotifyShare'] = emailNotifyShare;
+window['emailNotifyMsg'] = emailNotifyMsg;
 
 
 
@@ -118,14 +119,13 @@ function init(){
 		});
 	}
 	try{
-		var domain = goog.dom.getElement('user').innerHTML.split('@')[1].split('.')[0];
 		goog.net.XhrIo.send('/synccontacts',
 			function(e){
 				if(e.target.getResponseText()=='none')return;
 				try{
 					var arr = e.target.getResponseJson();
-					var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, document.getElementById('recipient'), true);
-					var shareAutoComplete = new goog.ui.AutoComplete.Basic(arr, document.getElementById('collaborator'), true);
+					var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('recipient'), true);
+					var shareAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('collaborator'), true);
 				}
 				catch(e){};
 			},
@@ -136,14 +136,14 @@ function init(){
 }
 function uploadWindow(evt){
 	if (evt.data == 'uploading'){
-		document.getElementById('uploadFrame').height= '0px';
-		document.getElementById('uploadFrame').width= '0px';
-		document.getElementById('uploading').style.display = 'block';
+		goog.dom.getElement('uploadFrame').height= '0px';
+		goog.dom.getElement('uploadFrame').width= '0px';
+		goog.dom.getElement('uploading').style.display = 'block';
 	}
 	else{
-		document.getElementById('uploadFrame').style.height= '210px';
-		document.getElementById('uploadFrame').style.width= '250px';
-		document.getElementById('uploading').style.display = 'none';
+		goog.dom.getElement('uploadFrame').style.height= '210px';
+		goog.dom.getElement('uploadFrame').style.width= '250px';
+		goog.dom.getElement('uploading').style.display = 'none';
 		window.open('editor?resource_id='+evt.data);
 		refreshList();
 	}
@@ -151,13 +151,13 @@ function uploadWindow(evt){
 goog.events.listen(window, goog.events.EventType.CLICK, click)
 goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
 function click(){
-	if(document.getElementById('folder_context_menu')!=null){
+	if(goog.dom.getElement('folder_context_menu')!=null){
 		goog.dom.removeNode('folder_context_menu');
 	}
 }
 var folder_id=""
 function contextmenu(e){
-	if(document.getElementById('folder_context_menu')!=null){
+	if(goog.dom.getElement('folder_context_menu')!=null){
 		goog.dom.removeNode('folder_context_menu')
 	}
 	if(e.target.className=="tab" || e.target.className=="tab current"){
@@ -196,9 +196,9 @@ function tabs(v){
 		if(c[i].className=="folderContents")c[i].style.display="none";
 		if(c[i].className=="buttons_block")c[i].style.display="none";
 	}
-	document.getElementById(v.replace("Folder","")).style.display="block";
+	goog.dom.getElement(v.replace("Folder","")).style.display="block";
 	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_buttons";
-	document.getElementById(v.replace("Folder","_buttons")).style.display="block";
+	goog.dom.getElement(v.replace("Folder","_buttons")).style.display="block";
 }
 
 function newFolder(){
@@ -211,12 +211,12 @@ function newFolder(){
 			'POST',
 			'folder_name='+escape(f)+'&folder_id='+id
 		)
-		var d = document.getElementById('user_folders').appendChild(document.createElement('div'));
+		var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
 		d.className="tab";
 		d.id="Folder"+id;
 		d.appendChild(document.createElement("img")).src="images/folder.png";
 		d.appendChild(document.createTextNode(" "+f));
-		var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
+		var folderContents=goog.dom.getElement('contents').appendChild(document.createElement("div"));
 		folderContents.id=id;
 		folderContents.className='folderContents';
 		folderContents.style.display="none";
@@ -242,7 +242,7 @@ function newFolder(){
 		td = tr.appendChild(document.createElement('td'));
 		td.style.width="160px";
 		td.align = "center";
-		var option = document.getElementById('move_to_folder').appendChild(document.createElement('option'));
+		var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
 		option.appendChild(document.createTextNode(f));
 		option.value=id;
 		td.appendChild(document.createTextNode("Last Modified"));
@@ -291,12 +291,12 @@ function moveToFolder(v){
 				'resource_id='+arr.join(',')+'&folder_id='+v
 			);
 		}
-		document.getElementById("move_to_folder").selectedIndex=0;
+		goog.dom.getElement("move_to_folder").selectedIndex=0;
 	}
 }
 
 function refreshList(v){
-	document.getElementById("refresh_icon").style.visibility="visible";
+	goog.dom.getElement("refresh_icon").style.visibility="visible";
 	goog.net.XhrIo.send('/list',
 		function(d){
 		    //update with new info
@@ -314,9 +314,9 @@ function refreshList(v){
 					goog.dom.removeNode(fc[i])
 				}
 			}
-			var d=document.getElementById('user_folders');
+			var d=goog.dom.getElement('user_folders');
 			d.innerHTML="";
-			var select = document.getElementById('move_to_folder');
+			var select = goog.dom.getElement('move_to_folder');
 			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
 			for(i in folders){
 				var f = d.appendChild(document.createElement('div'));
@@ -327,7 +327,7 @@ function refreshList(v){
 				var option = select.appendChild(document.createElement('option'))
 				option.appendChild(document.createTextNode(folders[i][0]));
 				option.value=folders[i][1];
-				var folderContents=document.getElementById('contents').appendChild(document.createElement("div"));
+				var folderContents=goog.dom.getElement('contents').appendChild(document.createElement("div"));
 				folderContents.id=folders[i][1];
 				folderContents.className='folderContents';
 				folderContents.style.display="none";
@@ -376,16 +376,16 @@ function refreshList(v){
 					}
 				});
 			}
-			document.getElementById('loading').style.display = 'none';
+			goog.dom.getElement('loading').style.display = 'none';
 		    //remove old data
-		    var childs = document.getElementById('content').childNodes;
+		    var childs = goog.dom.getElement('content').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
-			var listDiv = document.getElementById('content').appendChild(document.createElement('div'));
+			var listDiv = goog.dom.getElement('content').appendChild(document.createElement('div'));
 		    listDiv.id = 'list';
-			document.getElementById('noentries').style.display=(x.length==0 ? "block" : "none");
+			goog.dom.getElement('noentries').style.display=(x.length==0 ? "block" : "none");
 		    for (var i=0; i<x.length; i++){
 		        var title = x[i][1];
 		        var resource_id = x[i][0];
@@ -471,20 +471,20 @@ function refreshList(v){
 		        updatedTd.appendChild(document.createTextNode(updated));
 				if(folder!="?none?"){
 					var obj = entryDiv.cloneNode(true);
-					var obj = document.getElementById(folder).appendChild(obj);
+					var obj = goog.dom.getElement(folder).appendChild(obj);
 					obj.getElementsByTagName("input")[0].name="listItems"+folder;
 				}
 			}
 		    // showing sharing scripts
 		    //remove old data
-		    var childs = document.getElementById('sharedContent').childNodes;
+		    var childs = goog.dom.getElement('sharedContent').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
-		    document.getElementById('sharedLoading').style.display='none';
-		    document.getElementById('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
-		    var listDiv = document.getElementById('sharedContent').appendChild(document.createElement('div'));
+		    goog.dom.getElement('sharedLoading').style.display='none';
+		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
+		    var listDiv = goog.dom.getElement('sharedContent').appendChild(document.createElement('div'));
 		    listDiv.id = 'sharedList';
 			var number_unopened = 0;
 		    for (i in ss){
@@ -536,18 +536,18 @@ function refreshList(v){
 		        updatedTd.align="center";
 		        updatedTd.appendChild(document.createTextNode(updated));
 		    }
-		    document.getElementById("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
+		    goog.dom.getElement("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
     
-		    document.getElementById('trashLoading').style.display = 'none';
-		    document.getElementById('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
+		    goog.dom.getElement('trashLoading').style.display = 'none';
+		    goog.dom.getElement('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
 		    //remove old data
-		    var childs = document.getElementById('trashContent').childNodes;
+		    var childs = goog.dom.getElement('trashContent').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
 		    //update with new info
-		    var listDiv = document.getElementById('trashContent').appendChild(document.createElement('div'));
+		    var listDiv = goog.dom.getElement('trashContent').appendChild(document.createElement('div'));
 		    listDiv.id = 'trashList';
 			x=z;
 		    for(i in x){
@@ -639,14 +639,14 @@ function refreshList(v){
 		        updatedTd.appendChild(document.createTextNode(updated));
 		
 		    }
-			if(document.getElementById(current)==null)current="ownedFolder"
-			document.getElementById(current).className = document.getElementById(current).className.replace(" current","")+" current";
-			document.getElementById(current).style.backgroundColor="#2352AE";
+			if(goog.dom.getElement(current)==null)current="ownedFolder"
+			goog.dom.getElement(current).className = goog.dom.getElement(current).className.replace(" current","")+" current";
+			goog.dom.getElement(current).style.backgroundColor="#2352AE";
 			tabs(current);
 			if(v && typeof(v)!='object'){
 				sharePrompt(v);
 			}
-			document.getElementById("refresh_icon").style.visibility="hidden";
+			goog.dom.getElement("refresh_icon").style.visibility="hidden";
 		},
 		'POST'
 	);
@@ -658,7 +658,7 @@ function renameFolder(v){
 		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 		if(f!=""){
 			var folder_id = v.replace("Folder", "");
-			var d = document.getElementById(v);
+			var d = goog.dom.getElement(v);
 			d.innerHTML="";
 			d.appendChild(document.createElement("img")).src="images/folder.png";
 			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
@@ -704,7 +704,7 @@ function haveToUndelete(){
 	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
 }
 function deleteScript(v){
-	var scriptDiv = document.getElementById(v);
+	var scriptDiv = goog.dom.getElement(v);
 	scriptDiv.style.backgroundColor = '#ccc';
 	scriptDiv.style.opacity = '0.5';
 	var c = document.getElementsByTagName('div');
@@ -717,7 +717,7 @@ function deleteScript(v){
 	goog.net.XhrIo.send('/delete',
 		function(){
 	        scriptDiv.parentNode.removeChild(scriptDiv);
-	        document.getElementById('trashList').appendChild(scriptDiv);
+	        goog.dom.getElement('trashList').appendChild(scriptDiv);
 	        scriptDiv.style.backgroundColor='#f9f9fc';
 	        scriptDiv.style.opacity='1';
 	        var t=scriptDiv.firstChild;
@@ -728,7 +728,7 @@ function deleteScript(v){
 			c[3].style.display='none';
 			c[4].style.display="none";
 			c[1].firstChild.href="javascript:haveToUndelete()";
-			document.getElementById("trashNoEntries").style.display="none";
+			goog.dom.getElement("trashNoEntries").style.display="none";
 			var c = document.getElementsByTagName('div');
 			for (i in c){
 				if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
@@ -742,13 +742,13 @@ function deleteScript(v){
 }
 
 function undelete(v){
-    var scriptDiv = document.getElementById(v);
+    var scriptDiv = goog.dom.getElement(v);
 	scriptDiv.style.backgroundColor = '#ccc';
 	scriptDiv.style.opacity = '0.5';
 	goog.net.XhrIo.send('/undelete',
 		function(){
 			scriptDiv.parentNode.removeChild(scriptDiv);
-			document.getElementById('list').appendChild(scriptDiv);
+			goog.dom.getElement('list').appendChild(scriptDiv);
 			scriptDiv.style.backgroundColor='#f9f9fc';
 			scriptDiv.style.opacity='1';
 			var t=scriptDiv.firstChild;
@@ -761,7 +761,7 @@ function undelete(v){
 			for (i in c){
 				if (c[i].style!=undefined)c[i].style.display="table-cell"
 			}
-			document.getElementById("noentries").style.display="none";
+			goog.dom.getElement("noentries").style.display="none";
 		},
 		'POST',
 		'resource_id='+v
@@ -769,7 +769,7 @@ function undelete(v){
 }
 
 function hardDelete(v){
-    var scriptDiv = document.getElementById(v);
+    var scriptDiv = goog.dom.getElement(v);
     scriptDiv.style.backgroundColor = '#ccc';
     scriptDiv.style.opacity = '0.5';
 	goog.net.Xhr.send('/harddelete',
@@ -809,8 +809,8 @@ function batchProcess(v){
 
 function emailComplete(e){
 	
-	document.getElementById('emailS').disabled = false;
-	document.getElementById('emailS').value = 'Send';
+	goog.dom.getElement('emailS').disabled = false;
+	goog.dom.getElement('emailS').value = 'Send';
 	if (e.target.getResponseText()=='sent'){
 		alert("Email Sent")
 		hideEmailPrompt();
@@ -830,29 +830,29 @@ function emailScript(){
 		return;
 	}
 	var recipients = arr.join(',');
-	var subject = document.getElementById('subject').value;
+	var subject = goog.dom.getElement('subject').value;
 	if(subject=="")subject="Script";
-	var body_message = document.getElementById('message').innerHTML;
-    var title_page = document.getElementById("emailTitle").selectedIndex;
+	var body_message = goog.dom.getElement('message').innerHTML;
+    var title_page = goog.dom.getElement("emailTitle").selectedIndex;
 	goog.net.XhrIo.send('emailscript',
 		emailComplete,
 		'POST',
 		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+escape(subject)+'&body_message='+escape(body_message)+'&fromPage=scriptlist&title_page='+title_page
 	);
-	document.getElementById('emailS').disabled = true;
-	document.getElementById('emailS').value = 'Sending...';
+	goog.dom.getElement('emailS').disabled = true;
+	goog.dom.getElement('emailS').value = 'Sending...';
 }
 var resource_id="";
 function emailPrompt(v){
 	resource_id=v;
-	document.getElementById('emailpopup').style.visibility = 'visible';
-    document.getElementById('edit_title_href').href='/titlepage?resource_id='+resource_id
+	goog.dom.getElement('emailpopup').style.visibility = 'visible';
+    goog.dom.getElement('edit_title_href').href='/titlepage?resource_id='+resource_id
 }
 function hideEmailPrompt(){
-document.getElementById('emailpopup').style.visibility = 'hidden';
-document.getElementById('recipient').value = "";
-document.getElementById('subject').value = "";
-document.getElementById('message').innerHTML = "";
+goog.dom.getElement('emailpopup').style.visibility = 'hidden';
+goog.dom.getElement('recipient').value = "";
+goog.dom.getElement('subject').value = "";
+goog.dom.getElement('message').innerHTML = "";
 }
 
 function duplicate(){
@@ -900,25 +900,25 @@ function renamePrompt(){
 	if(counter>1)alert("select one at a time");
 	else if (counter==1){
 		var title = 'name' + resource_id;
-		document.getElementById('renameTitle').innerHTML = "Rename " + document.getElementById(title).innerHTML;
-		document.getElementById('renameField').value = document.getElementById(title).innerHTML;
-		document.getElementById('renamepopup').style.visibility = 'visible';
-		document.getElementById('resource_id').value = resource_id;
+		goog.dom.getElement('renameTitle').innerHTML = "Rename " + goog.dom.getElement(title).innerHTML;
+		goog.dom.getElement('renameField').value = goog.dom.getElement(title).innerHTML;
+		goog.dom.getElement('renamepopup').style.visibility = 'visible';
+		goog.dom.getElement('resource_id').value = resource_id;
 	}
 	
 	}
 
 function hideRenamePrompt(){
-	document.getElementById('renameField').value = "";
-	document.getElementById('renamepopup').style.visibility = 'hidden';
+	goog.dom.getElement('renameField').value = "";
+	goog.dom.getElement('renamepopup').style.visibility = 'hidden';
 	}
 	
 function renameScript(){
-	var resource_id = document.getElementById('resource_id').value;
-	var rename = document.getElementById('renameField').value;
+	var resource_id = goog.dom.getElement('resource_id').value;
+	var rename = goog.dom.getElement('renameField').value;
 	if (rename==""){return;}
 	var id = "name"+resource_id;
-	document.getElementById(id).innerHTML = rename;
+	goog.dom.getElement(id).innerHTML = rename;
 	goog.net.XhrIo.send('/rename',
 		function(){},
 		'POST',
@@ -928,29 +928,29 @@ function renameScript(){
 	}
 	
 function uploadPrompt(){
-	document.getElementById('uploadpopup').style.visibility = 'visible';
+	goog.dom.getElement('uploadpopup').style.visibility = 'visible';
 	}
 function hideUploadPrompt(){
-	document.getElementById('uploadFrame').src = '/convert';
-	document.getElementById('uploadpopup').style.visibility = 'hidden';
+	goog.dom.getElement('uploadFrame').src = '/convert';
+	goog.dom.getElement('uploadpopup').style.visibility = 'hidden';
 	}
 function newScriptPrompt(){
-	document.getElementById('newscriptpopup').style.visibility = 'visible';
+	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
 	}
 function hideNewScriptPrompt(){
-	document.getElementById('newScript').value = "";
-	document.getElementById('newscriptpopup').style.visibility = 'hidden';
-	document.getElementById('createScriptButton').disabled=false;
-	document.getElementById('createScriptButton').value="Create";
-	document.getElementById('createScriptIcon').style.visibility="hidden";
+	goog.dom.getElement('newScript').value = "";
+	goog.dom.getElement('newscriptpopup').style.visibility = 'hidden';
+	goog.dom.getElement('createScriptButton').disabled=false;
+	goog.dom.getElement('createScriptButton').value="Create";
+	goog.dom.getElement('createScriptIcon').style.visibility="hidden";
 }
 
 function createScript (){
-	var filename = document.getElementById('newScript').value;
+	var filename = goog.dom.getElement('newScript').value;
 	if (filename!=''){
-		document.getElementById('createScriptButton').disabled=true;
-		document.getElementById('createScriptButton').value="Creating Script...";
-		document.getElementById('createScriptIcon').style.visibility="visible";
+		goog.dom.getElement('createScriptButton').disabled=true;
+		goog.dom.getElement('createScriptButton').value="Creating Script...";
+		goog.dom.getElement('createScriptIcon').style.visibility="visible";
 		goog.net.XhrIo.send('/newscript',
 			function(d){
 				window.open('/editor?resource_id='+d.target.getResponseText());
@@ -967,20 +967,20 @@ window.addEventListener("message", recieveMessage, false);
 function recieveMessage(e){
 	if(e.origin!="http://www.rawscripts.com")return;
 	if(e.data=="uploading"){
-		document.getElementById("uploading").style.display="block";
-		document.getElementById("uploadFrame").style.display="none";
+		goog.dom.getElement("uploading").style.display="block";
+		goog.dom.getElement("uploadFrame").style.display="none";
 	}
 	else{
-		document.getElementById("uploading").style.display="none";
-		document.getElementById("uploadFrame").style.display="block";
+		goog.dom.getElement("uploading").style.display="none";
+		goog.dom.getElement("uploadFrame").style.display="block";
 		window.open("/editor?resource_id="+e.data);
 		refreshList();
 	}
     
 }
 function hideExportPrompt(){
-	document.getElementById('exportpopup').style.visibility = 'hidden';
-	document.getElementById('exportList').innerHTML = '';
+	goog.dom.getElement('exportpopup').style.visibility = 'hidden';
+	goog.dom.getElement('exportList').innerHTML = '';
 	}
 function exportPrompt(){
 	var counter = 0;
@@ -990,9 +990,9 @@ function exportPrompt(){
 			if (listItems[i].checked == true){
 				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems'){
 					var newRow = document.createElement('tr');
-					var row = document.getElementById('exportList').appendChild(newRow);
+					var row = goog.dom.getElement('exportList').appendChild(newRow);
 					var newData = row.appendChild(document.createElement('td'));
-					var newTxt = document.createTextNode(document.getElementById('name'+listItems[i].value).innerHTML);
+					var newTxt = document.createTextNode(goog.dom.getElement('name'+listItems[i].value).innerHTML);
 					newData.appendChild(newTxt);
 					//Create Selection cell					
 					newData = row.appendChild(document.createElement('td'));
@@ -1020,7 +1020,7 @@ function exportPrompt(){
 		}
 	}
 	if (counter>0){
-		document.getElementById('exportpopup').style.visibility = 'visible';
+		goog.dom.getElement('exportpopup').style.visibility = 'visible';
 		}
 	}
 function exportScripts(){
@@ -1051,27 +1051,27 @@ function exportScripts(){
 function removeAccess(v){
 	var bool = confirm("Are you sure you want to take away access from "+v+"?");
 	if (bool==true){
-		var resource_id = document.getElementById('shareResource_id').value;
+		var resource_id = goog.dom.getElement('shareResource_id').value;
 		goog.net.XhrIo.send('/removeaccess',
 			removeShareUser,
 			'POST',
 			'resource_id='+resource_id+'&fromPage=scriptlist&removePerson='+v
 		);
-		document.getElementById('shared'+v.toLowerCase()).style.opacity = '0.5';
-		document.getElementById('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
+		goog.dom.getElement('shared'+v.toLowerCase()).style.opacity = '0.5';
+		goog.dom.getElement('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
 	}
 }
 function removeShareUser(d){
 	var data = d.target.getResponseText();
-	document.getElementById('shared'+data).parentNode.removeChild(document.getElementById('shared'+data));
+	goog.dom.getElement('shared'+data).parentNode.removeChild(goog.dom.getElement('shared'+data));
 	refreshList();
 }
 function sharePrompt(v){
-	document.getElementById('shareS').disabled = false;
-	document.getElementById('shareS').value = "Send Invitation";
-	var collabs = (document.getElementById('share'+v).title=="" ? [] : document.getElementById('share'+v).title.split("&"));
-	var hasAccess = document.getElementById('hasAccess');
-	document.getElementById('collaborator').value = "";
+	goog.dom.getElement('shareS').disabled = false;
+	goog.dom.getElement('shareS').value = "Send Invitation";
+	var collabs = (goog.dom.getElement('share'+v).title=="" ? [] : goog.dom.getElement('share'+v).title.split("&"));
+	var hasAccess = goog.dom.getElement('hasAccess');
+	goog.dom.getElement('collaborator').value = "";
 	hasAccess.innerHTML="";
 	for (var i=0; i<collabs.length; i++){
 		if(collabs[i]!='none'){
@@ -1087,15 +1087,21 @@ function sharePrompt(v){
 			newA.href = href;
 		}
 	}
-	document.getElementById('shareTitle').innerHTML = document.getElementById('name'+v).innerHTML;
-	document.getElementById('sharepopup').style.visibility = 'visible';
-	document.getElementById('shareResource_id').value = v;
-	
+	goog.dom.getElement('shareTitle').innerHTML = goog.dom.getElement('name'+v).innerHTML;
+	goog.dom.getElement('sharepopup').style.visibility = 'visible';
+	goog.dom.getElement('shareResource_id').value = v;
+	goog.dom.getElement('email_notify_share').checked=true;
+	goog.dom.getElement('email_notify_msg').checked = false;
+	goog.dom.getElement('email_notify_msg').disabled = false;
+	goog.dom.getElement('share_message').style.display='none';
 }
 function hideSharePrompt(){
-	document.getElementById('sharepopup').style.visibility = 'hidden';
-	document.getElementById('collaborator').value = "";
-	document.getElementById('hasAccess').innerHTML = '';
+	goog.dom.getElement('sharepopup').style.visibility = 'hidden';
+	goog.dom.getElement('collaborator').value = "";
+	goog.dom.getElement('hasAccess').innerHTML = '';
+	goog.dom.getElement('email_notify_msg').checked=false;
+	goog.dom.getElement('share_message').style.display='none';
+	goog.dom.getElement('share_message').innerHTML="";
 }
 function shareScript(){
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
@@ -1104,10 +1110,14 @@ function shareScript(){
 	for(i in r){
 		var a = r[i].address_;
 		if(a!=""){
-			if(a.split('@')[1]!=undefined && (a.split('@')[1].split('.')[0]=='gmail' || a.split('@')[1].split('.')[0]=='yahoo')){
-				arr.push(a);
+			try{
+				var domain = a.split('@')[1].split('.')[0].toLowerCase();
+				if(domain=='gmail' || domain=='googlemail' || domain=='rocketmail' || domain=='ymail' || domain=='yahoo'){
+					arr.push(a);
+				}
+				else{nonValidEmail=true}
 			}
-			else{nonValidEmail=true}
+			catch(err){};
 		}
 	}
 	if(nonValidEmail==true){
@@ -1118,12 +1128,42 @@ function shareScript(){
 		return;
 	}
 	var collaborators = arr.join(',');
-	var resource_id = document.getElementById('shareResource_id').value;
+	var resource_id = goog.dom.getElement('shareResource_id').value;
+	var sendEmail = (goog.dom.getElement('email_notify_share').checked==true ? 'y' : 'n');
+	var addMsg = (goog.dom.getElement('email_notify_msg').checked==true ? 'y' : 'n');
+	var msg = ((sendEmail=='y' && addMsg=='y') ? escape(goog.dom.getElement('share_message').innerHTML) : 'n');
 	goog.net.XhrIo.send('/share',
-		function(){refreshList(resource_id)},
+		function(){
+			goog.dom.getElement('email_notify_share').checked=true;
+			goog.dom.getElement('email_notify_msg').checked=false;
+			goog.dom.getElement('email_notify_msg').disabled=false;
+			goog.dom.getElement('share_message').innerHTML = "";
+			goog.dom.getElement('share_message').style.display='none';
+			refreshList(resource_id)
+		},
 		'POST',
-		'resource_id='+resource_id+'&collaborators='+collaborators+'&fromPage=scriptlist'
+		'resource_id='+resource_id+'&collaborators='+collaborators+'&fromPage=scriptlist&sendEmail='+sendEmail+'&addMsg='+addMsg+'&msg='+msg
 	);
-	document.getElementById('shareS').disabled = true;
-	document.getElementById('shareS').value = "Sending Invites...";
+	goog.dom.getElement('shareS').disabled = true;
+	goog.dom.getElement('shareS').value = "Sending Invites...";
+}
+function emailNotifyShare(e){
+	var el = goog.dom.getElement('email_notify_msg');
+	if (e.checked==true){
+		el.disabled=false;
+	}
+	else{
+		el.disabled=true;
+		goog.dom.getElement('share_message').style.display='none'
+		goog.dom.getElement('email_notify_msg').checked=false;
+	}
+}
+function emailNotifyMsg(e){
+	var el = goog.dom.getElement('share_message');
+	if (e.checked==true){
+		el.style.display='block'
+	}
+	else{
+		el.style.display='none'
+	}
 }

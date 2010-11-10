@@ -1,8 +1,13 @@
-body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
+  body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
   html{height:100%; margin:0; padding:0; overflow:hidden;}
-	img{border:none;}
-	a:visited{color:blue;}
-	a:link{color:blue;}
+  img{border:none;}
+  #optionsbar {
+	font-family:sans-serif;
+	font-size:10pt;
+   }
+  #optionsbar a{
+	color:blue;
+}
   .close{
 	position:absolute;
 	top:-15px;
@@ -261,4 +266,12 @@ body{padding:0; margin:0;height:100%; overflow:hidden; background-color:#ccc}
 .noteControls{
 	color:#06c;
 	cursor:pointer;
+}
+.popup{
+	font-family:sans-serif;
+	font-size:10pt;
+}
+td a{
+	color: black;
+	text-decoration:none;
 }

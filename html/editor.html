@@ -64,7 +64,7 @@
   <div id='header' style="width:100%;">
     <div id="titleBar">
       <div id="title" title="Rename">Screenplay Editor</div>
-      <div style="float:right; margin:5px 10px 0 0;" id="user"><span id="user_email">{{ user }}</span> | <a href="/contact" target="_blank">Contact</a> | <a href='/settings' target="blank">Settings</a> | <a href="{{  sign_out  }}">Sign Out</a></div>
+      <div  id='optionsbar' style="float:right; margin:5px 10px 0 0;" id="user"><span id="user_email">{{ user }}</span> | <a href="/contact" target="_blank">Contact</a> | <a href='/settings' target="blank">Settings</a> | <a href="{{  sign_out  }}">Sign Out</a></div>
     </div>
     <div class="toolBar" id="toolBar">
         <table id="menu" cellpadding='0' cellspacing='0' width="100%">
@@ -327,20 +327,23 @@
 </div>
 <div id="sharepopup" style="visibility:hidden; position:absolute; width:100%; height:100%; top:0; left:0; ">
 	<div id="fade" style="background:#fff; opacity:0.5; height:100%; width:100%; position:fixed"></div>
-	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:20%; padding:10px; border:double">
+	<div class="popup_block" style="background:#7694D8; width:450px; position:relative; margin:auto; top:10%; padding:10px; border:double">
 		<div class="popup">
 			<a href="javascript:hideSharePrompt()" class="close"><img src="/images/close.png" alt="Close Popup"></a>
 			<br>
-            Share Script: <b id="shareTitle"></b>
-            <br>
+			Share Script: <b id="shareTitle"></b>
+			<br><br>
 			<table id="hasAccess" width="350px" cellspacing=0>
-            </table>
-            <br>
-            <p>To be added: (comma seperated)</p>
-			<textarea rows='3' class="TEXT" type='text' name='collaborator' id='collaborator'></textarea>
-			<br />
-            <p>Note: You can only share with Gmail or Yahoo users.</p>
+			</table><br>
+			<span>To be added: (comma seperated)</span><br>
+			<textarea rows='3' class="TEXT" name='collaborator' id='collaborator'></textarea>
+			<br>
+			<p>Note: You can only share with Gmail or Yahoo users.</p>
+			<input type="checkbox" name="email_notify_share" id="email_notify_share" onchange="emailNotifyShare(this)"><span> </span>Send email to new collaborators<br>
+			<input type="checkbox" name="email_notify_msg" id="email_notify_msg" onchange="emailNotifyMsg(this)"><span> </span>Add personal message to email<br>
+			<div class="TEXT" contentEditable='true' name='share_message' id='share_message' style="width:400px; height:80px; overflow:auto; display:none"></div>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
+			<input type="hidden" value="blank" id="shareResource_id" />
 		</div>
 	</div>
 </div>

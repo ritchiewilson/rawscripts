@@ -864,7 +864,7 @@ class Share (webapp.RequestHandler):
 									title = p,
 									folder = "?none?")
 					u.put()
-			if output!=[]:
+			if output!=[] and self.request.get('sendEmail')=='y':
 				subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
 				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
 				result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
@@ -872,6 +872,12 @@ class Share (webapp.RequestHandler):
 				html = htmlbody.replace("SCRIPTTITLE", p)
 				html = html.replace("USER",users.get_current_user().email())
 				html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+				if self.request.get('addMsg')=='y':
+					divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"+self.request.get('msg')+"<br><b>--"+users.get_current_user().email()+"</b></div>"
+					logging.info(divArea)
+					html = html.replace("TEXTAREA", divArea)
+				else:
+					html = html.replace("TEXTAREA", "")
 				body = body_message + """
 
 
@@ -1242,9 +1248,6 @@ class SyncContacts (webapp.RequestHandler):
 					oauthapp = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
 					oauthapp.token = yahoo.oauth.AccessToken.from_string(at.t)
 					oauthapp.token = oauthapp.refresh_access_token(oauthapp.token)
-					#new_at_entry = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
-					#new_at_entry.t=oauthapp.token.to_string()
-					#new_at_entry.put()
 					J = oauthapp.getContacts()
 					email_list = []
 					for entry in J['contacts']['contact']:
