@@ -402,7 +402,7 @@ class Notification(webapp.RequestHandler):
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
 			
-				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+				mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
 								to=to_user,
 								subject=subject,
 								body = body,
@@ -489,7 +489,7 @@ class SendSummaryEmail(webapp.RequestHandler):
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
 		
-				mail.send_mail(sender='RawScripts <admin@rawscripts.com>',
+				mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
 								to=user,
 								subject=subject,
 								body = body,
