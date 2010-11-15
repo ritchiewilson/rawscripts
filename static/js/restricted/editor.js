@@ -2424,7 +2424,7 @@ function notesDialog(e, id, top, left){
 			for(j in notes[i][2]){
 				var classN = (parseInt(notes[i][2][j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
 				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
-				str+="<b>"+notes[i][2][j][1].split('@')[0]+" - </b><span> </span> ";
+				str+="<b>"+notes[i][2][j][1]+" - </b><span> </span> ";
 				str+=notes[i][2][j][0];
 				//edit controls
 				var edit = "";
