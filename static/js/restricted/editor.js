@@ -884,7 +884,6 @@ function tabs(v){
             goog.dom.getElement(t[i].replace("Tab","s")).style.display="none";
         }
     }
-	t=i=null;
 }
 function changeFormat(v){
 	if(EOV=='viewer')return;
@@ -2494,6 +2493,7 @@ function markAsRead(e){
 	)
 }
 function newThread(){
+	tabs(1);
 	var id=Math.round(Math.random()*1000000000);
     var found=true;
     while (found==true){
