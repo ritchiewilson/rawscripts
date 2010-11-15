@@ -3018,6 +3018,9 @@ function newScriptPrompt(){
     }
     typeToScript=false;
 	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
+	goog.dom.getElement('newScript').value = "Untitled Screenplay";
+	goog.dom.getElement('newScript').focus();
+	goog.dom.getElement('newScript').select();
 }
 
 function hideNewScriptPrompt(){
