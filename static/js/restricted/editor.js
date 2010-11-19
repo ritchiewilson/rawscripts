@@ -2454,7 +2454,10 @@ function notesDialog(e, id, top, left){
 		d.getDialogElement().style.top=top;
 		d.getDialogElement().style.left=left;
 	}
-	d.getDialogElement().style.paddingBottom='10px';
+	else{
+		var s = goog.dom.getViewportSize();
+		d.getDialogElement().style.left=(s.width*1-650)+"px";
+	}
 	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
 	
 	var mdc = d.getContentElement();
@@ -2518,6 +2521,8 @@ function newThread(){
 	d.setDisposeOnHide(true);
 	d.setHasTitleCloseButton(false);
 	d.getDialogElement().id='modal-dialog'+id;
+	var s = goog.dom.getViewportSize();
+	d.getDialogElement().style.left=(s.width*1-650)+"px";
 	goog.events.listen(d.getDialogElement(), goog.events.EventType.MOUSEDOWN, bringDialogToFront);
 	var c = d.getContentElement();
 	var tb = c.appendChild(goog.dom.createElement('div'));
