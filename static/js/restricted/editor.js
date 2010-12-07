@@ -470,7 +470,7 @@ function createSuggestBox(d){
 	var part=lines[pos.row][0].toUpperCase();
 	for (x in v){
 		var s = v[x][0].substr(0,l).toUpperCase();
-		if (part==s && part!=v[x][0]){
+		if (part==s){
 			//create box now if doens't exist
 			if(goog.dom.getElement('suggestBox')==null){
 				var box = document.body.appendChild(document.createElement('div'));
@@ -496,6 +496,11 @@ function createSuggestBox(d){
 				item=null;
             }
 			found=null;
+		}
+	}
+	if(goog.dom.getElement('suggestBox')!=null){
+		if (goog.dom.getElement('suggestBox').childNodes.length==1){
+			if(goog.dom.getElement('suggestBox').firstChild.value.toUpperCase()==lines[pos.row][0].toUpperCase())goog.dom.removeNode(goog.dom.getElement('suggestBox'))
 		}
 	}
 	if(goog.dom.getElement('suggestBox')!=null){
