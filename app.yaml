@@ -57,6 +57,10 @@ handlers:
   static_files: html/uploadhelp.html
   upload: html/uploadhelp.html
 
+- url: /tos
+  static_files: html/tos.html
+  upload: html/tos.html
+
 - url: /rawscripts.manifest
   static_files: rawscripts.manifest
   upload: rawscripts.manifest
