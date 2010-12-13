@@ -1017,6 +1017,7 @@ function exportPrompt(){
                     a.appendChild(document.createTextNode('Edit Title page'));
                     a.href="/titlepage?resource_id="+listItems[i].value;
                     a.target="_blank"
+					a.style.color="blue"
 					counter++;
 				}
 			}

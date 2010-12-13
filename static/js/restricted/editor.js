@@ -408,7 +408,8 @@ function keyEvent(e){
 	  else if(e.keyCode==16)return;
       else if(e.keyCode==9){e.preventDefault(); tab();}
 	  else{handlekeypress(e)}
-      if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8){
+      if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46){
+		//console.log(ud)
         scroll(ud-400);
       }
 	  if(ud>goog.dom.getElement('canvas').height-80 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8 ){
@@ -423,6 +424,7 @@ function keyEvent(e){
         goog.dom.getElement('ccp').focus();
         goog.dom.getElement('ccp').select();
     }
+	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
 }
 goog.events.listen(document, goog.events.EventType.MOUSEMOVE, mouseMove)
 goog.events.listen(document, goog.events.EventType.MOUSEDOWN, mouseDown)
@@ -964,6 +966,7 @@ function mouseUp(e){
 		d.style.backgroundColor='#A2BAE9';
         d.style.color='black';
 	}
+	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
 }
 function mouseDown(e){
 	if(typeToScript){
@@ -998,6 +1001,7 @@ function mouseDown(e){
 	goog.dom.getElement('ccp').focus();
 	goog.dom.getElement('ccp').select();
 	}
+	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
 }
 function mousePosition(e, w){
 	var d= new Date();
@@ -1122,6 +1126,7 @@ function mouseMove(e){
 			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
 		}
 	}
+	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
 }
 function notesDialogFromScript(e){
 	// This is a weird loophole to get 
@@ -1149,6 +1154,7 @@ function scrollBarDrag(e){
 	diff=height=pagesHeight=null;
 }
 function scroll(v){
+	//console.log(v)
     vOffset+=v;
     if (vOffset<0)vOffset=0;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
@@ -1623,6 +1629,7 @@ function backspace(e){
 		if(forceCalc==true){
 			sceneIndex()
 			paint(forceCalc,false,false);
+			paint(false,false,false)
 			scroll(0)
 		}
         if (slug)updateOneScene(pos.row);
@@ -1770,7 +1777,13 @@ function enter(){
         if (lines[pos.row][1] == 0)var newElem = 1;
         else if (lines[pos.row][1] == 1)var newElem = 2;
         else if (lines[pos.row][1] == 2)var newElem = 3;
-        else if (lines[pos.row][1] == 4)var newElem = 3;
+        else if (lines[pos.row][1] == 4){
+			//with parenthetical, get rid of pesky ")"
+			var newElem = 3;
+			if(k.slice(-1)==")"){
+				k=k.slice(0,-1)
+			}
+		}
         else if (lines[pos.row][1] == 3)var newElem = 2;
         else if (lines[pos.row][1] == 5)var newElem = 0;
         var newArr = [k,newElem];
@@ -4222,11 +4235,12 @@ function paint(forceCalc, forceScroll){
 					cursorY+=lineheight;
 				}
 			}
+			ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
 			if(cursor){
 				//if(lines[pos.row][1]==5)console.log(notesSpacingDiff)
 				var lr = cursorX+((pos.col-totalCharacters+(lines[pos.row][1]==5 ? notesSpacingDiff*-1 : notesSpacingDiff))*fontWidth)+pageStartX;
 				if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
-				ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
+				
 				try{
 					ctx.fillRect(lr,ud,2,17);
 				}
@@ -4301,10 +4315,9 @@ function paint(forceCalc, forceScroll){
 					scroll(45);
 				}
 				else if(ud<45){
-					scroll(-45);
+					//scroll(-45);
 				}
 			}
-			goog.dom.getElement('format').selectedIndex=linesLV[pos.row][1];
 		}
 		if(EOV=='editor'){
 			for(i=0; i<=5; i++){
