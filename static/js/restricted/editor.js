@@ -2482,6 +2482,12 @@ function notesDialog(e, id, top, left){
 	var reply = mdc.getElementsByTagName('input')[0];
 	goog.events.listen(reply, goog.events.EventType.CLICK, newMessage);
 	bringDialogToFront(id);
+	var c = document.getElementsByTagName('div');
+	for (i in c){
+		if(c[i].className=="noteMessageUnread"){
+			markAsRead(c[i]);
+		}
+	}
 }
 function markAsRead(e){
 	var el = e;
