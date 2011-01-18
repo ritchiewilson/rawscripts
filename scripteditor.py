@@ -190,7 +190,7 @@ class ScriptList(webapp.RequestHandler):
 
 		q= db.GqlQuery("SELECT * FROM Users "+
 									 "WHERE name='"+users.get_current_user().email()+"'")
-		results = q.fetch(5)
+		results = q.fetch(1)
 		k=0
 		for p in results:
 			k=1
