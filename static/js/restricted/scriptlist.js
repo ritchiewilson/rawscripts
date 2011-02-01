@@ -65,6 +65,7 @@ window['script'] = script;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
+window['hardDelete'] = hardDelete;
 
 
 
@@ -772,7 +773,7 @@ function hardDelete(v){
     var scriptDiv = goog.dom.getElement(v);
     scriptDiv.style.backgroundColor = '#ccc';
     scriptDiv.style.opacity = '0.5';
-	goog.net.Xhr.send('/harddelete',
+	goog.net.XhrIo.send('/harddelete',
 		function(){
 			scriptDiv.parentNode.removeChild(scriptDiv);
 		},
