@@ -9,56 +9,87 @@ body{
 	font-family:sans-serif;
 	font-size:10pt;
 }
-.ui-menu{
-	width:400px;
+#header{
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	height:100pt;
 }
-
-.ui-menu-item{
-	font-size:65%
-	}
-.TEXT{  
-  font-size:10pt;  
-  background-color:white; 
-  border-style:inset; 
-  border-width:2px;
-  font-family:Verdana, Geneva, sans-serif;
-  width:400px;
+#header a{
+	color:blue;
+	text-decoration:underline;
 }
-.token{
-	background-color:#ddd;
-	padding:3px;
-	margin:3px;
-	float:none;
-	font:Verdana, Geneva, sans-serif;
-	-moz-border-radius: 5px; 
-	-webkit-border-radius: 5px;
-	float:left;
-	}
-.token a{
+#logo { 
+	float: left; 
+	/*background: url(../images/bluebg.png) repeat-x; */
+	padding: 20px 25px 0px; 
+	margin: 0px 20px 10px; 
+	-webkit-box-shadow:0px 3px 6px #666;
+	-moz-box-shadow:0px 3px 6px #666;
+	box-shadow:0px 3px 6px #666;
+	background-color:#36c;
+}
+#logo h1{
+	text-shadow: 1px 1px 1px #003399; 
+	font-family:Courier; 
+	color: #fff; 
+	font-size: 2.2em; 
 	text-decoration:none;
-	color:#000;
+	font-weight:normal;
 }
-.mailto{
+#header_nav{
+	float:right; 
+	margin:5px 10px 0 0;
+}
+#option_bar{
+	width:100%; 
+	clear:both; 
+	background-color:#6490E6; 
+	padding:3px 0; 
+	position:absolute; 
+	bottom:0; 
+	border-top:2px #ccc solid; 
+	border-bottom:2px #ccc solid;
+}
+#static_buttons{
+	float:left;
+}
+#owned_script_buttons{
+	float:left; 
+	display:block;
+	margin-left:55px;
+}
+#move_to_trash{
+	margin-left:55px; 
+	margin-right:15px;
+}
+#shared_script_buttons{
+	float:left; 
 	display:none;
+	margin-left:55px;
+}
+#trash_script_buttons{
+	float:left; 
+	display:none;
+	margin-left:55px;
+}
+#refresh{
+	float:right;
+	font-size:12pt;
+	margin-right:10px;
+}
+#refresh a{
+	color:#333;
+	text-decoration:none;
+}
+#refresh_icon{
+	visibility:visible;
 }
 
-#loading{
-	/*color:#333;
-	padding-top:2px;
-	padding-bottom:4px;
-	font-size:22px;
-	background-color:#FF6;
-	width:200px;
-	margin:auto;
-	-moz-border-radius-bottomleft:15px;
-	-webkit-border-bottom-left-radius:15px;
-	-moz-border-radius-bottomright:15px;
-	-webkit-border-bottom-right-radius:15px;
-	border:1px #eee solid;
-	border-top:none;
-	*/
-}
-#nav{
+
+/*Standard and User Defined Fodlers (left hand column)*/
+#folders{
 	position:absolute;
 	left:0px;
 	top:135px;
@@ -75,13 +106,66 @@ body{
     color:white;
 	font-weight:bold;
 }
-ul{
-	margin:0;
-	padding-left:15px;
+#new_folder_div{
+	width:160px;
+	background-color:#ccc;
+	margin-top:15px;
+	margin-bottom:5px;
 }
-li{
-	list-style-type:none;
+#new_folder{
+	margin-left:40px;
 }
+
+/* Main Section of the screen, script lists*/
+
+#scriptlists{
+	background-color:#6490E6; 
+	position:absolute; 
+	right:0; 
+	left:160px; 
+	bottom:0; 
+	top:100pt;
+}
+
+.content_plus_header{
+	right:0px; 
+	border:2px #ccc solid; 
+	border-top:none; 
+	left:5pt; 
+	top:0px; 
+	bottom:0; 
+	position:absolute;
+	background-color:white;
+}
+
+.contentsHeader{
+	border-bottom:2px #999999 solid; 
+	background-color:#ddd;
+	height:25px;
+}
+
+.folderContents{
+	position:absolute;
+	top:27px;
+	bottom:0;
+	right:0;
+	left:0;
+	overflow:auto; 
+}
+.none_of_type{
+	color:#666; 
+	background-color:white; 
+	padding-top:17px; 
+	display:none;
+	width:300px;
+	margin:auto;
+}
+#noentries a {
+	color:blue;
+	text-decoration:underline;
+}
+
+/*A bunch of css describing the look of each script entry*/
 .entry{
 	display:block;
 	border-bottom:1px #999999 solid;
@@ -105,10 +189,6 @@ li{
 .updatedCell{
 	width:160px;
 }
-.gdocsCell{
-	width:70px;
-	border-left:1px #000 solid;
-}
 .redAlertSpan{
 	color:red;
 	font-size:small;
@@ -118,50 +198,28 @@ a{
 	text-decoration:none;
 	color:#000;
 }
-#header a{
-	color:blue;
-	text-decoration:underline;
+.folderSpan{
+	background-color:#0b0;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	padding:2px 4px 2px 4px;
 }
-#logo { 
-	float: left; 
-	background: url(../images/bluebg.png) repeat-x; 
-	padding: 20px 25px 0px; 
-	margin: 0px 20px 10px; 
-	-webkit-box-shadow:0px 3px 6px #666;
-	-moz-box-shadow:0px 3px 6px #666;
-	box-shadow:0px 3px 6px #666;
-	background-color:#36c;
+
+/*Popup windows*/
+.popup_screen{
+	visibility:hidden; 
+	position:absolute; 
+	width:100%; 
+	height:100%; 
+	top:0; 
+	left:0; 
 }
-#refresh{
-	float:right;
-	font-size:12pt;
-	margin-right:10px;
-}
-#refresh a{
-	color:#333;
-	text-decoration:none;
-}
-#refresh_icon{
-	visibility:visible;
-}
-#logo h1 { text-shadow: 1px 1px 1px #003399; font-family:Courier; }
-h1 { font-size: 1.4em; font-weight: normal; }
-#logo h1 a { color: #fff; font-size: 1.6em; text-decoration:none;}
-#menu { float: right; margin: 13px 20px 0; }
-#menu li { display: inline; font-size: 1.3em; }
-#menu li a { float: left; color: #808080; padding: 0 0 5px; margin: 0 0 0 55px; text-decoration:none;}
-#menu li a:hover, #menu li.current a, #menu li a:focus { color: #000; border-bottom: 1px solid #ddd; }
-#noentries a {
-	color:blue;
-	text-decoration:underline;
-}
-.none_of_type{
-	color:#666; 
-	background-color:white; 
-	padding-top:17px; 
-	display:none;
-	width:300px;
-	margin:auto;
+.popup_background{
+	background:#fff; 
+	opacity:0.5; 
+	height:100%; 
+	width:100%; 
+	position:fixed
 }
 .popup_block{
 	background:#87A7E6; 
@@ -172,51 +230,20 @@ h1 { font-size: 1.4em; font-weight: normal; }
 	padding:10px; 
 	border:double;
 }
-.close{
+.close_popup{
 	position:absolute;
 	top:-15px;
 	right:-15px;
 }
-#nf_div{
-	width:160px;
-	background-color:#ccc;
-	margin-top:15px;
-	margin-bottom:5px;
+.text_input{  
+  font-size:10pt;  
+  background-color:white; 
+  border-style:inset; 
+  border-width:2px;
+  font-family:Verdana, Geneva, sans-serif;
+  width:400px;
 }
-#new_folder{
-	margin-left:40px;
-}
-.folderContents{
-	right:0px; 
-	border:2px #ccc solid; 
-	border-top:none; 
-	left:5pt; 
-	top:0px; 
-	bottom:0; 
-	position:absolute;
-	background-color:white; 
-	overflow:auto; 
-}
-.contentsHeader{
-	border-bottom:2px #999999 solid; 
-	background-color:#ddd
-}
-.folderSpan{
-	background-color:#0b0;
-	-webkit-border-radius:2px;
-	-moz-border-radius:2px;
-	padding:2px 4px 2px 4px;
-}
-#context_menu{
-	background-color:#fff;
-	border:1px #666 solid;
-	border-left:1px #ccc solid;
-	border-top:1px #ccc solid;
-}
-.context_unit{
-	color:#333;
-	font-family:sans-serif;
-	font-size:10pt;
-	padding:2px 10px 2px 5px;
-	cursor:pointer;
+
+#email_message{
+	width:400px; height:110px; overflow:auto;
 }

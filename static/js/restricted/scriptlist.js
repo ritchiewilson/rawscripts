@@ -28,11 +28,10 @@ goog.require('goog.object');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.ui.PopupMenu')
 
-/**
- * @license Rawscripts.com copywrite 2010
- *
- *
- *
+/* Closure Compiler for JS changes all function
+ * names. To have human readable function names
+ * in the html, need to attach those functions
+ * to the window object; as done here.
  */
 window['removeAccess'] = removeAccess;
 window['haveToUndelete'] = haveToUndelete;
@@ -71,7 +70,7 @@ window['hardDelete'] = hardDelete;
 
 
 function init(){
-	refreshList()
+	refreshList();
 	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN,
 		function(e){
 			if(e.keyCode==13){
@@ -135,167 +134,17 @@ function init(){
 	}
 	catch(e){};
 }
-function uploadWindow(evt){
-	if (evt.data == 'uploading'){
-		goog.dom.getElement('uploadFrame').height= '0px';
-		goog.dom.getElement('uploadFrame').width= '0px';
-		goog.dom.getElement('uploading').style.display = 'block';
-	}
-	else{
-		goog.dom.getElement('uploadFrame').style.height= '210px';
-		goog.dom.getElement('uploadFrame').style.width= '250px';
-		goog.dom.getElement('uploading').style.display = 'none';
-		window.open('editor?resource_id='+evt.data);
-		refreshList();
-	}
-}
-goog.events.listen(window, goog.events.EventType.CLICK, click)
-goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
-function click(){
-	if(goog.dom.getElement('folder_context_menu')!=null){
-		goog.dom.removeNode('folder_context_menu');
-	}
-}
-var folder_id=""
-function contextmenu(e){
-	if(goog.dom.getElement('folder_context_menu')!=null){
-		goog.dom.removeNode('folder_context_menu')
-	}
-	if(e.target.className=="tab" || e.target.className=="tab current"){
-		if(e.target.id!="ownedFolder" && e.target.id!="sharedFolder" && e.target.id!="trashFolder"){
-			e.preventDefault();
-			folder_id=e.target.id;
-			var menu = new goog.ui.PopupMenu();
-			menu.setId('folder_context_menu');
-			menu.addItem(new goog.ui.MenuItem('Rename Folder'));
-			menu.addItem(new goog.ui.MenuItem('Delete Folder'));
-			menu.render(document.body);
-			menu.setPosition(e.clientX,e.clientY);
-			menu.setVisible(true)
-			goog.events.listen(menu, 'action', folderContextMenuAction)
-		}
-	}
-}
-function folderContextMenuAction(e){
-	if(e.target.content_=='Rename Folder'){
-		renameFolder(folder_id.replace('Folder',''))
-	}
-	else if(e.target.content_=='Delete Folder'){
-		deleteFolder(folder_id.replace('Folder',''))
-	}
 
-}
-function tabs(v){
-	var c = document.getElementsByTagName('input');
-	for (var i=0; i<c.length; i++){
-		if (c[i].type == 'checkbox'){
-			c[i].checked = false;
-		}
-	}
-	var c = document.getElementsByTagName('div');
-	for(i in c){
-		if(c[i].className=="folderContents")c[i].style.display="none";
-		if(c[i].className=="buttons_block")c[i].style.display="none";
-	}
-	goog.dom.getElement(v.replace("Folder","")).style.display="block";
-	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_buttons";
-	goog.dom.getElement(v.replace("Folder","_buttons")).style.display="block";
-}
 
-function newFolder(){
-	var f = prompt("New Folder Name");
-	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
-	if(f!=null && f!=""){
-		var id = Math.round(Math.random()*10000000000);
-		goog.net.XhrIo.send('/newfolder',
-			function(){},
-			'POST',
-			'folder_name='+escape(f)+'&folder_id='+id
-		)
-		var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
-		d.className="tab";
-		d.id="Folder"+id;
-		d.appendChild(document.createElement("img")).src="images/folder.png";
-		d.appendChild(document.createTextNode(" "+f));
-		var folderContents=goog.dom.getElement('contents').appendChild(document.createElement("div"));
-		folderContents.id=id;
-		folderContents.className='folderContents';
-		folderContents.style.display="none";
-		var ch = folderContents.appendChild(document.createElement('div'))
-		ch.className="contentsHeader";
-		var table = ch.appendChild(document.createElement('table'));
-		table.width="100%";
-		tr = table.appendChild(document.createElement('tr'));
-		var td = tr.appendChild(document.createElement('td'));
-		td.style.width="15px";
-		var cb = td.appendChild(document.createElement('input'));
-		cb.type='checkbox';
-		cb.style.visibility="hidden";
-		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(f));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Shared With"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Email"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="160px";
-		td.align = "center";
-		var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
-		option.appendChild(document.createTextNode(f));
-		option.value=id;
-		td.appendChild(document.createTextNode("Last Modified"));
-		goog.events.listen(d, goog.events.EventType.CLICK, function(e){
-			goog.dom.getElementByClass('current').style.backgroundColor='white';
-			goog.dom.getElementByClass('current').className='tab';
-			e.target.className='tab current';
-			tabs(e.target.id)
-			e.target.style.backgroundColor = '#2352AE';
-		});
-		goog.events.listen(d, goog.events.EventType.MOUSEOVER, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#ccf'
-			}
-			else{
-				e.target.style.backgroundColor = '#2352AE'
-			}
-		});
-		goog.events.listen(d, goog.events.EventType.MOUSEOUT, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#fff'
-			}
-		});
-	}
-}
-
-function moveToFolder(v){
-	if(v!="move_to"){
-		var c = document.getElementsByTagName("input");
-		var found = false;
-		var arr = [];
-		for (i in c){
-			if (c[i].type=="checkbox" && c[i].checked==true && c[i].parentNode.className=="checkboxCell"){
-				var e = c[i];
-				while(e.nodeName!="DIV")e=e.parentNode;
-				e.style.backgroundColor = '#ccc';
-				e.style.opacity = '0.5';
-				found=true;
-				arr.push(c[i].value)
-			}
-		}
-		if(found==true){
-			goog.net.XhrIo.send('/changefolder',
-				refreshList,
-				'POST',
-				'resource_id='+arr.join(',')+'&folder_id='+v
-			);
-		}
-		goog.dom.getElement("move_to_folder").selectedIndex=0;
-	}
-}
-
+/**
+ * Calls the server for all screenplay information
+ * including names, last modified, folders,
+ * permissions, unread notes, unread shared scripts,
+ * etc. Server responds with JSON, function cleans
+ * out old data, then puts new data in it's place
+ * @param {string} v Script ID for if share prompt
+ * is opened
+ */
 function refreshList(v){
 	goog.dom.getElement("refresh_icon").style.visibility="visible";
 	goog.net.XhrIo.send('/list',
@@ -309,14 +158,14 @@ function refreshList(v){
 			// know which tab is current, to be rest
 			//set up folders
 			var current = goog.dom.getElementByClass('current').id;
-			var fc = goog.dom.getElementsByClass('folderContents');
+			var fc = goog.dom.getElementsByClass('content_plus_header');
 			for (i in fc){
 				if(fc[i].id!='owned' && fc[i].id!='shared' && fc[i].id!='trash'){
 					goog.dom.removeNode(fc[i])
 				}
 			}
 			var d=goog.dom.getElement('user_folders');
-			d.innerHTML="";
+			goog.dom.removeChildren(d);
 			var select = goog.dom.getElement('move_to_folder');
 			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
 			for(i in folders){
@@ -328,11 +177,11 @@ function refreshList(v){
 				var option = select.appendChild(document.createElement('option'))
 				option.appendChild(document.createTextNode(folders[i][0]));
 				option.value=folders[i][1];
-				var folderContents=goog.dom.getElement('contents').appendChild(document.createElement("div"));
-				folderContents.id=folders[i][1];
-				folderContents.className='folderContents';
-				folderContents.style.display="none";
-				var ch = folderContents.appendChild(document.createElement('div'))
+				var content_plus_header=goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
+				content_plus_header.id=folders[i][1];
+				content_plus_header.className='content_plus_header';
+				content_plus_header.style.display="none";
+				var ch = content_plus_header.appendChild(document.createElement('div'))
 				ch.className="contentsHeader";
 				var table = ch.appendChild(document.createElement('table'));
 				table.width="100%";
@@ -377,14 +226,14 @@ function refreshList(v){
 					}
 				});
 			}
-			goog.dom.getElement('loading').style.display = 'none';
+			goog.dom.getElement("loading").style.display = 'none';
 		    //remove old data
-		    var childs = goog.dom.getElement('content').childNodes;
+		    var childs = goog.dom.getElement('owned_contents').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
-			var listDiv = goog.dom.getElement('content').appendChild(document.createElement('div'));
+			var listDiv = goog.dom.getElement('owned_contents').appendChild(document.createElement('div'));
 		    listDiv.id = 'list';
 			goog.dom.getElement('noentries').style.display=(x.length==0 ? "block" : "none");
 		    for (var i=0; i<x.length; i++){
@@ -478,14 +327,14 @@ function refreshList(v){
 			}
 		    // showing sharing scripts
 		    //remove old data
-		    var childs = goog.dom.getElement('sharedContent').childNodes;
+		    var childs = goog.dom.getElement('shared_contents').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
 		    goog.dom.getElement('sharedLoading').style.display='none';
 		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
-		    var listDiv = goog.dom.getElement('sharedContent').appendChild(document.createElement('div'));
+		    var listDiv = goog.dom.getElement('shared_contents').appendChild(document.createElement('div'));
 		    listDiv.id = 'sharedList';
 			var number_unopened = 0;
 		    for (i in ss){
@@ -542,13 +391,13 @@ function refreshList(v){
 		    goog.dom.getElement('trashLoading').style.display = 'none';
 		    goog.dom.getElement('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
 		    //remove old data
-		    var childs = goog.dom.getElement('trashContent').childNodes;
+		    var childs = goog.dom.getElement('trash_contents').childNodes;
 		    for (var i=0; i<childs.length; i++){
 		        childs[i].parentNode.removeChild(childs[i]);
 		        i--;
 		    }
 		    //update with new info
-		    var listDiv = goog.dom.getElement('trashContent').appendChild(document.createElement('div'));
+		    var listDiv = goog.dom.getElement('trash_contents').appendChild(document.createElement('div'));
 		    listDiv.id = 'trashList';
 			x=z;
 		    for(i in x){
@@ -652,37 +501,8 @@ function refreshList(v){
 		'POST'
 	);
 }
-function renameFolder(v){
-	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
-	var f = prompt("Rename Folder", prev_title)
-	if(f!=null){
-		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
-		if(f!=""){
-			var folder_id = v.replace("Folder", "");
-			var d = goog.dom.getElement(v);
-			d.innerHTML="";
-			d.appendChild(document.createElement("img")).src="images/folder.png";
-			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
-			d.appendChild(document.createTextNode(f));
-			goog.net.XhrIo.send('/renamefolder',
-				refreshList,
-				'POST',
-				'folder_name='+f+'&folder_id='+folder_id
-			);
-		}
-	}
-}
-function deleteFolder(){
-	var c = confirm("Are you sure you want to delete this folder?")
-	if(c==true){
-		var f = folder_id.replace('Folder','');
-		goog.net.XhrIo.send('/deletefolder',
-			refreshList,
-			'POST',
-			'folder_id='+f
-		);
-	}
-}
+
+
 function selectAll(obj, which){
 	var listItems = document.getElementsByTagName('input');
 	var bool = obj.checked
@@ -695,12 +515,186 @@ function selectAll(obj, which){
 	}
 }
 
-
+/**
+ * Opens a script in a new Tab
+ * @ params {string} v Resource ID of
+ * Script to be opened.
+ */
 function script(v){
-url = '/editor?resource_id=' + v;
-window.open(url);
-setTimeout('refreshList()',5000);
+	url = '/editor?resource_id=' + v;
+	window.open(url);
+	setTimeout('refreshList()',5000);
 }
+
+/**
+ * Opens the New Script Popup with the button
+ * is clicked
+ */
+function newScriptPrompt(){
+	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
+	goog.dom.getElement('newScript').value = "Untitled Screenplay";
+	goog.dom.getElement('newScript').focus();
+	goog.dom.getElement('newScript').select();
+}
+/**
+ * Hides the New Script Popup with the X icon
+ * is clicked
+ */
+function hideNewScriptPrompt(){
+	goog.dom.getElement('newScript').value = "";
+	goog.dom.getElement('newscriptpopup').style.visibility = 'hidden';
+	goog.dom.getElement('createScriptButton').disabled=false;
+	goog.dom.getElement('createScriptButton').value="Create";
+	goog.dom.getElement('createScriptIcon').style.visibility="hidden";
+}
+/**
+ * Sends the user created screenplay title to
+ * the server. Server creates new screenplay,
+ * responds with new, unique resource id.
+ */
+function createScript (){
+	var filename = goog.dom.getElement('newScript').value;
+	if (filename!=''){
+		goog.dom.getElement('createScriptButton').disabled=true;
+		goog.dom.getElement('createScriptButton').value="Creating Script...";
+		goog.dom.getElement('createScriptIcon').style.visibility="visible";
+		goog.net.XhrIo.send('/newscript',
+			function(d){
+				window.open('/editor?resource_id='+d.target.getResponseText());
+				hideNewScriptPrompt();
+				refreshList();
+			},
+			'POST',
+			'fromPage=scriptlist&filename='+escape(filename)
+		);
+	}
+}
+
+/**
+ * Opens the upload prompt on click
+ */
+function uploadPrompt(){
+	goog.dom.getElement('uploadpopup').style.visibility = 'visible';
+}
+/**
+ * Hides the upload prompt on click
+ */
+function hideUploadPrompt(){
+	goog.dom.getElement('uploadFrame').src = '/convert';
+	goog.dom.getElement('uploadpopup').style.visibility = 'hidden';
+}
+
+/**
+ * Add listener for messages from upload iframes
+ */
+window.addEventListener("message", recieveMessage, false);
+
+/**
+ * Takes that message from iframe and shows correct
+ * GUI, either "Loading" bar, or "Complete" message
+ * @ params {event object} e Contains data from cross
+ * iframe message event
+ */
+function recieveMessage(e){
+	if(e.origin!="http://www.rawscripts.com")return;
+	if(e.data=="uploading"){
+		goog.dom.getElement("uploading").style.display="block";
+		goog.dom.getElement("uploadFrame").style.display="none";
+	}
+	else{
+		goog.dom.getElement("uploading").style.display="none";
+		goog.dom.getElement("uploadFrame").style.display="block";
+		window.open("/editor?resource_id="+e.data);
+		refreshList();
+	}
+    
+}
+/**
+ * Opens the rename prompt on click
+ */
+function renamePrompt(){
+	// first check that user has selected only
+	// one script to rename
+	var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var resource_id = listItems[i].value;
+					counter++;
+				}
+			}
+		}
+	}
+	if(counter>1)alert("Please select one at a time");
+	else if (counter==1){
+		var title = 'name' + resource_id;
+		goog.dom.getElement('renameTitle').innerHTML = "Rename " + goog.dom.getElement(title).innerHTML;
+		goog.dom.getElement('renameField').value = goog.dom.getElement(title).innerHTML;
+		goog.dom.getElement('renamepopup').style.visibility = 'visible';
+		goog.dom.getElement('resource_id').value = resource_id;
+	}
+	
+}
+/**
+ * hides the rename prompt on click
+ */
+function hideRenamePrompt(){
+	goog.dom.getElement('renameField').value = "";
+	goog.dom.getElement('renamepopup').style.visibility = 'hidden';
+}
+
+/**
+ * Collects new user inputed title, updates GUI,
+ * then sends new title and resource_id to server
+ */	
+function renameScript(){
+	var resource_id = goog.dom.getElement('resource_id').value;
+	var rename = goog.dom.getElement('renameField').value;
+	if (rename==""){return;}
+	var id = "name"+resource_id;
+	goog.dom.getElement(id).innerHTML = rename;
+	goog.net.XhrIo.send('/rename',
+		function(){},
+		'POST',
+		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
+	);
+	hideRenamePrompt()
+}
+
+/**
+ * Makes a copy of selected script
+ */
+function duplicate(){
+    var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name == 'listItems'){
+					var resource_id = listItems[i].value;
+					counter++;
+				}
+			}
+		}
+	}
+	if(counter>1)alert("select one at a time");
+	else if (counter==1){
+		goog.net.XhrIo.send('/duplicate',
+			function(d){
+				if(d.target.getResponseText()=='fail')return;
+				else{
+					window.open(d.target.getResponseText());
+					refreshList()
+				}
+			},
+			'POST',
+			'resource_id='+resource_id+'&fromPage=scriptlist'
+		);
+    }
+}
+
 function haveToUndelete(){
 	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
 }
@@ -833,7 +827,7 @@ function emailScript(){
 	var recipients = arr.join(',');
 	var subject = goog.dom.getElement('subject').value;
 	if(subject=="")subject="Script";
-	var body_message = goog.dom.getElement('message').innerHTML;
+	var body_message = goog.dom.getElement('email_message').innerHTML;
     var title_page = goog.dom.getElement("emailTitle").selectedIndex;
 	goog.net.XhrIo.send('emailscript',
 		emailComplete,
@@ -853,7 +847,7 @@ function hideEmailPrompt(){
 goog.dom.getElement('emailpopup').style.visibility = 'hidden';
 goog.dom.getElement('recipient').value = "";
 goog.dom.getElement('subject').value = "";
-goog.dom.getElement('message').innerHTML = "";
+goog.dom.getElement('email_message').innerHTML = "";
 }
 
 function duplicate(){
@@ -885,103 +879,9 @@ function duplicate(){
     }
 }
 
-function renamePrompt(){
-	var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
-					var resource_id = listItems[i].value;
-					counter++;
-				}
-			}
-		}
-	}
-	if(counter>1)alert("select one at a time");
-	else if (counter==1){
-		var title = 'name' + resource_id;
-		goog.dom.getElement('renameTitle').innerHTML = "Rename " + goog.dom.getElement(title).innerHTML;
-		goog.dom.getElement('renameField').value = goog.dom.getElement(title).innerHTML;
-		goog.dom.getElement('renamepopup').style.visibility = 'visible';
-		goog.dom.getElement('resource_id').value = resource_id;
-	}
-	
-	}
 
-function hideRenamePrompt(){
-	goog.dom.getElement('renameField').value = "";
-	goog.dom.getElement('renamepopup').style.visibility = 'hidden';
-	}
 	
-function renameScript(){
-	var resource_id = goog.dom.getElement('resource_id').value;
-	var rename = goog.dom.getElement('renameField').value;
-	if (rename==""){return;}
-	var id = "name"+resource_id;
-	goog.dom.getElement(id).innerHTML = rename;
-	goog.net.XhrIo.send('/rename',
-		function(){},
-		'POST',
-		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
-	);
-	hideRenamePrompt()
-	}
-	
-function uploadPrompt(){
-	goog.dom.getElement('uploadpopup').style.visibility = 'visible';
-	}
-function hideUploadPrompt(){
-	goog.dom.getElement('uploadFrame').src = '/convert';
-	goog.dom.getElement('uploadpopup').style.visibility = 'hidden';
-	}
-function newScriptPrompt(){
-	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
-	goog.dom.getElement('newScript').value = "Untitled Screenplay";
-	goog.dom.getElement('newScript').focus();
-	goog.dom.getElement('newScript').select();
-	}
-function hideNewScriptPrompt(){
-	goog.dom.getElement('newScript').value = "";
-	goog.dom.getElement('newscriptpopup').style.visibility = 'hidden';
-	goog.dom.getElement('createScriptButton').disabled=false;
-	goog.dom.getElement('createScriptButton').value="Create";
-	goog.dom.getElement('createScriptIcon').style.visibility="hidden";
-}
 
-function createScript (){
-	var filename = goog.dom.getElement('newScript').value;
-	if (filename!=''){
-		goog.dom.getElement('createScriptButton').disabled=true;
-		goog.dom.getElement('createScriptButton').value="Creating Script...";
-		goog.dom.getElement('createScriptIcon').style.visibility="visible";
-		goog.net.XhrIo.send('/newscript',
-			function(d){
-				window.open('/editor?resource_id='+d.target.getResponseText());
-				hideNewScriptPrompt();
-				refreshList();
-			},
-			'POST',
-			'fromPage=scriptlist&filename='+escape(filename)
-		);
-	}
-}
-//window.addEventListener("message", uploadWindow, false); 
-window.addEventListener("message", recieveMessage, false);
-function recieveMessage(e){
-	if(e.origin!="http://www.rawscripts.com")return;
-	if(e.data=="uploading"){
-		goog.dom.getElement("uploading").style.display="block";
-		goog.dom.getElement("uploadFrame").style.display="none";
-	}
-	else{
-		goog.dom.getElement("uploading").style.display="none";
-		goog.dom.getElement("uploadFrame").style.display="block";
-		window.open("/editor?resource_id="+e.data);
-		refreshList();
-	}
-    
-}
 function hideExportPrompt(){
 	goog.dom.getElement('exportpopup').style.visibility = 'hidden';
 	goog.dom.getElement('exportList').innerHTML = '';
@@ -1171,4 +1071,217 @@ function emailNotifyMsg(e){
 	else{
 		el.style.display='none'
 	}
+}
+/* FOLDER FUNCTIONS
+ * 
+ * Aside from permission based folders ("My Scripts", 
+ * "Shared With Me", and "Trash"), Users can create
+ * folders of their own to organize scripts how they
+ * choose. 
+ * 
+ * Users can Create, Rename, and Delete folders. They
+ * can move scripts into folders.
+*/
+
+
+function tabs(v){
+	// the logic for clicking on a folder (defualt or user defined)
+	// and then opening up the list of relevant files
+	var c = document.getElementsByTagName('input');
+	for (var i=0; i<c.length; i++){
+		if (c[i].type == 'checkbox'){
+			c[i].checked = false;
+		}
+	}
+	var c = document.getElementsByTagName('div');
+	for(i in c){
+		if(c[i].className=="content_plus_header")c[i].style.display="none";
+		if(c[i].className=="buttons_block")c[i].style.display="none";
+	}
+	goog.dom.getElement(v.replace("Folder","")).style.display="block";
+	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_script_buttons";
+	goog.dom.getElement(v.replace("Folder","_script_buttons")).style.display="block";
+}
+
+function newFolder(){
+	// called when use clicks "New Folder" button.
+	// Prompts user for a folder name, then creates it.
+	// Attached to the folder name is a folder ID, a 
+	// random 10-digit number. All info is attached to that
+	// number, so the name can change, or there can be two folders
+	// with the same name. A screenplay not in a folder has a
+	// folder_id of "?none?"
+	var f = prompt("New Folder Name");
+	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
+	if(f!=null && f!=""){
+		var id = Math.round(Math.random()*10000000000);
+		goog.net.XhrIo.send('/newfolder',
+			function(){},
+			'POST',
+			'folder_name='+escape(f)+'&folder_id='+id
+		)
+		var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
+		d.className="tab";
+		d.id="Folder"+id;
+		d.appendChild(document.createElement("img")).src="images/folder.png";
+		d.appendChild(document.createTextNode(" "+f));
+		var content_plus_header=goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
+		content_plus_header.id=id;
+		content_plus_header.className='content_plus_header';
+		content_plus_header.style.display="none";
+		var ch = content_plus_header.appendChild(document.createElement('div'))
+		ch.className="contentsHeader";
+		var table = ch.appendChild(document.createElement('table'));
+		table.width="100%";
+		var tr = table.appendChild(document.createElement('tr'));
+		var td = tr.appendChild(document.createElement('td'));
+		td.style.width="15px";
+		var cb = td.appendChild(document.createElement('input'));
+		cb.type='checkbox';
+		cb.style.visibility="hidden";
+		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(f));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Shared With"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="120px";
+		td.align = "center";
+		td.appendChild(document.createTextNode("Email"));
+		td = tr.appendChild(document.createElement('td'));
+		td.style.width="160px";
+		td.align = "center";
+		var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
+		option.appendChild(document.createTextNode(f));
+		option.value=id;
+		td.appendChild(document.createTextNode("Last Modified"));
+		goog.events.listen(d, goog.events.EventType.CLICK, function(e){
+			goog.dom.getElementByClass('current').style.backgroundColor='white';
+			goog.dom.getElementByClass('current').className='tab';
+			e.target.className='tab current';
+			tabs(e.target.id)
+			e.target.style.backgroundColor = '#2352AE';
+		});
+		goog.events.listen(d, goog.events.EventType.MOUSEOVER, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#ccf'
+			}
+			else{
+				e.target.style.backgroundColor = '#2352AE'
+			}
+		});
+		goog.events.listen(d, goog.events.EventType.MOUSEOUT, function(e){
+			if(e.target.className!='tab current'){
+				e.target.style.backgroundColor = '#fff'
+			}
+		});
+	}
+}
+function renameFolder(v){
+	// Prompts the user for a new name for the
+	// folder. It then finds the relevant folder_id
+	// and posts the change.
+	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
+	var f = prompt("Rename Folder", prev_title)
+	if(f!=null){
+		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
+		if(f!=""){
+			var folder_id = v;
+			var d = goog.dom.getElement("Folder"+v);
+			goog.dom.removeChildren(d);
+			d.appendChild(document.createElement("img")).src="images/folder.png";
+			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
+			d.appendChild(document.createTextNode(f));
+			goog.net.XhrIo.send('/renamefolder',
+				refreshList,
+				'POST',
+				'folder_name='+f+'&folder_id='+folder_id
+			);
+		}
+	}
+}
+
+function deleteFolder(){
+	// Confirms the user wants to delete the
+	// folder. Then does if if true
+	var c = confirm("Are you sure you want to delete this folder?")
+	if(c==true){
+		var f = folder_id.replace('Folder','');
+		goog.net.XhrIo.send('/deletefolder',
+			refreshList,
+			'POST',
+			'folder_id='+f
+		);
+	}
+}
+
+function moveToFolder(v){
+	// Called when user makes selection from select
+	// menu "move_to_folder". Input "v" will be:
+	// 1) "move_to", meaning no change, or
+	// 2) "?none?", meaning remove from folders, or
+	// 3) the 10-digit id of the user defined 
+	//    folder the files should be moved to. 
+	if(v!="move_to"){
+		var c = document.getElementsByTagName("input");
+		var found = false;
+		var arr = [];
+		for (i in c){
+			if (c[i].type=="checkbox" && c[i].checked==true && c[i].parentNode.className=="checkboxCell"){
+				var e = c[i];
+				while(e.nodeName!="DIV")e=e.parentNode;
+				e.style.backgroundColor = '#ccc';
+				e.style.opacity = '0.5';
+				found=true;
+				arr.push(c[i].value)
+			}
+		}
+		if(found==true){
+			goog.net.XhrIo.send('/changefolder',
+				refreshList,
+				'POST',
+				'resource_id='+arr.join(',')+'&folder_id='+v
+			);
+		}
+		goog.dom.getElement("move_to_folder").selectedIndex=0;
+	}
+}
+// Some setup for contextual menus on the
+// user defined folders
+goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
+goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
+
+function removeContextMenu(){
+	if(goog.dom.getElement('folder_context_menu')!=null){
+		goog.dom.removeNode('folder_context_menu');
+	}
+}
+
+function contextmenu(e){
+	if(goog.dom.getElement('folder_context_menu')!=null){
+		goog.dom.removeNode('folder_context_menu')
+	}
+	if(e.target.className=="tab" || e.target.className=="tab current"){
+		if(e.target.id!="ownedFolder" && e.target.id!="sharedFolder" && e.target.id!="trashFolder"){
+			e.preventDefault();
+			folder_id=e.target.id;
+			var menu = new goog.ui.PopupMenu();
+			menu.setId('folder_context_menu');
+			menu.addItem(new goog.ui.MenuItem('Rename Folder'));
+			menu.addItem(new goog.ui.MenuItem('Delete Folder'));
+			menu.render(document.body);
+			menu.setPosition(e.clientX,e.clientY);
+			menu.setVisible(true)
+			goog.events.listen(menu, 'action', folderContextMenuAction)
+		}
+	}
+}
+function folderContextMenuAction(e){
+	if(e.target.content_=='Rename Folder'){
+		renameFolder(folder_id.replace('Folder',''))
+	}
+	else if(e.target.content_=='Delete Folder'){
+		deleteFolder(folder_id.replace('Folder',''))
+	}
+
 }
