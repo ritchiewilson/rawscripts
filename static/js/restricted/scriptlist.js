@@ -620,7 +620,7 @@ function renamePrompt(){
 	for (var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
 			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
+				if (listItems[i].name != 'trashListItems' && listItems[i].name != 'sharedListItems'){
 					var resource_id = listItems[i].value;
 					counter++;
 				}
@@ -629,6 +629,7 @@ function renamePrompt(){
 	}
 	if(counter>1)alert("Please select one at a time");
 	else if (counter==1){
+		// if only one script, open rename prompt
 		var title = 'name' + resource_id;
 		goog.dom.getElement('renameTitle').innerHTML = "Rename " + goog.dom.getElement(title).innerHTML;
 		goog.dom.getElement('renameField').value = goog.dom.getElement(title).innerHTML;
@@ -650,16 +651,25 @@ function hideRenamePrompt(){
  * then sends new title and resource_id to server
  */	
 function renameScript(){
+	// Collect resource_id and new name
 	var resource_id = goog.dom.getElement('resource_id').value;
 	var rename = goog.dom.getElement('renameField').value;
 	if (rename==""){return;}
+	// Update DOM
 	var id = "name"+resource_id;
-	goog.dom.getElement(id).innerHTML = rename;
+	var a = document.getElementsByTagName('a');
+	for (i in a){
+		if (a[i].id==id){
+			a[i].innerHTML = rename;
+		}
+	}
+	// Send data to server
 	goog.net.XhrIo.send('/rename',
 		function(){},
 		'POST',
 		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
 	);
+	// Hide prompt
 	hideRenamePrompt()
 }
 
@@ -667,12 +677,13 @@ function renameScript(){
  * Makes a copy of selected script
  */
 function duplicate(){
+	// make sure only one script is selected
     var counter = 0;
 	var listItems = document.getElementsByTagName('input');
 	for (var i=0; i<listItems.length; i++){
 		if(listItems[i].type == 'checkbox'){
 			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
+				if (listItems[i].name != 'trashListItems' && listItems[i].name != 'sharedListItems'){
 					var resource_id = listItems[i].value;
 					counter++;
 				}
@@ -681,6 +692,7 @@ function duplicate(){
 	}
 	if(counter>1)alert("select one at a time");
 	else if (counter==1){
+		// if only one script, post data to server
 		goog.net.XhrIo.send('/duplicate',
 			function(d){
 				if(d.target.getResponseText()=='fail')return;
@@ -695,9 +707,98 @@ function duplicate(){
     }
 }
 
-function haveToUndelete(){
-	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
+/**
+ * Takes checked boxes (selected scripts),
+ * then creates a table in the export prompt
+ * giving options for title page and export
+ * format.
+ */
+function exportPrompt(){
+	var counter = 0;
+	var listItems = document.getElementsByTagName('input');
+	for (var i=0; i<listItems.length; i++){
+		if(listItems[i].type == 'checkbox'){
+			if (listItems[i].checked == true){
+				if (listItems[i].name.match(/listitems/gi)){
+					var newRow = document.createElement('tr');
+					var row = goog.dom.getElement('exportList').appendChild(newRow);
+					var newData = row.appendChild(document.createElement('td'));
+					var newTxt = document.createTextNode(goog.dom.getElement('name'+listItems[i].value).innerHTML);
+					newData.appendChild(newTxt);
+					//Create Selection cell					
+					newData = row.appendChild(document.createElement('td'));
+					var newSelect = document.createElement('select');
+					var select = newData.appendChild(newSelect);
+					select.name = listItems[i].value;
+					select.className='export_format_select';
+					var option = select.appendChild(document.createElement('option'));
+					option.appendChild(document.createTextNode('Adobe PDF'));
+					option = select.appendChild(document.createElement('option'));
+					option.appendChild(document.createTextNode('.txt'));
+                    newData = newRow.appendChild(document.createElement('td'));
+                    newSelect = newData.appendChild(document.createElement('select'));
+                    newSelect.name="export_format";
+                    option = newSelect.appendChild(document.createElement('option'));
+                    option.appendChild(document.createTextNode('Without Title Page'));
+                    option = newSelect.appendChild(document.createElement('option'));
+                    option.appendChild(document.createTextNode('With Title Page'));
+                    var a = newRow.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
+                    a.appendChild(document.createTextNode('Edit Title page'));
+                    a.href="/titlepage?resource_id="+listItems[i].value;
+                    a.target="_blank"
+					a.style.color="blue"
+					counter++;
+				}
+			}
+		}
+	}
+	if (counter>0){
+		goog.dom.getElement('exportpopup').style.visibility = 'visible';
+	}
 }
+/**
+ * Hides export promt. Called when user clicks
+ * close icon. Also called after user actually 
+ * exports scripts.
+ */
+function hideExportPrompt(){
+	goog.dom.getElement('exportpopup').style.visibility = 'hidden';
+	goog.dom.getElement('exportList').innerHTML = '';
+}
+/**
+ * Cycles through scripts to be exported. For
+ * each script to be exported, collects options
+ * and opens a new window at a url with those
+ * options.
+ */
+function exportScripts(){
+	var id;
+	var format;
+	var exports = document.getElementsByTagName('select');
+	for (var i=0; i<exports.length; i++){
+        if(exports[i].className=='export_format_select'){
+            id = exports[i].name;
+            if (exports[i].selectedIndex == 0){format = 'pdf';}
+            else{format = 'txt';}
+            var n = exports[i].parentNode;
+            n = n.nextSibling;
+            if(n.nodeName=="#text")n=n.nextSibling;
+            n=n.firstChild;
+            if(n.nodeName=="#text")n=n.nextSibling;
+            var title = "&title_page="+n.selectedIndex;
+            url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist'+title;
+            window.open(url);
+        }
+    }
+	hideExportPrompt();
+}
+
+/**
+ * Moves Script to trash. First greys the scripts
+ * to be deleted, and when the server confirms the 
+ * scripts are in the trash, it moves them.
+ * @ params { string object } v resource_id of script
+ */
 function deleteScript(v){
 	var scriptDiv = goog.dom.getElement(v);
 	scriptDiv.style.backgroundColor = '#ccc';
@@ -735,7 +836,10 @@ function deleteScript(v){
 		'resource_id='+v
 		);
 }
-
+/**
+ * Remove Script from trash
+ * @ param {string} v resource_id of script to revive
+ */
 function undelete(v){
     var scriptDiv = goog.dom.getElement(v);
 	scriptDiv.style.backgroundColor = '#ccc';
@@ -763,6 +867,18 @@ function undelete(v){
 	);
 }
 
+/**
+ * An alert if a user tries to open a trashed
+ * script. (sucky UI, need to fix)
+ */
+function haveToUndelete(){
+	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
+}
+
+/**
+ * Permananetly delete a script
+ * @ param {string} v resource_id of script
+ */
 function hardDelete(v){
     var scriptDiv = goog.dom.getElement(v);
     scriptDiv.style.backgroundColor = '#ccc';
@@ -776,7 +892,14 @@ function hardDelete(v){
 	);
 }
 
-
+/**
+ * For actions done on multiple scripts, namely
+ * delete, undelete, and harddelete, this is what
+ * is called on user input (click). This goes through
+ * what is selected and sendes the resource_id to 
+ * the expected function.
+ * @ param {string} v delete, undelete, or hardDelete
+ */
 function batchProcess(v){
     var con = true;
     if(v=='hardDelete'){
@@ -789,7 +912,7 @@ function batchProcess(v){
         for (var i=0; i<listItems.length; i++){
             if(listItems[i].type == 'checkbox'){
                 if (listItems[i].checked == true){
-                    if (listItems[i].name.substr(0,9) == 'listItems' || listItems[i].name=='sharedListItems' || listItems[i].name=='trashListItems'){
+                    if (listItems[i].name.match(/listitems/gi)){
                         if(v=='delete')	deleteScript(listItems[i].value);
                         if(v=='undelete')undelete(listItems[i].value);
                         if(v=='hardDelete')hardDelete(listItems[i].value);
@@ -802,18 +925,32 @@ function batchProcess(v){
     }
 }
 
-function emailComplete(e){
-	
-	goog.dom.getElement('emailS').disabled = false;
-	goog.dom.getElement('emailS').value = 'Send';
-	if (e.target.getResponseText()=='sent'){
-		alert("Email Sent")
-		hideEmailPrompt();
-	}
-	else{
-		alert("There was a problem sending your email. Please try again later.")
-	}
+/**
+ * Opens email prompt GUI on click
+ * @ params { string } v resource_id of script
+ */
+function emailPrompt(v){
+	var resource_id=v;
+	goog.dom.getElement('emailpopup').style.visibility = 'visible';
+    goog.dom.getElement('edit_title_href').href='/titlepage?resource_id='+resource_id
 }
+
+/**
+ * Hide email prompt when email is complete
+ * or when user chooses.
+ */
+function hideEmailPrompt(){
+	goog.dom.getElement('emailpopup').style.visibility = 'hidden';
+	goog.dom.getElement('recipient').value = "";
+	goog.dom.getElement('subject').value = "";
+	goog.dom.getElement('email_message').innerHTML = "";
+}
+
+/**
+ * Does the job of collecting recipient names,
+ * subject, and message, then sends that and
+ * the resource_id to server.
+ */
 function emailScript(){
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('recipient').value)
 	var arr=[];
@@ -837,118 +974,27 @@ function emailScript(){
 	goog.dom.getElement('emailS').disabled = true;
 	goog.dom.getElement('emailS').value = 'Sending...';
 }
-var resource_id="";
-function emailPrompt(v){
-	resource_id=v;
-	goog.dom.getElement('emailpopup').style.visibility = 'visible';
-    goog.dom.getElement('edit_title_href').href='/titlepage?resource_id='+resource_id
-}
-function hideEmailPrompt(){
-goog.dom.getElement('emailpopup').style.visibility = 'hidden';
-goog.dom.getElement('recipient').value = "";
-goog.dom.getElement('subject').value = "";
-goog.dom.getElement('email_message').innerHTML = "";
+
+/**
+ * If email sent, good. If not, alert
+ */
+function emailComplete(e){
+	goog.dom.getElement('emailS').disabled = false;
+	goog.dom.getElement('emailS').value = 'Send';
+	if (e.target.getResponseText()=='sent'){
+		alert("Email Sent")
+		hideEmailPrompt();
+	}
+	else{
+		alert("There was a problem sending your email. Please try again later.")
+	}
 }
 
-function duplicate(){
-    var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems'){
-					var resource_id = listItems[i].value;
-					counter++;
-				}
-			}
-		}
-	}
-	if(counter>1)alert("select one at a time");
-	else if (counter==1){
-		goog.net.XhrIo.send('/duplicate',
-			function(d){
-				if(d.target.getResponseText()=='fail')return;
-				else{
-					window.open(d.target.getResponseText());
-					refreshList()
-				}
-			},
-			'POST',
-			'resource_id='+resource_id+'&fromPage=scriptlist'
-		);
-    }
-}
 
 
 	
 
-function hideExportPrompt(){
-	goog.dom.getElement('exportpopup').style.visibility = 'hidden';
-	goog.dom.getElement('exportList').innerHTML = '';
-	}
-function exportPrompt(){
-	var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name == 'listItems' || listItems[i].name=='sharedListItems'){
-					var newRow = document.createElement('tr');
-					var row = goog.dom.getElement('exportList').appendChild(newRow);
-					var newData = row.appendChild(document.createElement('td'));
-					var newTxt = document.createTextNode(goog.dom.getElement('name'+listItems[i].value).innerHTML);
-					newData.appendChild(newTxt);
-					//Create Selection cell					
-					newData = row.appendChild(document.createElement('td'));
-					var newSelect = document.createElement('select');
-					var select = newData.appendChild(newSelect);
-					select.name = listItems[i].value;
-					var option = select.appendChild(document.createElement('option'));
-					option.appendChild(document.createTextNode('Adobe PDF'));
-					option = select.appendChild(document.createElement('option'));
-					option.appendChild(document.createTextNode('txt (for Celtx or FD)'));
-                    newData = newRow.appendChild(document.createElement('td'));
-                    newSelect = newData.appendChild(document.createElement('select'));
-                    newSelect.name="export_format";
-                    option = newSelect.appendChild(document.createElement('option'));
-                    option.appendChild(document.createTextNode('Without Title Page'));
-                    option = newSelect.appendChild(document.createElement('option'));
-                    option.appendChild(document.createTextNode('With Title Page'));
-                    var a = newRow.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
-                    a.appendChild(document.createTextNode('Edit Title page'));
-                    a.href="/titlepage?resource_id="+listItems[i].value;
-                    a.target="_blank"
-					a.style.color="blue"
-					counter++;
-				}
-			}
-		}
-	}
-	if (counter>0){
-		goog.dom.getElement('exportpopup').style.visibility = 'visible';
-		}
-	}
-function exportScripts(){
-	var id;
-	var format;
-	var exports = document.getElementsByTagName('select');
-	for (var i=0; i<exports.length; i++){
-        if(exports[i].name!='export_format' && exports[i].name!=''){
-            id = exports[i].name;
-            if (exports[i].selectedIndex == 0){format = 'pdf';}
-            else{format = 'txt';}
-            var n = exports[i].parentNode;
-            n = n.nextSibling;
-            if(n.nodeName=="#text")n=n.nextSibling;
-            n=n.firstChild;
-            if(n.nodeName=="#text")n=n.nextSibling;
-            var title = "&title_page="+n.selectedIndex;
-            url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist'+title;
-            window.open(url);
-        }
-    }
-	hideExportPrompt();
-}
+
 //-----------------Done Export Functions------
 //
 //
