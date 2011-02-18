@@ -160,6 +160,9 @@ body{
 	width:300px;
 	margin:auto;
 }
+#noentries{
+	position:relative;
+}
 #noentries a {
 	color:blue;
 	text-decoration:underline;
