@@ -70,7 +70,9 @@ window['hardDelete'] = hardDelete;
 
 
 function init(){
+	// grab scripts, and create lists
 	refreshList();
+	// prevent some defaults on forms in prompt
 	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN,
 		function(e){
 			if(e.keyCode==13){
@@ -94,6 +96,11 @@ function init(){
 			}
 		}
 	);
+	// Some setup for contextual menus on the
+	// user defined folders
+	goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
+	goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
+	// Put some listens on folder tabs
 	var arr = ['ownedFolder', 'sharedFolder', 'trashFolder'];
 	for (i in arr){
 		var f = goog.dom.getElement(arr[i]);
@@ -118,6 +125,7 @@ function init(){
 			}
 		});
 	}
+	// get contacts from server and put in autocomplete
 	try{
 		goog.net.XhrIo.send('/synccontacts',
 			function(e){
@@ -205,6 +213,9 @@ function refreshList(v){
 				td.style.width="160px";
 				td.align = "center";
 				td.appendChild(document.createTextNode("Last Modified"));
+				var contents = content_plus_header.appendChild(document.createElement('div'));
+				contents.id = folders[i][1]+"_contents";
+				contents.className = "folderContents"
 				goog.events.listen(f, goog.events.EventType.CLICK, function(e){
 					goog.dom.getElementByClass('current').style.backgroundColor='white';
 					goog.dom.getElementByClass('current').className='tab';
@@ -321,7 +332,7 @@ function refreshList(v){
 		        updatedTd.appendChild(document.createTextNode(updated));
 				if(folder!="?none?"){
 					var obj = entryDiv.cloneNode(true);
-					var obj = goog.dom.getElement(folder).appendChild(obj);
+					var obj = goog.dom.getElement(folder+"_contents").appendChild(obj);
 					obj.getElementsByTagName("input")[0].name="listItems"+folder;
 				}
 			}
@@ -990,33 +1001,11 @@ function emailComplete(e){
 	}
 }
 
-
-
-	
-
-
-//-----------------Done Export Functions------
-//
-//
-//-----------------Start Share Functions------
-function removeAccess(v){
-	var bool = confirm("Are you sure you want to take away access from "+v+"?");
-	if (bool==true){
-		var resource_id = goog.dom.getElement('shareResource_id').value;
-		goog.net.XhrIo.send('/removeaccess',
-			removeShareUser,
-			'POST',
-			'resource_id='+resource_id+'&fromPage=scriptlist&removePerson='+v
-		);
-		goog.dom.getElement('shared'+v.toLowerCase()).style.opacity = '0.5';
-		goog.dom.getElement('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
-	}
-}
-function removeShareUser(d){
-	var data = d.target.getResponseText();
-	goog.dom.getElement('shared'+data).parentNode.removeChild(goog.dom.getElement('shared'+data));
-	refreshList();
-}
+/**
+ * Opens the share prompt, and populate the
+ * table with info on who already has access
+ * @ param { string } v Resource_id of script
+ */
 function sharePrompt(v){
 	goog.dom.getElement('shareS').disabled = false;
 	goog.dom.getElement('shareS').value = "Send Invitation";
@@ -1046,6 +1035,10 @@ function sharePrompt(v){
 	goog.dom.getElement('email_notify_msg').disabled = false;
 	goog.dom.getElement('share_message').style.display='none';
 }
+
+/**
+ * Hides share prompt and clears fields
+ */
 function hideSharePrompt(){
 	goog.dom.getElement('sharepopup').style.visibility = 'hidden';
 	goog.dom.getElement('collaborator').value = "";
@@ -1053,7 +1046,12 @@ function hideSharePrompt(){
 	goog.dom.getElement('email_notify_msg').checked=false;
 	goog.dom.getElement('share_message').style.display='none';
 	goog.dom.getElement('share_message').innerHTML="";
-}
+}	
+
+/**
+ * Goes through fields in share prompt for
+ * data and options, sends those to server
+ */
 function shareScript(){
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
 	var arr=[];
@@ -1098,6 +1096,41 @@ function shareScript(){
 	goog.dom.getElement('shareS').disabled = true;
 	goog.dom.getElement('shareS').value = "Sending Invites...";
 }
+
+/**
+ * Removes view access from a user
+ * @ param {string} email of user
+ * to remove
+ */
+function removeAccess(v){
+	var bool = confirm("Are you sure you want to take away access from "+v+"?");
+	if (bool==true){
+		var resource_id = goog.dom.getElement('shareResource_id').value;
+		goog.net.XhrIo.send('/removeaccess',
+			removeShareUser,
+			'POST',
+			'resource_id='+resource_id+'&fromPage=scriptlist&removePerson='+v
+		);
+		goog.dom.getElement('shared'+v.toLowerCase()).style.opacity = '0.5';
+		goog.dom.getElement('shared'+v.toLowerCase()).style.backgroundColor = '#ddd';
+	}
+}
+/**
+ * Updates GUI after server says
+ * a users access has been removed
+ */
+function removeShareUser(d){
+	var data = d.target.getResponseText();
+	goog.dom.getElement('shared'+data).parentNode.removeChild(goog.dom.getElement('shared'+data));
+	refreshList();
+}
+
+/**
+ * Changes GUI for email notification
+ * when sharing script with other people
+ * @ param {this object} e The checkbox 
+ * in the prompt
+ */
 function emailNotifyShare(e){
 	var el = goog.dom.getElement('email_notify_msg');
 	if (e.checked==true){
@@ -1109,6 +1142,12 @@ function emailNotifyShare(e){
 		goog.dom.getElement('email_notify_msg').checked=false;
 	}
 }
+/**
+ * Changes GUI for email notification msg
+ * when sharing script with other people
+ * @ param {this object} e The checkbox 
+ * in the prompt
+ */
 function emailNotifyMsg(e){
 	var el = goog.dom.getElement('share_message');
 	if (e.checked==true){
@@ -1118,6 +1157,7 @@ function emailNotifyMsg(e){
 		el.style.display='none'
 	}
 }
+
 /* FOLDER FUNCTIONS
  * 
  * Aside from permission based folders ("My Scripts", 
@@ -1129,10 +1169,12 @@ function emailNotifyMsg(e){
  * can move scripts into folders.
 */
 
-
+/**
+ * the logic for clicking on a folder (defualt or user defined)
+ * and then opening up the list of relevant files
+ * @ param { string } v folder id
+ */
 function tabs(v){
-	// the logic for clicking on a folder (defualt or user defined)
-	// and then opening up the list of relevant files
 	var c = document.getElementsByTagName('input');
 	for (var i=0; i<c.length; i++){
 		if (c[i].type == 'checkbox'){
@@ -1149,14 +1191,16 @@ function tabs(v){
 	goog.dom.getElement(v.replace("Folder","_script_buttons")).style.display="block";
 }
 
+/**
+ * called when use clicks "New Folder" button.
+ * Prompts user for a folder name, then creates it.
+ * Attached to the folder name is a folder ID, a 
+ * random 10-digit number. All info is attached to that
+ * number, so the name can change, or there can be two folders
+ * with the same name. A screenplay not in a folder has a
+ * folder_id of "?none?"
+ */
 function newFolder(){
-	// called when use clicks "New Folder" button.
-	// Prompts user for a folder name, then creates it.
-	// Attached to the folder name is a folder ID, a 
-	// random 10-digit number. All info is attached to that
-	// number, so the name can change, or there can be two folders
-	// with the same name. A screenplay not in a folder has a
-	// folder_id of "?none?"
 	var f = prompt("New Folder Name");
 	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
 	if(f!=null && f!=""){
@@ -1223,10 +1267,13 @@ function newFolder(){
 		});
 	}
 }
+/**
+ * Prompts the user for a new name for the
+ * folder. It then finds the relevant folder_id
+ * and posts the change.
+ * @ param { string } v folder id
+ */
 function renameFolder(v){
-	// Prompts the user for a new name for the
-	// folder. It then finds the relevant folder_id
-	// and posts the change.
 	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
 	var f = prompt("Rename Folder", prev_title)
 	if(f!=null){
@@ -1246,10 +1293,11 @@ function renameFolder(v){
 		}
 	}
 }
-
+/**
+ * Confirms the user wants to delete the
+ * folder. Then does if if true
+ */
 function deleteFolder(){
-	// Confirms the user wants to delete the
-	// folder. Then does if if true
 	var c = confirm("Are you sure you want to delete this folder?")
 	if(c==true){
 		var f = folder_id.replace('Folder','');
@@ -1261,13 +1309,17 @@ function deleteFolder(){
 	}
 }
 
+/**
+ * Called when user makes selection from select
+ * menu "move_to_folder". Input "v" will be:
+ * 1) "move_to", meaning no change, or
+ * 2) "?none?", meaning remove from folders, or
+ * 3) the 10-digit id of the user defined 
+ * folder the files should be moved to.
+ * @ param {string} folder if to move checked
+ * script to
+ */
 function moveToFolder(v){
-	// Called when user makes selection from select
-	// menu "move_to_folder". Input "v" will be:
-	// 1) "move_to", meaning no change, or
-	// 2) "?none?", meaning remove from folders, or
-	// 3) the 10-digit id of the user defined 
-	//    folder the files should be moved to. 
 	if(v!="move_to"){
 		var c = document.getElementsByTagName("input");
 		var found = false;
@@ -1292,17 +1344,12 @@ function moveToFolder(v){
 		goog.dom.getElement("move_to_folder").selectedIndex=0;
 	}
 }
-// Some setup for contextual menus on the
-// user defined folders
-goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
-goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
 
-function removeContextMenu(){
-	if(goog.dom.getElement('folder_context_menu')!=null){
-		goog.dom.removeNode('folder_context_menu');
-	}
-}
-
+/**
+ * Open context menu on user defined folders
+ * @ param {goog.events.BrowserEvent} e The div
+ * object that is right clicked on.
+ */
 function contextmenu(e){
 	if(goog.dom.getElement('folder_context_menu')!=null){
 		goog.dom.removeNode('folder_context_menu')
@@ -1322,6 +1369,11 @@ function contextmenu(e){
 		}
 	}
 }
+
+/**
+ * Event from folder context menu
+ * @ param {goog.events.Event} e option clicked
+ */
 function folderContextMenuAction(e){
 	if(e.target.content_=='Rename Folder'){
 		renameFolder(folder_id.replace('Folder',''))
@@ -1330,4 +1382,13 @@ function folderContextMenuAction(e){
 		deleteFolder(folder_id.replace('Folder',''))
 	}
 
+}
+/**
+ * Context menu doesn't dissaprear on
+ * unfocus. So this function does that
+ */
+function removeContextMenu(){
+	if(goog.dom.getElement('folder_context_menu')!=null){
+		goog.dom.removeNode('folder_context_menu');
+	}
 }
