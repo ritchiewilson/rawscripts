@@ -20,6 +20,10 @@ handlers:
   static_files: static/images/favicon.ico
   upload: static/images/favicon.ico
 
+- url: /worker.js
+  static_files: static/js/worker.js
+  upload: static/js/worker.js
+
 - url: /rss.*
   script: blog.py
 

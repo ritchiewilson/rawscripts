@@ -202,7 +202,8 @@ var notesPosition=[];
  * Then calls for script data
  */
 function init(){
-	// basicaly, quit stuff if in IE
+	// basicaly, quit stuff if in IE,
+	// tell them to get a better browser
 	if(goog.userAgent.IE==true){
 		goog.dom.removeNode(goog.dom.getElement('loading'));
 		goog.dom.flattenElement(goog.dom.getElement('canvas'));
@@ -230,6 +231,9 @@ function init(){
     var mwh = new MouseWheelHandler(goog.dom.getElement('canvas'));
 	goog.events.listen(mwh, MOUSEWHEEL, handleMouseWheel);
 	goog.events.listen(window, 'unload', function(e){goog.events.unlisten(mwh, MOUSEWHEEL, handleMouseWheel);});
+	
+	// setup context menu calls
+	window.oncontextmenu = contextmenu;
 	
 	if (EOV=='viewer'){
 		// strip dom elements if this is viewer
@@ -537,6 +541,15 @@ function parseInitialJSON(e){
 	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
 	n.play()
 }
+
+/**
+ * Sets the size of elements based
+ * on browser size. Does it on load
+ * and more on resize.
+ * @ param {string} v 
+ * "r" indicates resize
+ * "i" indicates initial
+ */
 function setElementSizes(v){
 	var s = goog.dom.getViewportSize();
 	goog.style.setSize(goog.dom.getElement('container'), s);
@@ -557,33 +570,31 @@ function keyEvent(e){
 		return;
 	}
 	else if(e.target.id=="ccp"){
-      var d= new Date();
-      milli = d.getMilliseconds();
-      if(e.keyCode==13)enter();
-      else if(e.keyCode==38)upArrow(e);
-      else if(e.keyCode==40)downArrow(e);
-      else if(e.keyCode==39)rightArrow(e);
-      else if(e.keyCode==37)leftArrow(e);
-      else if(e.keyCode==8)backspace(e);
-      else if(e.keyCode==46)deleteButton();
-	  else if(e.keyCode==16)return;
-      else if(e.keyCode==9){e.preventDefault(); tab();}
-	  else{handlekeypress(e)}
-      if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46){
-        scroll(ud-400);
-      }
-	  if(ud>goog.dom.getElement('canvas').height-80 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8 ){
-
-		scroll(ud-400);
+		var d= new Date();
+		milli = d.getMilliseconds();
+		if(e.keyCode==13)enter();
+		else if(e.keyCode==38)upArrow(e);
+		else if(e.keyCode==40)downArrow(e);
+		else if(e.keyCode==39)rightArrow(e);
+		else if(e.keyCode==37)leftArrow(e);
+		else if(e.keyCode==8)backspace(e);
+		else if(e.keyCode==46)deleteButton();
+		else if(e.keyCode==16)return;
+		else if(e.keyCode==9){e.preventDefault(); tab();}
+		else{handlekeypress(e)}
+		if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46){
+			scroll(ud-400);
+		}
+		if(ud>goog.dom.getElement('canvas').height-80 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8 ){
+			scroll(ud-400);
+		}
+		//console.log(e.keyCode);
 	}
-      //console.log(e.keyCode);
-    d=null;
-	}
-    if(typeToScript){
+	if(typeToScript){
 		if (anch.row==pos.row && pos.col==anch.col)goog.dom.getElement("ccp").value="";
-        goog.dom.getElement('ccp').focus();
-        goog.dom.getElement('ccp').select();
-    }
+		goog.dom.getElement('ccp').focus();
+		goog.dom.getElement('ccp').select();
+	}
 	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
 }
 
@@ -595,7 +606,7 @@ function shortcutTriggered(e){
 	else if(e.identifier=="export")exportPrompt();
 	else if(e.identifier=="find")findPrompt();
 }
-window.oncontextmenu = contextmenu;
+
 	
 // Character and Scene Suggest
 //Build it in the dom. Easier. Stick actual data in value, not in innerhtml
