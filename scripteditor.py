@@ -1026,21 +1026,25 @@ class SettingsPage (webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
-			domain = user.email().lower().split('@')[1].split('.')[0]
-			if domain=='gmail' or domain=='googlemail':
-				template_values['domain'] = 'Google'
-				token = get_contacts_google_token(self.request)
-				if token==False or token==None:
-					template_values['syncContactsText']='OFF'
-				else:
-					template_values['syncContactsText']='ON'
-			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-				template_values['domain'] = 'Yahoo'
-				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
-				if at==None or at==False:
-					template_values['syncContactsText']='OFF'
-				else:
-					template_values['syncContactsText']='ON'
+			try:
+				domain = user.email().lower().split('@')[1].split('.')[0]
+				if domain=='gmail' or domain=='googlemail':
+					template_values['domain'] = 'Google'
+					token = get_contacts_google_token(self.request)
+					if token==False or token==None:
+						template_values['syncContactsText']='OFF'
+					else:
+						template_values['syncContactsText']='ON'
+				elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+					template_values['domain'] = 'Yahoo'
+					at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+					if at==None or at==False:
+						template_values['syncContactsText']='OFF'
+					else:
+						template_values['syncContactsText']='ON'
+			except:
+				template_values['domain'] = ''
+				template_values['syncContactsText']='not supported for your account'
 			
 			try:
 				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
@@ -1141,7 +1145,13 @@ class SyncContactsPage (webapp.RequestHandler):
 			return
 		else:
 			template_values = {}
-			domain = user.email().lower().split('@')[1].split('.')[0]
+			try:
+				domain = user.email().lower().split('@')[1].split('.')[0]
+			except:
+				path = os.path.join(os.path.dirname(__file__), 'html/synccontactserror.html')
+				self.response.headers['Content-Type'] = 'text/html'
+				self.response.out.write(template.render(path, template_values))
+				return
 			if domain=='gmail' or domain=='googlemail':
 				template_values['domain'] = 'Google'
 				google_token = get_contacts_google_token(self.request)

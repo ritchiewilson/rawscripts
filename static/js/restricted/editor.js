@@ -186,13 +186,13 @@ var lines = [];
      *</thread>
      *
 	 * */
-	//var notes = [[1,2,[["message from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456789],[1,100,[["Second message and stuffmessage from ritchie and stuff and ore thigs and words","ritchie","timestamp"],["response","kristen","newTimestamp"]],123456709]];
-notes=[];
+var notes=[];
 var spellWrong=[];
 var spellIgnore=[];
 var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
 var notesPosition=[];
+var googSuggestMenu;
 
 /**
  * Run on body onload. Checks the brower, 
@@ -547,8 +547,8 @@ function parseInitialJSON(e){
  * on browser size. Does it on load
  * and more on resize.
  * @ param {string} v 
- * "r" indicates resize
- * "i" indicates initial
+ * "r" indicates window resize
+ * "i" indicates initial setup
  */
 function setElementSizes(v){
 	var s = goog.dom.getViewportSize();
@@ -564,12 +564,23 @@ function setElementSizes(v){
 	}
 }
 
-
+/**
+ * When a key is pressed, figures
+ * out what to do with it
+ * @ param {goog event} e key event
+ */
 function keyEvent(e){
 	if(e.platformModifierKey){
+		// if ctrl or comman is pressed, the shortcut
+		// handler should take care of it
 		return;
 	}
 	else if(e.target.id=="ccp"){
+		// else if the browser carret in the hidden text
+		// box, figure out what to do with it
+		
+		// start by noting the time, so the fake
+		// carret blinks correctly
 		var d= new Date();
 		milli = d.getMilliseconds();
 		if(e.keyCode==13)enter();
@@ -582,6 +593,9 @@ function keyEvent(e){
 		else if(e.keyCode==16)return;
 		else if(e.keyCode==9){e.preventDefault(); tab();}
 		else{handlekeypress(e)}
+		
+		// if key wasn't enter, delete or a hand full of other thigns,
+		// figure out if the carret is on screen. If not, scroll
 		if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46){
 			scroll(ud-400);
 		}
@@ -595,10 +609,12 @@ function keyEvent(e){
 		goog.dom.getElement('ccp').focus();
 		goog.dom.getElement('ccp').select();
 	}
-	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
+	lineFormatGuiUpdate();
 }
 
-
+/**
+ * When a shortcut is pressed, do it
+ */
 function shortcutTriggered(e){
 	if(e.identifier=="save")save(0);
 	else if(e.identifier=="undo")undo();
@@ -607,15 +623,1081 @@ function shortcutTriggered(e){
 	else if(e.identifier=="find")findPrompt();
 }
 
-	
-// Character and Scene Suggest
-//Build it in the dom. Easier. Stick actual data in value, not in innerhtml
+/**
+ * Takes MouseDown Event, figures out what
+ * to do with it.
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mousedown event with associated data
+ */
+function mouseDown(e){
+	// only do stuff if canvas is active
+	// i.e. popups and dom sutff isn't being
+	// interacted with
+	if(typeToScript){
+		// check spelling if it's time
+		if(checkSpell)ajaxSpell(pos.row);
+		// if a suggest box is open, quit this
+		// function. the box has it's own logic
+		if(goog.dom.getElement('suggestBox')!=null){
+			return;
+		}
+		else if(goog.dom.getElement('context_menu')!=null){
+			// if theres a DOM context menu, take it's action
+			// it it's being clicked. If not, just remove it
+			if(e.target.className=="contextUnit"){
+				changeFormat(e.target.id.replace("cm",""));
+			}
+			goog.dom.getElement('context_menu').parentNode.removeChild(goog.dom.getElement('context_menu'));
+		}
+	    else{
+			// ok, so the user is interacting with a drawing
+			// ont he canvas. 
+			
+			// figure out where the fake scroll bar is
+			var height = goog.dom.getElement('canvas').height;
+			var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+			var barHeight = ((height)/pagesHeight)*(height-39);
+			if (barHeight<20)barHeight=20;
+			if (barHeight>=height-39)barHeight=height-39;
+			var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+			
+			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
+				// user is clicking on text, put the anchor there
+				mouseDownBool=true;
+				mousePosition(e,"anch");
+				lineFormatGuiUpdate();
+			}
+			else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
+				// user is clicking on the scroll bar
+				scrollBarBool=true;
+			}
+		}
+		goog.dom.getElement('ccp').focus();
+		goog.dom.getElement('ccp').select();
+	}
+}
 
-function createSuggestBox(d){
-	if(EOV=='viewer')return;
+/**
+ * Takes MouseUp Event, figures out what
+ * to do with it.
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mouseup event with associated data
+ */
+function mouseUp(e){
+	// if there is a character or scene 
+	// suggestion box, remove it
 	if(goog.dom.getElement('suggestBox')!=null){
 		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
 	}
+	// if the focus is the canvas text, 
+	// put focus back in hidden box
+	if(typeToScript){
+		goog.dom.getElement('ccp').focus();
+        goog.dom.getElement('ccp').select();
+	}
+	mouseDownBool=false;
+	scrollBarBool=false;
+	
+	// update a bunch of GUI thigns
+	fMenu.setVisible(false)
+	eMenu.setVisible(false)
+	vMenu.setVisible(false)
+	sMenu.setVisible(false)
+	var arr=["file",'edit','view','share'];
+	for(i in arr){
+		var d = goog.dom.getElement(arr[i]);
+		d.style.backgroundColor='#A2BAE9';
+        d.style.color='black';
+	}
+	lineFormatGuiUpdate();
+}
+
+/**
+ * Figure mouse position, and what that means
+ * for various GUI thigns
+ */
+function mouseMove(e){
+	// if mouse is down on the fake scroll
+	// bar, handle that.
+	if(scrollBarBool)scrollBarDrag(e);
+	// reset our programs notion of here
+	mouseY=e.clientY;
+	// this means the user is draggin across
+	// drawn text, so move the caret postion
+	if (mouseDownBool){
+		mousePosition(e,"pos");
+		lineFormatGuiUpdate();
+	}
+	// figure out if mouse if hovering over
+	// fake scrollbar, change mouse pointer if true
+	var height = goog.dom.getElement('canvas').height;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+	var barHeight = ((height)/pagesHeight)*(height-39);
+	if (barHeight<20)barHeight=20;
+	if (barHeight>=height-39)barHeight=height-39;
+	var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
+		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	}
+	else{
+		//check if the mouse if over a note on the script
+		var found=false;
+		for(i in notesPosition){
+			if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
+				if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
+					found=notesPosition[i][2];
+					break;
+				}
+			}
+		}
+		// if the mouse is over a note, make it clickable
+		if (found!=false){
+			goog.dom.getElement('canvas').style.cursor='pointer';
+			goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+		else{
+			goog.dom.getElement('canvas').style.cursor = 'text';
+			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+		}
+	}
+}
+
+/**
+ * Simple, scroll when users scrolls on canvas
+ * @ param { goog.events.BrowserEvent} e 
+ */
+function handleMouseWheel(e){
+	scroll(e.deltaY*2)
+}
+
+/**
+ * Figures out the posision in the text
+ * where the mouse is. Used for onclick
+ * and onmousemove. God this is messy. 
+ * Redo it.
+ * @ param { goog.event.BrowserEvent} e browser event
+ * @ param { string } w Either "anch" for moving the
+ * selection anchor, or "pos" for moving the caret
+ */
+function mousePosition(e, w){
+	// pageBreaks
+	// [0] first line on new page
+	// [1] how many wrapped lines on the page (max 56)
+	// [2] where the line is split across pages
+	
+	// We want the caret flashing NOW, so
+	// update the milli
+	var d = new Date();
+	milli = d.getMilliseconds();
+	// set some starting points
+	var pageCount = 0;
+	var mp = e.clientY+vOffset-31;
+	var y = 15*lineheight+3;
+	var oldY = 0;
+	//start cying though lines
+	// looking for the clicked spot
+	for(i in lines){
+		// Cycle thorugh lines. at the end of each
+		// cycle, oldY will be the y of the line,
+		// y will be the y of the end of the line.
+		oldY=y;
+		
+		// if this line is at a page break
+		// reset y to page line
+		if(pageBreaks.length!=0 && pageBreaks[pageCount]!=undefined && pageBreaks[pageCount][0]==i){
+			// for if the line at page break isn't split
+			if(pageBreaks[pageCount][2]==0){
+				y=72*lineheight*(pageCount+1)+10*lineheight+headerHeight+3-31;
+				pageCount++;
+			}
+			else{
+				// for if line at page break does split across page
+				y=72*lineheight*(pageCount+1)+10*lineheight+headerHeight+3;
+				y+=(linesNLB[i].length-pageBreaks[pageCount][2])*lineheight-31;
+				if(lines[i][1]==3)y+=lineheight;
+				y-=(lineheight*linesNLB[i].length);
+				pageCount++;
+			}
+		}
+		y+=(lineheight*linesNLB[i].length);
+		
+		// mp is the y of the mouse click on the
+		// script. If y is larger than mp, then
+		// caret position should go to this line.
+		if(y>mp){
+			// Now we know what line was clicked on,
+			// so figure out where in that line to go
+			
+			// first which wrapped line to go on
+			if(pageBreaks.length!=0 && pageBreaks[pageCount-1]!=undefined && pageBreaks[pageCount-1][0]==i && pageBreaks[pageCount-1][2]!=0){
+				// if wrapeed lines span two pages
+				if ((mp-oldY)/lineheight<pageBreaks[pageCount-1][2]){
+					var l = Math.round((mp-oldY)/lineheight+0.7);
+				}
+				else if (mp<72*lineheight*(pageCount)+10*lineheight+headerHeight){
+					var l = pageBreaks[pageCount-1][2];
+				}
+				else{
+					var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.7);
+				}
+			}
+			else{
+				// else if wrapped lines don't span two pages
+				var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.7);
+			}
+			
+			// var l is now which wrapped line of text
+			// the cursor was at
+			// tc is total character in lines before
+			var j=0;
+			var tc=0;
+			while(j+1<l){
+				tc+=linesNLB[i][j]+1;
+				j++;
+			}
+			// var r is additional characters added
+			// bases on x of click
+			var r;
+			if(lines[i][1]!=5){
+				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1])/fontWidth);
+			}
+			else{
+				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]+(lines[i][0].length*fontWidth))/fontWidth);
+			}
+			//now change r for inline notes
+			//start and end of this line in this row is tc and tc+linesNLB[i][j]
+			for (note in notes){
+				// if it's in the correct row
+				if (i*1==notes[note][0]*1){
+					//do one thing for transition
+					// one thing elsewise
+					
+					if(lines[i][1]!=5){
+						if(notes[note][1]>=tc && notes[note][1]<=tc+r){
+							r--;
+						}
+					}
+					else{
+						if(notes[note][1]>r){
+							r++;
+						}
+					}
+				}
+			}
+			// don't let carret position be less than zero
+			// or more than wrapped line length
+			if(r<0)r=0;
+			if(r>linesNLB[i][j])r=linesNLB[i][j];
+			
+			// add it all together
+			tc+=r;
+			
+			// don't let carret position be less than zero
+			// or more than wrapped line length
+			if(tc<0)tc=0;
+			if(tc>lines[i][0].length)tc=lines[i][0].length;
+			
+			// set pos or anch
+			if (w=="anch"){
+				pos.row = anch.row = i*1;
+				pos.col = anch.col = tc*1;
+			}
+			else{
+				pos.row = i*1;
+				pos.col = tc*1;
+			}
+			
+			// everything is solved, so quit function
+			// otherwise would keep cyling thoruhg lines
+			return;
+		}
+	}
+}
+
+/**
+ * Simple thing for cut
+ */
+function cut(){
+	if(EOV=='viewer')return;
+	if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+	saveTimer();
+}
+
+/**
+ * Simple thing for copy. Need not do anything anymore
+ */
+function copy(){
+	if(EOV=='viewer')return;
+}
+
+/**
+ * Complicated thing to paste text
+ * to canvas. Called just after the browser paste
+ */
+function paste(){
+	if(EOV=='viewer')return;
+	if(!justPasted){
+		var forceCalc = false;
+    	saveTimer();
+	    redoQue=[];
+	    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
+	    var j=false;
+	    var data=goog.dom.getElement('ccp').value;
+	    var r = new RegExp( "\\n", "g" );
+	    if (data.split(r).length>1) {
+	        var tmp=data.split(r);
+	        var tmpArr=[];
+	        for (x in tmp){
+	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
+	        }
+	        data=JSON.stringify(tmpArr);
+			x=tmp=tmpArr=null;
+	    }
+	    undoQue.push(['paste',pos.row,pos.col,data]);
+	    //undoQue[x][0] ==paste
+	    //[1]=pos.row
+	    //[2]=pos.col
+	    //[3]=data
+	    //[4]=added to line
+	    //[5]=deleted empty line at end
+	    if(data[0]=='[' && data[1]=='[')j=true;
+	    if(!j){
+	        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
+	        pos.col+=goog.dom.getElement('ccp').value.length;
+	        anch.col=pos.col;
+	    }
+	    else{
+			forceCalc = true;
+	        var arr=JSON.parse(data);
+	        if (lines[pos.row][0]==''){
+	            lines[pos.row][1]=arr[0][1];
+	        }
+	        if (lines[pos.row][1]==arr[0][1]){
+	            undoQue[undoQue.length-1].push(1);
+	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
+	            var i=1;
+	            var p=pos.row+1;
+	            while(i<arr.length){
+	                lines.splice(p,0,arr[i]);
+	                p++;
+	                i++;
+	            }
+	            lines.splice(p,0,tmp);
+	            if(lines[p][0]=='' || lines[p][0]==' '){
+	                lines.splice(p,1);
+	                undoQue[undoQue.length-1].push(0);
+	            }
+	            else{undoQue[undoQue.length-1].push(1)}
+	        }
+	        else{
+	            undoQue[undoQue.length-1].push(0);
+	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
+	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
+	            pos.row++;
+	            lines.splice(pos.row,0,arr[0]);
+	            var i=1;
+	            var p=pos.row+1;
+	            while(i<arr.length){
+	                lines.splice(p,0,arr[i]);
+	                p++;
+	                i++;
+	            }
+	            lines.splice(p,0,tmp);
+	            if(lines[p][0]=='' || lines[p][0]==' '){
+	                lines.splice(p,1);
+	                undoQue[undoQue.length-1].push(0);
+	            }
+	            else{undoQue[undoQue.length-1].push(1)}
+	        }
+	        pos.row=anch.row=p;
+	        pos.col=anch.col=0;
+	        if(pos.row>=lines.length){
+	            pos.row=anch.row=lines.length-1
+	            pos.col=anch.col=lines[pos.row][0].length;
+	        }
+			arr=i=p=tmp=null;
+	    }
+	    pasting=false;
+		if(forceCalc){
+			sceneIndex();
+	    	paint(true,false,false);
+		}
+		goog.dom.getElement('ccp').value="";
+		justPasted=true;
+		setTimeout("setJustPasted()", 50);
+	}
+}
+
+/**
+ * This is sucky. Sometimes paste fires twice.
+ * should have fixed that. Instead, set up this
+ * variable that keeps track if there was just
+ * a paste (50 milliseconds or less), and keeps
+ * the past funtion from going again.
+ */
+function setJustPasted(){
+	if(EOV=='viewer')return;
+	justPasted=false;
+}
+
+/**
+ * When the user drags the drawn scrollbar
+ * scroll the page
+ * @ param {goog.events.BrowserEvent} e mouse position
+ */
+function scrollBarDrag(e){
+	var diff = mouseY-e.clientY;
+	var height = goog.dom.getElement('canvas').height-50;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+	vOffset-=pagesHeight/height*diff;
+	if (vOffset<0)vOffset=0;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
+	if(vOffset>pagesHeight)vOffset=pagesHeight+20;
+}
+
+/**
+ * Um, scroll. This function controls the
+ * scrolling. Where the canvas drawing is 
+ * scrolled to is stored and contorled by 
+ * vOffset. 
+ * @ param {int} v How many pixels to scroll
+ */
+function scroll(v){
+	vOffset+=v;
+	if (vOffset<0)vOffset=0;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
+	if(vOffset>pagesHeight)vOffset=pagesHeight+20;
+	var d= new Date();
+	milli = d.getMilliseconds();
+	// if a suggest box is open, redraw it in position
+	if(goog.dom.getElement('suggestBox')!=null){
+		// pain is only here to recalculate stuff
+		paint(false,false,false);
+		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
+	}
+}
+
+
+/**
+ * Action handler for toobar GUI
+ * @ param {goog.events.Event} e 
+ */
+function toolbarActions(e){
+	var c = e.target.getId().replace('toolbar','')
+	if(c=='New')newScriptPrompt();
+	else if(c=='Save')save(0);
+	else if(c=='Export')exportPrompt();
+	else if(c=='Undo')undo();
+	else if(c=='Redo')redo();
+	else if(c=='InsertNote')newThread();
+	else if(c=='Spellcheck')launchSpellCheck();
+	else if(c=='Email')emailPrompt();
+}
+
+/**
+ * In the right column, there's a scene
+ * tab and notes tab. Switch between them
+ * Awe shit. Why is there stying in this function
+ * make it calss based or something
+ *
+ * @ param {int} v ; a zero indexed tab thingy
+ * only two tabs, so v is 0 or 1
+ */
+function tabs(v){
+	var t = ["sceneTab","noteTab"]
+	for(i in t){
+		var c = goog.dom.getElement(t[i]);
+		if(i==v){
+			c.style.backgroundColor="#3F5EA6";
+			c.style.color='white';
+			goog.dom.getElement(t[i].replace("Tab","s")).style.display="block";
+		}
+		else{
+			c.style.backgroundColor="#6C8CD5";
+			c.style.color='black';
+			goog.dom.getElement(t[i].replace("Tab","s")).style.display="none";
+		}
+	}
+}
+
+
+
+///////////////////// Typing on Keyboard//////////////////////
+/**
+ * A bunch of funtions handling basic keyboard inputs. Inserting letters
+ * backspace, delete, direction arrows, ets
+ */
+
+
+/**
+ * Basicly typing. When a user types a letter, 
+ * this puts it in the script.
+ * @ param {goog.event.KeyEvent} e Button pressed
+ */
+function handlekeypress(e) {
+	//console.log(e.keyCode)
+	
+	// don't do anything if this isn't 
+	// an editor window
+	if(EOV=='viewer')return;
+	
+	// don't do anything if the focus
+	// isn't on the canvas
+	if (findForcePaint)return;
+	
+	// only accept these ranges of keyCodes
+	// as provided by goog.events.KeyEvent
+	// found here http://code.google.com/p/closure-library/source/browse/trunk/closure/goog/events/keycodes.js
+	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32 || e.keyCode==186){
+		if(typeToScript && !commandDownBool){
+			e.preventDefault();
+			//flush redoque
+			redoQue=[];
+			var d= new Date();
+			milli = d.getMilliseconds();
+			if (e.which!=13 && e.which!=37 && e.which!=0 && e.which!=8){
+				// if there is a drawn text selection,
+				// delete that part selected
+				if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
+				
+				// Add the letter to the line at the right spot
+				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(e.charCode) +lines[pos.row][0].slice(pos.col);
+				
+				// Put this action in the undoQue
+				undoQue.push([String.fromCharCode(e.charCode), pos.row, pos.col]);
+				
+				// more the caret one space forward
+				pos.col++;
+				anch.col=pos.col;
+				anch.row=pos.row;
+				
+				// update scene list, if this is a Slugline
+				if (lines[pos.row][1]==0)updateOneScene(pos.row);
+				
+				// recreate suggest box if this is
+				// a character or scene foramted line
+				if (lines[pos.row][1]==2){
+					createSuggestBox('c');
+				}
+				if(lines[pos.row][1]==0){
+					createSuggestBox('s');
+				}
+				//shift notes
+				for(x in notes){
+					if(pos.row==notes[x][0]){
+						if (pos.col-1<=notes[x][1])notes[x][1]=notes[x][1]+1;
+					}
+				}
+				
+				// something has changed, so start
+				// autosave timer
+				saveTimer();
+			}
+			
+			// If the user has a find and replace box open,
+			// rescan now the the text has changed
+			// basicly, shitty programing
+			if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+			if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+			
+			// put the focus back on the hidden
+			// text box
+			goog.dom.getElement('ccp').focus();
+	        goog.dom.getElement('ccp').select();
+		}
+	}
+}
+
+/**
+ * What do when a user hits backspace
+ * @ param {goog.event.KeyEvent} e keypress
+ */
+function backspace(e){
+	// if this isn't an editor window
+	// do nothing
+	if(EOV=='viewer')return;
+	
+	// if the focus is on the canvas, continue
+	if(typeToScript){
+		//set autosave timer
+		saveTimer();
+		
+		//flush redo que
+		redoQue=[];
+		
+		// prevent default
+		if(e)e.preventDefault();
+		
+		// remember if we need to calc
+		// or update things at the end.
+		// assume no
+		var forceCalc=false;
+		var slug=(lines[pos.row][1]==0 ? true : false)
+		
+		// simple case, nothing selected
+		if(pos.row==anch.row && pos.col==anch.col){
+			// if the carret is at the very start, do nothing
+			if(pos.col==0 && pos.row==0) return;
+			
+			// handle stuff if at the beiging of 
+			// parenthetical.
+			// This is because parenthese are hard
+			// coded in. User should be able to delete
+			// parentheses, then this "if" could be deleted
+			if(lines[pos.row][1]==4 && pos.col==1){
+				// shift notes
+				for(x in notes){
+					if(pos.row<notes[x][0]){
+						notes[x][0]=notes[x][0]-1;
+					}
+					else if(pos.row==notes[x][0]){
+						notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+						notes[x][0]=notes[x][0]-1;
+					}
+					if (notes[x][1]<0)notes[x][1]=0;
+				}
+				
+				// actually do the operation
+				var j=lines[pos.row][0];
+				if(j.charAt(0)=='(')j=j.substr(1);
+				if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
+				var newPos = lines[pos.row-1][0].length;
+				lines.splice(pos.row,1);
+				pos.row--
+				pos.col=newPos;
+				lines[pos.row][0]=lines[pos.row][0]+j;
+				
+				// add to undo que
+				undoQue.push(['back',pos.row, pos.col,'line',4]);
+				
+				// if there was a suggest box, remove it
+				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+			}
+			else if(pos.col==0){
+				// if the carret is at the first position
+				//in a line, combine this line and the one
+				// before
+				
+				//shift notes
+				for(x in notes){
+					if(pos.row<notes[x][0]){
+						notes[x][0]=notes[x][0]-1;
+					}
+					else if(pos.row==notes[x][0]){
+						notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+						notes[x][0]=notes[x][0]-1;
+					}
+					if (notes[x][1]<0)notes[x][1]=0;
+				}
+				//actually do the operation
+				var elem = lines[pos.row][1];
+				var j = lines[pos.row][0];
+				lines.splice(pos.row,1);
+				var newPos = lines[pos.row-1][0].length;
+				lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+				pos.col=newPos;
+				pos.row--;
+				
+				// add to undoque
+				undoQue.push(['back',pos.row, pos.col,'line',elem]);
+				
+				// should recalc at the end of this
+				forceCalc=true;
+				
+				// remove suggest, if it's there
+				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+			}
+			else{
+				// Removes just one character. Simplest
+				// backspace
+				
+				// add to undo que
+				undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+				
+				// do it
+				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+				pos.col--;
+				// shift notes
+				for(x in notes){
+					if(pos.row==notes[x][0]){
+						if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+					}
+				}
+			}
+			
+			// finally, make sure pos=anch
+			anch.col=pos.col;
+			anch.row=pos.row;
+		}
+		else{
+			// This big ass 'else' is for deleting
+			// a range.
+			
+			// remove suggest box
+			if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+			
+			// It's easier to start by putting the focus after 
+			// the anchor, just so it's always the same operation
+			var switchPos =false;
+			if(anch.row>pos.row)switchPos=true;
+			if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+			if(switchPos){
+				var coor = anch.row;
+				anch.row = pos.row;
+				pos.row = coor;
+				coor = anch.col;
+				anch.col = pos.col;
+				pos.col = coor;
+			}
+			
+			// count how many items are added to the undo que
+			var undoCount=0;
+			while(pos.col!=anch.col || pos.row!=anch.row){
+				// while anch != pos, keep deleting, character by character
+				undoCount++;
+				if(lines[pos.row][1]==0)slug=true;
+				if(pos.col==0){
+					// shift notes
+					for(x in notes){
+						if(pos.row<notes[x][0]){
+							notes[x][0]=notes[x][0]-1;
+						}
+						else if(pos.row==notes[x][0]){
+							notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
+							notes[x][0]=notes[x][0]-1;
+						}
+						if (notes[x][1]<0)notes[x][1]=0;
+					}
+					var elem = lines[pos.row][1];
+					var j = lines[pos.row][0];
+					lines.splice(pos.row,1);
+					var newPos = lines[pos.row-1][0].length;
+					lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+					pos.col=newPos;
+					pos.row--;
+					undoQue.push(['back',pos.row, pos.col,'line',elem]);
+					slug=true;
+				}
+				else{
+					undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+					lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+					pos.col--;
+					//shift notes
+					for(x in notes){
+						if(pos.row==notes[x][0]){
+							if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+						}
+					}
+				}
+			}
+			undoQue.push(['br',undoCount]);
+		}
+		if(forceCalc==true){
+			sceneIndex()
+			paint(forceCalc,false,false);
+			paint(false,false,false)
+			scroll(0)
+		}
+		if (slug)updateOneScene(pos.row);
+		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+	}
+}
+function deleteButton(){
+	if(EOV=='viewer')return;
+    if(typeToScript){
+    saveTimer();
+	redoQue=[];
+	if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+        var slug=false;
+        var forceCalc=false;
+        if(pos.row==anch.row&&pos.col==anch.col){
+            if (lines[pos.row][1]==0)var slug=true;
+            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+                undoQue.push(['delete',pos.row,pos.col,'line',4]);
+                lines.splice(pos.row,1);
+                pos.col=0;
+                anch.col=0;
+            }
+            else if(pos.col==(lines[pos.row][0].length)){
+                //shift notes
+                for(x in notes){
+                    if(pos.row+1==notes[x][0]){
+                        notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    else if(pos.row<notes[x][0]){
+                        notes[x][0]=notes[x][0]-1;
+                    }
+                    
+                    if (notes[x][1]<0)notes[x][1]=0;
+                }
+                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
+                if (lines[pos.row+1][1]==0)slug=true;
+                var j = lines[pos.row+1][0];
+                lines.splice((pos.row+1),1);
+                lines[pos.row][0]+=j;
+                forceCalc=true;
+            }
+            else{
+                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
+                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+                //shift notes
+                for(x in notes){
+                    if(pos.row==notes[x][0]){
+                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                    }
+                }
+            }
+        }
+        // This is for deleting a range
+        else{
+            forceCalc=true;
+            //put the focus after the anchor
+            var switchPos =false;
+            if(anch.row>pos.row)switchPos=true;
+            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+            if(switchPos){
+                var coor = anch.row;
+                anch.row = pos.row;
+                pos.row = coor;
+                coor = anch.col;
+                anch.col = pos.col;
+                pos.col = coor;
+            }
+            var undoCount=0;
+            while(pos.col!=anch.col || pos.row!=anch.row){
+                undoCount++;
+                if(lines[pos.row][1]==0)slug=true;
+                if(pos.col==0){
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row+1==notes[x][0]){
+                            notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        else if(pos.row<notes[x][0]){
+                            notes[x][0]=notes[x][0]-1;
+                        }
+                        
+                        if (notes[x][1]<0)notes[x][1]=0;
+                    }
+                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
+                    var j = lines[pos.row][0];
+                    lines.splice(pos.row,1);
+                    var newPos = lines[pos.row-1][0].length;
+                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+                    pos.col=newPos;
+                    pos.row--;
+                    slug=true;
+                }
+                else{
+                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
+                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+                    pos.col--;
+                    //shift notes
+                    for(x in notes){
+                        if(pos.row==notes[x][0]){
+                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+                        }
+                    }
+                }
+            }
+            undoQue.push(['dr',undoCount]);
+        }
+        if(forceCalc==true){
+			sceneIndex();
+			paint(forceCalc,false,false);
+			scroll(0);
+		}
+        if (slug)updateOneScene(pos.row);
+    if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+	}
+}
+	
+function enter(){
+	if(EOV=='viewer')return;
+    if(typeToScript && goog.dom.getElement('suggestBox')==null){
+        saveTimer();
+        if(checkSpell)ajaxSpell(pos.row);
+        lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
+        //shift notes
+        for(x in notes){
+            if(pos.row<notes[x][0]){
+                notes[x][0]=notes[x][0]+1;
+            }
+            if(pos.row==notes[x][0] && pos.col<notes[x][1]){
+                notes[x][1]=notes[x][1]-pos.col;
+                notes[x][0]=notes[x][0]+1;
+            }
+        }
+        undoQue.push(['enter', pos.row, pos.col]);
+		redoQue=[];
+        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
+            
+        var j = lines[pos.row][0].slice(0,pos.col);
+        var k = lines[pos.row][0].slice(pos.col);
+        lines[pos.row][0] = j;
+        if (lines[pos.row][1] == 0)var newElem = 1;
+        else if (lines[pos.row][1] == 1)var newElem = 2;
+        else if (lines[pos.row][1] == 2)var newElem = 3;
+        else if (lines[pos.row][1] == 4){
+			//with parenthetical, get rid of pesky ")"
+			var newElem = 3;
+			if(k.slice(-1)==")"){
+				k=k.slice(0,-1)
+			}
+		}
+        else if (lines[pos.row][1] == 3)var newElem = 2;
+        else if (lines[pos.row][1] == 5)var newElem = 0;
+        var newArr = [k,newElem];
+        lines.splice(pos.row+1,0,newArr);
+        pos.row++;
+        pos.col=0;
+        anch.row=pos.row;
+        anch.col=pos.col;
+		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+        paint(true,'enter', false);
+        paint(false,'enter',false);
+    }
+	else if(goog.dom.getElement('suggestBox')!=null){
+        saveTimer();
+        var len = lines[pos.row][0].length;
+		var txt = googSuggestMenu.getHighlighted().getCaption();
+		lines[pos.row][0]= txt;
+        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
+		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
+		pos.col=anch.col=lines[pos.row][0].length;
+	}
+    sceneIndex();
+	if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+}
+
+function tab(){
+	if(EOV=='viewer')return;
+	if(typeToScript){
+		if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+	    saveTimer();
+	    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
+	    redoQue=[];
+	    var slug=false;
+	    if (lines[pos.row][1]==0)var slug=true;
+		var type = lines[pos.row][1];
+		if (type==1){
+	        lines[pos.row][1]=0;
+	        slug=true;
+	    }
+		else if (type==0)lines[pos.row][1]=2;
+		else if (type==2)lines[pos.row][1]=1;
+		else if (type==3)lines[pos.row][1]=4;
+		else if (type==4)lines[pos.row][1]=3;
+		else if (type==5){
+	        lines[pos.row][1]=0;
+	        slug=true;
+	    }
+	    if(slug)sceneIndex();
+		slug=null;
+	    if(lines[pos.row][1]==4){
+	        if(lines[pos.row][0].charAt(0)!='('){
+	            lines[pos.row][0]='('+lines[pos.row][0];
+	            pos.col++;
+	            anch.col++;
+	        }
+	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+	    }
+	    if(lines[pos.row][1]==3){
+	        if(lines[pos.row][0].charAt(0)=='('){
+	            lines[pos.row][0]=lines[pos.row][0].substr(1);
+	            pos.col--;
+	            anch.col--;
+	        }
+	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+	    }
+	}
+}
+
+/**
+ * Changes the format of the line of text
+ * i.e. Dialog -> Action, or whatever
+ * @ param { integer } v number for the new line format
+ */
+function changeFormat(v){
+	// do nothing if this isn't and editor window
+	if(EOV=='viewer')return;
+	// remove character or scene suggest box
+	if(goog.dom.getElement('suggestBox')!=null){
+		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))
+	};
+	// this is a change, so set up save timer
+    saveTimer();
+	// update the undoQue, flush redoQue
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
+    redoQue=[];
+	//change format
+    lines[pos.row][1]=v;
+	// deselect drawn text
+    anch.col=pos.col;
+    anch.row=pos.row;
+	// handle parentheses if applicalble
+    if(lines[pos.row][1]==4){
+        if(lines[pos.row][0].charAt(0)!='('){
+            lines[pos.row][0]='('+lines[pos.row][0];
+            pos.col++;
+            anch.col++;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+    }
+    if(lines[pos.row][1]==3){
+        if(lines[pos.row][0].charAt(0)=='('){
+            lines[pos.row][0]=lines[pos.row][0].substr(1);
+            pos.col--;
+            anch.col--;
+        }
+        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+    }
+	// update scene index
+    sceneIndex();
+	// update select box and menus
+	lineFormatGuiUpdate()
+}
+/**
+ * Updates the GUI for the line format; 
+ * i.e. the select menu and header menu
+ * options for "Slugline", "Action",
+ * "Character", "Dialoge", whatever.
+ * Called whenever a change may have
+ * taken place
+ */
+function lineFormatGuiUpdate(){
+	if(EOV=='editor'){
+		goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
+		for(i=0; i<=5; i++){
+			eMenu.getChild('format'+i).setChecked((lines[pos.row][1]==i ? true : false));
+		}
+	}
+}
+
+/**
+ * Creates a menu of character or scene
+ * names the user might by typing. Uses
+ * goog.UI.Menu()
+ * @ param { string } d denotes character "c"
+ * or scene "s"
+ */
+function createSuggestBox(d){
+	if(EOV=='viewer')return;
+	// remove old box if applicable
+	if(goog.dom.getElement('suggestBox')!=null){
+		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
+	}
+	// get correct list of characters or scenes (v)
+	// and the position of the left edge of the proposed
+	// suggest box
 	if(d=='c'){
         var v=characters;
         var left=WrapVariableArray[2][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
@@ -641,6 +1723,9 @@ function createSuggestBox(d){
 				box.style.left=left;
 				box.className = 'goog-menu'
 			}
+			// Scene list could double up
+			// Check here to make sure it's
+			// unique
             var found=false;
             if(d=='s'){
                 var c = box.childNodes;
@@ -649,6 +1734,9 @@ function createSuggestBox(d){
                 }
 				c=null;
             }
+			// if it isn't found in suggest box
+			// already (i.e. "unique"), then put
+			// put it in
             if(!found){
                 var item = box.appendChild(document.createElement('div'));
                 item.className="goog-menuitem";
@@ -659,17 +1747,26 @@ function createSuggestBox(d){
 			found=null;
 		}
 	}
+	// If there is only one item in the suggest box
+	// and the user has typed it in full, remove the
+	// suggest box
 	if(goog.dom.getElement('suggestBox')!=null){
 		if (goog.dom.getElement('suggestBox').childNodes.length==1){
 			if(goog.dom.getElement('suggestBox').firstChild.value.toUpperCase()==lines[pos.row][0].toUpperCase())goog.dom.removeNode(goog.dom.getElement('suggestBox'))
 		}
 	}
+	// Finally, if there is still a suggest box with
+	// options in it, decorate it as a menu with
+	// goog.ui.Menu()
 	if(goog.dom.getElement('suggestBox')!=null){
 		var menuDiv = goog.dom.getElement('suggestBox');
 		googSuggestMenu = new goog.ui.Menu();
 		googSuggestMenu.decorate(menuDiv)
 		googSuggestMenu.setAllowAutoFocus(true);
 		googSuggestMenu.setHighlightedIndex(0);
+		// set up event for when option is selected
+		// i.e. put correct text in, move fake caret
+		// add to undoQue, remove suggest box
 		goog.events.listen(googSuggestMenu, 'action', function(e) {
 			var txt = e.target.getCaption();
 			var len = lines[pos.row][0].length;
@@ -677,14 +1774,14 @@ function createSuggestBox(d){
 		    undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
 			pos.col=anch.col=lines[pos.row][0].length;
 			goog.dom.removeNode(goog.dom.getElement('suggestBox'))
-			txt=len=null;
 	    });
-		box = s = menuDiv = null;
 	}
-	d=v=part=l=left=x=null;
 }
-var googSuggestMenu;
 
+/**
+ * When a user makes a change to the script,
+ * set up an auto save timer for 7 seconds
+ */
 function saveTimer(){
 	if(EOV=='viewer')return;
 	goog.dom.getElement('saveButton').disabled=false;
@@ -813,113 +1910,6 @@ function ajaxSpell(v, r){
 }
 
 
-function cut(){
-	if(EOV=='viewer')return;
-    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-    saveTimer();
-}
-function copy(){
-	if(EOV=='viewer')return;
-}
-function paste(){
-	if(EOV=='viewer')return;
-	if(!justPasted){
-		var forceCalc = false;
-    	saveTimer();
-	    redoQue=[];
-	    if(pos.row!=anch.row || pos.col!=anch.col)backspace();
-	    var j=false;
-	    var data=goog.dom.getElement('ccp').value;
-	    var r = new RegExp( "\\n", "g" );
-	    if (data.split(r).length>1) {
-	        var tmp=data.split(r);
-	        var tmpArr=[];
-	        for (x in tmp){
-	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
-	        }
-	        data=JSON.stringify(tmpArr);
-			x=tmp=tmpArr=null;
-	    }
-	    undoQue.push(['paste',pos.row,pos.col,data]);
-	    //undoQue[x][0] ==paste
-	    //[1]=pos.row
-	    //[2]=pos.col
-	    //[3]=data
-	    //[4]=added to line
-	    //[5]=deleted empty line at end
-	    if(data[0]=='[' && data[1]=='[')j=true;
-	    if(!j){
-	        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
-	        pos.col+=goog.dom.getElement('ccp').value.length;
-	        anch.col=pos.col;
-	    }
-	    else{
-			forceCalc = true;
-	        var arr=JSON.parse(data);
-	        if (lines[pos.row][0]==''){
-	            lines[pos.row][1]=arr[0][1];
-	        }
-	        if (lines[pos.row][1]==arr[0][1]){
-	            undoQue[undoQue.length-1].push(1);
-	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
-	            var i=1;
-	            var p=pos.row+1;
-	            while(i<arr.length){
-	                lines.splice(p,0,arr[i]);
-	                p++;
-	                i++;
-	            }
-	            lines.splice(p,0,tmp);
-	            if(lines[p][0]=='' || lines[p][0]==' '){
-	                lines.splice(p,1);
-	                undoQue[undoQue.length-1].push(0);
-	            }
-	            else{undoQue[undoQue.length-1].push(1)}
-	        }
-	        else{
-	            undoQue[undoQue.length-1].push(0);
-	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
-	            pos.row++;
-	            lines.splice(pos.row,0,arr[0]);
-	            var i=1;
-	            var p=pos.row+1;
-	            while(i<arr.length){
-	                lines.splice(p,0,arr[i]);
-	                p++;
-	                i++;
-	            }
-	            lines.splice(p,0,tmp);
-	            if(lines[p][0]=='' || lines[p][0]==' '){
-	                lines.splice(p,1);
-	                undoQue[undoQue.length-1].push(0);
-	            }
-	            else{undoQue[undoQue.length-1].push(1)}
-	        }
-	        pos.row=anch.row=p;
-	        pos.col=anch.col=0;
-	        if(pos.row>=lines.length){
-	            pos.row=anch.row=lines.length-1
-	            pos.col=anch.col=lines[pos.row][0].length;
-	        }
-			arr=i=p=tmp=null;
-	    }
-	    pasting=false;
-		if(forceCalc){
-			sceneIndex();
-	    	paint(true,false,false);
-		}
-		goog.dom.getElement('ccp').value="";
-		justPasted=true;
-		setTimeout("setJustPasted()", 50);
-		j=r=data=null;
-	}
-}
-function setJustPasted(){
-	if(EOV=='viewer')return;
-	justPasted=false;
-}
 function selection(){
     //order stuff
     if(pos.row>anch.row){
@@ -955,63 +1945,9 @@ function selection(){
 		c.focus();
 		c.select();
 	}
-	startRange=endRange=sel=null;
-}
-function toolbarActions(e){
-	var c = e.target.getId().replace('toolbar','')
-	if(c=='New')newScriptPrompt();
-	else if(c=='Save')save(0);
-	else if(c=='Export')exportPrompt();
-	else if(c=='Undo')undo();
-	else if(c=='Redo')redo();
-	else if(c=='InsertNote')newThread();
-	else if(c=='Spellcheck')launchSpellCheck();
-	else if(c=='Email')emailPrompt();
 }
 
-function tabs(v){
-    var t = ["sceneTab","noteTab"]
-    for(i in t){
-        var c = goog.dom.getElement(t[i]);
-        if(i==v){
-            c.style.backgroundColor="#3F5EA6";
-            c.style.color='white';
-            goog.dom.getElement(t[i].replace("Tab","s")).style.display="block";
-        }
-        else{
-            c.style.backgroundColor="#6C8CD5";
-            c.style.color='black';
-            goog.dom.getElement(t[i].replace("Tab","s")).style.display="none";
-        }
-    }
-}
-function changeFormat(v){
-	if(EOV=='viewer')return;
-	if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-    saveTimer();
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
-    redoQue=[];
-    lines[pos.row][1]=v;
-    anch.col=pos.col;
-    anch.row=pos.row;
-    if(lines[pos.row][1]==4){
-        if(lines[pos.row][0].charAt(0)!='('){
-            lines[pos.row][0]='('+lines[pos.row][0];
-            pos.col++;
-            anch.col++;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-    }
-    if(lines[pos.row][1]==3){
-        if(lines[pos.row][0].charAt(0)=='('){
-            lines[pos.row][0]=lines[pos.row][0].substr(1);
-            pos.col--;
-            anch.col--;
-        }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-    }
-    sceneIndex();
-}
+
 function contextmenu(e){
 	if(EOV=='viewer')return;
 	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
@@ -1031,196 +1967,10 @@ function contextmenu(e){
 		d=i=null;
 	}
 }
-function mouseUp(e){
-	if(goog.dom.getElement('suggestBox')!=null){
-		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
-	}
-	if(typeToScript){
-	    mouseDownBool=false;
-	    scrollBarBool=false;
-	    var width = goog.dom.getElement('canvas').width;
-	    var height = goog.dom.getElement('canvas').height;
-            
-	    if(e.clientY-headerHeight>height-39 && e.clientY-headerHeight<height && e.clientX>editorWidth-22 && e.clientX<editorWidth-2){
-	            if(e.clientY-headerHeight>height-20)scroll(30);
-	            else scroll(-30);
-	    }
-		width=height=null;
-		goog.dom.getElement('ccp').focus();
-        goog.dom.getElement('ccp').select();
-	}
-	fMenu.setVisible(false)
-	eMenu.setVisible(false)
-	vMenu.setVisible(false)
-	sMenu.setVisible(false)
-	var arr=["file",'edit','view','share'];
-	for(i in arr){
-		var d = goog.dom.getElement(arr[i]);
-		d.style.backgroundColor='#A2BAE9';
-        d.style.color='black';
-	}
-	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
-}
-function mouseDown(e){
-	if(typeToScript){
-	    if(checkSpell)ajaxSpell(pos.row);
-	    
-		if(goog.dom.getElement('suggestBox')!=null){
-			return;
-		}
-		else if(goog.dom.getElement('context_menu')!=null){
-			if(e.target.className=="contextUnit"){
-				changeFormat(e.target.id.replace("cm",""));
-			}
-			goog.dom.getElement('context_menu').parentNode.removeChild(goog.dom.getElement('context_menu'));
-		}
-	    else{
-	        var height = goog.dom.getElement('canvas').height;
-	        var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-	        var barHeight = ((height)/pagesHeight)*(height-39);
-	        if (barHeight<20)barHeight=20;
-	        if (barHeight>=height-39)barHeight=height-39;
-	        var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
-        
-	        if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
-	            mouseDownBool=true;
-				mousePosition(e,"anch")
-	        }
-	        else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
-	            scrollBarBool=true;
-	        }
-	    	height=pagesHeight=barHeight=topPixel=null;
-		}
-	goog.dom.getElement('ccp').focus();
-	goog.dom.getElement('ccp').select();
-	}
-	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
-}
-function mousePosition(e, w){
-	var d= new Date();
-    milli = d.getMilliseconds();
-	var count = 0;
-	var found = 0;
-	var mp=e.clientY+vOffset-31;
-	var y=15*lineheight+3;
-	var oldY=0;
-	for(i in lines){
-		oldY=y;
-		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-			if(pageBreaks[count][2]==0){
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3-31;
-				count++;
-			}
-			else{
-				y=72*lineheight*(count+1)+10*lineheight+headerHeight+3;
-				y+=(linesNLB[i].length-pageBreaks[count][2])*lineheight-31;
-				if(lines[i][1]==3)y+=lineheight;
-				y-=(lineheight*linesNLB[i].length);
-				count++;
-			}
-		}
-		y+=(lineheight*linesNLB[i].length);
-		if(y>mp){
-			if(pageBreaks.length!=0 && pageBreaks[count-1]!=undefined && pageBreaks[count-1][0]==i && pageBreaks[count-1][2]!=0){
-				if ((mp-oldY)/lineheight<pageBreaks[count-1][2]){
-					var l = Math.round((mp-oldY)/lineheight+0.5);
-				}
-				else if (mp<72*lineheight*(count)+10*lineheight+headerHeight){
-					var l = pageBreaks[count-1][2];
-				}
-				else{
-					var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.5);
-				}
-			}
-			else{
-				var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.5);
-			}
-			var j=0;
-			var tc=0;
-			while(j+1<l){
-				tc+=linesNLB[i][j]+1;
-				j++;
-			}
-			var r;
-			if(lines[i][1]!=5){
-				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1])/fontWidth);
-			}
-			else{
-				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]+(lines[i][0].length*fontWidth))/fontWidth);
-			}
-			//now change r for inline notes
-			//start and end of this line in this row is tc and tc+linesNLB[i][j]
-			for (note in notes){
-				// if it's in the correct row
-				if (i*1==notes[note][0]*1){
-					//do one thing for transition
-					// one thing elsewise
-					
-					if(lines[i][1]!=5){
-						if(notes[note][1]>=tc && notes[note][1]<=tc+r){
-							r--;
-						}
-					}
-					else{
-						if(notes[note][1]>r){
-							r++;
-						}
-					}
-				}
-			}
-			
-			if(r<0)r=0;
-			if(r>linesNLB[i][j])r=linesNLB[i][j];
-			tc+=r;
-			if(tc<0)tc=0;
-            if(tc>lines[i][0].length)tc=lines[i][0].length;
-			if (w=="anch"){
-				pos.row = anch.row = i*1;
-				pos.col = anch.col = tc*1;
-			}
-			else{
-				pos.row = i;
-				pos.col = tc;
-			}
-			r = y = tc = count = found = mp = oldY = l = d = null;
-			return;
-		}
-	}
-}
-function mouseMove(e){
-    if(scrollBarBool)scrollBarDrag(e);
-    mouseY=e.clientY;
-    if (mouseDownBool) mousePosition(e,"pos");
-	var height = goog.dom.getElement('canvas').height;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-    var barHeight = ((height)/pagesHeight)*(height-39);
-    if (barHeight<20)barHeight=20;
-    if (barHeight>=height-39)barHeight=height-39;
-    var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
-	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
-		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
-	}
-	else{
-		var found=false;
-		for(i in notesPosition){
-			if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
-				if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
-					found=notesPosition[i][2];
-					break;
-				}
-			}
-		}
-		if (found!=false){
-			goog.dom.getElement('canvas').style.cursor='pointer';
-			goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
-		}
-		else{
-			goog.dom.getElement('canvas').style.cursor = 'text';
-			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
-		}
-	}
-	goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
-}
+
+
+
+
 function notesDialogFromScript(e){
 	// This is a weird loophole to get 
 	//the notesDialog going on script click
@@ -1233,33 +1983,9 @@ function notesDialogFromScript(e){
 		}
 	}
 }
-function handleMouseWheel(e){
-	scroll(e.deltaY*2)
-}
-function scrollBarDrag(e){
-    var diff = mouseY-e.clientY;
-    var height = goog.dom.getElement('canvas').height-50;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-    vOffset-=pagesHeight/height*diff;
-    if (vOffset<0)vOffset=0;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
-    if(vOffset>pagesHeight)vOffset=pagesHeight+20;
-	diff=height=pagesHeight=null;
-}
-function scroll(v){
-	//console.log(v)
-    vOffset+=v;
-    if (vOffset<0)vOffset=0;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
-    if(vOffset>pagesHeight)vOffset=pagesHeight+20;
-	var d= new Date();
-    milli = d.getMilliseconds();
-	if(goog.dom.getElement('suggestBox')!=null){
-		paint(false,false,false);
-		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
-	}
-	pagesHeight=d=null;
-}
+
+
+
 function jumpTo(v){
     if(v.target!=undefined){
 		v=v.target.id;
@@ -1590,404 +2316,9 @@ function rightArrow(e){
     }
 }
 
-function backspace(e){
-	if(EOV=='viewer')return;
-    if(typeToScript){
-        saveTimer();
-		redoQue=[];
-        if(e)e.preventDefault();
-        var forceCalc=false;
-        var slug=false;
-        if (lines[pos.row][1]==0)var slug=true;
-        // simple case, one letter backspace
-        if(pos.row==anch.row && pos.col==anch.col){
-            if(pos.col==0 && pos.row==0) return;
-            else if(lines[pos.row][1]==4 && pos.col==1){
-                for(x in notes){
-                    if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                var j=lines[pos.row][0];
-                if(j.charAt(0)=='(')j=j.substr(1);
-                if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
-                var newPos = lines[pos.row-1][0].length;
-                lines.splice(pos.row,1);
-                pos.row--
-                pos.col=newPos;
-                lines[pos.row][0]=lines[pos.row][0]+j;
-                undoQue.push(['back',pos.row, pos.col,'line',4]);
-                slug=true;
-				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-            }
-            else if(pos.col==0){
-                //shift notes
-                for(x in notes){
-                    if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                var elem = lines[pos.row][1];
-                var j = lines[pos.row][0];
-                lines.splice(pos.row,1);
-                var newPos = lines[pos.row-1][0].length;
-                lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                pos.col=newPos;
-                pos.row--;
-                undoQue.push(['back',pos.row, pos.col,'line',elem]);
-                forceCalc=true;
-                slug=true;
-				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-            }
-            else{
-                undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                pos.col--;
-                //shift notes
-                for(x in notes){
-                    if(pos.row==notes[x][0]){
-                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                    }
-                }
-            }
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
-        // This is for deleting a range
-        else{
-			if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-            forceCalc=true;
-            //put the focus after the anchor
-            var switchPos =false;
-            if(anch.row>pos.row)switchPos=true;
-            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-            if(switchPos){
-                var coor = anch.row;
-                anch.row = pos.row;
-                pos.row = coor;
-                coor = anch.col;
-                anch.col = pos.col;
-                pos.col = coor;
-            }
-            var undoCount=0;
-            while(pos.col!=anch.col || pos.row!=anch.row){
-                undoCount++;
-                if(lines[pos.row][1]==0)slug=true;
-                if(pos.col==0){
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row<notes[x][0]){
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        else if(pos.row==notes[x][0]){
-                            notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        if (notes[x][1]<0)notes[x][1]=0;
-                    }
-                    var elem = lines[pos.row][1];
-                    var j = lines[pos.row][0];
-                    lines.splice(pos.row,1);
-                    var newPos = lines[pos.row-1][0].length;
-                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                    pos.col=newPos;
-                    pos.row--;
-                    undoQue.push(['back',pos.row, pos.col,'line',elem]);
-                    slug=true;
-                }
-                else{
-                    undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                    pos.col--;
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row==notes[x][0]){
-                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                        }
-                    }
-                }
-            }
-            undoQue.push(['br',undoCount]);
-        }
-		if(forceCalc==true){
-			sceneIndex()
-			paint(forceCalc,false,false);
-			paint(false,false,false)
-			scroll(0)
-		}
-        if (slug)updateOneScene(pos.row);
-		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-    }
-}
-function deleteButton(){
-	if(EOV=='viewer')return;
-    if(typeToScript){
-    saveTimer();
-	redoQue=[];
-	if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-        var slug=false;
-        var forceCalc=false;
-        if(pos.row==anch.row&&pos.col==anch.col){
-            if (lines[pos.row][1]==0)var slug=true;
-            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
-                undoQue.push(['delete',pos.row,pos.col,'line',4]);
-                lines.splice(pos.row,1);
-                pos.col=0;
-                anch.col=0;
-            }
-            else if(pos.col==(lines[pos.row][0].length)){
-                //shift notes
-                for(x in notes){
-                    if(pos.row+1==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
-                if (lines[pos.row+1][1]==0)slug=true;
-                var j = lines[pos.row+1][0];
-                lines.splice((pos.row+1),1);
-                lines[pos.row][0]+=j;
-                forceCalc=true;
-            }
-            else{
-                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
-                //shift notes
-                for(x in notes){
-                    if(pos.row==notes[x][0]){
-                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                    }
-                }
-            }
-        }
-        // This is for deleting a range
-        else{
-            forceCalc=true;
-            //put the focus after the anchor
-            var switchPos =false;
-            if(anch.row>pos.row)switchPos=true;
-            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-            if(switchPos){
-                var coor = anch.row;
-                anch.row = pos.row;
-                pos.row = coor;
-                coor = anch.col;
-                anch.col = pos.col;
-                pos.col = coor;
-            }
-            var undoCount=0;
-            while(pos.col!=anch.col || pos.row!=anch.row){
-                undoCount++;
-                if(lines[pos.row][1]==0)slug=true;
-                if(pos.col==0){
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row+1==notes[x][0]){
-                            notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        else if(pos.row<notes[x][0]){
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        
-                        if (notes[x][1]<0)notes[x][1]=0;
-                    }
-                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
-                    var j = lines[pos.row][0];
-                    lines.splice(pos.row,1);
-                    var newPos = lines[pos.row-1][0].length;
-                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                    pos.col=newPos;
-                    pos.row--;
-                    slug=true;
-                }
-                else{
-                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
-                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                    pos.col--;
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row==notes[x][0]){
-                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                        }
-                    }
-                }
-            }
-            undoQue.push(['dr',undoCount]);
-        }
-        if(forceCalc==true){
-			sceneIndex();
-			paint(forceCalc,false,false);
-			scroll(0);
-		}
-        if (slug)updateOneScene(pos.row);
-    if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-	}
-}
-	
-function enter(){
-	if(EOV=='viewer')return;
-    if(typeToScript && goog.dom.getElement('suggestBox')==null){
-        saveTimer();
-        if(checkSpell)ajaxSpell(pos.row);
-        lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
-        //shift notes
-        for(x in notes){
-            if(pos.row<notes[x][0]){
-                notes[x][0]=notes[x][0]+1;
-            }
-            if(pos.row==notes[x][0] && pos.col<notes[x][1]){
-                notes[x][1]=notes[x][1]-pos.col;
-                notes[x][0]=notes[x][0]+1;
-            }
-        }
-        undoQue.push(['enter', pos.row, pos.col]);
-		redoQue=[];
-        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
-            
-        var j = lines[pos.row][0].slice(0,pos.col);
-        var k = lines[pos.row][0].slice(pos.col);
-        lines[pos.row][0] = j;
-        if (lines[pos.row][1] == 0)var newElem = 1;
-        else if (lines[pos.row][1] == 1)var newElem = 2;
-        else if (lines[pos.row][1] == 2)var newElem = 3;
-        else if (lines[pos.row][1] == 4){
-			//with parenthetical, get rid of pesky ")"
-			var newElem = 3;
-			if(k.slice(-1)==")"){
-				k=k.slice(0,-1)
-			}
-		}
-        else if (lines[pos.row][1] == 3)var newElem = 2;
-        else if (lines[pos.row][1] == 5)var newElem = 0;
-        var newArr = [k,newElem];
-        lines.splice(pos.row+1,0,newArr);
-        pos.row++;
-        pos.col=0;
-        anch.row=pos.row;
-        anch.col=pos.col;
-		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-        paint(true,'enter', false);
-        paint(false,'enter',false);
-    }
-	else if(goog.dom.getElement('suggestBox')!=null){
-        saveTimer();
-        var len = lines[pos.row][0].length;
-		var txt = googSuggestMenu.getHighlighted().getCaption();
-		lines[pos.row][0]= txt;
-        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
-		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
-		pos.col=anch.col=lines[pos.row][0].length;
-	}
-    sceneIndex();
-	if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-}
 
-function tab(){
-	if(EOV=='viewer')return;
-	if(typeToScript){
-		if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-	    saveTimer();
-	    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
-	    redoQue=[];
-	    var slug=false;
-	    if (lines[pos.row][1]==0)var slug=true;
-		var type = lines[pos.row][1];
-		if (type==1){
-	        lines[pos.row][1]=0;
-	        slug=true;
-	    }
-		else if (type==0)lines[pos.row][1]=2;
-		else if (type==2)lines[pos.row][1]=1;
-		else if (type==3)lines[pos.row][1]=4;
-		else if (type==4)lines[pos.row][1]=3;
-		else if (type==5){
-	        lines[pos.row][1]=0;
-	        slug=true;
-	    }
-	    if(slug)sceneIndex();
-		slug=null;
-	    if(lines[pos.row][1]==4){
-	        if(lines[pos.row][0].charAt(0)!='('){
-	            lines[pos.row][0]='('+lines[pos.row][0];
-	            pos.col++;
-	            anch.col++;
-	        }
-	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-	    }
-	    if(lines[pos.row][1]==3){
-	        if(lines[pos.row][0].charAt(0)=='('){
-	            lines[pos.row][0]=lines[pos.row][0].substr(1);
-	            pos.col--;
-	            anch.col--;
-	        }
-	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-	    }
-	}
-}
 	
-function handlekeypress(e) {
-	if(EOV=='viewer')return;
-	//console.log(e.keyCode)
-	if (findForcePaint)return;
-	if((e.keyCode>=48 && e.keyCode<=90) || (e.keyCode>=96 && e.keyCode<=111) || (e.keyCode>=187 && e.keyCode<=222) || e.keyCode==32 || e.keyCode==186){
-    	if(typeToScript && !commandDownBool){
-	        e.preventDefault();
-			redoQue=[];
-	        var d= new Date();
-	        milli = d.getMilliseconds();
-	        d=null;
-	        if (e.which!=13 && e.which!=37 && e.which!=0 && e.which!=8){
-	            if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
-	            undoQue.push([String.fromCharCode(e.charCode), pos.row, pos.col]);
-	            lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(e.charCode) +lines[pos.row][0].slice(pos.col);
-	            pos.col++;
-	            if (lines[pos.row][1]==0)updateOneScene(pos.row);
-				if (lines[pos.row][1]==2){
-					createSuggestBox('c');
-				}
-	            if(lines[pos.row][1]==0){
-	                createSuggestBox('s');
-	            }
-	            //shift notes
-	            for(x in notes){
-	                if(pos.row==notes[x][0]){
-	                    if (pos.col-1<=notes[x][1])notes[x][1]=notes[x][1]+1;
-	                }
-	            }
-	            saveTimer();
-	            anch.col=pos.col;
-	            anch.row=pos.row;
-	        }
-			if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-	        if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-		
-	        goog.dom.getElement('ccp').focus();
-	        goog.dom.getElement('ccp').select();
-	    }
-	}
-}
+
 
 // Managining arrays
 // calcing data
@@ -4416,11 +4747,6 @@ function paint(forceCalc, forceScroll){
 				else if(ud<45){
 					//scroll(-45);
 				}
-			}
-		}
-		if(EOV=='editor'){
-			for(i=0; i<=5; i++){
-				eMenu.getChild('format'+i).setChecked((linesLV[pos.row][1]==i ? true : false));
 			}
 		}
 	}
