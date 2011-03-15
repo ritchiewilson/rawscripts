@@ -605,10 +605,15 @@ function keyEvent(e){
 		//console.log(e.keyCode);
 	}
 	if(typeToScript){
-		if (anch.row==pos.row && pos.col==anch.col)goog.dom.getElement("ccp").value="";
+		// clear the hidden textarea
+		if (anch.row==pos.row && pos.col==anch.col){
+			goog.dom.getElement("ccp").value="";
+		}
 		goog.dom.getElement('ccp').focus();
 		goog.dom.getElement('ccp').select();
 	}
+	
+	// hmm... this probabaly isn't necessary....
 	lineFormatGuiUpdate();
 }
 
@@ -1016,7 +1021,6 @@ function paste(){
 	            pos.row=anch.row=lines.length-1
 	            pos.col=anch.col=lines[pos.row][0].length;
 	        }
-			arr=i=p=tmp=null;
 	    }
 	    pasting=false;
 		if(forceCalc){
@@ -1353,11 +1357,15 @@ function backspace(e){
 			
 			// count how many items are added to the undo que
 			var undoCount=0;
+			
+			// while anch != pos, keep deleting, character by character
 			while(pos.col!=anch.col || pos.row!=anch.row){
-				// while anch != pos, keep deleting, character by character
 				undoCount++;
 				if(lines[pos.row][1]==0)slug=true;
 				if(pos.col==0){
+					// if character to delete is virtual
+					// nlb
+					
 					// shift notes
 					for(x in notes){
 						if(pos.row<notes[x][0]){
@@ -1369,6 +1377,8 @@ function backspace(e){
 						}
 						if (notes[x][1]<0)notes[x][1]=0;
 					}
+					
+					// combine two lines of text
 					var elem = lines[pos.row][1];
 					var j = lines[pos.row][0];
 					lines.splice(pos.row,1);
@@ -1377,9 +1387,10 @@ function backspace(e){
 					pos.col=newPos;
 					pos.row--;
 					undoQue.push(['back',pos.row, pos.col,'line',elem]);
-					slug=true;
 				}
 				else{
+					// if character to delete is just 
+					// a character of text
 					undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
 					lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
 					pos.col--;
@@ -1393,178 +1404,199 @@ function backspace(e){
 			}
 			undoQue.push(['br',undoCount]);
 		}
+		
+		// if things have changed so that
+		// stuff should be recalced, do it
 		if(forceCalc==true){
 			sceneIndex()
 			paint(forceCalc,false,false);
 			paint(false,false,false)
 			scroll(0)
 		}
+		// if a slug line has been changed,
+		// redo that part of the scene list
 		if (slug)updateOneScene(pos.row);
+		
+		// if a find or replace window is open,
+		// rescan text for matches
 		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
 		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	}
 }
+
+/**
+ * Logic of the Delete button
+ * Called when user presses delete
+ * button while focused on the canvas
+ * script.
+ */
 function deleteButton(){
+	// if this isn't an editor window
+	// do nothing
 	if(EOV=='viewer')return;
-    if(typeToScript){
-    saveTimer();
+	if(typeToScript){
+	saveTimer();
 	redoQue=[];
+	
+	// remove suggest box if visible
 	if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-        var slug=false;
-        var forceCalc=false;
-        if(pos.row==anch.row&&pos.col==anch.col){
-            if (lines[pos.row][1]==0)var slug=true;
-            if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
-            if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
-                undoQue.push(['delete',pos.row,pos.col,'line',4]);
-                lines.splice(pos.row,1);
-                pos.col=0;
-                anch.col=0;
-            }
-            else if(pos.col==(lines[pos.row][0].length)){
-                //shift notes
-                for(x in notes){
-                    if(pos.row+1==notes[x][0]){
-                        notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    else if(pos.row<notes[x][0]){
-                        notes[x][0]=notes[x][0]-1;
-                    }
-                    
-                    if (notes[x][1]<0)notes[x][1]=0;
-                }
-                undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
-                if (lines[pos.row+1][1]==0)slug=true;
-                var j = lines[pos.row+1][0];
-                lines.splice((pos.row+1),1);
-                lines[pos.row][0]+=j;
-                forceCalc=true;
-            }
-            else{
-                undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
-                lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
-                //shift notes
-                for(x in notes){
-                    if(pos.row==notes[x][0]){
-                        if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                    }
-                }
-            }
-        }
-        // This is for deleting a range
-        else{
-            forceCalc=true;
-            //put the focus after the anchor
-            var switchPos =false;
-            if(anch.row>pos.row)switchPos=true;
-            if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-            if(switchPos){
-                var coor = anch.row;
-                anch.row = pos.row;
-                pos.row = coor;
-                coor = anch.col;
-                anch.col = pos.col;
-                pos.col = coor;
-            }
-            var undoCount=0;
-            while(pos.col!=anch.col || pos.row!=anch.row){
-                undoCount++;
-                if(lines[pos.row][1]==0)slug=true;
-                if(pos.col==0){
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row+1==notes[x][0]){
-                            notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        else if(pos.row<notes[x][0]){
-                            notes[x][0]=notes[x][0]-1;
-                        }
-                        
-                        if (notes[x][1]<0)notes[x][1]=0;
-                    }
-                    undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
-                    var j = lines[pos.row][0];
-                    lines.splice(pos.row,1);
-                    var newPos = lines[pos.row-1][0].length;
-                    lines[pos.row-1][0] = lines[pos.row-1][0]+j;
-                    pos.col=newPos;
-                    pos.row--;
-                    slug=true;
-                }
-                else{
-                    undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
-                    lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
-                    pos.col--;
-                    //shift notes
-                    for(x in notes){
-                        if(pos.row==notes[x][0]){
-                            if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
-                        }
-                    }
-                }
-            }
-            undoQue.push(['dr',undoCount]);
-        }
-        if(forceCalc==true){
-			sceneIndex();
-			paint(forceCalc,false,false);
-			scroll(0);
+	
+	// keep variable to know if we need
+	// to calc in the end. assume not
+	var slug=false;
+	var forceCalc=false;
+	
+	// for if pos == anch and need to do a simple,
+	// one character delete
+	if(pos.row==anch.row && pos.col==anch.col){
+		
+		// if this is the last posible
+		// position in the script. Delete
+		// nothing, return
+		if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+		
+		// remember to recalc scene list
+		if (lines[pos.row][1]==0)var slug=true;
+		
+		// delete line if parenthetical and nothing
+		// left. Crap logic. change it
+		if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
+			undoQue.push(['delete',pos.row,pos.col,'line',4]);
+			lines.splice(pos.row,1);
+			pos.col=0;
+			anch.col=0;
 		}
-        if (slug)updateOneScene(pos.row);
+		else if(pos.col==(lines[pos.row][0].length)){
+			// if caret is at end of line, combine
+			// two lines of text
+			
+			// shift notes
+			for(x in notes){
+				if(pos.row+1==notes[x][0]){
+					notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+					notes[x][0]=notes[x][0]-1;
+				}
+				else if(pos.row<notes[x][0]){
+					notes[x][0]=notes[x][0]-1;
+				}
+				if (notes[x][1]<0)notes[x][1]=0;
+			}
+			undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
+			if (lines[pos.row+1][1]==0)slug=true;
+			
+			// actually do it
+			var j = lines[pos.row+1][0];
+			lines.splice((pos.row+1),1);
+			lines[pos.row][0]+=j;
+			forceCalc=true;
+		}
+		else{
+			// delete one character
+			undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
+			lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+			
+			//shift notes
+			for(x in notes){
+				if(pos.row==notes[x][0]){
+					if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+				}
+			}
+		}
+	}
+	else{
+		// for if pos != anch and need to delete a range
+		
+		forceCalc=true;
+		// put the focus after the anchor, so
+		// the operation is always the same
+		var switchPos = false;
+		if(anch.row>pos.row)switchPos=true;
+		if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+		if(switchPos){
+			var coor = anch.row;
+			anch.row = pos.row;
+			pos.row = coor;
+			coor = anch.col;
+			anch.col = pos.col;
+			pos.col = coor;
+		}
+		
+		// count how many things are deleted
+		var undoCount=0;
+		
+		// while pos!=anch, delete character by character
+		while(pos.col!=anch.col || pos.row!=anch.row){
+			undoCount++;
+			if(lines[pos.row][1]==0)slug=true;
+			if(pos.col==0){
+				// if caret is at the start of 
+				// line, delete nlb and combine
+				// two line of text
+				
+				//shift notes
+				for(x in notes){
+					if(pos.row+1==notes[x][0]){
+						notes[x][1]=notes[x][1]+lines[pos.row][0].length;
+						notes[x][0]=notes[x][0]-1;
+					}
+					else if(pos.row<notes[x][0]){
+						notes[x][0]=notes[x][0]-1;
+					}
+					if (notes[x][1]<0)notes[x][1]=0;
+				}
+				undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
+				var j = lines[pos.row][0];
+				lines.splice(pos.row,1);
+				var newPos = lines[pos.row-1][0].length;
+				lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+				pos.col=newPos;
+				pos.row--;
+				slug=true;
+			}
+			else{
+				// delete one character of text
+				undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
+				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+				pos.col--;
+				//shift notes
+				for(x in notes){
+					if(pos.row==notes[x][0]){
+						if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+					}
+				}
+			}
+		}
+		undoQue.push(['dr',undoCount]);
+	}
+	
+	// re calc stuff as needed
+	if(forceCalc==true){
+		sceneIndex();
+		paint(forceCalc,false,false);
+		scroll(0);
+	}
+	if (slug)updateOneScene(pos.row);
+	
+	// if find or replace div is open
+	// recalc regex as needed
     if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
 	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	}
 }
-	
+
+/**
+ * called when enter is pressed and 
+ * handles all posible enter situations
+ * including creating new line of text
+ * or interacting other normal GUI
+ */
 function enter(){
+	// if this is an editor window, do nothing
 	if(EOV=='viewer')return;
-    if(typeToScript && goog.dom.getElement('suggestBox')==null){
-        saveTimer();
-        if(checkSpell)ajaxSpell(pos.row);
-        lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
-        //shift notes
-        for(x in notes){
-            if(pos.row<notes[x][0]){
-                notes[x][0]=notes[x][0]+1;
-            }
-            if(pos.row==notes[x][0] && pos.col<notes[x][1]){
-                notes[x][1]=notes[x][1]-pos.col;
-                notes[x][0]=notes[x][0]+1;
-            }
-        }
-        undoQue.push(['enter', pos.row, pos.col]);
-		redoQue=[];
-        if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
-            
-        var j = lines[pos.row][0].slice(0,pos.col);
-        var k = lines[pos.row][0].slice(pos.col);
-        lines[pos.row][0] = j;
-        if (lines[pos.row][1] == 0)var newElem = 1;
-        else if (lines[pos.row][1] == 1)var newElem = 2;
-        else if (lines[pos.row][1] == 2)var newElem = 3;
-        else if (lines[pos.row][1] == 4){
-			//with parenthetical, get rid of pesky ")"
-			var newElem = 3;
-			if(k.slice(-1)==")"){
-				k=k.slice(0,-1)
-			}
-		}
-        else if (lines[pos.row][1] == 3)var newElem = 2;
-        else if (lines[pos.row][1] == 5)var newElem = 0;
-        var newArr = [k,newElem];
-        lines.splice(pos.row+1,0,newArr);
-        pos.row++;
-        pos.col=0;
-        anch.row=pos.row;
-        anch.col=pos.col;
-		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
-		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
-        paint(true,'enter', false);
-        paint(false,'enter',false);
-    }
-	else if(goog.dom.getElement('suggestBox')!=null){
+	
+	// if suggest box is open get the
+	// text of selection, put it in
+	if(goog.dom.getElement('suggestBox')!=null){
         saveTimer();
         var len = lines[pos.row][0].length;
 		var txt = googSuggestMenu.getHighlighted().getCaption();
@@ -1573,51 +1605,129 @@ function enter(){
 		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
 		pos.col=anch.col=lines[pos.row][0].length;
 	}
-    sceneIndex();
+	else if(typeToScript){
+		// if canvas is users focus add
+		// a new line of text
+		saveTimer();
+		if(checkSpell)ajaxSpell(pos.row);
+		
+		// remove trailing white space.... don't
+		// know why
+		lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
+		
+		//shift notes
+		for(x in notes){
+			if(pos.row<notes[x][0]){
+				notes[x][0]=notes[x][0]+1;
+			}
+			if(pos.row==notes[x][0] && pos.col<notes[x][1]){
+				notes[x][1]=notes[x][1]-pos.col;
+				notes[x][0]=notes[x][0]+1;
+			}
+		}
+		undoQue.push(['enter', pos.row, pos.col]);
+		redoQue=[];
+		if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
+		
+		// actually do it. split lines of text
+		var j = lines[pos.row][0].slice(0,pos.col);
+		var k = lines[pos.row][0].slice(pos.col);
+		lines[pos.row][0] = j;
+		
+		// figure out format of next line of text
+		if (lines[pos.row][1] == 0)var newElem = 1;
+		else if (lines[pos.row][1] == 1)var newElem = 2;
+		else if (lines[pos.row][1] == 2)var newElem = 3;
+		else if (lines[pos.row][1] == 4){
+			//with parenthetical, get rid of pesky ")"
+			var newElem = 3;
+			if(k.slice(-1)==")"){
+				k=k.slice(0,-1)
+			}
+		}
+		else if (lines[pos.row][1] == 3)var newElem = 2;
+		else if (lines[pos.row][1] == 5)var newElem = 0;
+		
+		// put second half of text in new line
+		var newArr = [k,newElem];
+		lines.splice(pos.row+1,0,newArr);
+		pos.row++;
+		pos.col=0;
+		anch.row=pos.row;
+		anch.col=pos.col;
+		
+		// if find or replace is open, recalc
+		// regex
+		if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
+		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
+		
+		// recalcs position of all sorts of stuff
+		paint(true,'enter', false);
+		paint(false,'enter',false);
+	}
+	sceneIndex();
+	// if find or replace is open, recalc
+	// regex
 	if(goog.dom.getElement('find_div').style.display=="block")findInputKeyUp({"which":1000}, "f");
 	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 }
 
+/**
+ * when user presses 'tab' reformat current
+ * line, or whatever else
+ */
 function tab(){
 	if(EOV=='viewer')return;
 	if(typeToScript){
+		// remove suggest box if exists
 		if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-	    saveTimer();
-	    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
-	    redoQue=[];
-	    var slug=false;
-	    if (lines[pos.row][1]==0)var slug=true;
+		saveTimer();
+		undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
+		redoQue=[];
+		
+		// remember to recalc scenes if needed
+		var slug=false;
+		if (lines[pos.row][1]==0)var slug=true;
+		
+		// what type of line is this now
 		var type = lines[pos.row][1];
+		
+		// change it to the correct new format
 		if (type==1){
-	        lines[pos.row][1]=0;
-	        slug=true;
-	    }
+			lines[pos.row][1]=0;
+			slug=true;
+		}
 		else if (type==0)lines[pos.row][1]=2;
 		else if (type==2)lines[pos.row][1]=1;
 		else if (type==3)lines[pos.row][1]=4;
 		else if (type==4)lines[pos.row][1]=3;
 		else if (type==5){
-	        lines[pos.row][1]=0;
-	        slug=true;
-	    }
-	    if(slug)sceneIndex();
-		slug=null;
-	    if(lines[pos.row][1]==4){
-	        if(lines[pos.row][0].charAt(0)!='('){
-	            lines[pos.row][0]='('+lines[pos.row][0];
-	            pos.col++;
-	            anch.col++;
-	        }
-	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
-	    }
-	    if(lines[pos.row][1]==3){
-	        if(lines[pos.row][0].charAt(0)=='('){
-	            lines[pos.row][0]=lines[pos.row][0].substr(1);
-	            pos.col--;
-	            anch.col--;
-	        }
-	        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
-	    }
+			lines[pos.row][1]=0;
+			slug=true;
+		}
+		
+		// re calc scene list if needed
+		if(slug)sceneIndex();
+		
+		// add parentheses if switched to parenthetical
+		if(lines[pos.row][1]==4){
+			if(lines[pos.row][0].charAt(0)!='('){
+				lines[pos.row][0]='('+lines[pos.row][0];
+				pos.col++;
+				anch.col++;
+			}
+			if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+		}
+		
+		// remove parentheses if switched from parenthetical
+		if(lines[pos.row][1]==3){
+			if(lines[pos.row][0].charAt(0)=='('){
+				lines[pos.row][0]=lines[pos.row][0].substr(1);
+				pos.col--;
+				anch.col--;
+			}
+			if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+		}
 	}
 }
 
@@ -1962,9 +2072,7 @@ function contextmenu(e){
 			u.innerHTML=formats[i];
 			u.id="cm"+i;
 			u.className="contextUnit";
-			u=null;
 		}
-		d=i=null;
 	}
 }
 
