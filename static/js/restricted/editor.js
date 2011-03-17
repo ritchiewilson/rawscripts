@@ -4445,6 +4445,64 @@ function sortNumbers(a,b){
     return a - b;
 }
 
+function wrapText(v){
+	// Use the same wrapping procedure over and over
+	   // just define an array to pass into it
+	    //wrapVars[0]=character length before wrap
+	    //wrapVars[1]= distace from edge it should be placed ay
+	    //wrapVars[2]= bool, align right
+	    //wrapVars[3]= bool, uppercase
+	    //wrapVars[4]=number of line breaks after
+	    //
+	    //
+	    //
+	    //wrapvariablearray[0]=s
+	    //wrapvariablearray[1]=a
+	    //wrapvariablearray[2]=c
+	    //wrapvariablearray[3]=d
+	    //wrapvariablearray[4]=p
+	    //wrapvariablearray[5]=t
+	var words = lines[v][0].split(" ");
+	
+	
+}
+// wrapp all m'fer
+function wrapAll(){
+	var d= new Date();
+	console.log(d.getMilliseconds())
+	for(var i=0;i<lines.length;i++){
+		var a = getLines(i)
+		if(i==8 || i==80 || i==800){
+			console.log(a)
+		}
+	}
+	var d= new Date();
+	console.log(d.getMilliseconds())
+}
+function getLines(v) {
+	var wa=lines[v][0].split(" ");
+	var phraseArray=[];
+	var lastPhrase="";
+	var l=WrapVariableArray[lines[v][1]][0];
+	var measure=0;
+    for (var i=0;i<wa.length;i++) {
+        var w=wa[i];
+        measure=(lastPhrase+" "+w).length;
+        if (measure<l) {
+            lastPhrase+=(" "+w);
+        }
+		else {
+            phraseArray.push(lastPhrase);
+            lastPhrase=w;
+        }
+        if (i===wa.length-1) {
+            phraseArray.push(lastPhrase);
+            break;
+        }
+    }
+    return phraseArray;
+}
+
 function paint(forceCalc, forceScroll){
 	notesPosition=[];
 	var linesLength = lines.length;
