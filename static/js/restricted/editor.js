@@ -533,7 +533,9 @@ function parseInitialJSON(e){
 	// set up canvas for printing, then print and repeat
 	var canvas = goog.dom.getElement('canvas');
     var ctx = canvas.getContext('2d');
-    paint(true,false,false);
+    wrapAll();
+	pagination();
+//paint(true,false,false);
     setInterval('paint(false,false,false)', 25);
 
 	// stuff is running, gracefully fade to standard GUI
@@ -857,7 +859,7 @@ function mousePosition(e, w){
 			var j=0;
 			var tc=0;
 			while(j+1<l){
-				tc+=linesNLB[i][j]+1;
+				tc+=linesNLB[i][j].length+1;
 				j++;
 			}
 			// var r is additional characters added
@@ -892,7 +894,13 @@ function mousePosition(e, w){
 			// don't let carret position be less than zero
 			// or more than wrapped line length
 			if(r<0)r=0;
-			if(r>linesNLB[i][j])r=linesNLB[i][j];
+			try{
+				if(r>linesNLB[i][j].length)r=linesNLB[i][j].length;
+			}
+			catch(err){
+				console.log(j)
+				return
+			}
 			
 			// add it all together
 			tc+=r;
@@ -1211,6 +1219,8 @@ function handlekeypress(e) {
 	        goog.dom.getElement('ccp').select();
 		}
 	}
+	var p = getLines(pos.row);
+	if(p)pagination();
 }
 
 /**
@@ -1218,6 +1228,7 @@ function handlekeypress(e) {
  * @ param {goog.event.KeyEvent} e keypress
  */
 function backspace(e){
+	
 	// if this isn't an editor window
 	// do nothing
 	if(EOV=='viewer')return;
@@ -1236,49 +1247,14 @@ function backspace(e){
 		// remember if we need to calc
 		// or update things at the end.
 		// assume no
-		var forceCalc=false;
-		var slug=(lines[pos.row][1]==0 ? true : false)
+		var calcSlug=(lines[pos.row][1]==0 ? true : false)
 		
 		// simple case, nothing selected
 		if(pos.row==anch.row && pos.col==anch.col){
 			// if the carret is at the very start, do nothing
 			if(pos.col==0 && pos.row==0) return;
-			
-			// handle stuff if at the beiging of 
-			// parenthetical.
-			// This is because parenthese are hard
-			// coded in. User should be able to delete
-			// parentheses, then this "if" could be deleted
-			if(lines[pos.row][1]==4 && pos.col==1){
-				// shift notes
-				for(x in notes){
-					if(pos.row<notes[x][0]){
-						notes[x][0]=notes[x][0]-1;
-					}
-					else if(pos.row==notes[x][0]){
-						notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-						notes[x][0]=notes[x][0]-1;
-					}
-					if (notes[x][1]<0)notes[x][1]=0;
-				}
-				
-				// actually do the operation
-				var j=lines[pos.row][0];
-				if(j.charAt(0)=='(')j=j.substr(1);
-				if(j.charAt(j.length-1)==')')j=j.slice(0,-1);
-				var newPos = lines[pos.row-1][0].length;
-				lines.splice(pos.row,1);
-				pos.row--
-				pos.col=newPos;
-				lines[pos.row][0]=lines[pos.row][0]+j;
-				
-				// add to undo que
-				undoQue.push(['back',pos.row, pos.col,'line',4]);
-				
-				// if there was a suggest box, remove it
-				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
-			}
-			else if(pos.col==0){
+		
+			if(pos.col==0){
 				// if the carret is at the first position
 				//in a line, combine this line and the one
 				// before
@@ -1307,10 +1283,13 @@ function backspace(e){
 				undoQue.push(['back',pos.row, pos.col,'line',elem]);
 				
 				// should recalc at the end of this
-				forceCalc=true;
+				linesNLB.splice(pos.row+1,1)
 				
 				// remove suggest, if it's there
 				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+				
+				getLines(pos.row);
+				pagination();
 			}
 			else{
 				// Removes just one character. Simplest
@@ -1328,6 +1307,11 @@ function backspace(e){
 						if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
 					}
 				}
+				
+				// recalc line wrap. if wrapping changes
+				// length, run pagination
+				var p = getLines(pos.row);
+				if(p)pagination();
 			}
 			
 			// finally, make sure pos=anch
@@ -1403,19 +1387,16 @@ function backspace(e){
 				}
 			}
 			undoQue.push(['br',undoCount]);
+			linesNLB=linesNLB.slice(0,pos.row);
+			for(var i=pos.row;i<lines.length;i++){
+				getLines(i);
+			}
+			pagination();
 		}
 		
-		// if things have changed so that
-		// stuff should be recalced, do it
-		if(forceCalc==true){
-			sceneIndex()
-			paint(forceCalc,false,false);
-			paint(false,false,false)
-			scroll(0)
-		}
 		// if a slug line has been changed,
 		// redo that part of the scene list
-		if (slug)updateOneScene(pos.row);
+		if (calcSlug)updateOneScene(pos.row);
 		
 		// if a find or replace window is open,
 		// rescan text for matches
@@ -4112,7 +4093,7 @@ function s_change(){
 
 //drawing functions
 // like the scroll arrows
-function scrollArrows(ctx){
+function drawScrollArrows(ctx){
     var height = goog.dom.getElement('canvas').height;
     //up arrow
     ctx.fillStyle="#333";
@@ -4140,7 +4121,7 @@ function scrollArrows(ctx){
     ctx.fill();
 	height=null;
 }
-function scrollBar(ctx, y){
+function drawScrollBar(ctx, y){
 	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
 	lingrad.addColorStop(0, "#5587c4");
 	lingrad.addColorStop(.8, "#95a7d4"); 
@@ -4191,39 +4172,41 @@ function scrollBar(ctx, y){
 	height=pagesHeight=barHeight=topPixel=sh=null;
 }
 function drawFindArr(ctx,pageStartX){
-	ctx.fillStyle="yellow";
-	var l = (findArr.length==0 ? goog.dom.getElement("fr_find_input").value.length : goog.dom.getElement("find_input").value.length);
-	var characterCount=0;
-	var iterant=0;
-	var count=0;
-	var tmpArr=(findArr.length==0 ? findReplaceArr : findArr)
-	var colorHeight=lineheight*9+3;
-	for (i in linesNLB){
-		if(colorHeight-vOffset>1200)break;
+	if(findArr.length!=0 || findReplaceArr.length!=0){
+		ctx.fillStyle="yellow";
+		var l = (findArr.length==0 ? goog.dom.getElement("fr_find_input").value.length : goog.dom.getElement("find_input").value.length);
 		var characterCount=0;
-		for (j in linesNLB[i]){
-			if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
-				count++;
-				colorHeight=72*lineheight*count+9*lineheight+4;
-				if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
-			}
-			colorHeight+=lineheight;
-			while(tmpArr[iterant]!=undefined && tmpArr[iterant][0]==i && tmpArr[iterant][1]>=characterCount && tmpArr[iterant][1]<characterCount+linesNLB[i][j]+1){
-				//find the lr of where the rect should go
-				// but only when necessary
-				if(colorHeight-vOffset>-100){
-					var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(tmpArr[iterant][1]-characterCount)*fontWidth;
-					if(tmpArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
-						ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-tmpArr[iterant][1])*fontWidth, lineheight-2)
-						ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-tmpArr[iterant][1]+1))*fontWidth, lineheight-2)
-					}
-					else{
-						ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
-					}
+		var iterant=0;
+		var count=0;
+		var tmpArr=(findArr.length==0 ? findReplaceArr : findArr)
+		var colorHeight=lineheight*9+3;
+		for (i in linesNLB){
+			if(colorHeight-vOffset>1200)break;
+			var characterCount=0;
+			for (j in linesNLB[i]){
+				if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
+					count++;
+					colorHeight=72*lineheight*count+9*lineheight+4;
+					if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
 				}
-				iterant++;
+				colorHeight+=lineheight;
+				while(tmpArr[iterant]!=undefined && tmpArr[iterant][0]==i && tmpArr[iterant][1]>=characterCount && tmpArr[iterant][1]<characterCount+linesNLB[i][j]+1){
+					//find the lr of where the rect should go
+					// but only when necessary
+					if(colorHeight-vOffset>-100){
+						var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(tmpArr[iterant][1]-characterCount)*fontWidth;
+						if(tmpArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
+							ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-tmpArr[iterant][1])*fontWidth, lineheight-2)
+							ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-tmpArr[iterant][1]+1))*fontWidth, lineheight-2)
+						}
+						else{
+							ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
+						}
+					}
+					iterant++;
+				}
+				characterCount+=linesNLB[i][j]+1;
 			}
-			characterCount+=linesNLB[i][j]+1;
 		}
 	}
 }
@@ -4382,7 +4365,19 @@ function drawRange(ctx, pageStartX){
 	startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
 }
 
-
+function drawallnotes(){
+		// calc if there are notes in this line
+		var notesArr=[];
+		if(viewNotes){
+			for (note in notes){
+				if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
+			}
+		}
+		notesArr = notesArr.sort(sortNumbers);
+		
+		
+		//
+}
 function drawNote(width, height, col, ctx, i, pageStartX, id){
     if(lines[i][1]==5){
 		notesPosition.push([width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3, id]);
@@ -4445,65 +4440,152 @@ function sortNumbers(a,b){
     return a - b;
 }
 
-function wrapText(v){
-	// Use the same wrapping procedure over and over
-	   // just define an array to pass into it
-	    //wrapVars[0]=character length before wrap
-	    //wrapVars[1]= distace from edge it should be placed ay
-	    //wrapVars[2]= bool, align right
-	    //wrapVars[3]= bool, uppercase
-	    //wrapVars[4]=number of line breaks after
-	    //
-	    //
-	    //
-	    //wrapvariablearray[0]=s
-	    //wrapvariablearray[1]=a
-	    //wrapvariablearray[2]=c
-	    //wrapvariablearray[3]=d
-	    //wrapvariablearray[4]=p
-	    //wrapvariablearray[5]=t
-	var words = lines[v][0].split(" ");
-	
-	
-}
+
 // wrapp all m'fer
 function wrapAll(){
-	var d= new Date();
-	console.log(d.getMilliseconds())
+	//var d = new Date();
+	//var timestamp = d.getMilliseconds();
 	for(var i=0;i<lines.length;i++){
-		var a = getLines(i)
-		if(i==8 || i==80 || i==800){
-			console.log(a)
-		}
+		var a = getLines(i);
 	}
-	var d= new Date();
-	console.log(d.getMilliseconds())
+	//var d = new Date();
+	//console.log(d.getMilliseconds()-timestamp)
 }
 function getLines(v) {
+	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length);
 	var wa=lines[v][0].split(" ");
 	var phraseArray=[];
 	var lastPhrase="";
 	var l=WrapVariableArray[lines[v][1]][0];
+	var uc=WrapVariableArray[lines[v][1]][3];
 	var measure=0;
-    for (var i=0;i<wa.length;i++) {
-        var w=wa[i];
-        measure=(lastPhrase+" "+w).length;
-        if (measure<l) {
-            lastPhrase+=(" "+w);
-        }
+	for (var i=0;i<wa.length;i++) {
+		var w=wa[i];
+		measure=(lastPhrase+" "+w).length;
+		if (measure<l) {
+			lastPhrase+=(w+" ");
+		}
 		else {
-            phraseArray.push(lastPhrase);
-            lastPhrase=w;
-        }
-        if (i===wa.length-1) {
-            phraseArray.push(lastPhrase);
-            break;
-        }
-    }
-    return phraseArray;
+			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
+			phraseArray.push(lastPhrase.slice(0,-1));
+			lastPhrase=w+" ";
+		}
+		if (i===wa.length-1) {
+			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
+			phraseArray.push(lastPhrase.slice(0,-1));
+			break;
+		}
+	}
+	var addBlankLine=WrapVariableArray[lines[v][1]][4]-1;
+	var i=0;
+	while(i < addBlankLine){
+		phraseArray.push("");
+		i++;
+	}
+    linesNLB[v] = phraseArray;
+	
+	// return weather or not to re paginate
+	if(oldLineBreaks = false || oldLineBreaks-phraseArray.length!=0){
+		return true
+	}
+	else{
+		return false
+	}
+}
+
+function drawPages(ctx, pageStartX){
+	//draw pages
+	//var d = new Date();
+	//var timestamp = d.getMilliseconds();
+	var pageStartY = lineheight;
+	ctx.font=font;
+	ctx.lineWidth = 1;
+	for(var i=0; i<=pageBreaks.length;i++){
+		if (pageStartY-vOffset>1200)break;
+		if (pageStartY-vOffset>-lineheight*72){
+			ctx.fillStyle = background;
+			ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
+			ctx.strokeStyle = '#000';
+			ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
+			ctx.strokeStyle = '#999';
+			ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
+			ctx.fillStyle = foreground;
+			if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
+		}
+		pageStartY+= lineheight*72;
+	}
+	//var d = new Date();
+	//console.log(d.getMilliseconds()-timestamp);
+}
+
+function drawSluglineBacking(ctx, pageStartX){
+	var greyHeight = lineheight*9+2;
+	var wrapVars=WrapVariableArray[0];
+	ctx.fillStyle='#ddd';
+	var count=0;
+	for (var i=0;i<lines.length;i++){
+		if(pos.row==i)currentPage=count*1+1;
+		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+			if(pos.row==i)currentPage+=1;
+			greyHeight=72*lineheight*(count+1)+9*lineheight+2;
+			if(pageBreaks[count][2]!=0){
+				greyHeight-=pageBreaks[count][2]*lineheight;
+				if(lines[i][1]==3)greyHeight+=lineheight;
+			}
+			count++;
+		}
+		if(i<linesNLB.length){
+			for(var j=0; j<linesNLB[i].length; j++){
+				greyHeight+=lineheight;
+				if (lines[i][1]==0){
+					if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+					if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+				}
+			}
+		}
+		if(greyHeight-vOffset>1200)break;
+	}
+}
+
+function drawCaret(ctx, pageStartX){
+	var d= new Date();
+	var newMilli = d.getMilliseconds();
+	var diff = newMilli-milli;
+	var cursor = false;
+	if ((diff>0 && diff<500) || (diff<0 && diff<-500)){
+		var page = 0;
+		for(i in pageBreaks){
+			if(pos.row<pageBreaks[i][0])break
+			page++;
+		}
+		var y = 72*lineheight*page+10*lineheight;
+		var i=(page==0 ? 0 : pageBreaks[page-1][0]);
+		while(i<pos.row){
+			y+=linesNLB[i].length*lineheight;
+			i++
+		}
+	
+		var x = WrapVariableArray[lines[pos.row][1]][1];
+		x+=pageStartX;
+	
+		var s = 0;
+		var e = linesNLB[pos.row][0].length;
+		for (var i=0; i<linesNLB[pos.row].length; i++){
+			if(s<=pos.col && e+i>=pos.col)break;
+			if(i>=linesNLB[pos.row].length-1)break;
+			y+=lineheight;
+			s=e;
+			e+=linesNLB[pos.row][i+1].length;
+		}
+		x+=(pos.col-s-i)*fontWidth;
+	
+		ctx.fillStyle = '#000';
+		ctx.fillRect(x, y-vOffset, 2, 17);
+	}
 }
 
 function paint(forceCalc, forceScroll){
+	
 	notesPosition=[];
 	var linesLength = lines.length;
 	var linesNLBLength = linesNLB.length;
@@ -4515,63 +4597,12 @@ function paint(forceCalc, forceScroll){
 		ctx.fillStyle = '#ccc';
 		ctx.fillRect(0, 0, editorWidth, canvasHeight);
 		
-		//draw pages
 		var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
-		var pageStartY = lineheight;
-		ctx.font=font;
-		ctx.lineWidth = 1;
-		for(var i=0; i<=pageBreaks.length;i++){
-			if (pageStartY-vOffset>1200)break;
-			if (pageStartY-vOffset>-lineheight*72){
-				ctx.fillStyle = background;
-				ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
-				ctx.strokeStyle = '#000';
-				ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
-				ctx.strokeStyle = '#999';
-				ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
-				ctx.fillStyle = foreground;
-				if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
-			}
-			pageStartY+= lineheight*72;
-		}
-		pageStartY=null;
-		// use this opportunity to put in the grey backing
-		// also figure out the current page
 		
-		if(!forceCalc){
-			var greyHeight = lineheight*9+2;
-			var wrapVars=WrapVariableArray[0];
-			ctx.fillStyle='#ddd';
-			var count=0;
-			for (var i=0;i<linesLength;i++){
-				if(pos.row==i)currentPage=count*1+1;
-				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-					if(pos.row==i)currentPage+=1;
-					greyHeight=72*lineheight*(count+1)+9*lineheight+2;
-					if(pageBreaks[count][2]!=0){
-						greyHeight-=pageBreaks[count][2]*lineheight;
-						if(linesLV[i][1]==3)greyHeight+=lineheight;
-					}
-					count++;
-				}
-				if(i<linesNLB.length){
-					for(var j=0; j<linesNLB[i].length; j++){
-						greyHeight+=lineheight;
-						if (linesLV[i][1]==0){
-							if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-							if(linesLV[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-						}
-					}
-					j=null;
-				}
-				if(greyHeight-vOffset>1200)break;
-			}
-			greyHeight=wrapVars=count=i=null;
-		}
-		// draw finds if there are any
-		if(findArr.length!=0 || findReplaceArr.length!=0){
-			drawFindArr(ctx, pageStartX);
-		}
+		drawPages(ctx, pageStartX);
+		drawSluglineBacking(ctx, pageStartX);
+		drawFindArr(ctx, pageStartX);
+		
 		//Draw in range if there is one
 		if(pos.row!=anch.row || anch.col!=pos.col){
 			drawRange(ctx, pageStartX);
@@ -4579,88 +4610,74 @@ function paint(forceCalc, forceScroll){
 		}
     
 		ctx.fillStyle=foreground;
-    
 		ctx.font=font;
 		var y = lineheight*11;
 		var cos=[];
 		var latestCharacter = '';
 		var count = 0;
 		var sceneCount=0;
-		var pageBreaksLength = pageBreaks.length;
 		//Stary Cycling through lines
 		for (var i=0; i<linesLength; i++){
-			var thisLineText = linesLV[i][0];
-			var thisLineType = linesLV[i][1];
-			if (thisLineType==0)sceneCount++;
-			//make sure there are parenthesese for parenthetics
-			if(thisLineType==4){
-				if(thisLineText.charAt(0)!='(')thisLineText='('+thisLineText;
-				if(thisLineText.charAt(thisLineText.length-1)!=')')thisLineText=thisLineText+')';
-				lines[i][0]=thisLineText;
-			}
+			
 			//set correct line height
 			//on page breaks
-			var bb=false;
-			if(!forceCalc){
-				if(pageBreaksLength!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-					if(pageBreaks[count][2]==0){
-						y=72*lineheight*(count+1)+11*lineheight;
-						count++;
-						if(count>=pageBreaksLength){
-							count=pageBreaksLength-2;
-						}
-					}
-					else{
-						bb=true;
+			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
+				if(pageBreaks[count][2]==0){
+					y=72*lineheight*(count+1)+11*lineheight;
+					count++;
+					if(count>=pageBreaks.length){
+						count=pageBreaks.length-2;
 					}
 				}
 			}
 			//Don't render things way outside the screen
-			if(!forceCalc && !bb && y-vOffset<-200){
+			if(y-vOffset<-200){
 				y+=(lineheight*linesNLB[i].length);
 				if(i==pos.row){
 					var cursorY=y;
 					wrappedText=[];
 				}
 			}
-			else if(!forceCalc && !bb && y-vOffset>1200)break;
+			else if(y-vOffset>1200)break;
 			else{
-				// calc if there are notes in this line
-				var notesArr=[];
-				if(viewNotes){
-					for (note in notes){
-						if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
+				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]!=0){
+					var j = 0;
+					while(j<pageBreaks[count][2]){
+						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+						y+=lineheight;
+						j++
+					}
+					y=72*lineheight*(count+1)+10*lineheight;
+					if(lines[i][1]==3){
+						var characterName = ""
+						for (var itr=i; itr>=0;itr--){
+							if(lines[itr][1]==2){
+								characterName=lines[itr][0].toUpperCase();
+								break;
+							}
+						}
+						ctx.fillText(characterName+" CONT'D", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+						y+=lineheight
+					}
+					var j = pageBreaks[count][2];
+					while(j<linesNLB[i].length){
+						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+						y+=lineheight;
+						j++
+					}
+					count++;
+					if(count>=pageBreaks.length){
+						count=pageBreaks.length-2;
+					}
+					
+				}
+				else{
+					for (var j=0; j<linesNLB[i].length; j++){
+						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+						y+=lineheight;
 					}
 				}
-				notesArr = notesArr.sort(sortNumbers);
-				var type = thisLineType;
-				var lineLengthInCharacters = WrapVariableArray[thisLineType][0];
-				var distanceFromEdge = WrapVariableArray[thisLineType][1];
-				var ifAlignRight = WrapVariableArray[thisLineType][2];
-				var ifUppercase = WrapVariableArray[thisLineType][3];
-				var lineBreaksAfter = WrapVariableArray[thisLineType][4];
-				//Cursor position
-				if (i==pos.row){
-					var cursorY = y-lineheight;
-					var cursorX = distanceFromEdge;
-					var thisRow = true;
-					var wrappedText = [];
-				}
-				if (i==anch.row){
-					var anchorY = y-lineheight;
-					var anchorThisRow = true;
-					var anchorWrappedText = []
-				}
-            
-				var wordsArr = thisLineText.split(' ');
-				var word = 0;
-				linesNLB[i]=[];
-				// tc = total characters, used
-				// mainly to put in notes
-				var tc = 0;
-				var anchEFound=false;
-				var eFound=false;
-				while(word<wordsArr.length){
+				/*while(word<wordsArr.length){
 					var itr=0;
 					//for if the one word is too big
 					if (wordsArr[word].length>=lineLengthInCharacters){
@@ -4762,28 +4779,13 @@ function paint(forceCalc, forceScroll){
 						bb=false;
 						if(pos.row==i){cos.push(count);}
 					}
-				}
-				var thisRow=false;
-				var anchorThisRow=false;
-			}
-			//setup stuff of Con't
-			if(thisLineType==2)var latestCharacter = thisLineText;
-			if(i==pos.row){
-				currentScene=sceneCount;
-				var notesOnThisLine=notesArr; 
-			}
-			if(count>=pageBreaksLength){
-				count=pageBreaksLength-2;
+				}*/
 			}
 		}
-		// End Looping through lines
-		// delete extra data in linesNLB
-	
-		while(linesLength<linesNLB.length){
-			linesNLB.pop();
-		}
+		
+		drawCaret(ctx, pageStartX);
       
-		// Cursor
+		/* Cursor
 		var d= new Date();
 		var newMilli = d.getMilliseconds();
 		var diff = newMilli-milli;
@@ -4794,7 +4796,6 @@ function paint(forceCalc, forceScroll){
 		if (diff<0 && diff<-500){
 			cursor = true;
 		}
-		d=newMilli=diff=i=null;
 		if(wrappedText){
 			var wrapCounter=0;
 			var lrPosDiff = pos.col;
@@ -4843,8 +4844,8 @@ function paint(forceCalc, forceScroll){
 				catch(err){}
 				lr=null;
 			}
-			wrapCounter=lrPosDiff=totalCharacters=null;
 		}
+	*/
       
     
 		//Start work on frame and buttons and stuff
@@ -4880,7 +4881,7 @@ function paint(forceCalc, forceScroll){
 		//write current page number
 		ctx.strokeStyle = "#333";
 		ctx.stroke();
-		var tp=pageBreaksLength+1;
+		var tp=pageBreaks.Length+1;
 		var pages="Page "+currentPage+" of "+tp;
 		ctx.font="10pt sans-serif";
 		ctx.fillStyle="#000"
@@ -4896,10 +4897,9 @@ function paint(forceCalc, forceScroll){
 		ctx.font = font;
 		txt=wordArr=pages=tp=null;
 		//Make ScrollBar
-		scrollArrows(ctx);
-		scrollBar(ctx, y);
+		drawScrollArrows(ctx);
+		drawScrollBar(ctx, y);
 
-		pagination();
 		if(forceCalc){noteIndex()}
 		
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
