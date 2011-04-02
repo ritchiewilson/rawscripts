@@ -1282,12 +1282,12 @@ function backspace(e){
 				// add to undoque
 				undoQue.push(['back',pos.row, pos.col,'line',elem]);
 				
-				// should recalc at the end of this
-				linesNLB.splice(pos.row+1,1)
+				
 				
 				// remove suggest, if it's there
 				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
 				
+				linesNLB.splice(pos.row+1,1)
 				getLines(pos.row);
 				pagination();
 			}
@@ -1387,6 +1387,9 @@ function backspace(e){
 				}
 			}
 			undoQue.push(['br',undoCount]);
+			
+			//recalc stuff after
+			// waste of recalc, but lazy
 			linesNLB=linesNLB.slice(0,pos.row);
 			for(var i=pos.row;i<lines.length;i++){
 				getLines(i);
@@ -1439,15 +1442,7 @@ function deleteButton(){
 		// remember to recalc scene list
 		if (lines[pos.row][1]==0)var slug=true;
 		
-		// delete line if parenthetical and nothing
-		// left. Crap logic. change it
-		if(lines[pos.row][1]==4 && lines[pos.row][0]=='()'){
-			undoQue.push(['delete',pos.row,pos.col,'line',4]);
-			lines.splice(pos.row,1);
-			pos.col=0;
-			anch.col=0;
-		}
-		else if(pos.col==(lines[pos.row][0].length)){
+		if(pos.col==(lines[pos.row][0].length)){
 			// if caret is at end of line, combine
 			// two lines of text
 			
@@ -1470,6 +1465,11 @@ function deleteButton(){
 			lines.splice((pos.row+1),1);
 			lines[pos.row][0]+=j;
 			forceCalc=true;
+			
+			//recalc lines
+			linesNLB.splice(pos.row+1,1)
+			getLines(pos.row);
+			pagination();
 		}
 		else{
 			// delete one character
@@ -1482,6 +1482,10 @@ function deleteButton(){
 					if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
 				}
 			}
+			// recalc line wrap. if wrapping changes
+			// length, run pagination
+			var p = getLines(pos.row);
+			if(p)pagination();
 		}
 	}
 	else{
@@ -1533,6 +1537,7 @@ function deleteButton(){
 				pos.col=newPos;
 				pos.row--;
 				slug=true;
+				linesNLB.splice(pos.row+1,1)
 			}
 			else{
 				// delete one character of text
@@ -1548,12 +1553,18 @@ function deleteButton(){
 			}
 		}
 		undoQue.push(['dr',undoCount]);
+		
+
+		// recalc wraping on current line
+		// then figure pages
+		getLines(pos.row);
+		pagination();
 	}
 	
 	// re calc stuff as needed
+	
 	if(forceCalc==true){
 		sceneIndex();
-		paint(forceCalc,false,false);
 		scroll(0);
 	}
 	if (slug)updateOneScene(pos.row);
@@ -1585,6 +1596,8 @@ function enter(){
         undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
 		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
 		pos.col=anch.col=lines[pos.row][0].length;
+		var p = getLines(pos.row);
+		if(p)pagination();
 	}
 	else if(typeToScript){
 		// if canvas is users focus add
@@ -1643,8 +1656,11 @@ function enter(){
 		if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 		
 		// recalcs position of all sorts of stuff
-		paint(true,'enter', false);
-		paint(false,'enter',false);
+		linesNLB.splice(pos.row,0,"");
+		getLines(pos.row-1);
+		getLines(pos.row);
+		pagination();
+		
 	}
 	sceneIndex();
 	// if find or replace is open, recalc
@@ -1709,6 +1725,10 @@ function tab(){
 			}
 			if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
 		}
+		
+		//recalc line wraping/pagination
+		var p = getLines(pos.row);
+		if(p)pagination()
 	}
 }
 
@@ -1755,6 +1775,9 @@ function changeFormat(v){
     sceneIndex();
 	// update select box and menus
 	lineFormatGuiUpdate()
+	//recalc line wraping/pagination
+	var p = getLines(pos.row);
+	if(p)pagination()
 }
 /**
  * Updates the GUI for the line format; 
@@ -2105,304 +2128,233 @@ function jumpTo(v){
     vOffset=scrollHeight;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height;
     if(vOffset>pagesHeight)vOffset=pagesHeight;
-	e=i=scrollHeight=pagesHeight=null;
 }
+
+/**
+ * Moving the position of the Caret when
+ * canvas is selected and user presses up
+ * arrow
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mousedown event with associated data
+ */
 function upArrow(e){
-    if(typeToScript && goog.dom.getElement('suggestBox')==null){
-        if (pos.row==0 && pos.col==0)return;
-        var type = lines[pos.row][1];
-        if (type==0) var wrapVars=WrapVariableArray[0];
-        else if(type==1) var wrapVars = WrapVariableArray[1];
-        else if(type==2) var wrapVars = WrapVariableArray[2];
-        else if(type==3) var wrapVars = WrapVariableArray[3];
-        else if(type==4) var wrapVars = WrapVariableArray[4];
-        else if(type==5) var wrapVars = WrapVariableArray[5];
-        // Only do calculations if 
-        // there is wrapped text
-        if(lines[pos.row][0].length>wrapVars[0]){
-            var wordsArr = lines[pos.row][0].split(' ');
-            var word = 0;
-            var lineLengths=[];
-            while(word<wordsArr.length){
-				if(wordsArr[word].length>=wrapVars[0]){
-					lineLengths.push(wordsArr[word].length)
-					word++;
-				}
-                if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                    lineLengths.push(wordsArr.slice(word).join().length);
-                    word=wordsArr.length
-                    
-                }
-                else{
-                    var integ=0;
-                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                        integ++;
-                    }
-                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                    word+=integ-1;
-                }
-            }
-            // now we have the variable lineLengths
-            // this is an array holding all the wrapped line lengths
-            //
-            //use variable 'integ' to figure out 
-            //what line the cursor is on
-            integ=0;
-            var totalCharacters=lineLengths[0];
-            while(totalCharacters<pos.col){
-                integ++;
-                totalCharacters+=lineLengths[integ]+1;
-            }
-            // totalCharacters now equals
-            // all character up to and including
-            // current line (integ) including spaces
-            if(pos.row==0 && integ==0){
+	if(typeToScript && goog.dom.getElement('suggestBox')==null){
+		if (pos.row==0 && pos.col==0)return;
+
+		var wrapVars = WrapVariableArray[lines[pos.row][1]];
+		// Only do calculations if 
+		// there is wrapped text
+		if(lines[pos.row][0].length>wrapVars[0]){
+			var lineLengths=[];
+			for(i in linesNLB[pos.row]){
+				lineLengths.push(linesNLB[pos.row][i].length)
+			}
+			// now we have the variable lineLengths
+			//this is an array holding all the wrapped line lengths
+			
+			//use variable 'integ' to figure out 
+			//what line the cursor is on
+			integ=0;
+			var totalCharacters=lineLengths[0];
+			while(totalCharacters<pos.col){
+				integ++;
+				totalCharacters+=lineLengths[integ]+1;
+			}
+			// totalCharacters now equals
+			// all character up to and including
+			// current line (integ) including spaces
+			if(pos.row==0 && integ==0){
 				pos.col=anch.col=0;
 				return;
 			}
-            //if this is the first line in a block of wrapped text
-            if(integ==0){
-                if(checkSpell)ajaxSpell(pos.row);
-                var prevLineType = lines[pos.row-1][1];
-                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
-                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
-                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
-                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
-                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
-                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
-                // If the previous line (the one we're jumping into)
-                // has only one line, don't run the calcs, just go to it
-                if(lines[pos.row-1][0].length<newWrapVars[0]){
-                    pos.row--;
-                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-                }
-                else{
-                    var wordsArr = lines[pos.row-1][0].split(' ');
-                    var word = 0;
-                    var lineLengths=[];
-                    while(word<wordsArr.length){
-						if(wordsArr[word].length>=wrapVars[0]){
-							lineLengths.push(wordsArr[word].length)
-							word++;
-						}
-                        else if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                            lineLengths.push(wordsArr.slice(word).join().length);
-                            word=wordsArr.length
-                            
-                        }
-                        else{
-                            var integ = 0;
-                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                                integ++;
-                            }
-                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                            word+=integ-1;
-                        }
-                    // now we have the variable lineLengths
-                    // this is an array holding all the wrapped line lengths
-                    }
-                    pos.row--;
-                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
-                    
-                }
-            }
-            // if this is some middle line in a block of wrapped text
-            else{
-                pos.col-=lineLengths[integ-1]+1;
-                if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
-            }
-        }
-        //if the current block does
-        //not have wrapped text
-        else{
-            if(pos.row==0){
-                pos.col=0;
-            }
-            else{
-                if(checkSpell)ajaxSpell(pos.row);
-                var prevLineType = lines[pos.row-1][1];
-                if (prevLineType==0)var newWrapVars=WrapVariableArray[0];
-                else if(prevLineType==1) var newWrapVars = WrapVariableArray[1];
-                else if(prevLineType==2) var newWrapVars = WrapVariableArray[2];
-                else if(prevLineType==3) var newWrapVars = WrapVariableArray[3];
-                else if(prevLineType==4) var newWrapVars = WrapVariableArray[4];
-                else if(prevLineType==5) var newWrapVars = WrapVariableArray[5];
-                // If the previous line (the one we're jumping into)
-                // has only one line, don't run the calcs, just go to it
-                if(lines[pos.row-1][0].length<newWrapVars[0]){
-                    pos.row--;
-                    if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-                }
+			// if this is the first line in a block of wrapped text
+			if(integ==0){
+				if(checkSpell)ajaxSpell(pos.row);
+
+				var newWrapVars = WrapVariableArray[lines[pos.row-1][1]];
+				// If the previous line (the one we're jumping into)
+				// has only one line, don't run the calcs, just go to it
+				if(lines[pos.row-1][0].length<newWrapVars[0]){
+					pos.row--;
+					if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+				}
+				else{
+					var lineLengths=[];
+					for(i in linesNLB[pos.row]){
+						lineLengths.push(linesNLB[pos.row][i].length)
+					}
+					pos.row--;
+					pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+					if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+				}
+			}
+			// if this is some middle line in a block of wrapped text
+			else{
+				pos.col-=lineLengths[integ-1]+1;
+				if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
+			}
+		}
+		// if the current block does
+		// not have wrapped text
+		else{
+			if(pos.row==0){
+				pos.col=0;
+			}
+			else{
+				if(checkSpell)ajaxSpell(pos.row);
+				
+				var newWrapVars = WrapVariableArray[lines[pos.row-1][1]];
+				//If the previous line (the one we're jumping into)
+				//has only one line, don't run the calcs, just go to it
+				if(lines[pos.row-1][0].length<newWrapVars[0]){
+					pos.row--;
+					if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+				}
                 //if the previous line has wrapped text
-                //do crazy calcs to figure where to
-                // jump to
-                else{
-                    var wordsArr = lines[pos.row-1][0].split(' ');
-                    var word = 0;
-                    var lineLengths=[];
-                    while(word<wordsArr.length){
-						if(wordsArr[word].length>=wrapVars[0]){
-							lineLengths.push(wordsArr[word].length)
-							word++;
-						}
-                        else if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                            lineLengths.push(wordsArr.slice(word).join().length);
-                            word=wordsArr.length
-                            
-                        }
-                        else{
-                            var integ = 0;
-                            while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                                integ++;
-                            }
-                            lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                            word+=integ-1;
-                        }
-                    // now we have the variable lineLengths
-                    // this is an array holding all the wrapped line lengths
-                    }
-                    pos.row--;
-                    pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-                    if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
-                }
-            }
-        }
-        if(!e.shiftKey){
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
-		if(ud<0)paint(false,false,false);
-    }
+				else{
+					var lineLengths=[];
+					for(i in linesNLB[pos.row-1]){
+						lineLengths.push(linesNLB[pos.row-1][i].length)
+					}
+					pos.row--;
+					pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
+					if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+				}
+			}
+		}
+		if(!e.shiftKey){
+			anch.col=pos.col;
+			anch.row=pos.row;
+		}
+	}
 	else if(goog.dom.getElement('suggestBox')!=null){
 		googSuggestMenu.highlightPrevious();
 	}
 }
-	
+
+/**
+ * Moving the position of the Caret when
+ * canvas is selected and user presses Down
+ * arrow
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mousedown event with associated data
+ */
 function downArrow(e){
-    if(typeToScript && goog.dom.getElement('suggestBox')==null){
-        if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
-        var type = lines[pos.row][1];
-        if (type==0)var wrapVars=WrapVariableArray[0];
-        else if(type==1) var wrapVars = WrapVariableArray[1];
-        else if(type==2) var wrapVars = WrapVariableArray[2];
-        else if(type==3) var wrapVars = WrapVariableArray[3];
-        else if(type==4) var wrapVars = WrapVariableArray[4];
-        else if(type==5) var wrapVars = WrapVariableArray[5];
-        if (lines[pos.row][0].length>wrapVars[0]){
-            var wordsArr = lines[pos.row][0].split(' ');
-            var word = 0;
+	if(typeToScript && goog.dom.getElement('suggestBox')==null){
+		if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
+		
+		var wrapVars = WrapVariableArray[lines[pos.row][1]];
+		if (lines[pos.row][0].length>wrapVars[0]){
             var lineLengths=[];
-            while(word<wordsArr.length){
-				if(wordsArr[word].length>=wrapVars[0]){
-					lineLengths.push(wordsArr[word].length)
-					word++;
+			for(i in linesNLB[pos.row]){
+				if(linesNLB[pos.row][i]!=""){
+					lineLengths.push(linesNLB[pos.row][i].length)
 				}
-                else if(wordsArr.slice(word).join().length<=wrapVars[0]){
-                    lineLengths.push(wordsArr.slice(word).join().length);
-                    word=wordsArr.length
-                    
-                }
-                else{
-                    var integ = 0;
-                    while(wordsArr.slice(word, word+integ).join().length<wrapVars[0]){
-                        integ++;
-                    }
-                    lineLengths.push(wordsArr.slice(word, word+integ-1).join().length);
-                    word+=integ-1;
-                }
-            }
-            //use variable 'integ' to figure out 
-            //what line the cursor is on
-            integ=0;
-            var totalCharacters=lineLengths[0];
-            while(totalCharacters<pos.col){
-                integ++;
-                totalCharacters+=lineLengths[integ]+1;
-            }
-            //if this is the last line in a block of wrapped text
-            if(integ+1==lineLengths.length){
-                if(checkSpell)ajaxSpell(pos.row);
-                for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
-                    pos.col-=lineLengths[newinteg];
-                }
-                pos.col--;
-                pos.row++;
-                if(pos.row>lines.length-1){
-                    pos.row--;
-                    pos.col=lines[pos.row][0].length;
-                }
-                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-            }
-            // if this is some middle line in a block of wrapped text
-            else{
-                pos.col+=lineLengths[integ]+1;
-                if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
-            }
-        }
-        else{
-            if(pos.row==lines.length-1){
-                pos.col=lines[pos.row][0].length;
-            }
-            else{
-                pos.row++;
-                if(pos.row>lines.length-1) pos.row=lines.length-1;
-                if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
-            }
-        }
-        if(!e.shiftKey){
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
-        if(ud>goog.dom.getElement('canvas').height-50)paint(false,false,false);
-    }
+			}
+			// use variable 'integ' to figure out 
+			// what line the cursor is on
+			integ=0;
+			var totalCharacters=lineLengths[0];
+			while(totalCharacters<pos.col){
+				integ++;
+				totalCharacters+=lineLengths[integ]+1;
+			}
+			//if this is the last line in a block of wrapped text
+			if(integ+1==lineLengths.length){
+				if(checkSpell)ajaxSpell(pos.row);
+				for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
+					pos.col-=lineLengths[newinteg];
+				}
+				pos.col--;
+				pos.row++;
+				if(pos.row>lines.length-1){
+					pos.row--;
+					pos.col=lines[pos.row][0].length;
+				}
+				if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+			}
+			// if this is some middle line in a block of wrapped text
+			else{
+				pos.col+=lineLengths[integ]+1;
+				if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
+			}
+		}
+		else{
+			if(pos.row==lines.length-1){
+				pos.col=lines[pos.row][0].length;
+			}
+			else{
+				pos.row++;
+				if(pos.row>lines.length-1) pos.row=lines.length-1;
+				if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+			}
+		}
+		if(!e.shiftKey){
+			anch.col=pos.col;
+			anch.row=pos.row;
+		}
+	}
 	else if(goog.dom.getElement('suggestBox')!=null){
 		googSuggestMenu.highlightNext();
 	}
 }
 
+/**
+ * Moving the position of the Caret when
+ * canvas is selected and user presses left
+ * arrow
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mousedown event with associated data
+ */
 function leftArrow(e){
-    if(typeToScript){
+	if(typeToScript){
 		var change=false;
-        if(pos.row==0 && pos.col==0) return;
-        if(pos.col==0){
-            if(checkSpell)ajaxSpell(pos.row);
-            pos.row--;
-            pos.col=lines[pos.row][0].length;
+		if(pos.row==0 && pos.col==0) return;
+		if(pos.col==0){
+			if(checkSpell)ajaxSpell(pos.row);
+			pos.row--;
+			pos.col=lines[pos.row][0].length;
 			var change=true;
-        }
-        else{
-            pos.col = pos.col-1;
-        }
-        
-        if(!e.shiftKey){
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
+		}
+		else{
+			pos.col = pos.col-1;
+		}
+		
+		if(!e.shiftKey){
+			anch.col=pos.col;
+			anch.row=pos.row;
+		}
 		var c =goog.dom.getElement('suggestBox');
 		if(change && c!=null)c.parentNode.removeChild(c);
-    }
+	}
 }
-	
+
+/**
+ * Moving the position of the Caret when
+ * canvas is selected and user presses right
+ * arrow
+ * @ param { goog.events.BrowserEvent } e
+ * gives the mousedown event with associated data
+ */
 function rightArrow(e){
-    if(typeToScript){
+	if(typeToScript){
 		var change=false;
-        if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
-        if(pos.col==lines[pos.row][0].length){
-            if(checkSpell)ajaxSpell(pos.row);
-            pos.row++;
-            pos.col=0;
+		if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
+		if(pos.col==lines[pos.row][0].length){
+			if(checkSpell)ajaxSpell(pos.row);
+			pos.row++;
+			pos.col=0;
 			change=true;
-        }
-        else pos.col = pos.col+1;
-        
-        if(!e.shiftKey){
-            anch.col=pos.col;
-            anch.row=pos.row;
-        }
+		}
+		else pos.col = pos.col+1;
+		
+		if(!e.shiftKey){
+			anch.col=pos.col;
+			anch.row=pos.row;
+		}
 		var c =goog.dom.getElement('suggestBox');
 		if(change && c!=null)c.parentNode.removeChild(c);
-    }
+	}
 }
 
 
@@ -2559,11 +2511,13 @@ function undo(){
     pos.col=dir[2];
     anch.row = pos.row;
     anch.col=pos.col;
-	if (forceCalc == true){
-		sceneIndex();
-		paint(true,false,false);
-		scroll(0)
-    }
+	linesNLB=[];
+	for(var i=0;i<lines.length;i++){
+		getLines(i);
+	}
+	sceneIndex();
+	pagination();
+	scroll(0);
 }
 function redo(){
 	if(EOV=='viewer')return;
@@ -2729,11 +2683,12 @@ function redo(){
         dir[2]=dir[2]+1;
 		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
     }
-    if (forceCalc == true){
-		sceneIndex();
-		paint(true,false,false);
-		scroll(0)
-    }
+	for(var i=0;i<lines.length;i++){
+		getLines(i);
+	}
+	pagination();
+	sceneIndex();
+	scroll(0);
 }
 
 
@@ -2784,25 +2739,24 @@ function pagination(){
 }
 
 function characterInit(){
-    for(var i=0; i<lines.length;i++){
-        if (lines[i][1]==2){
-            characterIndex(lines[i][0]);
-        }
-    }
+	for(var i=0; i<lines.length;i++){
+		if (lines[i][1]==2){
+			characterIndex(lines[i][0]);
+		}
+	}
 }
 function characterIndex(v){
-    var chara = v.toUpperCase().replace(/\s+$/,"");
-    var found=false;
-    for(var i=0;i<characters.length;i++){
-        if(characters[i][0]==chara){
-            characters[i][1]=characters[i][1]+1;
-            found=true;
-        }
-    }
-    if (!found){
-        characters.push([chara,1]);
-    }
-	found=chara=i=null;
+	var chara = v.toUpperCase().replace(/\s+$/,"");
+	var found=false;
+	for(var i=0;i<characters.length;i++){
+		if(characters[i][0]==chara){
+			characters[i][1]=characters[i][1]+1;
+			found=true;
+		}
+	}
+	if (!found){
+		characters.push([chara,1]);
+	}
 }
 function sceneIndex(){
     scenes=[];
@@ -2832,9 +2786,7 @@ function sceneIndex(){
 		goog.events.listen(elem, goog.events.EventType.CLICK, jumpTo);
 		goog.events.listen(elem, goog.events.EventType.MOUSEOVER, function(e){this.style.backgroundColor="#ccccff"});
 		goog.events.listen(elem, goog.events.EventType.MOUSEOUT, function(e){this.style.backgroundColor="white"});
-		elem=null;
     }
-	c=i=num=null;
 }
 function updateOneScene(v){
 	try{
@@ -2929,7 +2881,6 @@ function noteIndex(){
 		});
 	}
     typeToScript=true;
-	x=i=null;
 }
 function notesDialog(e, id, top, left){
 	if (e){
