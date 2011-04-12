@@ -446,7 +446,7 @@ function parseInitialJSON(e){
 	// if script was not found on server, show that
     if(e.target.getResponseText()=='not found'){
         lines = [["Sorry, the script wasn't found.",1]];
-        paint(true,false,false);
+        paint();
         return;
     }
 	// else, parse json, put stuff in place
@@ -535,8 +535,7 @@ function parseInitialJSON(e){
     var ctx = canvas.getContext('2d');
     wrapAll();
 	pagination();
-//paint(true,false,false);
-    setInterval('paint(false,false,false)', 25);
+    setInterval('paint()', 25);
 
 	// stuff is running, gracefully fade to standard GUI
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
@@ -562,7 +561,7 @@ function setElementSizes(v){
 	goog.dom.getElement('sidebar').style.height = (s.height-70)+'px';
 	if(v=="r"){
 		scroll(0);
-		paint(false,false,false)
+		paint();
 	}
 }
 
@@ -1033,7 +1032,6 @@ function paste(){
 	    pasting=false;
 		if(forceCalc){
 			sceneIndex();
-	    	paint(true,false,false);
 		}
 		goog.dom.getElement('ccp').value="";
 		justPasted=true;
@@ -1084,8 +1082,6 @@ function scroll(v){
 	milli = d.getMilliseconds();
 	// if a suggest box is open, redraw it in position
 	if(goog.dom.getElement('suggestBox')!=null){
-		// pain is only here to recalculate stuff
-		paint(false,false,false);
 		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
 	}
 }
@@ -2998,7 +2994,6 @@ function newThread(){
     }
 	notes.push([pos.row, pos.col, ['temp', 'temp', 'temp'],id])
 	viewNotes=true;
-	paint(false,false,false);
 	//set up dialog box
 	var d = new goog.ui.Dialog();
 	d.setModal(false);
@@ -4034,7 +4029,6 @@ function s_change(){
     }
     var tmp = goog.dom.getElement('sHidden').value;
     spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
-    paint(true,false,false);
 }
 
 
@@ -4474,24 +4468,27 @@ function drawSluglineBacking(ctx, pageStartX){
 	var wrapVars=WrapVariableArray[0];
 	ctx.fillStyle='#ddd';
 	var count=0;
-	for (var i=0;i<lines.length;i++){
-		if(pos.row==i)currentPage=count*1+1;
+	var startLine=0;
+	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
+	if(firstPrintedPage!=0){
+		count=firstPrintedPage-1;
+		y=72*lineheight*(count)+10*lineheight;
+		startLine=pageBreaks[count][0];
+	}
+	for (var i=startLine;i<linesNLB.length;i++){
 		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-			if(pos.row==i)currentPage+=1;
-			greyHeight=72*lineheight*(count+1)+9*lineheight+2;
+			greyHeight=72*lineheight*(count+1)+8*lineheight+2;
 			if(pageBreaks[count][2]!=0){
 				greyHeight-=pageBreaks[count][2]*lineheight;
 				if(lines[i][1]==3)greyHeight+=lineheight;
 			}
 			count++;
 		}
-		if(i<linesNLB.length){
-			for(var j=0; j<linesNLB[i].length; j++){
-				greyHeight+=lineheight;
-				if (lines[i][1]==0){
-					if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-					if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-				}
+		for(var j=0; j<linesNLB[i].length; j++){
+			greyHeight+=lineheight;
+			if (lines[i][1]==0){
+				if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+				if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
 			}
 		}
 		if(greyHeight-vOffset>1200)break;
@@ -4502,20 +4499,45 @@ function drawCaret(ctx, pageStartX){
 	var d= new Date();
 	var newMilli = d.getMilliseconds();
 	var diff = newMilli-milli;
-	var cursor = false;
+	// only draw caret when you have to.
 	if ((diff>0 && diff<500) || (diff<0 && diff<-500)){
+		//figure out what page the caret is on
 		var page = 0;
 		for(i in pageBreaks){
 			if(pos.row<pageBreaks[i][0])break
 			page++;
 		}
-		var y = 72*lineheight*page+10*lineheight;
+		//handle if caret is in text with page break
+		if(page!=0 && pageBreaks[page-1][0]==pos.row){
+			var j=0;
+			var tc=0;
+			while(j<pageBreaks[page-1][2]){
+				tc+=linesNLB[pos.row][j].length+1;
+				j++;
+			}
+			if(pos.col<tc)page--;
+		}
+		//jump to y of desired page
+		var y = 72*lineheight*page+9*lineheight;
+		
+		// adjust if this is the first page
+		if(page==0)y+=lineheight;
+		
+		// adjust if this isn't first page, and
+		// there may be page splits in text
+		if(page!=0){
+			y-=(pageBreaks[page-1][2]*lineheight);
+			y+=(lines[pageBreaks[page-1][0]][1]==3 ? lineheight : 0);
+		}
+		
+		//figure which line to start counting from
 		var i=(page==0 ? 0 : pageBreaks[page-1][0]);
 		while(i<pos.row){
 			y+=linesNLB[i].length*lineheight;
 			i++
 		}
-	
+		
+		// figure out lateral position
 		var x = WrapVariableArray[lines[pos.row][1]][1];
 		x+=pageStartX;
 	
@@ -4528,15 +4550,33 @@ function drawCaret(ctx, pageStartX){
 			s=e;
 			e+=linesNLB[pos.row][i+1].length;
 		}
+		
+		//tally it all up
 		x+=(pos.col-s-i)*fontWidth;
-	
-		ctx.fillStyle = '#000';
+		
+		// draw the thing
+		//ctx.fillStyle = '#000';
 		ctx.fillRect(x, y-vOffset, 2, 17);
 	}
 }
 
-function paint(forceCalc, forceScroll){
-	
+function drawGuides(){
+	var canvas = goog.dom.getElement('canvas');
+	var ctx = canvas.getContext('2d');
+	ctx.fillStyle = '#aaa';
+	var y=0;
+	var i=0;
+	while (y<50000){
+		ctx.fillText(i, 10, y-vOffset);
+		i++;
+		y+=lineheight;
+		ctx.fillRect(0,y-vOffset,5000,2)
+	}
+}
+
+function paint(){
+	var d = new Date();
+	var TIME = d.getMilliseconds();
 	notesPosition=[];
 	var linesLength = lines.length;
 	var linesNLBLength = linesNLB.length;
@@ -4567,9 +4607,37 @@ function paint(forceCalc, forceScroll){
 		var latestCharacter = '';
 		var count = 0;
 		var sceneCount=0;
+		var startLine = 0;
+		// figure out what page to start printing on
+		var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
+		if(firstPrintedPage!=0){
+			count=firstPrintedPage-1;
+			y=72*lineheight*(count)+10*lineheight;
+			startLine=pageBreaks[count][0];
+		}
 		//Stary Cycling through lines
-		for (var i=0; i<linesLength; i++){
+		for (var i=startLine; i<linesNLB.length; i++){
+			if(y-vOffset>1200)break;
+			if(lines[i][1]==2)latestCharacter=lines[i][0];
+			for(var j=0; j<linesNLB[i].length; j++){
+				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
+					if(j!=0 && lines[i][1]==3){
+						ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+					}
+					y=72*lineheight*(count+1)+10*lineheight;
+					count++;
+					if(j!=0 && lines[i][1]==3){
+						ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+						y+=lineheight;
+					}
+					if(count>=pageBreaks.length){
+						count=pageBreaks.length-2;
+					}
+				}
+				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+				y+=lineheight;
 			
+		/*
 			//set correct line height
 			//on page breaks
 			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
@@ -4591,38 +4659,9 @@ function paint(forceCalc, forceScroll){
 			}
 			else if(y-vOffset>1200)break;
 			else{
-				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]!=0){
-					var j = 0;
-					while(j<pageBreaks[count][2]){
-						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
-						y+=lineheight;
-						j++
-					}
-					y=72*lineheight*(count+1)+10*lineheight;
-					if(lines[i][1]==3){
-						var characterName = ""
-						for (var itr=i; itr>=0;itr--){
-							if(lines[itr][1]==2){
-								characterName=lines[itr][0].toUpperCase();
-								break;
-							}
-						}
-						ctx.fillText(characterName+" CONT'D", WrapVariableArray[2][1]+pageStartX, y-vOffset)
-						y+=lineheight
-					}
-					var j = pageBreaks[count][2];
-					while(j<linesNLB[i].length){
-						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
-						y+=lineheight;
-						j++
-					}
-					count++;
-					if(count>=pageBreaks.length){
-						count=pageBreaks.length-2;
-					}
-					
-				}
+				
 				else{
+					// takes text from linesNLB, puts them on page.
 					for (var j=0; j<linesNLB[i].length; j++){
 						ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
 						y+=lineheight;
@@ -4736,68 +4775,6 @@ function paint(forceCalc, forceScroll){
 		
 		drawCaret(ctx, pageStartX);
       
-		/* Cursor
-		var d= new Date();
-		var newMilli = d.getMilliseconds();
-		var diff = newMilli-milli;
-		var cursor = false;
-		if (diff>0 && diff<500){
-			cursor = true;
-		}
-		if (diff<0 && diff<-500){
-			cursor = true;
-		}
-		if(wrappedText){
-			var wrapCounter=0;
-			var lrPosDiff = pos.col;
-			var totalCharacters=wrappedText[wrapCounter];
-			while (pos.col>totalCharacters){
-				wrapCounter++;
-				totalCharacters+=1+wrappedText[wrapCounter];
-			}
-			totalCharacters-=wrappedText[wrapCounter];
-			//count notes on this line
-			// and figure which is before the cursor
-			var notesSpacingDiff=0;
-			for (note in notesOnThisLine){
-				var n = parseInt(notesOnThisLine[note]);
-				if(lines[pos.row][1]!=5){
-					if(n<pos.col && n>=totalCharacters && n<totalCharacters+wrappedText[wrapCounter]){
-						notesSpacingDiff++;
-					}
-				}
-				else{
-					if(n>=pos.col){
-						notesSpacingDiff++;
-					}
-				}
-			}
-			if(cos.length>0 && wrapCounter>=pageBreaks[cos[0]-1][2]){
-				cursorY=72*cos[0]*lineheight+9*lineheight;
-				if(linesLV[pos.row][1]==3){
-					cursorY+=lineheight*2;
-					wrapCounter-=pageBreaks[cos[0]-1][2];
-				}
-				else if(linesLV[pos.row][1]==1){
-					wrapCounter-=pageBreaks[cos[0]-1][2];
-					cursorY+=lineheight;
-				}
-			}
-			ud = 2+cursorY+(wrapCounter*lineheight)-vOffset;
-			if(cursor){
-				//if(lines[pos.row][1]==5)console.log(notesSpacingDiff)
-				var lr = cursorX+((pos.col-totalCharacters+(lines[pos.row][1]==5 ? notesSpacingDiff*-1 : notesSpacingDiff))*fontWidth)+pageStartX;
-				if(linesLV[pos.row][1]==5)lr -= linesLV[pos.row][0].length*fontWidth;
-				
-				try{
-					ctx.fillRect(lr,ud,2,17);
-				}
-				catch(err){}
-				lr=null;
-			}
-		}
-	*/
-      
     
 		//Start work on frame and buttons and stuff
 		ctx.lineWidth = 4;
@@ -4851,20 +4828,12 @@ function paint(forceCalc, forceScroll){
 		drawScrollArrows(ctx);
 		drawScrollBar(ctx, y);
 
-		if(forceCalc){noteIndex()}
+		//if(forceCalc){noteIndex()}
 		
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
 		if(mouseDownBool && pos.row>anch.row && mouseY>canvasHeight-50)scroll(20);
-		if(forceScroll=="enter"){
-			if (ud>canvasHeight)scroll(600);
-			else if(forceScroll){
-				if((2+cursorY+(wrapCounter*lineheight)-vOffset)>canvasHeight-60){
-					scroll(45);
-				}
-				else if(ud<45){
-					//scroll(-45);
-				}
-			}
-		}
+		//drawGuides();
 	}
+	var d = new Date();
+	console.log(TIME - d.getMilliseconds());
 }
