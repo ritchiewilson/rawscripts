@@ -110,6 +110,18 @@ td a{
 	padding:100px; 
 	padding-top:50px;
 }
+#info{
+	visibility:hidden; 
+	border-style:ridge;
+	border-width:2px;
+	border-color:#ccc;
+	position:absolute;
+	bottom:1px;
+	left:1px;
+	background-color:#ccc;
+	font-family:sans-serif;
+	font-size:10pt;
+}
 #sidebar{
 	visibility:hidden; 
 	position:absolute; 

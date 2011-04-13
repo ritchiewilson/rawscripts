@@ -503,7 +503,6 @@ function parseInitialJSON(e){
         var newA = TR.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
         newA.appendChild(document.createTextNode('Remove Access'));
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
-		TR=newA=null;
     }
 
 	// well, shit. This looks redundant. Gotta test this
@@ -529,6 +528,11 @@ function parseInitialJSON(e){
 	// set starting position for save button
     goog.dom.getElement('saveButton').value="Saved";
     goog.dom.getElement('saveButton').disabled=true;
+
+	//make info bar visible
+	goog.dom.getElement('info').style.width=(editorWidth-6)+"px";
+	goog.dom.getElement('info').style.visibility="visible";
+	fillInfoBar();
 
 	// set up canvas for printing, then print and repeat
 	var canvas = goog.dom.getElement('canvas');
@@ -559,6 +563,7 @@ function setElementSizes(v){
 	editorWidth=s.width-323;
 	goog.dom.getElement('insertNewNote').style.marginLeft=editorWidth-630*1+"px";
 	goog.dom.getElement('sidebar').style.height = (s.height-70)+'px';
+	goog.dom.getElement('info').style.width = (editorWidth-6)+'px';
 	if(v=="r"){
 		scroll(0);
 		paint();
@@ -616,6 +621,7 @@ function keyEvent(e){
 	
 	// hmm... this probabaly isn't necessary....
 	lineFormatGuiUpdate();
+	fillInfoBar();
 }
 
 /**
@@ -921,9 +927,10 @@ function mousePosition(e, w){
 			
 			// everything is solved, so quit function
 			// otherwise would keep cyling thoruhg lines
-			return;
+			break;
 		}
 	}
+	fillInfoBar();
 }
 
 /**
@@ -4042,25 +4049,25 @@ function drawScrollArrows(ctx){
     var height = goog.dom.getElement('canvas').height;
     //up arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-21, height-39, 21,20);
+    ctx.fillRect(editorWidth-21, height-39-22, 21,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-19, height-37, 16, 16);
+    ctx.fillRect(editorWidth-19, height-37-22, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(editorWidth-16, height-24);
-    ctx.lineTo(editorWidth-10.5, height-35);
-    ctx.lineTo(editorWidth-5, height-24);
+    ctx.moveTo(editorWidth-16, height-24-22);
+    ctx.lineTo(editorWidth-10.5, height-35-22);
+    ctx.lineTo(editorWidth-5, height-24-22);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
     //down arrow
     ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-21, height-19, 20,20);
+    ctx.fillRect(editorWidth-21, height-19-22, 20,20);
     ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-19, height-18, 16, 16);
+    ctx.fillRect(editorWidth-19, height-18-22, 16, 16);
     ctx.beginPath();
-    ctx.moveTo(editorWidth-16, height-15);
-    ctx.lineTo(editorWidth-10.5, height-4);
-    ctx.lineTo(editorWidth-5, height-15);
+    ctx.moveTo(editorWidth-16, height-15-22);
+    ctx.lineTo(editorWidth-10.5, height-4-22);
+    ctx.lineTo(editorWidth-5, height-15-22);
     ctx.closePath();
     ctx.fillStyle="#333";
     ctx.fill();
@@ -4073,7 +4080,7 @@ function drawScrollBar(ctx){
 	ctx.strokeStyle="#333";
 	//ctx.lineWidth=2;
 	ctx.fillStyle=lingrad;
-    var height = goog.dom.getElement('canvas').height;
+    var height = goog.dom.getElement('canvas').height-20;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight+40;
     var barHeight = ((height)/pagesHeight)*(height-39);
     if (barHeight<20)barHeight=20;
@@ -4155,7 +4162,7 @@ function drawFindArr(ctx,pageStartX){
 	}
 }
 function drawRange(ctx, pageStartX){
-	if(pos.row==anch.row || anch.col==pos.col)return;
+	if(pos.row==anch.row && anch.col==pos.col)return;
     if(pos.row>anch.row){
         var startRange = {row:anch.row, col:anch.col};
         var endRange = {row:pos.row, col:pos.col};
@@ -4574,54 +4581,45 @@ function drawGuides(){
 	}
 }
 
-function drawInfo(ctx){
-	var canvasHeight = goog.dom.getElement('canvas').height;
-	ctx.lineWidth = 4;
-	ctx.strokeStyle = '#ddd';
-	ctx.beginPath();
-	ctx.moveTo(2,2);
-	ctx.lineTo(2,canvasHeight-1);
-	ctx.lineTo(editorWidth, canvasHeight-1);
-	ctx.lineTo(editorWidth,2);
-	//ctx.lineTo(2,2);
-	ctx.stroke();
-	//
-	// bottom status bar
-	ctx.fillStyle = "#ccc";
-	ctx.fillRect(2,canvasHeight-24, editorWidth-25, 24);
-	ctx.strokeStyle = "#aaa";
-	ctx.lineWidth = 1;
-	ctx.beginPath()
-	ctx.moveTo(1.5,canvasHeight-25.5);
-	ctx.lineTo(1.5,canvasHeight-1.5);
-	ctx.lineTo(editorWidth-22.5,canvasHeight-1.5);
-	ctx.lineTo(editorWidth-22.5,canvasHeight-25.5);
-	ctx.closePath();
-	ctx.strokeStyle = "#999";
-	ctx.stroke();
-	ctx.beginPath()
-	ctx.moveTo(0.5,canvasHeight-24.5);
-	ctx.lineTo(0.5,canvasHeight-0.5);
-	ctx.lineTo(editorWidth-21.5,canvasHeight-0.5);
-	ctx.lineTo(editorWidth-21.5,canvasHeight-24.5);
-	ctx.closePath();
-	//write current page number
-	ctx.strokeStyle = "#333";
-	ctx.stroke();
-	var tp=pageBreaks.length+1;
-	var pages="Page "+currentPage+" of "+tp;
-	ctx.font="10pt sans-serif";
-	ctx.fillStyle="#000"
-	ctx.fillText(pages, editorWidth-150, canvasHeight-8);
+function fillInfoBar(){
+	var cell = goog.dom.getElement('info').getElementsByTagName('table')[0].getElementsByTagName('tr')[0].getElementsByTagName('td')[0];
+	
+	//first cell
 	if(EOV=='editor'){
-		//write enter and tab directions
 		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
-		ctx.fillText(wordArr[lines[pos.row][1]], 15, canvasHeight-8);
+		goog.dom.setTextContent(cell, wordArr[lines[pos.row][1]]);
 	}
-	//write current scene number
-	var txt="Scene "+ currentScene + " of " + scenes.length;
-	ctx.fillText(txt, (editorWidth/2)-30, canvasHeight-8);
-	ctx.font = font;
+	
+	//second cell
+	cell = goog.dom.getNextElementSibling(cell);
+	var ts=0; //total scenes
+	var cs=0; // current scene
+	for(i in lines){
+		if(lines[i][1]==0)ts++;
+		if(i==pos.row)cs=ts;
+	}
+	goog.dom.setTextContent(cell, "Scene "+cs+" of "+ts);
+	
+	// third cell
+	cell = goog.dom.getNextElementSibling(cell);
+	//figure out what page the caret is on
+	var page = 0;
+	for(i in pageBreaks){
+		if(pos.row<pageBreaks[i][0])break
+		page++;
+	}
+	//handle if caret is in text with page break
+	if(page!=0 && pageBreaks[page-1][0]==pos.row){
+		var j=0;
+		var tc=0;
+		while(j<pageBreaks[page-1][2]){
+			tc+=linesNLB[pos.row][j].length+1;
+			j++;
+		}
+		if(pos.col<tc)page--;
+	}
+	goog.dom.setTextContent(cell, "Page "+(page+1)+" of "+(pageBreaks.length+1));
+	
 }
 
 function drawText(ctx, pageStartX){
@@ -4665,15 +4663,13 @@ function drawText(ctx, pageStartX){
 }
 
 function paint(){
-	var d = new Date();
-	var TIME = d.getMilliseconds();
 	notesPosition=[];
 	if(typeToScript || findForcePaint){
 		var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
 		var canvas = goog.dom.getElement('canvas');
 		var ctx = canvas.getContext('2d');
 		
-		ctx.fillStyle = '#ccc';
+		ctx.fillStyle = '#bbb';
 		ctx.fillRect(0, 0, editorWidth, goog.dom.getElement('canvas').height);
 		
 		drawPages(ctx, pageStartX);
@@ -4683,16 +4679,14 @@ function paint(){
 		selection();		
 		drawText(ctx, pageStartX);
 		drawCaret(ctx, pageStartX);
-		drawInfo(ctx);
 		drawScrollArrows(ctx);
 		drawScrollBar(ctx);
-
-		//if(forceCalc){noteIndex()}
 		
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
 		if(mouseDownBool && pos.row>anch.row && mouseY>goog.dom.getElement('canvas').height-50)scroll(20);
-		//drawGuides();
 	}
+	var d = new Date();
+	var TIME = d.getMilliseconds();
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
 }
