@@ -387,6 +387,7 @@ function init(){
 	shortcutHandler.registerShortcut('redo', 'meta+shift+z');
 	shortcutHandler.registerShortcut('export', 'meta+e');
 	shortcutHandler.registerShortcut('find', 'meta+f');
+	shortcutHandler.registerShortcut('all', 'meta+a');
 	shortcutHandler.setAlwaysPreventDefault(true)
 	goog.events.listen(
 	       shortcutHandler,
@@ -394,7 +395,13 @@ function init(){
 	       shortcutTriggered
 	);
 	// then update the DOM to reflect shortcut keys on differant OSs
-	var sKeys= [['save','S'],['export', 'E'],['undo', 'Z'], ['redo', 'Shift Z'], ['find', 'F']];
+	var sKeys =	[['save','S'],
+				['export', 'E'],
+				['undo', 'Z'],
+				['redo', 'Shift Z'],
+				['find', 'F'],
+				['selectAll', 'A']
+				];
 	var meta = (goog.userAgent.MAC==true ? "⌘" : "Ctrl+")
 	for (i in sKeys){
 		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut');
@@ -633,6 +640,7 @@ function shortcutTriggered(e){
 	else if(e.identifier=="redo")redo();
 	else if(e.identifier=="export")exportPrompt();
 	else if(e.identifier=="find")findPrompt();
+	else if(e.identifier=='all')selectAll();
 }
 
 /**
@@ -2694,6 +2702,14 @@ function redo(){
 	scroll(0);
 }
 
+/**
+ * select all text on canvas
+ */
+function selectAll(){
+	anch.col=anch.row=0;
+	pos.row=lines.length-1;
+	pos.col=lines[pos.row][0].length;
+}
 
 
 function pagination(){
@@ -3436,6 +3452,7 @@ function menuSelect(e){
     else if(id=='spellCheck')launchSpellCheck();
 	else if(id=='find')findPrompt();
 	else if(id=='findReplace')findReplacePrompt();
+	else if(id=='selectAll')selectAll();
     //View
     else if(id=='revision'){
         if(resource_id=="Demo"){
