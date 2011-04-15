@@ -4248,7 +4248,7 @@ function drawRange(ctx, pageStartX){
 							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 					}
-					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
+					if(tc<=startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
 						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
 					}
 				}
@@ -4263,7 +4263,7 @@ function drawRange(ctx, pageStartX){
 							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 					}
-					if(tc<endRange.col && endRange.col<(tc+linesNLB[i][j].length)){
+					if(tc<endRange.col && endRange.col<=(tc+linesNLB[i][j].length)){
 						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
 					}
 					
