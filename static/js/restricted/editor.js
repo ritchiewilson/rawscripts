@@ -4246,6 +4246,20 @@ function drawRange(ctx, pageStartX){
 					
 				}
 				else if(i==startRange.row && i==endRange.row){
+					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
+						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
+					}
+					else if(tc<endRange.col && endRange.col<(tc+linesNLB[i][j].length)){
+						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
+					}
+					else if(tc>startRange.col && tc<endRange.col){
+						if(lines[i][1]==5){
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+						else{
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+					}
 				}
 				else if(i>startRange.row){
 					if(lines[i][1]==5){
