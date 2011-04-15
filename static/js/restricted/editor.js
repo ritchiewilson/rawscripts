@@ -4162,8 +4162,10 @@ function drawFindArr(ctx,pageStartX){
 	}
 }
 function drawRange(ctx, pageStartX){
+	var d = new Date();
+	var TIME = d.getMilliseconds();
 	if(pos.row==anch.row && anch.col==pos.col)return;
-    if(pos.row>anch.row){
+	if(pos.row>anch.row){
         var startRange = {row:anch.row, col:anch.col};
         var endRange = {row:pos.row, col:pos.col};
     }
@@ -4197,7 +4199,7 @@ function drawRange(ctx, pageStartX){
         else{startHeight+=lineheight*linesNLB[i].length;}
     }
     var i=0;
-    var startRangeCol=linesNLB[startRange.row][i]+1;
+    var startRangeCol=linesNLB[startRange.row][i].length+1;
     while(startRange.col>startRangeCol){
         startHeight+=lineheight;
         if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
@@ -4209,16 +4211,16 @@ function drawRange(ctx, pageStartX){
         //    if(lines[startRange.row][1]==3)startHeight+=lineheight;
         //}
         i++;
-        startRangeCol+=linesNLB[startRange.row][i]+1;
+        startRangeCol+=linesNLB[startRange.row][i].length+1;
     }
-    startRangeCol-=linesNLB[startRange.row][i]+1;
+    startRangeCol-=linesNLB[startRange.row][i].length+1;
     var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
     startWidth+=((startRange.col-startRangeCol)*fontWidth);
     startHeight+=lineheight;
     // calc notes
     for (note in notes){
         if(notes[note][0]==startRange.row){
-            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i]+1 >notes[note][1]){
+            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i].length+1 >notes[note][1]){
                 if(notes[note][1]<startRange.col)startWidth+=fontWidth;
             }
         }
@@ -4244,7 +4246,7 @@ function drawRange(ctx, pageStartX){
         else{endHeight+=lineheight*linesNLB[j].length;}
     }
     var j=0;
-    var endRangeCol=linesNLB[endRange.row][j]+1;
+    var endRangeCol=linesNLB[endRange.row][j].length+1;
     while(endRange.col>endRangeCol){
         endHeight+=lineheight;
         if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
@@ -4256,16 +4258,16 @@ function drawRange(ctx, pageStartX){
         //    if(lines[endRange.row][1]==3)endHeight+=lineheight;
         //}
         j++;
-        endRangeCol+=linesNLB[endRange.row][j]+1;
+        endRangeCol+=linesNLB[endRange.row][j].length+1;
     }
-    endRangeCol-=linesNLB[endRange.row][j]+1;
+    endRangeCol-=linesNLB[endRange.row][j].length+1;
     var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
     endWidth+=((endRange.col-endRangeCol)*fontWidth);
     endHeight+=lineheight;
     // calc notes
     for (note in notes){
         if(notes[note][0]==endRange.row){
-            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j]+1 >notes[note][1]){
+            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j].length+1 >notes[note][1]){
                 if(notes[note][1]<endRange.col)endWidth+=fontWidth;
             }
         }
@@ -4282,7 +4284,7 @@ function drawRange(ctx, pageStartX){
     else{
         var firstLineBlue = startWidth;
         if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i]-startRange.col)*fontWidth, 12);
+        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i].length-startRange.col)*fontWidth, 12);
         while(startHeight+lineheight<endHeight){
             for(var counter=0; counter<pageBreaks.length; counter++){
                 if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
@@ -4303,7 +4305,7 @@ function drawRange(ctx, pageStartX){
             if(startHeight!=endHeight){
                 var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
                 if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i]*fontWidth, 12);
+                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i].length*fontWidth, 12);
 				blueStart=null;
             }
             
@@ -4314,7 +4316,8 @@ function drawRange(ctx, pageStartX){
         ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
 		firstLineBlue=lastBlueLine=null;
     }
-	startRange=endRange=startHeight=endHeight=startWidth=endWidth=i=j=count=startRangeCol=endRangeCol=null;
+	var d = new Date();
+	//console.log(TIME - d.getMilliseconds());
 }
 
 function drawallnotes(){
