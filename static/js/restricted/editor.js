@@ -4162,8 +4162,6 @@ function drawFindArr(ctx,pageStartX){
 	}
 }
 function drawRange(ctx, pageStartX){
-	var d = new Date();
-	var TIME = d.getMilliseconds();
 	if(pos.row==anch.row && anch.col==pos.col)return;
 	if(pos.row>anch.row){
 		var startRange = {row:anch.row, col:anch.col};
@@ -4193,10 +4191,14 @@ function drawRange(ctx, pageStartX){
 		ctx.fillRect(onlyBlueLine, s.canvasY,e.canvasX-s.canvasX, 12);
 	}
 	else{
+		// if the range doesn't fall on one bit of wrapped
+		// text, cycle through lines, and linesNLB to draw
+		// boxes in line by line.
 		var y = lineheight*10+3;
 		var count = 0;
 		var startLine = 0;
 		// figure out what page to start printing on
+		// i.e. only draw if it'll be visible on screen
 		var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 		if(firstPrintedPage!=0){
 			count=firstPrintedPage-1;
@@ -4206,7 +4208,7 @@ function drawRange(ctx, pageStartX){
 		for (var i=startLine; i<linesNLB.length; i++){
 			if(y-vOffset>1200)break;
 			if(i>endRange.row)break;
-			var tc=0; // keep track of total character highlighed so far
+			var tc=0; // keep track of total characters passed through so far
 			for(var j=0; j<linesNLB[i].length; j++){
 				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 					y=72*lineheight*(count+1)+9*lineheight+3;
@@ -4219,6 +4221,8 @@ function drawRange(ctx, pageStartX){
 					}
 				}
 				if(i==startRange.row && i!=endRange.row){
+					// for drawing range in a block that contains
+					// the start of the range, but not the end
 					if(tc>startRange.col){
 						if(lines[i][1]==5){
 							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
@@ -4232,6 +4236,8 @@ function drawRange(ctx, pageStartX){
 					}
 				}
 				else if(i==endRange.row && i!=startRange.row){
+					// for drawing range in a block that contains
+					// the end of the range, but not the start
 					if(tc+linesNLB[i][j].length<endRange.col){
 						if(lines[i][1]==5){
 							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
@@ -4246,6 +4252,8 @@ function drawRange(ctx, pageStartX){
 					
 				}
 				else if(i==startRange.row && i==endRange.row){
+					// for drawing range in a block that contains
+					// the both the start and end of the range
 					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
 						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
 					}
@@ -4262,6 +4270,9 @@ function drawRange(ctx, pageStartX){
 					}
 				}
 				else if(i>startRange.row){
+					// for drawing range in a block that contains
+					// neither the start or the end of the range
+					// i.e. the stuff int he middle.
 					if(lines[i][1]==5){
 						ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
 					}
@@ -4274,8 +4285,6 @@ function drawRange(ctx, pageStartX){
 			}
 		}
     }
-	var d = new Date();
-	//console.log(TIME - d.getMilliseconds());
 }
 
 function drawallnotes(){
