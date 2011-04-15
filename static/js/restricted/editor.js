@@ -4166,155 +4166,99 @@ function drawRange(ctx, pageStartX){
 	var TIME = d.getMilliseconds();
 	if(pos.row==anch.row && anch.col==pos.col)return;
 	if(pos.row>anch.row){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else if(pos.row==anch.row && pos.col>anch.col){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else{
-        var startRange = {row:pos.row, col:pos.col};
-        var endRange = {row:anch.row, col:anch.col};
-    }
-    
-    //get the starting position
-    var startHeight = lineheight*9+3;
-    var count=0;
-    for (var i=0; i<startRange.row;i++){
-        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==i){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            //startHeight-=(pageBreaks[count][2])*lineheight;
-            //if(lines[i][1]==3)startHeight+=lineheight;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==i){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            startHeight+=(linesNLB[i].length-pageBreaks[count][2])*lineheight;
-            if(lines[i][1]==3)startHeight+=lineheight;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        else{startHeight+=lineheight*linesNLB[i].length;}
-    }
-    var i=0;
-    var startRangeCol=linesNLB[startRange.row][i].length+1;
-    while(startRange.col>startRangeCol){
-        startHeight+=lineheight;
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==startRange.row && pageBreaks[count][2]==i+1){
-            startHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[startRange.row][1]==3)startHeight+=lineheight;
-        }
-        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==startRange.row && pageBreaks[count][2]==i){
-        //    startHeight=72*lineheight*(count+1)+9*lineheight+4;
-        //    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-        //}
-        i++;
-        startRangeCol+=linesNLB[startRange.row][i].length+1;
-    }
-    startRangeCol-=linesNLB[startRange.row][i].length+1;
-    var startWidth = WrapVariableArray[lines[startRange.row][1]][1];
-    startWidth+=((startRange.col-startRangeCol)*fontWidth);
-    startHeight+=lineheight;
-    // calc notes
-    for (note in notes){
-        if(notes[note][0]==startRange.row){
-            if(startRangeCol< notes[note][1] && startRangeCol+linesNLB[startRange.row][i].length+1 >notes[note][1]){
-                if(notes[note][1]<startRange.col)startWidth+=fontWidth;
-            }
-        }
-    }
-    
-    //getting the ending position
-
-    var endHeight = lineheight*9+3;
-    count=0;
-    for (var j=0; j<endRange.row;j++){
-        if(pageBreaks.length!=0 && pageBreaks[count][2]==0 && pageBreaks[count][0]-1==j){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        else if(pageBreaks.length!=0 && pageBreaks[count][2]!=0 && pageBreaks[count][0]==j){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            endHeight+=(linesNLB[j].length-pageBreaks[count][2])*lineheight;
-            if(lines[j][1]==3)endHeight+=lineheight;
-            count++;
-            if(count==pageBreaks.length)count--;
-        }
-        else{endHeight+=lineheight*linesNLB[j].length;}
-    }
-    var j=0;
-    var endRangeCol=linesNLB[endRange.row][j].length+1;
-    while(endRange.col>endRangeCol){
-        endHeight+=lineheight;
-        if(pageBreaks.length!=0 && pageBreaks[count][0]==endRange.row && pageBreaks[count][2]==j+1){
-            endHeight=72*lineheight*(count+1)+9*lineheight+4;
-            if(lines[endRange.row][1]==3)endHeight+=lineheight;
-        }
-        //else if(pageBreaks.length!=0 && pageBreaks[count][0]-1==endRange.row && pageBreaks[count][2]==i){
-        //    endHeight=72*lineheight*(count+1)+9*lineheight+4;
-        //    if(lines[endRange.row][1]==3)endHeight+=lineheight;
-        //}
-        j++;
-        endRangeCol+=linesNLB[endRange.row][j].length+1;
-    }
-    endRangeCol-=linesNLB[endRange.row][j].length+1;
-    var endWidth = WrapVariableArray[lines[endRange.row][1]][1];
-    endWidth+=((endRange.col-endRangeCol)*fontWidth);
-    endHeight+=lineheight;
-    // calc notes
-    for (note in notes){
-        if(notes[note][0]==endRange.row){
-            if(endRangeCol< notes[note][1] && endRangeCol+linesNLB[endRange.row][j].length+1 >notes[note][1]){
-                if(notes[note][1]<endRange.col)endWidth+=fontWidth;
-            }
-        }
-    }
-    
-    // Now compare stuff and draw blue Box
-    ctx.fillStyle='lightBlue';
-    if(endHeight==startHeight){
-        var onlyBlueLine = startWidth;
-        if (lines[startRange.row][1]==5)onlyBlueLine-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(onlyBlueLine+pageStartX, startHeight-vOffset,endWidth-startWidth, 12);
-		onlyBlueLine=null;
-    }
-    else{
-        var firstLineBlue = startWidth;
-        if (lines[startRange.row][1]==5)firstLineBlue-=(lines[startRange.row][0].length*fontWidth);
-        ctx.fillRect(firstLineBlue+pageStartX,startHeight-vOffset, (startRangeCol+linesNLB[startRange.row][i].length-startRange.col)*fontWidth, 12);
-        while(startHeight+lineheight<endHeight){
-            for(var counter=0; counter<pageBreaks.length; counter++){
-                if(pageBreaks.length!=0 && pageBreaks[counter][0]-1==startRange.row && pageBreaks[counter][2]==0 && i==linesNLB[startRange.row].length-1){
-                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-                }
-                else if(pageBreaks.length!=0 && pageBreaks[counter][0]==startRange.row && i==pageBreaks[counter][2]-1){
-                    startHeight=72*lineheight*(counter+1)+9*lineheight+4;
-                    if(lines[startRange.row][1]==3)startHeight+=lineheight;
-                }
-            }
-			counter=null;
-            i++;
-            startHeight+=lineheight;
-            if(linesNLB[startRange.row].length<=i){
-                startRange.row++;
-                i=0;
-            }
-            if(startHeight!=endHeight){
-                var blueStart = WrapVariableArray[lines[startRange.row][1]][1];
-                if (lines[startRange.row][1]==5)blueStart-=(lines[startRange.row][0].length*fontWidth);
-                ctx.fillRect(blueStart+pageStartX, startHeight-vOffset, linesNLB[startRange.row][i].length*fontWidth, 12);
-				blueStart=null;
-            }
-            
-        }
-        //ctx.fillStyle="blue";
-        var lastBlueLine=WrapVariableArray[lines[endRange.row][1]][1]; 
-        if (lines[endRange.row][1]==5)lastBlueLine-=(lines[endRange.row][0].length*fontWidth);
-        ctx.fillRect(lastBlueLine+pageStartX, endHeight-vOffset, (endRange.col-endRangeCol)*fontWidth,12);
-		firstLineBlue=lastBlueLine=null;
+		var startRange = {row:anch.row, col:anch.col};
+		var endRange = {row:pos.row, col:pos.col};
+	}
+	else if(pos.row==anch.row && pos.col>anch.col){
+		var startRange = {row:anch.row, col:anch.col};
+		var endRange = {row:pos.row, col:pos.col};
+	}
+	else{
+		var startRange = {row:pos.row, col:pos.col};
+		var endRange = {row:anch.row, col:anch.col};
+	}
+	
+	// get on canvas postions of start and end (s,e)
+	var s = canvasPosition(startRange.row, startRange.col, pageStartX);
+	var e = canvasPosition(endRange.row, endRange.col, pageStartX);
+	s.canvasY+=3;
+	e.canvasY+=3;
+	
+	// Now compare stuff and draw blue boxen
+	ctx.fillStyle='lightBlue';
+	
+	// if this is only on one wrapped line
+	if(e.canvasY==s.canvasY){
+		var onlyBlueLine = s.canvasX;
+		ctx.fillRect(onlyBlueLine, s.canvasY,e.canvasX-s.canvasX, 12);
+	}
+	else{
+		var y = lineheight*10+3;
+		var count = 0;
+		var startLine = 0;
+		// figure out what page to start printing on
+		var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
+		if(firstPrintedPage!=0){
+			count=firstPrintedPage-1;
+			y=72*lineheight*(count)+10*lineheight;
+			startLine=pageBreaks[count][0];
+		}
+		for (var i=startLine; i<linesNLB.length; i++){
+			if(y-vOffset>1200)break;
+			if(i>endRange.row)break;
+			var tc=0; // keep track of total character highlighed so far
+			for(var j=0; j<linesNLB[i].length; j++){
+				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
+					y=72*lineheight*(count+1)+9*lineheight+3;
+					count++;
+					if(j!=0 && lines[i][1]==3){
+						y+=lineheight;
+					}
+					if(count>=pageBreaks.length){
+						count=pageBreaks.length-2;
+					}
+				}
+				if(i==startRange.row && i!=endRange.row){
+					if(tc>startRange.col){
+						if(lines[i][1]==5){
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+						else{
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+					}
+					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
+						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
+					}
+				}
+				else if(i==endRange.row && i!=startRange.row){
+					if(tc+linesNLB[i][j].length<endRange.col){
+						if(lines[i][1]==5){
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+						else{
+							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						}
+					}
+					if(tc<endRange.col && endRange.col<(tc+linesNLB[i][j].length)){
+						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
+					}
+					
+				}
+				else if(i==startRange.row && i==endRange.row){
+				}
+				else if(i>startRange.row){
+					if(lines[i][1]==5){
+						ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+					}
+					else{
+						ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+					}
+				}
+				y+=lineheight;
+				tc+=linesNLB[i][j].length+1;
+			}
+		}
     }
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
@@ -4448,6 +4392,86 @@ function getLines(v) {
 	}
 }
 
+function test(){
+	var d = new Date();
+	var TIME = d.getMilliseconds();
+	for(var i=0; i<2621;i++){
+		canvasPosition(100,5,80)
+	}
+	var d = new Date();
+	//console.log(TIME - d.getMilliseconds());
+}
+
+/**
+ * Given a col and row of text, finds
+ * the onscreen position. Used for caret
+ * and range, and any future uses
+ * @ param { integer } r Row of text
+ * @ param { integer } c Colulmn of text
+ */
+function canvasPosition(r,c, pageStartX){
+	//figure out what page the caret is on
+	var page = 0;
+	for(i in pageBreaks){
+		if(r<pageBreaks[i][0])break
+		page++;
+	}
+	//handle if caret is in text with page break
+	if(page!=0 && pageBreaks[page-1][0]==r){
+		var j=0;
+		var tc=0;
+		while(j<pageBreaks[page-1][2]){
+			tc+=linesNLB[r][j].length+1;
+			j++;
+		}
+		if(c<tc)page--;
+	}
+	//jump to y of desired page
+	var y = 72*lineheight*page+9*lineheight;
+	
+	// adjust if this is the first page
+	if(page==0)y+=lineheight;
+	
+	// adjust if this isn't first page, and
+	// there may be page splits in text
+	if(page!=0){
+		y-=(pageBreaks[page-1][2]*lineheight);
+		y+=(lines[pageBreaks[page-1][0]][1]==3 ? lineheight : 0);
+	}
+	
+	//figure which line to start counting from
+	var i=(page==0 ? 0 : pageBreaks[page-1][0]);
+	while(i<r){
+		y+=linesNLB[i].length*lineheight;
+		i++
+	}
+	
+	// figure out lateral position
+	var x = WrapVariableArray[lines[r][1]][1];
+	x+=pageStartX;
+
+	var s = 0; // start of line
+	var e = linesNLB[r][0].length; // end of line
+	for (var i=0; i<linesNLB[r].length; i++){
+		if(s<=c && e+i>=c)break; //then caret is on this wrapped line
+		if(i>=linesNLB[r].length-1)break; // then carret is on last wrapped line
+		y+=lineheight;
+		s=e;
+		e+=linesNLB[r][i+1].length;
+	}
+	// i now equals which wrapped line the caret is on
+	// it also equals the number of dropped spaces in linesNLB
+	
+	//tally it all up
+	x+=(c-s-i)*fontWidth;
+	
+	// for Transition format
+	if(lines[r][1]==5){
+		x-=(linesNLB[r][i].length*fontWidth)
+	}
+	return {canvasX:x, canvasY:y-vOffset}
+}
+
 function drawPages(ctx, pageStartX){
 	//draw pages
 	//var d = new Date();
@@ -4511,69 +4535,8 @@ function drawCaret(ctx, pageStartX){
 	var diff = newMilli-milli;
 	// only draw caret when you have to.
 	if ((diff>0 && diff<500) || (diff<0 && diff<-500)){
-		//figure out what page the caret is on
-		var page = 0;
-		for(i in pageBreaks){
-			if(pos.row<pageBreaks[i][0])break
-			page++;
-		}
-		//handle if caret is in text with page break
-		if(page!=0 && pageBreaks[page-1][0]==pos.row){
-			var j=0;
-			var tc=0;
-			while(j<pageBreaks[page-1][2]){
-				tc+=linesNLB[pos.row][j].length+1;
-				j++;
-			}
-			if(pos.col<tc)page--;
-		}
-		//jump to y of desired page
-		var y = 72*lineheight*page+9*lineheight;
-		
-		// adjust if this is the first page
-		if(page==0)y+=lineheight;
-		
-		// adjust if this isn't first page, and
-		// there may be page splits in text
-		if(page!=0){
-			y-=(pageBreaks[page-1][2]*lineheight);
-			y+=(lines[pageBreaks[page-1][0]][1]==3 ? lineheight : 0);
-		}
-		
-		//figure which line to start counting from
-		var i=(page==0 ? 0 : pageBreaks[page-1][0]);
-		while(i<pos.row){
-			y+=linesNLB[i].length*lineheight;
-			i++
-		}
-		
-		// figure out lateral position
-		var x = WrapVariableArray[lines[pos.row][1]][1];
-		x+=pageStartX;
-	
-		var s = 0; // start of line
-		var e = linesNLB[pos.row][0].length; // end of line
-		for (var i=0; i<linesNLB[pos.row].length; i++){
-			if(s<=pos.col && e+i>=pos.col)break; //then caret is on this wrapped line
-			if(i>=linesNLB[pos.row].length-1)break; // then carret is on last wrapped line
-			y+=lineheight;
-			s=e;
-			e+=linesNLB[pos.row][i+1].length;
-		}
-		// i now equals which wrapped line the caret is on
-		// it also equals the number of dropped spaces in linesNLB
-		
-		//tally it all up
-		x+=(pos.col-s-i)*fontWidth;
-		
-		// for Transition format
-		if(lines[pos.row][1]==5){
-			x-=(linesNLB[pos.row][i].length*fontWidth)
-		}
-		
-		// draw the thing
-		//ctx.fillStyle = '#000';
-		ctx.fillRect(x, y-vOffset, 2, 17);
+		var p = canvasPosition(pos.row,pos.col, pageStartX);
+		ctx.fillRect(p.canvasX, p.canvasY, 2, 17);
 	}
 }
 
