@@ -4548,18 +4548,25 @@ function drawCaret(ctx, pageStartX){
 		var x = WrapVariableArray[lines[pos.row][1]][1];
 		x+=pageStartX;
 	
-		var s = 0;
-		var e = linesNLB[pos.row][0].length;
+		var s = 0; // start of line
+		var e = linesNLB[pos.row][0].length; // end of line
 		for (var i=0; i<linesNLB[pos.row].length; i++){
-			if(s<=pos.col && e+i>=pos.col)break;
-			if(i>=linesNLB[pos.row].length-1)break;
+			if(s<=pos.col && e+i>=pos.col)break; //then caret is on this wrapped line
+			if(i>=linesNLB[pos.row].length-1)break; // then carret is on last wrapped line
 			y+=lineheight;
 			s=e;
 			e+=linesNLB[pos.row][i+1].length;
 		}
+		// i now equals which wrapped line the caret is on
+		// it also equals the number of dropped spaces in linesNLB
 		
 		//tally it all up
 		x+=(pos.col-s-i)*fontWidth;
+		
+		// for Transition format
+		if(lines[pos.row][1]==5){
+			x-=(linesNLB[pos.row][i].length*fontWidth)
+		}
 		
 		// draw the thing
 		//ctx.fillStyle = '#000';
@@ -4656,7 +4663,12 @@ function drawText(ctx, pageStartX){
 					count=pageBreaks.length-2;
 				}
 			}
-			ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+			if(lines[i][1]==5){
+				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
+			}
+			else{
+				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+			}
 			y+=lineheight;
 		}
 	}
