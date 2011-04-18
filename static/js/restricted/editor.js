@@ -4307,7 +4307,7 @@ function drawNotes(ctx, pageStartX){
 	}
 	notesArr = notesArr.sort(sortNumbers);
 	ctx.strokeStyle="#111";
-	ctx.fillStyle="gold"
+	ctx.fillStyle="dodgerBlue"
 	for(i in notesArr){
 		var p = canvasPosition(notes[i][0], notes[i][1], pageStartX);
 		if(p.canvasY>1200)break;
@@ -4640,15 +4640,15 @@ function paint(){
 		var ctx = canvas.getContext('2d');
 		
 		ctx.fillStyle = '#bbb';
-		ctx.fillRect(0, 0, editorWidth, goog.dom.getElement('canvas').height);
+		ctx.fillRect(0, 0, editorWidth, canvas.height);
 		
 		drawPages(ctx, pageStartX);
 		drawSluglineBacking(ctx, pageStartX);
 		drawFindArr(ctx, pageStartX);
-		drawRange(ctx, pageStartX);
-		drawNotes(ctx, pageStartX);		
+		drawRange(ctx, pageStartX);	
 		drawText(ctx, pageStartX);
 		drawCaret(ctx, pageStartX);
+		drawNotes(ctx, pageStartX);	
 		drawScrollArrows(ctx);
 		drawScrollBar(ctx);
 		
