@@ -4296,75 +4296,55 @@ function drawRange(ctx, pageStartX){
     }
 }
 
-function drawallnotes(){
-		// calc if there are notes in this line
-		var notesArr=[];
-		if(viewNotes){
-			for (note in notes){
-				if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
-			}
+function drawNotes(ctx, pageStartX){
+	notesPosition=[];
+	// calc if there are notes in this line
+	var notesArr=[];
+	if(viewNotes){
+		for (note in notes){
+			notesArr.push(notes[note]);
 		}
-		notesArr = notesArr.sort(sortNumbers);
+	}
+	notesArr = notesArr.sort(sortNumbers);
+	ctx.strokeStyle="#111";
+	ctx.fillStyle="gold"
+	for(i in notesArr){
+		var p = canvasPosition(notes[i][0], notes[i][1], pageStartX);
+		if(p.canvasY>1200)break;
+		if(p.canvasY>-10){
+			drawNote(p.canvasX, p.canvasY, ctx, notes[i]);
+		}
+	}
 		
-		
-		//
 }
-function drawNote(width, height, col, ctx, i, pageStartX, id){
-    if(lines[i][1]==5){
-		notesPosition.push([width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3, id]);
-        ctx.fillStyle="gold";
-        ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle="#333";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for(var j=1; j<6; j++){
-            ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
-            ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
-            ctx.stroke();
-        }
-		j=null;
-        ctx.strokeStyle="#999";
-        ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.stroke();
-    }
-    else{
-		notesPosition.push([width+fontWidth*col+pageStartX, height-vOffset-lineheight+3, id])
-        ctx.fillStyle="gold";
-        ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle="#333";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for(var i=1; i<6; i++){
-            ctx.moveTo(width+fontWidth*col+1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
-            ctx.lineTo(width+fontWidth*col+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
-            ctx.stroke();
-        }
-		j=null;
-        ctx.strokeStyle="#999";
-        ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.stroke();
-    }
-    ctx.fillStyle=foreground;
+function drawNote(x, y, ctx, note){
+	y+=0.5;
+	x-=3.5;
+	var radius = 3,
+		width = 7,
+		height = 8;
+	notesPosition.push([x, y, note[3]])
+	ctx.beginPath();
+	ctx.moveTo(x + radius, y);
+	ctx.lineTo(x + width - radius, y);
+	ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+	ctx.lineTo(x + width, y + height - radius);
+	ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+	ctx.lineTo(x + radius, y + height);
+	ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+	ctx.lineTo(x, y + radius);
+	ctx.quadraticCurveTo(x, y, x + radius, y);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	
+	ctx.beginPath();
+	for(var i=1; i<4; i++){
+		ctx.moveTo(x+2, y+(2*i));
+		ctx.lineTo(x+width-2, y+(2*i));
+		ctx.stroke();
+	}
+	
 }
 
 function sortNumbers(a,b){
@@ -4562,6 +4542,7 @@ function drawCaret(ctx, pageStartX){
 	var diff = newMilli-milli;
 	// only draw caret when you have to.
 	if ((diff>0 && diff<500) || (diff<0 && diff<-500)){
+		ctx.fillStyle=foreground;
 		var p = canvasPosition(pos.row,pos.col, pageStartX);
 		ctx.fillRect(p.canvasX, p.canvasY, 2, 17);
 	}
@@ -4679,7 +4660,8 @@ function paint(){
 		drawPages(ctx, pageStartX);
 		drawSluglineBacking(ctx, pageStartX);
 		drawFindArr(ctx, pageStartX);
-		drawRange(ctx, pageStartX);		
+		drawRange(ctx, pageStartX);
+		drawNotes(ctx, pageStartX);		
 		drawText(ctx, pageStartX);
 		drawCaret(ctx, pageStartX);
 		drawScrollArrows(ctx);
