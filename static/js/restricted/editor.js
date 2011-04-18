@@ -4505,28 +4505,23 @@ function canvasPosition(r,c, pageStartX){
 }
 
 function drawPages(ctx, pageStartX){
-	//draw pages
-	//var d = new Date();
-	//var timestamp = d.getMilliseconds();
-	var pageStartY = lineheight;
 	ctx.font=font;
 	ctx.lineWidth = 1;
-	for(var i=0; i<=pageBreaks.length;i++){
-		if (pageStartY-vOffset>1200)break;
-		if (pageStartY-vOffset>-lineheight*72){
-			ctx.fillStyle = background;
-			ctx.fillRect(pageStartX, pageStartY-vOffset, fontWidth*87, lineheight*70);
-			ctx.strokeStyle = '#000';
-			ctx.strokeRect(pageStartX, pageStartY-vOffset, Math.round(fontWidth*87), lineheight*70);
-			ctx.strokeStyle = '#999';
-			ctx.strokeRect(pageStartX-2, pageStartY-vOffset-2, Math.round(fontWidth*87)+4, lineheight*70+4);
-			ctx.fillStyle = foreground;
-			if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY-vOffset+85);
-		}
+	var pageStartY = lineheight-vOffset;
+	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
+	pageStartY+=(firstPrintedPage*72*lineheight);
+	for(var i=firstPrintedPage; i<=pageBreaks.length;i++){
+		if (pageStartY>1200)break;
+		ctx.fillStyle = background;
+		ctx.fillRect(pageStartX, pageStartY, fontWidth*87, lineheight*70);
+		ctx.strokeStyle = '#000';
+		ctx.strokeRect(pageStartX, pageStartY, Math.round(fontWidth*87), lineheight*70);
+		ctx.strokeStyle = '#999';
+		ctx.strokeRect(pageStartX-2, pageStartY-2, Math.round(fontWidth*87)+4, lineheight*70+4);
+		ctx.fillStyle = foreground;
+		if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY+85);
 		pageStartY+= lineheight*72;
 	}
-	//var d = new Date();
-	//console.log(d.getMilliseconds()-timestamp);
 }
 
 function drawSluglineBacking(ctx, pageStartX){
