@@ -4135,37 +4135,17 @@ function drawFindArr(ctx,pageStartX){
 	if(findArr.length!=0 || findReplaceArr.length!=0){
 		ctx.fillStyle="yellow";
 		var l = (findArr.length==0 ? goog.dom.getElement("fr_find_input").value.length : goog.dom.getElement("find_input").value.length);
-		var characterCount=0;
-		var iterant=0;
-		var count=0;
-		var tmpArr=(findArr.length==0 ? findReplaceArr : findArr)
-		var colorHeight=lineheight*9+3;
-		for (i in linesNLB){
-			if(colorHeight-vOffset>1200)break;
-			var characterCount=0;
-			for (j in linesNLB[i]){
-				if(pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
-					count++;
-					colorHeight=72*lineheight*count+9*lineheight+4;
-					if(lines[i]!=undefined && lines[i][1]==3)colorHeight+=lineheight
-				}
-				colorHeight+=lineheight;
-				while(tmpArr[iterant]!=undefined && tmpArr[iterant][0]==i && tmpArr[iterant][1]>=characterCount && tmpArr[iterant][1]<characterCount+linesNLB[i][j]+1){
-					//find the lr of where the rect should go
-					// but only when necessary
-					if(colorHeight-vOffset>-100){
-						var lr = pageStartX+WrapVariableArray[lines[i][1]][1]+(tmpArr[iterant][1]-characterCount)*fontWidth;
-						if(tmpArr[iterant][1]+l>characterCount+linesNLB[i][j]+1){
-							ctx.fillRect(lr, colorHeight-vOffset, (characterCount+linesNLB[i][j]-tmpArr[iterant][1])*fontWidth, lineheight-2)
-							ctx.fillRect(pageStartX+WrapVariableArray[lines[i][1]][1], colorHeight+lineheight-vOffset, (l-(characterCount+linesNLB[i][j]-tmpArr[iterant][1]+1))*fontWidth, lineheight-2)
-						}
-						else{
-							ctx.fillRect(lr, colorHeight-vOffset, l*fontWidth, lineheight-2)
-						}
-					}
-					iterant++;
-				}
-				characterCount+=linesNLB[i][j]+1;
+		var drawArr=(findArr.length==0 ? findReplaceArr : findArr)
+		
+		// figure out what page to start printing on
+		// i.e. only draw if it'll be visible on screen
+		var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
+		var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
+		for(i in drawArr){
+			if(drawArr[i][0]>startLine){
+				var p = canvasPosition(drawArr[i][0],drawArr[i][1],pageStartX);
+				if(p.canvasY>1200)break;
+				ctx.fillRect(p.canvasX,p.canvasY+4,l*fontWidth,lineheight-2);
 			}
 		}
 	}
