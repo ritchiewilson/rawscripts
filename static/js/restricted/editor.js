@@ -4296,75 +4296,48 @@ function drawRange(ctx, pageStartX){
     }
 }
 
-function drawallnotes(){
-		// calc if there are notes in this line
-		var notesArr=[];
-		if(viewNotes){
-			for (note in notes){
-				if(notes[note][0]==i)notesArr.push([notes[note][1], notes[note][3]]);
-			}
+function drawNotes(ctx, pageStartX){
+	// calc if there are notes in this line
+	var notesArr=[];
+	if(viewNotes){
+		for (note in notes){
+			notesArr.push(notes[note]);
 		}
-		notesArr = notesArr.sort(sortNumbers);
+	}
+	notesArr = notesArr.sort(sortNumbers);
+	for(i in notesArr){
+		var p = canvasPosition(notes[i][0], notes[i][1], pageStartX);
+		drawNote(p.canvasX, p.canvasY, ctx, notes[i]);
+	}
 		
-		
-		//
 }
-function drawNote(width, height, col, ctx, i, pageStartX, id){
-    if(lines[i][1]==5){
-		notesPosition.push([width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3, id]);
-        ctx.fillStyle="gold";
-        ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle="#333";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for(var j=1; j<6; j++){
-            ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
-            ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*j)+0.5);
-            ctx.stroke();
-        }
-		j=null;
-        ctx.strokeStyle="#999";
-        ctx.beginPath();
-        ctx.moveTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width-fontWidth*(lines[i][0].length-col+1)+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.stroke();
-    }
-    else{
-		notesPosition.push([width+fontWidth*col+pageStartX, height-vOffset-lineheight+3, id])
-        ctx.fillStyle="gold";
-        ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+lineheight);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle="#333";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for(var i=1; i<6; i++){
-            ctx.moveTo(width+fontWidth*col+1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
-            ctx.lineTo(width+fontWidth*col+fontWidth-1+pageStartX, height-vOffset-lineheight+3+(2*i)+0.5);
-            ctx.stroke();
-        }
-		j=null;
-        ctx.strokeStyle="#999";
-        ctx.beginPath();
-        ctx.moveTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3);
-        ctx.lineTo(width+fontWidth*col+fontWidth-4+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.lineTo(width+fontWidth*col+fontWidth+pageStartX, height-vOffset-lineheight+3+4);
-        ctx.stroke();
-    }
-    ctx.fillStyle=foreground;
+function drawNote(width, height, ctx, note){
+	height+=lineheight;
+	notesPosition.push([width, height-lineheight, note[3]])
+	ctx.fillStyle="gold";
+	ctx.beginPath();
+	ctx.moveTo(width, height-lineheight+3);
+	ctx.lineTo(width, height-lineheight+3+lineheight);
+	ctx.lineTo(width+fontWidth, height-lineheight+3+lineheight);
+	ctx.lineTo(width+fontWidth, height-lineheight+3+4);
+	ctx.lineTo(width+fontWidth-4, height-lineheight+3);
+	ctx.closePath();
+	ctx.fill();
+	ctx.strokeStyle="#333";
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for(var i=1; i<6; i++){
+		ctx.moveTo(width+1, height-lineheight+3+(2*i)+0.5);
+		ctx.lineTo(width+fontWidth-1, height-lineheight+3+(2*i)+0.5);
+		ctx.stroke();
+	}
+	ctx.strokeStyle="#999";
+	ctx.beginPath();
+	ctx.moveTo(width+fontWidth-4, height-lineheight+3);
+	ctx.lineTo(width+fontWidth-4, height-lineheight+3+4);
+	ctx.lineTo(width+fontWidth, height-lineheight+3+4);
+	ctx.stroke();
+	ctx.fillStyle=foreground;
 }
 
 function sortNumbers(a,b){
@@ -4686,6 +4659,7 @@ function paint(){
 		drawFindArr(ctx, pageStartX);
 		drawRange(ctx, pageStartX);		
 		drawText(ctx, pageStartX);
+		drawNotes(ctx, pageStartX)
 		drawCaret(ctx, pageStartX);
 		drawScrollArrows(ctx);
 		drawScrollBar(ctx);
