@@ -617,18 +617,10 @@ function keyEvent(e){
 		}
 		//console.log(e.keyCode);
 	}
-	if(typeToScript){
-		// clear the hidden textarea
-		if (anch.row==pos.row && pos.col==anch.col){
-			goog.dom.getElement("ccp").value="";
-		}
-		goog.dom.getElement('ccp').focus();
-		goog.dom.getElement('ccp').select();
-	}
-	
+	selection();
+	fillInfoBar();
 	// hmm... this probabaly isn't necessary....
 	lineFormatGuiUpdate();
-	fillInfoBar();
 }
 
 /**
@@ -692,8 +684,7 @@ function mouseDown(e){
 				scrollBarBool=true;
 			}
 		}
-		goog.dom.getElement('ccp').focus();
-		goog.dom.getElement('ccp').select();
+		selection();
 	}
 }
 
@@ -730,6 +721,7 @@ function mouseUp(e){
         d.style.color='black';
 	}
 	lineFormatGuiUpdate();
+	selection();
 }
 
 /**
@@ -2036,36 +2028,36 @@ function ajaxSpell(v, r){
 
 
 function selection(){
-    //order stuff
-    if(pos.row>anch.row){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else if(pos.row==anch.row && pos.col>anch.col){
-        var startRange = {row:anch.row, col:anch.col};
-        var endRange = {row:pos.row, col:pos.col};
-    }
-    else{
-        var startRange = {row:pos.row, col:pos.col};
-        var endRange = {row:anch.row, col:anch.col};
-    }
-    // figure and copy range
-    if (startRange.row==endRange.row){
-        var sel = lines[startRange.row][0].slice(startRange.col, endRange.col);
-    }
-    else{
-        arr=[];
-        arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
-        startRange.row=startRange.row*1+1;
-        while(startRange.row<endRange.row){
-            arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
-            startRange.row+=1;
-        }
-        arr.push([lines[endRange.row][0].slice(0,endRange.col),lines[endRange.row][1]]);
-        var sel=JSON.stringify(arr);
-    }
-    var c = goog.dom.getElement('ccp');
-    c.value=sel;
+	//order stuff
+	if(pos.row>anch.row){
+		var startRange = {row:anch.row, col:anch.col};
+		var endRange = {row:pos.row, col:pos.col};
+	}
+	else if(pos.row==anch.row && pos.col>anch.col){
+		var startRange = {row:anch.row, col:anch.col};
+		var endRange = {row:pos.row, col:pos.col};
+	}
+	else{
+		var startRange = {row:pos.row, col:pos.col};
+		var endRange = {row:anch.row, col:anch.col};
+	}
+	//figure and copy range
+	if (startRange.row==endRange.row){
+		var sel = lines[startRange.row][0].slice(startRange.col, endRange.col);
+	}
+	else{
+		arr=[];
+		arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
+		startRange.row=startRange.row*1+1;
+		while(startRange.row<endRange.row){
+			arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
+			startRange.row+=1;
+		}
+		arr.push([lines[endRange.row][0].slice(0,endRange.col),lines[endRange.row][1]]);
+		var sel=JSON.stringify(arr);
+	}
+	var c = goog.dom.getElement('ccp');
+	c.value=sel;
 	if(!findForcePaint){
 		c.focus();
 		c.select();
@@ -4681,7 +4673,6 @@ function drawText(ctx, pageStartX){
 }
 
 function paint(){
-	notesPosition=[];
 	if(typeToScript || findForcePaint){
 		var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
 		var canvas = goog.dom.getElement('canvas');
@@ -4693,8 +4684,7 @@ function paint(){
 		drawPages(ctx, pageStartX);
 		drawSluglineBacking(ctx, pageStartX);
 		drawFindArr(ctx, pageStartX);
-		drawRange(ctx, pageStartX);
-		selection();		
+		drawRange(ctx, pageStartX);		
 		drawText(ctx, pageStartX);
 		drawCaret(ctx, pageStartX);
 		drawScrollArrows(ctx);
