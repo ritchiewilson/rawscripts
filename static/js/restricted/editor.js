@@ -4505,34 +4505,19 @@ function drawPages(ctx, pageStartX){
 }
 
 function drawSluglineBacking(ctx, pageStartX){
-	var greyHeight = lineheight*9+2;
-	var wrapVars=WrapVariableArray[0];
 	ctx.fillStyle='#ddd';
-	var count=0;
-	var startLine=0;
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
-	if(firstPrintedPage!=0){
-		count=firstPrintedPage-1;
-		y=72*lineheight*(count)+10*lineheight;
-		startLine=pageBreaks[count][0];
-	}
+	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
 	for (var i=startLine;i<linesNLB.length;i++){
-		if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i){
-			greyHeight=72*lineheight*(count+1)+8*lineheight+2;
-			if(pageBreaks[count][2]!=0){
-				greyHeight-=pageBreaks[count][2]*lineheight;
-				if(lines[i][1]==3)greyHeight+=lineheight;
-			}
-			count++;
-		}
-		for(var j=0; j<linesNLB[i].length; j++){
-			greyHeight+=lineheight;
-			if (lines[i][1]==0){
-				if(linesNLB[i][j]!=0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
-				if(lines[i][0]=='' && j==0)ctx.fillRect(wrapVars[1]-3+pageStartX,greyHeight-vOffset,61*fontWidth+6, 14);
+		if(lines[i][1]==0){
+			var p = canvasPosition(i,0,pageStartX)
+			if(p.canvasY>1200)break;
+			if(p.canvasY>-10){
+				for(var j=0; j<linesNLB[i].length-1;j++){
+					ctx.fillRect(p.canvasX-3,p.canvasY+2+(lineheight*j), fontWidth*61.5, 14)
+				}
 			}
 		}
-		if(greyHeight-vOffset>1200)break;
 	}
 }
 
