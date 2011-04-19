@@ -13,7 +13,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.platypus import Paragraph 
 from reportlab.lib.styles import getSampleStyleSheet 
-from reportlab.lib.pagesizes import A4 
+from reportlab.rl_config import defaultPageSize
 import reportlab
 folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
 
@@ -328,7 +328,7 @@ def Pdf(data, title, title_page, resource_id):
 	
 	
 	buffer = StringIO.StringIO()
-	c = canvas.Canvas(buffer, pagesize = A4)
+	c = canvas.Canvas(buffer)
 	c.setFont('Courier',12)
 	
 	if str(title_page)==str(1):
@@ -362,23 +362,73 @@ def Pdf(data, title, title_page, resource_id):
 		else:
 			r=results[0]
 		
-		ty = 700 #title y
-		ay = 300 #address y
-		ax = 200 #address x
-		lh = 16 # lineheight
+		ty = 600 #title y
+		tx = defaultPageSize[0]/2.0 #title x (center)
+		ay = 250 #address y
+		ax = 120 #address x
+		lh = 15 # lineheight
 		style = getSampleStyleSheet()["Normal"]
 		style.fontName = 'Courier'
+		style.fontSize = 12
 		p = Paragraph("<para alignment='center'><u>"+r.title+"</u></para>", style) 
-		p.wrap(100, 100) 
-		p.drawOn(c, 300, ty)
+		w,h = p.wrap(170, 100)
+		p.drawOn(c, tx-(w/2.0), ty)
 		ty-=lh*2
-		c.drawCentredString(300,ty,'Written')
+		c.drawCentredString(tx,ty,'Written')
 		ty-=lh
-		c.drawCentredString(300,ty,'by')
+		c.drawCentredString(tx,ty,'by')
 		ty-=lh*2
-		c.drawCentredString(300,ty,r.authorOne)
+		c.drawCentredString(tx,ty,r.authorOne)
+		ty-=lh
+		if r.authorTwoChecked=='checked':
+			c.drawCentredString(tx, ty, r.authorTwo)
+			ty-=lh
+		if r.authorThreeChecked=='checked':
+			c.drawCentredString(tx, ty, r.authorThree)
+			ty-=lh
+		if r.based_onChecked=='checked':
+			ty-=(lh*2)
+			parts = r.based_on.split('LINEBREAK')
+			for i in parts:
+				c.drawCentredString(tx, ty, i)
+				ty-=lh
+		
+		if r.addressChecked=='checked':
+			parts = r.address.split('LINEBREAK')
+			for i in parts:
+				c.drawString(ax, ay, i)
+				ay-=lh
+		
+		if r.phoneChecked=='checked':
+			c.drawString(ax, ay, r.phone)
+			ay-=lh
+		if r.cellChecked=='checked':
+			c.drawString(ax, ay, r.cell)
+			ay-=lh
+		if r.emailChecked=='checked':
+			c.drawString(ax, ay, r.email)
+			ay-=lh
+		if r.registeredChecked=='checked':
+			c.drawString(ax, ay, r.registered)
+			ay-=lh
+		if r.otherChecked=='checked':
+			c.drawString(ax, ay, r.other)
+			ay-=lh
+		
 		c.showPage() 
-		c.save()
+		
+	# add lines of text
+	i=0
+	y=800
+	lh=15
+	while i<5:
+		i+=1
+		p = Paragraph(lines[i][0], style)
+		p.wrap(1000,100)
+		p.drawOn(c, 100, y)
+		y-=lh
 	
+	c.showPage()
+	c.save()
 
 	return buffer
