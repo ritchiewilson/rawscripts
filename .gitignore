@@ -6,3 +6,5 @@ chardet/*.pyc
 gdata/
 static/closure-library/
 atom/
+reportlab/
+rl_addons/
