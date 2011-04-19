@@ -1044,6 +1044,8 @@ function paste(){
 		justPasted=true;
 		setTimeout("setJustPasted()", 50);
 	}
+	wrapAll();
+	pagination();
 }
 
 /**
@@ -2701,6 +2703,7 @@ function selectAll(){
 	anch.col=anch.row=0;
 	pos.row=lines.length-1;
 	pos.col=lines[pos.row][0].length;
+	selection();
 }
 
 
@@ -4572,7 +4575,6 @@ function drawText(ctx, pageStartX){
 	ctx.fillStyle=foreground;
 	ctx.font=font;
 	var y = lineheight*11;
-	var latestCharacter = '';
 	var count = 0;
 	var sceneCount=0;
 	var startLine = 0;
@@ -4595,6 +4597,15 @@ function drawText(ctx, pageStartX){
 				y=72*lineheight*(count+1)+10*lineheight;
 				count++;
 				if(j!=0 && lines[i][1]==3){
+					var latestCharacter='';
+					var lci=i-1 //latest character iterator
+					while(lci>=0){
+						if(lines[lci][1]==2){
+							latestCharacter = lines[lci][0];
+							break;
+						}
+						lci--;
+					}
 					ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
 					y+=lineheight;
 				}
