@@ -621,6 +621,7 @@ function keyEvent(e){
 	fillInfoBar();
 	// hmm... this probabaly isn't necessary....
 	lineFormatGuiUpdate();
+	autoScroll();
 }
 
 /**
@@ -1046,6 +1047,8 @@ function paste(){
 	}
 	wrapAll();
 	pagination();
+	fillInfoBar();
+	lineFormatGuiUpdate();
 }
 
 /**
@@ -1665,6 +1668,7 @@ function enter(){
 		getLines(pos.row-1);
 		getLines(pos.row);
 		pagination();
+		autoScroll();
 		
 	}
 	sceneIndex();
@@ -4395,6 +4399,22 @@ function test(){
 	}
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
+}
+
+/**
+ * Figures out if the caret (pos) is 
+ * visible. If not, scroll so that it
+ * is.
+ */
+function autoScroll(){
+	// find position of caret. X is less important
+	// so just feed pageStartX as 0
+	var c = goog.dom.getElement('canvas').height //canvas height
+	var p = canvasPosition(pos.row,pos.col,0)
+	if(p.canvasY>c-40 || p.canvasY<-2){
+		vOffset+=p.canvasY-(c*0.5);
+		scroll(0);
+	}
 }
 
 /**
