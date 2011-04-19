@@ -193,6 +193,7 @@ var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
 var notesPosition=[];
 var googSuggestMenu;
+var selectionTimer;
 
 /**
  * Run on body onload. Checks the brower, 
@@ -617,9 +618,12 @@ function keyEvent(e){
 		}
 		//console.log(e.keyCode);
 	}
-	selection();
+	//get selection if any
+	// huge slowdown if user hold shift+arrow
+	// so just run selection when user stops
+	clearTimeout(selectionTimer);
+	selectionTimer = setTimeout('selection()',30);
 	fillInfoBar();
-	// hmm... this probabaly isn't necessary....
 	lineFormatGuiUpdate();
 	autoScroll();
 }
@@ -4409,8 +4413,8 @@ function test(){
 function autoScroll(){
 	// find position of caret. X is less important
 	// so just feed pageStartX as 0
-	var c = goog.dom.getElement('canvas').height //canvas height
 	var p = canvasPosition(pos.row,pos.col,0)
+	var c = goog.dom.getElement('canvas').height //canvas height
 	if(p.canvasY>c-40 || p.canvasY<-2){
 		vOffset+=p.canvasY-(c*0.5);
 		scroll(0);
