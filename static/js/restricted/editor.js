@@ -673,10 +673,10 @@ function mouseDown(e){
 			// figure out where the fake scroll bar is
 			var height = goog.dom.getElement('canvas').height;
 			var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-			var barHeight = ((height)/pagesHeight)*(height-39);
+			var barHeight = ((height)/pagesHeight)*(height-39-22);
 			if (barHeight<20)barHeight=20;
-			if (barHeight>=height-39)barHeight=height-39;
-			var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+			if (barHeight>=height-39-22)barHeight=height-39-22;
+			var topPixel = (vOffset/(pagesHeight-height))*(height-39-22-barHeight)+headerHeight;
 			
 			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
 				// user is clicking on text, put the anchor there
@@ -749,10 +749,10 @@ function mouseMove(e){
 	// fake scrollbar, change mouse pointer if true
 	var height = goog.dom.getElement('canvas').height;
 	var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-	var barHeight = ((height)/pagesHeight)*(height-39);
+	var barHeight = ((height)/pagesHeight)*(height-39-22);
 	if (barHeight<20)barHeight=20;
-	if (barHeight>=height-39)barHeight=height-39;
-	var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight)+headerHeight;
+	if (barHeight>=height-39-22)barHeight=height-39-22;
+	var topPixel = (vOffset/(pagesHeight-height))*(height-39-22-barHeight)+headerHeight;
 	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
 		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
 	}
@@ -2250,7 +2250,7 @@ function upArrow(e){
  * canvas is selected and user presses Down
  * arrow
  * @ param { goog.events.BrowserEvent } e
- * gives the mousedown event with associated data
+ * gives the key event with associated data
  */
 function downArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
@@ -2317,7 +2317,7 @@ function downArrow(e){
  * canvas is selected and user presses left
  * arrow
  * @ param { goog.events.BrowserEvent } e
- * gives the mousedown event with associated data
+ * gives the key event with associated data
  */
 function leftArrow(e){
 	if(typeToScript){
@@ -2347,7 +2347,7 @@ function leftArrow(e){
  * canvas is selected and user presses right
  * arrow
  * @ param { goog.events.BrowserEvent } e
- * gives the mousedown event with associated data
+ * gives the key event with associated data
  */
 function rightArrow(e){
 	if(typeToScript){
