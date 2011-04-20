@@ -206,130 +206,39 @@ def Text(data, title, title_page, resource_id):
 	return s
 
 def Pdf(data, title, title_page, resource_id):
-	widths=[[61,7,1],[61,7,1],[40,32,0],[35,22,1],[35,27,0],[61,61,1]]
+	widths=[[61,1],[61,1],[40,0],[35,1],[35,0],[61,1]]
+	var={'widths':[61,61,40,35,35,61], 'b_space':[1,1,0,1,0,1], 'printX':[100,100,232,166,199,500]}
+	logging.info(var.keys())
 	txt = simplejson.loads(data)
-	more="                                (MORE)\n"
-	cont="(CONT'D)"
-	lines=[]
-	parenTest=False
-
+	linesNLB=[]
 	for i in txt:
-		w=[]
-		words = deque(i[0].split(' '))
-		linewidth=0
-		line=''
-		k=0
-		while k<widths[int(i[1])][1]:
-			line+=' '
-			k+=1
-		for j in words:
-			if linewidth+len(j)>widths[int(i[1])][0]:
-				linewidth=0
-				w.append(line.rstrip())
-				line=''
-				k=0
-				while k<widths[int(i[1])][1]:
-					line+=' '
-					k+=1
-			line+=j+' '
-			linewidth+=len(j)+1
-		w.append(line.rstrip())
-		if widths[int(i[1])][2]:
-			w.append('')
-		lines.append(w)
-	linecount=0
-	i=0
-	pageN=2
-	while  i<(len(lines)-1):
-		if linecount+len(lines[i])<56:
-			if txt[i][1]==2 or txt[i][1]==0 or txt[i][1]==5:
-				lines[i][0]=lines[i][0].upper().rstrip()
-			linecount+=len(lines[i])
-			i+=1
-		else:
-			if linecount<54 and linecount+len(lines[i])>57 and txt[i][1]==3:
-				char=lines[i-1][0]
-				diff =55-linecount
-				linecount=len(lines[i])-diff+1
-				lines[i].insert(diff, more)
-				
-				lines[i].insert(diff+1,'                                                                '+str(pageN)+'.')
-				pageN+=1
-				lines[i].insert(diff+2,'')
-				lines[i].insert(diff+3,'')
-				lines[i].insert(diff+4, char+" (CONT'D)")
-				i+=1
-			elif linecount<54 and len(lines[i])>4 and linecount+len(lines[i])==57 and txt[i][1]==3:
-				char=lines[i-1][0]
-				diff=len(lines[i])-3
-				lines[i].insert(diff, more)
-				lines[i].insert(diff+1,'')
-				#if diff!=0:
-				#  lines[i].insert(diff+1,'')
-				#  diff+=1
-				lines[i].insert(diff+2,'                                                                '+str(pageN)+'.')
-				pageN+=1
-				lines[i].insert(diff+3,'')
-				lines[i].insert(diff+4,'')
-				lines[i].insert(diff+5, char+" (CONT'D)")
-				linecount=4
-				i+=1
-			elif linecount<55 and linecount+len(lines[i])>57 and txt[i][1]==1:
-				diff=55-linecount
-				linecount=len(lines[i])-diff
-				lines[i].insert(diff,'')
-				lines[i].insert(diff+1,'')
-				lines[i].insert(diff+2,'                                                                 '+str(pageN)+'.')
-				pageN+=1
-				lines[i].insert(diff+3,'')
-				lines[i].insert(diff+4,'')
-				i+=1
-			elif linecount<55 and len(lines[i])>4 and txt[i][1]==1:
-				diff=len(lines[i])-3
-				lines[i].insert(diff,'')
-				lines[i].insert(diff+1,'')
-				lines[i].insert(diff+2,'')
-				lines[i].insert(diff+3,'                                                                 '+str(pageN)+'.')
-				pageN+=1
-				lines[i].insert(diff+4,'')
-				lines[i].insert(diff+5,'')
-				linecount=3
-				i+=1
+		wa=i[0].split(' ')
+		phraseArray=[]
+		lastPhrase=''
+		l=var['widths'][i[1]]
+		measure=0
+		itr=0
+		for w in wa:
+			itr+=1
+			measure=len(lastPhrase+" "+w)
+			if measure<l:
+				lastPhrase+=w+" "
 			else:
-				i-=1
-				while txt[i][1]==0 or txt[i][1]==2 or txt[i][1]==4:
-					linecount-=len(lines[i])
-					i-=1
-				while linecount<=56:
-					lines[i].append('')
-					linecount+=1
-				lines[i].append('                                                                 '+str(pageN)+'.')
-				lines[i].append('')
-				lines[i].append('')
-				pageN+=1
-				linecount=0
-				i+=1
-
-	lines[0].insert(0,'')
-	lines[0].insert(0,'')
-	#lines[0].insert(0,'') # Keep changing the sizes in the pdfs. This looks best.
-
-	i=0
-	chara=''
-	while i<len(lines)-1:
-		if txt[i][1]==0:
-			chara=''
-		elif not chara=='':
-			if lines[i][0].lstrip()==chara and txt[i][1]==2:
-				lines[i][0]=lines[i][0]+" (CONT'D)"
-		if txt[i][1]==2:
-			chara=lines[i][0].lstrip()
-		i+=1
-	
+				phraseArray.append(lastPhrase)
+				lastPhrase=w+' '
+			if itr==len(wa):
+				phraseArray.append(lastPhrase)
+				break
+		itr=0
+		while itr<widths[i[1]][1]:
+			phraseArray.append('')
+			itr+=1
+		linesNLB.append(phraseArray)
 	
 	buffer = StringIO.StringIO()
 	c = canvas.Canvas(buffer)
-	c.setFont('Courier',12)
+	c.setFont('Courier',11)
+	lh=12
 	
 	if str(title_page)==str(1):
 		q=db.GqlQuery("SELECT * FROM TitlePageData "+
@@ -366,10 +275,9 @@ def Pdf(data, title, title_page, resource_id):
 		tx = defaultPageSize[0]/2.0 #title x (center)
 		ay = 250 #address y
 		ax = 120 #address x
-		lh = 15 # lineheight
 		style = getSampleStyleSheet()["Normal"]
 		style.fontName = 'Courier'
-		style.fontSize = 12
+		style.fontSize = 11
 		p = Paragraph("<para alignment='center'><u>"+r.title+"</u></para>", style) 
 		w,h = p.wrap(170, 100)
 		p.drawOn(c, tx-(w/2.0), ty)
@@ -419,14 +327,15 @@ def Pdf(data, title, title_page, resource_id):
 		
 	# add lines of text
 	i=0
-	y=800
-	lh=15
-	while i<5:
+	y=750
+	c.setFont('Courier',11)
+	while i<18:
+		to=c.beginText(var['printX'][txt[i][1]],y)
+		for line in linesNLB[i]:
+			to.textLine(line)
+			y-=lh
+		c.drawText(to)
 		i+=1
-		p = Paragraph(lines[i][0], style)
-		p.wrap(1000,100)
-		p.drawOn(c, 100, y)
-		y-=lh
 	
 	c.showPage()
 	c.save()
