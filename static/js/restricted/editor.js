@@ -606,16 +606,10 @@ function keyEvent(e){
 		else if(e.keyCode==46)deleteButton();
 		else if(e.keyCode==16)return;
 		else if(e.keyCode==9){e.preventDefault(); tab();}
+		else if(e.keyCode==33)pageUp();
+		else if(e.keyCode==34)pageDown();
 		else{handlekeypress(e)}
 		
-		// if key wasn't enter, delete or a hand full of other thigns,
-		// figure out if the carret is on screen. If not, scroll
-		if(ud<0 && typeToScript && e.keyCode!=13 && e.keyCode!=46){
-			scroll(ud-400);
-		}
-		if(ud>goog.dom.getElement('canvas').height-80 && typeToScript && e.keyCode!=13 && e.keyCode!=46 && e.keyCode!=8 ){
-			scroll(ud-400);
-		}
 		//console.log(e.keyCode);
 	}
 	//get selection if any
@@ -625,7 +619,9 @@ function keyEvent(e){
 	selectionTimer = setTimeout('selection()',30);
 	fillInfoBar();
 	lineFormatGuiUpdate();
-	autoScroll();
+	if(e.keyCode!=33 && e.keyCode!=34){
+		autoScroll();
+	}
 }
 
 /**
@@ -2370,8 +2366,21 @@ function rightArrow(e){
 	}
 }
 
+/**
+ * just call scroll for PageUp
+ * don't move cursor
+ */
+function pageUp(){
+	scroll(-(lineheight*72))
+}
 
-	
+/**
+ * just call scroll for page down
+ * don't move cursor
+ */
+function pageDown(){
+	scroll(lineheight*72)
+}	
 
 
 // Managining arrays
