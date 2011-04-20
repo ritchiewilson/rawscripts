@@ -206,35 +206,6 @@ def Text(data, title, title_page, resource_id):
 	return s
 
 def Pdf(data, title, title_page, resource_id):
-	widths=[[61,1],[61,1],[40,0],[35,1],[35,0],[61,1]]
-	var={'widths':[61,61,40,35,35,61], 'b_space':[1,1,0,1,0,1], 'printX':[100,100,232,166,199,500]}
-	logging.info(var.keys())
-	txt = simplejson.loads(data)
-	linesNLB=[]
-	for i in txt:
-		wa=i[0].split(' ')
-		phraseArray=[]
-		lastPhrase=''
-		l=var['widths'][i[1]]
-		measure=0
-		itr=0
-		for w in wa:
-			itr+=1
-			measure=len(lastPhrase+" "+w)
-			if measure<l:
-				lastPhrase+=w+" "
-			else:
-				phraseArray.append(lastPhrase)
-				lastPhrase=w+' '
-			if itr==len(wa):
-				phraseArray.append(lastPhrase)
-				break
-		itr=0
-		while itr<widths[i[1]][1]:
-			phraseArray.append('')
-			itr+=1
-		linesNLB.append(phraseArray)
-	
 	buffer = StringIO.StringIO()
 	c = canvas.Canvas(buffer)
 	c.setFont('Courier',11)
@@ -323,20 +294,133 @@ def Pdf(data, title, title_page, resource_id):
 			c.drawString(ax, ay, r.other)
 			ay-=lh
 		
-		c.showPage() 
+		c.showPage()
 		
-	# add lines of text
-	i=0
-	y=750
-	c.setFont('Courier',11)
-	while i<18:
-		to=c.beginText(var['printX'][txt[i][1]],y)
-		for line in linesNLB[i]:
-			to.textLine(line)
-			y-=lh
-		c.drawText(to)
-		i+=1
+	# Calc wrapping text
+	# end up with an array linesNLB
+	# just like the var in js
+	widths=[61,61,40,35,35,61]
+	b_space=[1,1,0,1,0,1]
+	printX=[100,100,232,166,199,503]
+	lines = simplejson.loads(data)
 	
+	
+	linesNLB=[]
+	for i in lines:
+		wa=i[0].split(' ')
+		phraseArray=[]
+		lastPhrase=''
+		l=widths[i[1]]
+		measure=0
+		itr=0
+		
+		# test if should be uppercase
+		if i[1]==0 or i[1]==2 or i[1]==5:
+			uc=True
+		else:
+			uc=False
+		for w in wa:
+			itr+=1
+			measure=len(lastPhrase+" "+w)
+			if measure<=l:
+				lastPhrase+=w+" "
+			else:
+				if uc:
+					lastPhrase=lastPhrase.upper()
+				phraseArray.append(lastPhrase[0:-1])
+				lastPhrase=w+' '
+			if itr==len(wa):
+				if uc:
+					lastPhrase=lastPhrase.upper()
+				phraseArray.append(lastPhrase[0:-1])
+				break
+		itr=0
+		while itr<b_space[i[1]]:
+			phraseArray.append('')
+			itr+=1
+		linesNLB.append(phraseArray)
+	
+	#pagination, as done in
+	# editor.js
+	pageBreaks = []
+	i=0
+	r=0
+	trip=False
+	while i<len(lines):
+		lineCount = r
+		while lineCount+len(linesNLB[i])<56:
+			lineCount+=len(linesNLB[i])
+			i+=1
+			if i==len(lines):
+				trip=True
+				break
+		if trip==True:
+			break
+		
+		s=0
+		r=0
+		if lines[i][1]==3 and lineCount<54 and lineCount+len(linesNLB[i])>57:
+			s=55-lineCount
+			r=1-s
+			lineCount=56
+		elif lines[i][1]==3 and lineCount<54 and len(linesNLB[i])>4:
+			s=len(linesNLB[i])-3
+			r=1-s
+			lineCount=55
+		elif lines[i][1]==1 and lineCount<55 and lineCount+len(linesNLB[i])>57:
+			s=55-lineCount
+			r=1-s
+			lineCount=56
+		elif lines[i][1]==1 and lineCount<55 and len(linesNLB[i])>4:
+			s=len(linesNLB[i])-3
+			r=1-s
+			lineCount=55
+		else:
+			while lines[i-1][1]==0 or lines[i-1][1]==2 or lines[i-1][1]==4:
+				i-=1
+				lineCount-=len(linesNLB[i])
+		
+		pageBreaks.append([i, lineCount, s])
+	
+	
+	
+	
+	# draw text onto pdf, just like
+	# it's done in editor.js
+	pageStartY = 730
+	y=pageStartY
+	numX=483
+	numY= pageStartY+(lh*3)
+	count=0
+	latestCharacter=''
+	c.setFont('Courier',11)
+	for i in range(0,len(linesNLB)):
+		if lines[i][1]==2:
+			latestCharacter=lines[i][0]
+		for j in range(0,len(linesNLB[i])):
+			if len(pageBreaks)!=0 and pageBreaks[count][0]==i and pageBreaks[count][2]==j:
+				if j!=0 and lines[i][1]==3:
+					c.drawString(printX[2], y, "(MORE)")
+				if count!=0:
+					c.drawRightString(numX,numY, str(count+1)+'.')
+				c.showPage()
+				c.setFont('Courier',11)
+				y=pageStartY
+				count+=1
+				if j!=0 and lines[i][1]==3:
+					c.drawString(printX[2], y, latestCharacter.upper()+" (CONT'D)")
+					y-=lh
+				if count>=len(pageBreaks):
+					count=len(pageBreaks)-2
+			if lines[i][1]==5:
+				c.drawRightString(printX[lines[i][1]], y, linesNLB[i][j])
+			else:
+				c.drawString(printX[lines[i][1]], y, linesNLB[i][j])
+			y-=lh
+	
+	#close last page
+	if len(pageBreaks)!=0:
+		c.drawRightString(numX,numY, str(len(pageBreaks)+1)+'.')
 	c.showPage()
 	c.save()
 
