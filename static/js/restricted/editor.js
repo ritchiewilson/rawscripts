@@ -811,11 +811,11 @@ function mousePosition(e, w){
 	
 	
 	var cy = e.clientY-90; //x on canvas (subtracking header height)
-	
 	var page = Math.round((vOffset+cy)/(72*lineheight)-0.5); // page clicked on
 	var d = vOffset+cy-(72*lineheight*page);
-	var l = Math.round(d/lineheight); // distance in lineheights
-	if(l<10){
+	var l = Math.round(d/lineheight); // distance from top in lineheights
+	l-=9 // don't calc whitespace
+	if(l<0){
 		if(page==0){
 			var row=0;
 			var col=0;
@@ -826,7 +826,6 @@ function mousePosition(e, w){
 		}
 	}
 	else{
-		l-=9; // count line heights from begining of text on page
 		if(page==0){
 			var i=0; // first line on this page to count from
 			var ly=linesNLB[i].length
@@ -834,10 +833,17 @@ function mousePosition(e, w){
 		else{
 			var i = pageBreaks[page-1][0];// first line on this page to count from
 			var ly = linesNLB[i].length-pageBreaks[page-1][2];
+			if(lines[pageBreaks[page-1][0]][1]==3)ly++; //add line for character CONT'D acrross pages
 		}
 		while(l>ly){
 			i++;
 			ly+=linesNLB[i].length;
+			if(i>=pageBreaks[page][0]){// handes pos in white space at end of page, 
+				if(pageBreaks[page][2]==0)return {row:i-1, col:lines[i-1][0].length}// no split text
+				
+				//var w = pageBreaks[page][2]+1;// with split text
+				break; 
+			}
 		}
 		var w = linesNLB[i].length-(ly-l)-1; // which wrapped line
 		
@@ -856,7 +862,7 @@ function mousePosition(e, w){
 		if(c>linesNLB[i][j].length)c=linesNLB[i][j].length;
 		
 		tc+=c;
-		if(tc>lines[i][0].length)tc=lines[i][0].length;
+		if(tc>lines[i][0].length)tc=lines[i][0].length; // don't let the position be more than number of characters
 		
 		var row = i;
 		var col = tc;
