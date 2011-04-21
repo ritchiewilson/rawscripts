@@ -299,7 +299,7 @@ def Pdf(data, title, title_page, resource_id):
 	# Calc wrapping text
 	# end up with an array linesNLB
 	# just like the var in js
-	widths=[61,61,40,35,35,61]
+	widths=[62,62,40,36,30,62]
 	b_space=[1,1,0,1,0,1]
 	printX=[100,100,232,166,199,503]
 	lines = simplejson.loads(data)
@@ -310,7 +310,7 @@ def Pdf(data, title, title_page, resource_id):
 		wa=i[0].split(' ')
 		phraseArray=[]
 		lastPhrase=''
-		l=widths[i[1]]
+		l=widths[int(i[1])]
 		measure=0
 		itr=0
 		
@@ -322,7 +322,7 @@ def Pdf(data, title, title_page, resource_id):
 		for w in wa:
 			itr+=1
 			measure=len(lastPhrase+" "+w)
-			if measure<=l:
+			if measure<l:
 				lastPhrase+=w+" "
 			else:
 				if uc:
@@ -335,7 +335,7 @@ def Pdf(data, title, title_page, resource_id):
 				phraseArray.append(lastPhrase[0:-1])
 				break
 		itr=0
-		while itr<b_space[i[1]]:
+		while itr<b_space[int(i[1])]:
 			phraseArray.append('')
 			itr+=1
 		linesNLB.append(phraseArray)
@@ -413,9 +413,9 @@ def Pdf(data, title, title_page, resource_id):
 				if count>=len(pageBreaks):
 					count=len(pageBreaks)-2
 			if lines[i][1]==5:
-				c.drawRightString(printX[lines[i][1]], y, linesNLB[i][j])
+				c.drawRightString(printX[int(lines[i][1])], y, linesNLB[i][j])
 			else:
-				c.drawString(printX[lines[i][1]], y, linesNLB[i][j])
+				c.drawString(printX[int(lines[i][1])], y, linesNLB[i][j])
 			y-=lh
 	
 	#close last page
