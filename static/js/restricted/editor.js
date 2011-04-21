@@ -590,7 +590,7 @@ function keyEvent(e){
 		return;
 	}
 	else if(e.target.id=="ccp"){
-		// else if the browser carret in the hidden text
+		// for when the browser carret in the hidden text
 		// box, figure out what to do with it
 		
 		// start by noting the time, so the fake
@@ -616,7 +616,9 @@ function keyEvent(e){
 	// huge slowdown if user hold shift+arrow
 	// so just run selection when user stops
 	clearTimeout(selectionTimer);
-	selectionTimer = setTimeout('selection()',30);
+	if(typeToScript){
+		selectionTimer = setTimeout('selection()',30);
+	}
 	fillInfoBar();
 	lineFormatGuiUpdate();
 	if(e.keyCode!=33 && e.keyCode!=34){
@@ -704,12 +706,7 @@ function mouseUp(e){
 	if(goog.dom.getElement('suggestBox')!=null){
 		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
 	}
-	// if the focus is the canvas text, 
-	// put focus back in hidden box
-	if(typeToScript){
-		goog.dom.getElement('ccp').focus();
-        goog.dom.getElement('ccp').select();
-	}
+	
 	mouseDownBool=false;
 	scrollBarBool=false;
 	
@@ -725,7 +722,12 @@ function mouseUp(e){
         d.style.color='black';
 	}
 	lineFormatGuiUpdate();
-	selection();
+	
+	// if the focus is the canvas text, 
+	// put focus back in hidden box
+	if(typeToScript){
+		selection();
+	}
 }
 
 /**
@@ -886,6 +888,7 @@ function mousePosition(e, w){
  */
 function cut(){
 	if(EOV=='viewer')return;
+	if(!typeToScript)return;
 	if(pos.row!=anch.row || pos.col!=anch.col)backspace();
 	saveTimer();
 }
@@ -895,6 +898,7 @@ function cut(){
  */
 function copy(){
 	if(EOV=='viewer')return;
+	if(!typeToScript)return;
 }
 
 /**
@@ -903,6 +907,7 @@ function copy(){
  */
 function paste(){
 	if(EOV=='viewer')return;
+	if(!typeToScript)return;
 	if(!justPasted){
 		var forceCalc = false;
     	saveTimer();
@@ -4603,27 +4608,25 @@ function drawText(ctx, pageStartX){
 }
 
 function paint(){
-	if(typeToScript || findForcePaint){
-		var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
-		var canvas = goog.dom.getElement('canvas');
-		var ctx = canvas.getContext('2d');
-		
-		ctx.fillStyle = '#bbb';
-		ctx.fillRect(0, 0, editorWidth, canvas.height);
-		
-		drawPages(ctx, pageStartX);
-		drawSluglineBacking(ctx, pageStartX);
-		drawFindArr(ctx, pageStartX);
-		drawRange(ctx, pageStartX);	
-		drawText(ctx, pageStartX);
-		drawCaret(ctx, pageStartX);
-		drawNotes(ctx, pageStartX);	
-		drawScrollArrows(ctx);
-		drawScrollBar(ctx);
-		//drawGuides()
-		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
-		if(mouseDownBool && pos.row>anch.row && mouseY>goog.dom.getElement('canvas').height-50)scroll(20);
-	}
+	var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
+	var canvas = goog.dom.getElement('canvas');
+	var ctx = canvas.getContext('2d');
+	
+	ctx.fillStyle = '#bbb';
+	ctx.fillRect(0, 0, editorWidth, canvas.height);
+	
+	drawPages(ctx, pageStartX);
+	drawSluglineBacking(ctx, pageStartX);
+	drawFindArr(ctx, pageStartX);
+	drawRange(ctx, pageStartX);	
+	drawText(ctx, pageStartX);
+	drawCaret(ctx, pageStartX);
+	drawNotes(ctx, pageStartX);	
+	drawScrollArrows(ctx);
+	drawScrollBar(ctx);
+	
+	if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
+	if(mouseDownBool && pos.row>anch.row && mouseY>goog.dom.getElement('canvas').height-50)scroll(20);
 	var d = new Date();
 	var TIME = d.getMilliseconds();
 	var d = new Date();
