@@ -677,8 +677,11 @@ function mouseDown(e){
 			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
 				// user is clicking on text, put the anchor there
 				mouseDownBool=true;
-				mousePosition(e,"anch");
+				var a=mousePosition(e);
+				anch.row=pos.row=a.row;
+				anch.col=pos.col=a.col;
 				lineFormatGuiUpdate();
+				fillInfoBar();
 			}
 			else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
 				// user is clicking on the scroll bar
@@ -738,8 +741,11 @@ function mouseMove(e){
 	// this means the user is draggin across
 	// drawn text, so move the caret postion
 	if (mouseDownBool){
-		mousePosition(e,"pos");
+		var p=mousePosition(e);
+		pos.row=p.row;
+		pos.col=p.col;
 		lineFormatGuiUpdate();
+		fillInfoBar();
 	}
 	// figure out if mouse if hovering over
 	// fake scrollbar, change mouse pointer if true
@@ -802,136 +808,60 @@ function mousePosition(e, w){
 	// update the milli
 	var d = new Date();
 	milli = d.getMilliseconds();
-	// set some starting points
-	var pageCount = 0;
-	var mp = e.clientY+vOffset-31;
-	var y = 15*lineheight+3;
-	var oldY = 0;
-	//start cying though lines
-	// looking for the clicked spot
-	for(i in lines){
-		// Cycle thorugh lines. at the end of each
-		// cycle, oldY will be the y of the line,
-		// y will be the y of the end of the line.
-		oldY=y;
-		
-		// if this line is at a page break
-		// reset y to page line
-		if(pageBreaks.length!=0 && pageBreaks[pageCount]!=undefined && pageBreaks[pageCount][0]==i){
-			// for if the line at page break isn't split
-			if(pageBreaks[pageCount][2]==0){
-				y=72*lineheight*(pageCount+1)+10*lineheight+headerHeight+3-31;
-				pageCount++;
-			}
-			else{
-				// for if line at page break does split across page
-				y=72*lineheight*(pageCount+1)+10*lineheight+headerHeight+3;
-				y+=(linesNLB[i].length-pageBreaks[pageCount][2])*lineheight-31;
-				if(lines[i][1]==3)y+=lineheight;
-				y-=(lineheight*linesNLB[i].length);
-				pageCount++;
-			}
+	
+	
+	var cy = e.clientY-90; //x on canvas (subtracking header height)
+	
+	var page = Math.round((vOffset+cy)/(72*lineheight)-0.5); // page clicked on
+	var d = vOffset+cy-(72*lineheight*page);
+	var l = Math.round(d/lineheight); // distance in lineheights
+	if(l<10){
+		if(page==0){
+			var row=0;
+			var col=0;
 		}
-		y+=(lineheight*linesNLB[i].length);
-		
-		// mp is the y of the mouse click on the
-		// script. If y is larger than mp, then
-		// caret position should go to this line.
-		if(y>mp){
-			// Now we know what line was clicked on,
-			// so figure out where in that line to go
-			
-			// first which wrapped line to go on
-			if(pageBreaks.length!=0 && pageBreaks[pageCount-1]!=undefined && pageBreaks[pageCount-1][0]==i && pageBreaks[pageCount-1][2]!=0){
-				// if wrapeed lines span two pages
-				if ((mp-oldY)/lineheight<pageBreaks[pageCount-1][2]){
-					var l = Math.round((mp-oldY)/lineheight+0.7);
-				}
-				else if (mp<72*lineheight*(pageCount)+10*lineheight+headerHeight){
-					var l = pageBreaks[pageCount-1][2];
-				}
-				else{
-					var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.7);
-				}
-			}
-			else{
-				// else if wrapped lines don't span two pages
-				var l = Math.round((lineheight*linesNLB[i].length-y+mp)/lineheight+0.7);
-			}
-			
-			// var l is now which wrapped line of text
-			// the cursor was at
-			// tc is total character in lines before
-			var j=0;
-			var tc=0;
-			while(j+1<l){
-				tc+=linesNLB[i][j].length+1;
-				j++;
-			}
-			// var r is additional characters added
-			// bases on x of click
-			var r;
-			if(lines[i][1]!=5){
-				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1])/fontWidth);
-			}
-			else{
-				r=Math.round((e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]+(lines[i][0].length*fontWidth))/fontWidth);
-			}
-			//now change r for inline notes
-			//start and end of this line in this row is tc and tc+linesNLB[i][j]
-			for (note in notes){
-				// if it's in the correct row
-				if (i*1==notes[note][0]*1){
-					//do one thing for transition
-					// one thing elsewise
-					
-					if(lines[i][1]!=5){
-						if(notes[note][1]>=tc && notes[note][1]<=tc+r){
-							r--;
-						}
-					}
-					else{
-						if(notes[note][1]>r){
-							r++;
-						}
-					}
-				}
-			}
-			// don't let carret position be less than zero
-			// or more than wrapped line length
-			if(r<0)r=0;
-			try{
-				if(r>linesNLB[i][j].length)r=linesNLB[i][j].length;
-			}
-			catch(err){
-				console.log(j)
-				return
-			}
-			
-			// add it all together
-			tc+=r;
-			
-			// don't let carret position be less than zero
-			// or more than wrapped line length
-			if(tc<0)tc=0;
-			if(tc>lines[i][0].length)tc=lines[i][0].length;
-			
-			// set pos or anch
-			if (w=="anch"){
-				pos.row = anch.row = i*1;
-				pos.col = anch.col = tc*1;
-			}
-			else{
-				pos.row = i*1;
-				pos.col = tc*1;
-			}
-			
-			// everything is solved, so quit function
-			// otherwise would keep cyling thoruhg lines
-			break;
+		else{
+			var row=pageBreaks[page-1][0];
+			var col=pos.col=0
 		}
 	}
-	fillInfoBar();
+	else{
+		l-=9; // count line heights from begining of text on page
+		if(page==0){
+			var i=0; // first line on this page to count from
+			var ly=linesNLB[i].length
+		}
+		else{
+			var i = pageBreaks[page-1][0];// first line on this page to count from
+			var ly = linesNLB[i].length-pageBreaks[page-1][2];
+		}
+		while(l>ly){
+			i++;
+			ly+=linesNLB[i].length;
+		}
+		var w = linesNLB[i].length-(ly-l)-1; // which wrapped line
+		
+		var tc=0 //total characters
+		//first add wraped lines before position
+		var j=0;
+		while(j<w){
+			tc+=linesNLB[i][j].length+1;
+			j++;
+		}
+		
+		// now add to position based on mouse X
+		var x = e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]; // x diastance into block of text
+		var c = Math.round(x/fontWidth); // number of characters x represents
+		if(c<0)c=0;
+		if(c>linesNLB[i][j].length)c=linesNLB[i][j].length;
+		
+		tc+=c;
+		if(tc>lines[i][0].length)tc=lines[i][0].length;
+		
+		var row = i;
+		var col = tc;
+	}
+	return {row:row, col:col}
 }
 
 /**
@@ -4203,7 +4133,7 @@ function drawRange(ctx, pageStartX){
 		// if the range doesn't fall on one bit of wrapped
 		// text, cycle through lines, and linesNLB to draw
 		// boxes in line by line.
-		var y = lineheight*10+3;
+		var y = lineheight*9+3;
 		var count = 0;
 		var startLine = 0;
 		// figure out what page to start printing on
@@ -4457,8 +4387,6 @@ function canvasPosition(r,c, pageStartX){
 	//jump to y of desired page
 	var y = 72*lineheight*page+9*lineheight;
 	
-	// adjust if this is the first page
-	if(page==0)y+=lineheight;
 	
 	// adjust if this isn't first page, and
 	// there may be page splits in text
@@ -4607,7 +4535,7 @@ function fillInfoBar(){
 function drawText(ctx, pageStartX){
 	ctx.fillStyle=foreground;
 	ctx.font=font;
-	var y = lineheight*11;
+	var y = lineheight*10;
 	var count = 0;
 	var sceneCount=0;
 	var startLine = 0;
@@ -4675,7 +4603,7 @@ function paint(){
 		drawNotes(ctx, pageStartX);	
 		drawScrollArrows(ctx);
 		drawScrollBar(ctx);
-		
+		//drawGuides()
 		if(mouseDownBool && pos.row<anch.row && mouseY<40)scroll(-20);
 		if(mouseDownBool && pos.row>anch.row && mouseY>goog.dom.getElement('canvas').height-50)scroll(20);
 	}
