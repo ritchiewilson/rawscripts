@@ -809,8 +809,8 @@ function mousePosition(e, w){
 	var d = new Date();
 	milli = d.getMilliseconds();
 	
-	
-	var cy = e.clientY-90; //x on canvas (subtracking header height)
+	pageSplit=false;
+	var cy = e.clientY-92; //x on canvas (subtracking header height)
 	var page = Math.round((vOffset+cy)/(72*lineheight)-0.5); // page clicked on
 	var d = vOffset+cy-(72*lineheight*page);
 	var l = Math.round(d/lineheight); // distance from top in lineheights
@@ -841,7 +841,7 @@ function mousePosition(e, w){
 			if(i>=pageBreaks[page][0]){// handes pos in white space at end of page, 
 				if(pageBreaks[page][2]==0)return {row:i-1, col:lines[i-1][0].length}// no split text
 				
-				//var w = pageBreaks[page][2]+1;// with split text
+				pageSplit=true; // with split text across page
 				break; 
 			}
 		}
@@ -863,6 +863,17 @@ function mousePosition(e, w){
 		
 		tc+=c;
 		if(tc>lines[i][0].length)tc=lines[i][0].length; // don't let the position be more than number of characters
+		
+		if(pageSplit==true){
+			var ptc=0; //potential total characters
+			j=0;
+			while(j<pageBreaks[page][2]){
+				ptc+=linesNLB[i][j].length+1;
+				j++;
+			}
+			if(tc>ptc)tc=ptc-1;
+		}
+		
 		
 		var row = i;
 		var col = tc;
