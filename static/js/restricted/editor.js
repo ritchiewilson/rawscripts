@@ -1776,14 +1776,12 @@ function createSuggestBox(d){
 	// suggest box
 	if(d=='c'){
         var v=characters;
-        var left=WrapVariableArray[2][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
     else{
         var v=[];
         for(i in scenes){
             v.push([scenes[i][0].split(') ').splice(1).join(') ')]);
         }
-        var left=WrapVariableArray[0][1]+Math.round((editorWidth-fontWidth*87-24)/2)+'px';
     }
 	var l=lines[pos.row][0].length;
 	var part=lines[pos.row][0].toUpperCase();
@@ -1792,11 +1790,12 @@ function createSuggestBox(d){
 		if (part==s){
 			//create box now if doens't exist
 			if(goog.dom.getElement('suggestBox')==null){
+				var pageStartX = Math.round((editorWidth-fontWidth*87-24)/2);
 				var box = document.body.appendChild(document.createElement('div'));
 				box.id='suggestBox';
 				box.style.position='fixed';
-				box.style.top=ud+headerHeight+9+lineheight+"px";
-				box.style.left=left;
+				box.style.top=canvasPosition(pos.row,0,pageStartX).canvasY+headerHeight+9+lineheight+"px";
+				box.style.left=WrapVariableArray[lines[pos.row][1]][1]+pageStartX+'px';
 				box.className = 'goog-menu'
 			}
 			// Scene list could double up
