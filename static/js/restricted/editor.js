@@ -838,9 +838,10 @@ function mousePosition(e, w){
 			if(lines[pageBreaks[page-1][0]][1]==3)ly++; //add line for character CONT'D acrross pages
 		}
 		while(l>ly){
+			if(i==lines.length-1) return {row:i, col:lines[i][0].length} //  if this is last page, cursor below the text
 			i++;
 			ly+=linesNLB[i].length;
-			if(i>=pageBreaks[page][0]){// handes pos in white space at end of page, 
+			if(page<pageBreaks.length && i>=pageBreaks[page][0]){// handes pos in white space at end of page, 
 				if(pageBreaks[page][2]==0)return {row:i-1, col:lines[i-1][0].length}// no split text
 				
 				pageSplit=true; // with split text across page
