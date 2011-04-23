@@ -4346,6 +4346,7 @@ function getLines(v) {
 		phraseArray.push("");
 		i++;
 	}
+	if(lines[v][1]==4 && v!=0 && lines[v-1][1]==3 && linesNLB[v-1][linesNLB[v-1].length-1]=='')linesNLB[v-1].pop();
     linesNLB[v] = phraseArray;
 	
 	// return weather or not to re paginate
