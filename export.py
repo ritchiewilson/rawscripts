@@ -304,7 +304,7 @@ def Pdf(data, title, title_page, resource_id):
 	printX=[100,100,232,166,199,503]
 	lines = simplejson.loads(data)
 	
-	
+	j=0 ## dumb iterator. used to handle mutiple parentheticals in one dialog
 	linesNLB=[]
 	for i in lines:
 		wa=i[0].split(' ')
@@ -338,7 +338,10 @@ def Pdf(data, title, title_page, resource_id):
 		while itr<b_space[int(i[1])]:
 			phraseArray.append('')
 			itr+=1
+		if i[1]==4 and j!=0 and lines[j-1][1]==3:
+			linesNLB[j-1].pop()
 		linesNLB.append(phraseArray)
+		j+=1
 	
 	#pagination, as done in
 	# editor.js
