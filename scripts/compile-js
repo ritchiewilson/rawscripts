@@ -1,0 +1,32 @@
+#!/bin/bash
+
+E_BADARGS=65
+
+if [ ! -n "$1" ]
+then
+  echo "usage: compile-js.sh <page-to-compile>
+
+for Example:
+	sh compile-js.sh editor
+or:
+	sh compile-js.sh scriptlist"
+  exit $E_BADARGS
+fi
+
+args=("$@")
+PAGE=${args[0]}
+
+cd ..
+ROOT=$(cd `dirname $0` && pwd)
+
+# Remove old compiled file if exists
+rm $ROOT"/static/js/min/"$PAGE"-compiled.js"
+
+cd $ROOT"/static/closure-library/closure/bin"
+
+I_FILE=$ROOT"/static/js/restricted/"$PAGE".js"
+O_FILE=$ROOT"/static/js/min/"$PAGE"-compiled.js"
+CL_ROOT=$ROOT"/static/closure-library/"
+JAR=$ROOT"/scripts/compiler/compiler.jar"
+
+python calcdeps.py -i $I_FILE -p $CL_ROOT -o compiled > $O_FILE -c $JAR -f '--compilation_level=ADVANCED_OPTIMIZATIONS'
