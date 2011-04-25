@@ -21,6 +21,7 @@ import chardet
 import gdata.gauth
 import gdata.data
 import gdata.contacts.client
+import config
 
 
 def get_contacts_google_token(request):
@@ -177,7 +178,8 @@ class ScriptList(webapp.RequestHandler):
 
 		template_values = { 'sign_out': users.create_logout_url('/') }
 		template_values['user'] = users.get_current_user().email()
-
+		template_values['SCRIPTLIST_CSS'] = config.SCRIPTLIST_CSS
+		template_values['SCRIPTLIST_JS'] = config.SCRIPTLIST_JS
 		
 		
 		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')

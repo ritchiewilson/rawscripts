@@ -18,6 +18,7 @@ import logging
 from django.utils import simplejson
 import mobileTest
 from google.appengine.api import memcache
+import config
 
 class Notes (db.Model):
 	resource_id = db.StringProperty()
@@ -144,6 +145,8 @@ class Editor (webapp.RequestHandler):
 		else:
 			user="unknown"
 		template_values['resource_id'] = resource_id
+		template_values['EDITOR_JS'] = config.EDITOR_JS
+		template_values['EDITOR_CSS'] = config.EDITOR_CSS
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)

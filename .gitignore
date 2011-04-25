@@ -2,6 +2,7 @@
 *.pyc
 chardet/*.pyc
 reportlab.zip
+config.py
 
 # external libraries
 gdata/
