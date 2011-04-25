@@ -9,3 +9,5 @@ static/closure-library/
 atom/
 reportlab/
 rl_addons/
+scripts/compiler/
+
