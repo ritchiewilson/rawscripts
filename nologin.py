@@ -1,3 +1,7 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '1.2')
 import StringIO
 import os
 import cgi
@@ -98,7 +102,7 @@ class Editor (webapp.RequestHandler):
 		user = users.get_current_user()
 		path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
 		template_values = {}
-		template_values['EOV'] = """'editor'"""
+		template_values['EOV'] = "editor"
 		resource_id=self.request.get('resource_id')
 		format='editor'
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -117,7 +121,7 @@ class Editor (webapp.RequestHandler):
 				if r[0].permission=='collab':
 					format='viewer'
 					path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
-					template_values['EOV'] = """'viewer'"""
+					template_values['EOV'] = "viewer"
 					q=db.GqlQuery("SELECT * FROM ShareNotify "+
 									"WHERE user='"+user.email().lower()+"' "+
 									"AND resource_id='"+resource_id+"' "+
@@ -145,6 +149,7 @@ class Editor (webapp.RequestHandler):
 		else:
 			user="unknown"
 		template_values['resource_id'] = resource_id
+		template_values['MODE'] = config.MODE
 		template_values['EDITOR_JS'] = config.EDITOR_JS
 		template_values['EDITOR_CSS'] = config.EDITOR_CSS
 		self.response.headers['Content-Type'] = 'text/html'

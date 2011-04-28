@@ -1,3 +1,7 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '1.2')
 import StringIO, os, cgi, re
 import wsgiref.handlers
 from google.appengine.api import memcache
@@ -178,6 +182,7 @@ class ScriptList(webapp.RequestHandler):
 
 		template_values = { 'sign_out': users.create_logout_url('/') }
 		template_values['user'] = users.get_current_user().email()
+		template_values['MODE'] = config.MODE
 		template_values['SCRIPTLIST_CSS'] = config.SCRIPTLIST_CSS
 		template_values['SCRIPTLIST_JS'] = config.SCRIPTLIST_JS
 		
