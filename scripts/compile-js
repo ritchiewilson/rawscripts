@@ -7,9 +7,9 @@ then
   echo "usage: compile-js.sh <page-to-compile>
 
 for Example:
-	sh compile-js.sh editor
+	./compile-js editor
 or:
-	sh compile-js.sh scriptlist"
+	./compile-js scriptlist"
   exit $E_BADARGS
 fi
 
@@ -22,9 +22,12 @@ ROOT=$(cd `dirname $0` && pwd)
 # Remove old compiled file if exists
 rm $ROOT"/static/js/min/"$PAGE"-compiled.js"
 
+cd $ROOT"/static/js/restricted/"$PAGE 
+cat * > $ROOT"/static/js/restricted/"$PAGE"-temp.js"
+
 cd $ROOT"/static/closure-library/closure/bin"
 
-I_FILE=$ROOT"/static/js/restricted/"$PAGE".js"
+I_FILE=$ROOT"/static/js/restricted/"$PAGE"-temp.js"
 O_FILE=$ROOT"/static/js/min/"$PAGE"-compiled.js"
 CL_ROOT=$ROOT"/static/closure-library/"
 JAR=$ROOT"/scripts/compiler/compiler.jar"

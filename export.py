@@ -305,6 +305,7 @@ def Pdf(data, title, title_page, resource_id):
 	lines = simplejson.loads(data)
 	
 	j=0 ## dumb iterator. used to handle mutiple parentheticals in one dialog
+	lc='' # keep track of recenct character to speak for CONT'D
 	linesNLB=[]
 	for i in lines:
 		wa=i[0].split(' ')
@@ -327,11 +328,15 @@ def Pdf(data, title, title_page, resource_id):
 			else:
 				if uc:
 					lastPhrase=lastPhrase.upper()
+					if i[1]==2 and lastPhrase==lc+' ':
+						lastPhrase+="(CONT'D) "
 				phraseArray.append(lastPhrase[0:-1])
 				lastPhrase=w+' '
 			if itr==len(wa):
 				if uc:
 					lastPhrase=lastPhrase.upper()
+					if i[1]==2 and lastPhrase==lc+' ':
+						lastPhrase+="(CONT'D) "
 				phraseArray.append(lastPhrase[0:-1])
 				break
 		itr=0
@@ -342,6 +347,10 @@ def Pdf(data, title, title_page, resource_id):
 			linesNLB[j-1].pop()
 		linesNLB.append(phraseArray)
 		j+=1
+		if i[1]==2:
+			lc=i[0].upper()
+		elif i[1]==0:
+			lc=''
 	
 	#pagination, as done in
 	# editor.js
