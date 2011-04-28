@@ -475,13 +475,13 @@ function undo(){
         if(dir[3]=='line'){
             //shift notes
             for(x in notes){
-                if(dir[1]==notes[x][0]){
-                    if (dir[2]<=notes[x][1]){
-                        notes[x][0]=notes[x][0]+1;
-                        notes[x][1]=notes[x][1]-dir[2];
+                if(dir[1]==notes[x].row){
+                    if (dir[2]<=notes[x].col){
+                        notes[x].row=notes[x].row+1;
+                        notes[x].col=notes[x].col-dir[2];
                     }
                 }
-                else if(dir[1]<notes[x][0])notes[x][0]=notes[x][0]+1;
+                else if(dir[1]<notes[x].row)notes[x].row=notes[x].row+1;
             }
             var j = lines[dir[1]][0].slice(0,dir[2]);
             var k = lines[dir[1]][0].slice(dir[2]);
@@ -498,8 +498,8 @@ function undo(){
 			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
             //shift notes
             for(x in notes){
-                if(dir[1]==notes[x][0]){
-                    if (dir[2]<=notes[x][1])notes[x][1]=notes[x][1]+1;
+                if(dir[1]==notes[x].row){
+                    if (dir[2]<=notes[x].col)notes[x].col=notes[x].col+1;
                 }
             }
         }
@@ -592,8 +592,8 @@ function undo(){
 		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
         //shift notes
         for(x in notes){
-            if(dir[1]==notes[x][0]){
-                if (dir[2]<notes[x][1])notes[x][1]=notes[x][1]-1;
+            if(dir[1]==notes[x].row){
+                if (dir[2]<notes[x].col[1])notes[x].col=notes[x].col-1;
             }
         }
     }
@@ -875,7 +875,7 @@ function closeScript(){
 	);
     var arr = []
     for (i in notes){
-        arr.push([notes[i][0], notes[i][1], notes[i][3]])
+        arr.push([notes[i].row, notes[i].col, notes[i].thread_id])
     }
     if(arr.length!=0){
 		goog.net.XhrIo.send('/notesposition', 
@@ -974,7 +974,7 @@ function save(v){
 	);
     var arr = []
     for (i in notes){
-        arr.push([notes[i][0], notes[i][1], notes[i][3]])
+        arr.push([notes[i].row, notes[i].col, notes[i].thread_id])
     }
     if(arr.length!=0){
 		goog.net.XhrIo.send('/notesposition', 

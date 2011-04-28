@@ -121,8 +121,8 @@ function handlekeypress(e) {
 				}
 				//shift notes
 				for(x in notes){
-					if(pos.row==notes[x][0]){
-						if (pos.col-1<=notes[x][1])notes[x][1]=notes[x][1]+1;
+					if(pos.row==notes[x].row){
+						if (pos.col-1<=notes[x].col)notes[x].col=notes[x].col+1;
 					}
 				}
 				
@@ -185,14 +185,14 @@ function backspace(e){
 				
 				//shift notes
 				for(x in notes){
-					if(pos.row<notes[x][0]){
-						notes[x][0]=notes[x][0]-1;
+					if(pos.row<notes[x].row){
+						notes[x].row=notes[x].row-1;
 					}
-					else if(pos.row==notes[x][0]){
-						notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-						notes[x][0]=notes[x][0]-1;
+					else if(pos.row==notes[x].row){
+						notes[x].col=notes[x].col+lines[pos.row-1][0].length;
+						notes[x].row=notes[x].row-1;
 					}
-					if (notes[x][1]<0)notes[x][1]=0;
+					if (notes[x].col<0)notes[x].col=0;
 				}
 				//actually do the operation
 				var elem = lines[pos.row][1];
@@ -227,8 +227,8 @@ function backspace(e){
 				pos.col--;
 				// shift notes
 				for(x in notes){
-					if(pos.row==notes[x][0]){
-						if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+					if(pos.row==notes[x].row){
+						if (pos.col<notes[x].col)notes[x].col=notes[x].col-1;
 					}
 				}
 				
@@ -276,14 +276,14 @@ function backspace(e){
 					
 					// shift notes
 					for(x in notes){
-						if(pos.row<notes[x][0]){
-							notes[x][0]=notes[x][0]-1;
+						if(pos.row<notes[x].row){
+							notes[x].row=notes[x].row-1;
 						}
-						else if(pos.row==notes[x][0]){
-							notes[x][1]=notes[x][1]+lines[pos.row-1][0].length;
-							notes[x][0]=notes[x][0]-1;
+						else if(pos.row==notes[x].row){
+							notes[x].col=notes[x].col+lines[pos.row-1][0].length;
+							notes[x].row=notes[x].row-1;
 						}
-						if (notes[x][1]<0)notes[x][1]=0;
+						if (notes[x].col<0)notes[x].col=0;
 					}
 					
 					// combine two lines of text
@@ -304,8 +304,8 @@ function backspace(e){
 					pos.col--;
 					//shift notes
 					for(x in notes){
-						if(pos.row==notes[x][0]){
-							if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+						if(pos.row==notes[x].row){
+							if (pos.col<notes[x].col)notes[x].col=notes[x].col-1;
 						}
 					}
 				}
@@ -372,14 +372,14 @@ function deleteButton(){
 			
 			// shift notes
 			for(x in notes){
-				if(pos.row+1==notes[x][0]){
-					notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-					notes[x][0]=notes[x][0]-1;
+				if(pos.row+1==notes[x].row){
+					notes[x].col=notes[x].col+lines[pos.row][0].length;
+					notes[x].row=notes[x].row-1;
 				}
-				else if(pos.row<notes[x][0]){
-					notes[x][0]=notes[x][0]-1;
+				else if(pos.row<notes[x].row){
+					notes[x].row=notes[x].row-1;
 				}
-				if (notes[x][1]<0)notes[x][1]=0;
+				if (notes[x].col<0)notes[x].col=0;
 			}
 			undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
 			if (lines[pos.row+1][1]==0)slug=true;
@@ -402,8 +402,8 @@ function deleteButton(){
 			
 			//shift notes
 			for(x in notes){
-				if(pos.row==notes[x][0]){
-					if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+				if(pos.row==notes[x].row){
+					if (pos.col<notes[x].col)notes[x].col=notes[x].col-1;
 				}
 			}
 			// recalc line wrap. if wrapping changes
@@ -444,14 +444,14 @@ function deleteButton(){
 				
 				//shift notes
 				for(x in notes){
-					if(pos.row+1==notes[x][0]){
-						notes[x][1]=notes[x][1]+lines[pos.row][0].length;
-						notes[x][0]=notes[x][0]-1;
+					if(pos.row+1==notes[x].row){
+						notes[x].col=notes[x].col+lines[pos.row][0].length;
+						notes[x].row=notes[x].row-1;
 					}
-					else if(pos.row<notes[x][0]){
-						notes[x][0]=notes[x][0]-1;
+					else if(pos.row<notes[x].row){
+						notes[x].row=notes[x].row-1;
 					}
-					if (notes[x][1]<0)notes[x][1]=0;
+					if (notes[x].col<0)notes[x].col=0;
 				}
 				undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
 				var j = lines[pos.row][0];
@@ -470,8 +470,8 @@ function deleteButton(){
 				pos.col--;
 				//shift notes
 				for(x in notes){
-					if(pos.row==notes[x][0]){
-						if (pos.col<notes[x][1])notes[x][1]=notes[x][1]-1;
+					if(pos.row==notes[x].row){
+						if (pos.col<notes[x].col)notes[x].col=notes[x].col-1;
 					}
 				}
 			}
@@ -535,12 +535,12 @@ function enter(){
 		
 		//shift notes
 		for(x in notes){
-			if(pos.row<notes[x][0]){
-				notes[x][0]=notes[x][0]+1;
+			if(pos.row<notes[x].row){
+				notes[x].row=notes[x].row+1;
 			}
-			if(pos.row==notes[x][0] && pos.col<notes[x][1]){
-				notes[x][1]=notes[x][1]-pos.col;
-				notes[x][0]=notes[x][0]+1;
+			if(pos.row==notes[x].row && pos.col<notes[x].row){
+				notes[x].col=notes[x].col-pos.col;
+				notes[x].row=notes[x].row+1;
 			}
 		}
 		undoQue.push(['enter', pos.row, pos.col]);

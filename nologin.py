@@ -217,8 +217,11 @@ class ScriptContent (webapp.RequestHandler):
 								found=True
 						if found==False:
 							unit.append(1)
-				arr = [i.row, i.col, msgs, i.thread_id]
-				notes.append(arr)
+				dic = { 'row':i.row, 
+						'col':i.col, 
+						'msgs':msgs, 
+						'thread_id':i.thread_id}
+				notes.append(dic)
 
 			sharedwith=[]
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+

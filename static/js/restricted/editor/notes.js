@@ -1,14 +1,14 @@
 //notes
 function sortNotes(a,b){
-    if (a[0]<b[0]) return -1;
-    if (a[0]>b[0]) return 1;
-    if (a[1]<b[1]) return -1;
-    if (a[1]>b[1]) return 1;
+    if (a.row<b.row) return -1;
+    if (a.row>b.row) return 1;
+    if (a.col<b.col) return -1;
+    if (a.col>b.col) return 1;
     return 0;
 }
 function sortNotesCol(a,b){
-    if (a[1]<b[1]) return -1;
-    if (a[1]>b[1]) return 1;
+    if (a.col<b.col) return -1;
+    if (a.col>b.col) return 1;
     return 0;
 }
 function noteIndex(){
@@ -19,12 +19,12 @@ function noteIndex(){
 		//build box
 		var newDiv=c.appendChild(document.createElement('div'));
 		newDiv.className='noteListUnit';
-		newDiv.id = 'noteListUnit'+notes[x][3];
+		newDiv.id = 'noteListUnit'+notes[x].thread_id;
 		// figure out what page its on
 		if(pageBreaks.length==0){var pn = 1}
 		else{
 			var i=0;
-			while(notes[x][0]*1+1*1>pageBreaks[i][0]){
+			while(notes[x].row*1+1*1>pageBreaks[i][0]){
 				i++;
 				if(i==pageBreaks.length)break
 			}
@@ -32,22 +32,22 @@ function noteIndex(){
 		}
 		//get note snippet
 		var tmpEl = goog.dom.createElement('div');
-		tmpEl.innerHTML = notes[x][2][0][0];
+		tmpEl.innerHTML = notes[x].msgs[0][0];
 		var snippet = goog.dom.getTextContent(tmpEl);
 		if (snippet.length>80)snippet = snippet.substr(0,77)+'...';
 		snippet = '"'+snippet+'"';
 		// figre out reply text
 		var replySpan = goog.dom.createElement('span');
-		if(notes[x][2].length==2){
+		if(notes[x].msgs.length==2){
 			replySpan.appendChild(goog.dom.createTextNode('1 Reply'));
 		}
-		else if(notes[x][2].length>2){
-			replySpan.appendChild(goog.dom.createTextNode((notes[x][2].length*1-1)+' Replies'));
+		else if(notes[x].msgs.length>2){
+			replySpan.appendChild(goog.dom.createTextNode((notes[x].msgs.length*1-1)+' Replies'));
 		}
 		//figure out how many new replies
 		var r = 0;
-		for (y in notes[x][2]){
-			if(String(notes[x][2][y][3])=='0')r++;
+		for (y in notes[x].msgs){
+			if(String(notes[x].msgs[y][3])=='0')r++;
 		}
 		var newReplySpan = goog.dom.createElement('span');
 		newReplySpan.style.color = 'red';
@@ -70,9 +70,9 @@ function noteIndex(){
 			while(el.className!='noteListUnit')el=el.parentNode;
 			var id = parseInt(el.id.replace('noteListUnit',''));
 			for(i in notes){
-				if (notes[i][3]==id){
-					var row = notes[i][0];
-					var col = notes[i][1];
+				if (notes[i].thread_id==id){
+					var row = notes[i].row;
+					var col = notes[i].col;
 					pos.row=anch.row=row;
 					pos.col=anch.col=col;
 				}
@@ -103,18 +103,18 @@ function notesDialog(e, id, top, left){
 	var str = "";
 	var user = goog.dom.getElement('user_email').innerHTML.toLowerCase();
 	for (i in notes){
-		if(notes[i][3]==id){
-			for(j in notes[i][2]){
-				var classN = (parseInt(notes[i][2][j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
-				str+="<div class='"+classN+"' id='"+notes[i][2][j][2]+"' onclick='markAsRead(this)'>";
-				str+="<b>"+notes[i][2][j][1]+" - </b><span> </span> ";
-				str+=notes[i][2][j][0];
+		if(notes[i].thread_id==id){
+			for(j in notes[i].msgs){
+				var classN = (parseInt(notes[i].msgs[j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
+				str+="<div class='"+classN+"' id='"+notes[i].msgs[j][2]+"' onclick='markAsRead(this)'>";
+				str+="<b>"+notes[i].msgs[j][1]+" - </b><span> </span> ";
+				str+=notes[i].msgs[j][0];
 				//edit controls
 				var edit = "";
-				if(notes[i][2][j][1].toLowerCase()==user){
+				if(notes[i].msgs[j][1].toLowerCase()==user){
 					edit+=" <span class='noteControls' onclick='newMessage(this)'>edit</span> |"
 				}
-				if(notes[i][2][j][1].toLowerCase()==user || EOV=='editor'){
+				if(notes[i].msgs[j][1].toLowerCase()==user || EOV=='editor'){
 					edit+=" <span class='noteControls' onclick='deleteMessage(this)'>delete</span>"
 				}
 				if(j==0 && EOV=='editor'){
@@ -170,10 +170,10 @@ function markAsRead(e){
 			});
 			anim.play();
 			for (i in notes){
-				if (notes[i][3]==thread_id){
-					for(j in notes[i][2]){
-						if (notes[i][2][j][2]==msg_id){
-							notes[i][2][j][3]=1;
+				if (notes[i].thread_id==thread_id){
+					for(j in notes[i].msgs){
+						if (notes[i].msgs[j][2]==msg_id){
+							notes[i].msgs[j][3]=1;
 						}
 					}
 				}
@@ -191,13 +191,13 @@ function newThread(){
     while (found==true){
         found=false;
         for (i in notes){
-            if (String(notes[i][3])==String(id)){
+            if (String(notes[i].thread_id)==String(id)){
                 id=Math.round(Math.random()*1000000000);
                 found=true;
             }
         }
     }
-	notes.push([pos.row, pos.col, ['temp', 'temp', 'temp'],id])
+	notes.push({row:pos.row, col:pos.col, msgs:['temp', 'temp', 'temp'], thread_id:id})
 	viewNotes=true;
 	//set up dialog box
 	var d = new goog.ui.Dialog();
@@ -262,7 +262,7 @@ function cancelNewThread(){
 	while(el.className!='modal-dialog')el=el.parentNode;
 	var id = parseInt(el.id.replace('modal-dialog',''));
 	for(i in notes){
-		if(notes[i][3]==id){
+		if(notes[i].thread_id==id){
 			notes.splice(i,1);
 			break;
 		}
@@ -290,8 +290,8 @@ function submitNewThread(){
 				var msg_id = r[3];
 				var user = r[4];
 				for (i in notes){
-					if (notes[i][3]==thread_id){
-						notes[i][2]=[[content, user, msg_id]];
+					if (notes[i].thread_id==thread_id){
+						notes[i].msgs=[[content, user, msg_id]];
 					}
 				}
 				noteIndex();
@@ -425,16 +425,16 @@ function submitMessage(){
 				var left = el.style.left;
 				goog.dom.removeNode(el)
 				for(i in notes){
-					if(notes[i][3]==thread_id){
+					if(notes[i].thread_id==thread_id){
 						var found = false;
-						for(j in notes[i][2]){
-							if(notes[i][2][j][2]==timestamp){
-								notes[i][2][j][0]=new_content;
+						for(j in notes[i].msgs){
+							if(notes[i].msgs[j][2]==timestamp){
+								notes[i].msgs[j][0]=new_content;
 								found=true;
 							}
 						}
 						if(!found){
-							notes[i][2].push([new_content, user, timestamp])
+							notes[i].msgs.push([new_content, user, timestamp])
 						}
 					}
 				}
@@ -463,7 +463,7 @@ function deleteThread(v){
 			);
         }
     for (i in notes){
-        if (notes[i][3]==v)var found = i;
+        if (notes[i].thread_id==v)var found = i;
     }
 	goog.dom.removeNode(el)
     notes.splice(found,1);
@@ -485,11 +485,11 @@ function deleteMessage(v){
 				var r = e.target.getResponseText();
 				if (r=='deleted'){
 					for(i in notes){
-						if(notes[i][3]==threadId){
-							for (j in notes[i][2]){
-								if(notes[i][2][j][2]==msgId){
-									notes[i][2].splice(j,1)
-									if(notes[i][2].length==0){
+						if(notes[i].thread_id==threadId){
+							for (j in notes[i].msgs){
+								if(notes[i].msgs[j][2]==msgId){
+									notes[i].msgs.splice(j,1)
+									if(notes[i].msgs.length==0){
 										notes.splice(i,1);
 										var el = goog.dom.getElement(msgId);
 										while(el.className!='modal-dialog')el=el.parentNode;

@@ -235,7 +235,7 @@ function drawNotes(ctx, pageStartX){
 	ctx.strokeStyle="#111";
 	ctx.fillStyle="dodgerBlue"
 	for(i in notesArr){
-		var p = canvasPosition(notes[i][0], notes[i][1], pageStartX);
+		var p = canvasPosition(notes[i].row, notes[i].col, pageStartX);
 		if(p.canvasY>1200)break;
 		if(p.canvasY>-10){
 			drawNote(p.canvasX, p.canvasY, ctx, notes[i]);
@@ -249,7 +249,7 @@ function drawNote(x, y, ctx, note){
 	var radius = 3,
 		width = 7,
 		height = 8;
-	notesPosition.push([x, y, note[3]])
+	notesPosition.push([x, y, note.thread_id])
 	ctx.beginPath();
 	ctx.moveTo(x + radius, y);
 	ctx.lineTo(x + width - radius, y);
