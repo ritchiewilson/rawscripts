@@ -4503,7 +4503,6 @@ function drawText(ctx, pageStartX){
 	ctx.font=font;
 	var y = lineheight*10;
 	var count = 0;
-	var sceneCount=0;
 	var startLine = 0;
 	// figure out what page to start printing on
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
@@ -4512,10 +4511,17 @@ function drawText(ctx, pageStartX){
 		y=72*lineheight*(count)+10*lineheight;
 		startLine=pageBreaks[count][0];
 	}
+	//figure out character with most recent dialog for CONT'Ds
+	var latestCharacter=''
+	var i=startLine;
+	while(i>0){
+		i--;
+		if(lines[i][1]==0)break; // if a scene header is encounterd, don't look further
+		if(lines[i][1]==2){latestCharacter=lines[i][0];break} //when character found
+	}
 	//Stary Cycling through lines
 	for (var i=startLine; i<linesNLB.length; i++){
-		if(y-vOffset>1200)break;
-		if(lines[i][1]==2)latestCharacter=lines[i][0];
+		if(y-vOffset>1200)break; // quit drawing if off page
 		for(var j=0; j<linesNLB[i].length; j++){
 			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 				if(j!=0 && lines[i][1]==3){
@@ -4524,16 +4530,16 @@ function drawText(ctx, pageStartX){
 				y=72*lineheight*(count+1)+10*lineheight;
 				count++;
 				if(j!=0 && lines[i][1]==3){
-					var latestCharacter='';
+					var cbpb=''; // character before page break
 					var lci=i-1 //latest character iterator
 					while(lci>=0){
 						if(lines[lci][1]==2){
-							latestCharacter = lines[lci][0];
+							cbpb = lines[lci][0];
 							break;
 						}
 						lci--;
 					}
-					ctx.fillText(latestCharacter.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+					ctx.fillText(cbpb.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
 					y+=lineheight;
 				}
 				if(count>=pageBreaks.length){
@@ -4543,9 +4549,15 @@ function drawText(ctx, pageStartX){
 			if(lines[i][1]==5){
 				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
 			}
+			else if(lines[i][1]==2 && lines[i][0]==latestCharacter && latestCharacter!=''){
+					ctx.fillText(linesNLB[i][j]+" (CONT'D)", WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+			}
 			else{
 				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
 			}
+			
+			if(lines[i][1]==2)latestCharacter=lines[i][0];
+			if(lines[i][1]==0)latestCharacter='';
 			y+=lineheight;
 		}
 	}
