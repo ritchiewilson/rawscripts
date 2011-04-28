@@ -33,3 +33,5 @@ CL_ROOT=$ROOT"/static/closure-library/"
 JAR=$ROOT"/scripts/compiler/compiler.jar"
 
 python calcdeps.py -i $I_FILE -p $CL_ROOT -o compiled > $O_FILE -c $JAR -f '--compilation_level=ADVANCED_OPTIMIZATIONS'
+
+rm $ROOT"/static/js/restricted/"$PAGE"-temp.js"
