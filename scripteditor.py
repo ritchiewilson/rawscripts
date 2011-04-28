@@ -304,8 +304,8 @@ class TitlePage(webapp.RequestHandler):
 													 'otherChecked' : ""}
 			
 
+		template_values['MODE'] = config.MODE
 		path = os.path.join(os.path.dirname(__file__), 'html/titlepage.html')
-
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		mobile = mobileTest.mobileTest(self.request.user_agent)

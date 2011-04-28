@@ -480,16 +480,18 @@ function parseInitialJSON(e){
     goog.dom.getElement('saveButton').value="Saved";
     goog.dom.getElement('saveButton').disabled=true;
 
-	//make info bar visible
-	goog.dom.getElement('info').style.width=(editorWidth-6)+"px";
-	goog.dom.getElement('info').style.visibility="visible";
-	fillInfoBar();
-
 	// set up canvas for printing, then print and repeat
 	var canvas = goog.dom.getElement('canvas');
     var ctx = canvas.getContext('2d');
     wrapAll();
 	pagination();
+	
+	//make info bar visible
+	goog.dom.getElement('info').style.width=(editorWidth-6)+"px";
+	goog.dom.getElement('info').style.visibility="visible";
+	fillInfoBar();
+	
+	
     setInterval('paint()', 25);
 
 	// stuff is running, gracefully fade to standard GUI
