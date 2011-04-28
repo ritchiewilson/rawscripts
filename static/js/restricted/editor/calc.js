@@ -1,0 +1,182 @@
+function pagination(){
+    pageBreaks = [];
+    i = 0;
+    var r=0;
+    while(i<lines.length){
+        lineCount = r;
+        while(lineCount+linesNLB[i].length<56){
+            lineCount+=linesNLB[i].length;
+            i++;
+            if (i==lines.length){
+                return;
+            }
+        }
+        var s=0;
+        r=0;
+        if(lines[i][1]==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
+        }
+        else if(lines[i][1]==3 && lineCount<54 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
+            s=55-lineCount;
+            r=1-s;
+            lineCount=56;
+        }
+        else if(lines[i][1]==1 && lineCount<55 && linesNLB[i].length>4){
+            s=linesNLB[i].length-3;
+            r=1-s;
+            lineCount=55;
+        }
+        else{
+            while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
+                i--;
+                lineCount-=linesNLB[i].length;
+            }
+        }
+        pageBreaks.push([i, lineCount, s]);
+    }
+}
+
+/**
+ * Given a col and row of text, finds
+ * the onscreen position. Used for caret
+ * and range, and any future uses
+ * @ param { integer } r Row of text
+ * @ param { integer } c Colulmn of text
+ */
+function canvasPosition(r,c, pageStartX){
+	//figure out what page the caret is on
+	var page = 0;
+	for(i in pageBreaks){
+		if(r<pageBreaks[i][0])break
+		page++;
+	}
+	//handle if caret is in text with page break
+	if(page!=0 && pageBreaks[page-1][0]==r){
+		var j=0;
+		var tc=0;
+		while(j<pageBreaks[page-1][2]){
+			tc+=linesNLB[r][j].length+1;
+			j++;
+		}
+		if(c<tc)page--;
+	}
+	//jump to y of desired page
+	var y = 72*lineheight*page+9*lineheight;
+	
+	
+	// adjust if this isn't first page, and
+	// there may be page splits in text
+	if(page!=0){
+		y-=(pageBreaks[page-1][2]*lineheight);
+		y+=(lines[pageBreaks[page-1][0]][1]==3 ? lineheight : 0);
+	}
+	
+	//figure which line to start counting from
+	var i=(page==0 ? 0 : pageBreaks[page-1][0]);
+	while(i<r){
+		y+=linesNLB[i].length*lineheight;
+		i++
+	}
+	
+	// figure out lateral position
+	var x = WrapVariableArray[lines[r][1]][1];
+	x+=pageStartX;
+
+	var s = 0; // start of line
+	var e = linesNLB[r][0].length; // end of line
+	for (var i=0; i<linesNLB[r].length; i++){
+		if(s<=c && e+i>=c)break; //then caret is on this wrapped line
+		if(i>=linesNLB[r].length-1)break; // then carret is on last wrapped line
+		y+=lineheight;
+		s=e;
+		e+=linesNLB[r][i+1].length;
+	}
+	// i now equals which wrapped line the caret is on
+	// it also equals the number of dropped spaces in linesNLB
+	
+	//tally it all up
+	x+=(c-s-i)*fontWidth;
+	
+	// for Transition format
+	if(lines[r][1]==5){
+		x-=(linesNLB[r][i].length*fontWidth)
+	}
+	return {canvasX:x, canvasY:y-vOffset}
+}
+
+// wrapp all m'fer
+function wrapAll(){
+	//var d = new Date();
+	//var timestamp = d.getMilliseconds();
+	for(var i=0;i<lines.length;i++){
+		var a = getLines(i);
+	}
+	//var d = new Date();
+	//console.log(d.getMilliseconds()-timestamp)
+}
+function getLines(v) {
+	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length);
+	var wa=lines[v][0].split(" ");
+	var phraseArray=[];
+	var lastPhrase="";
+	var l=WrapVariableArray[lines[v][1]][0];
+	var uc=WrapVariableArray[lines[v][1]][3];
+	var measure=0;
+	for (var i=0;i<wa.length;i++) {
+		var w=wa[i];
+		measure=(lastPhrase+" "+w).length;
+		if (measure<l) {
+			lastPhrase+=(w+" ");
+		}
+		else {
+			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
+			phraseArray.push(lastPhrase.slice(0,-1));
+			lastPhrase=w+" ";
+		}
+		if (i===wa.length-1) {
+			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
+			phraseArray.push(lastPhrase.slice(0,-1));
+			break;
+		}
+	}
+	var addBlankLine=WrapVariableArray[lines[v][1]][4]-1;
+	var i=0;
+	while(i < addBlankLine){
+		phraseArray.push("");
+		i++;
+	}
+	if(lines[v][1]==4 && v!=0 && lines[v-1][1]==3 && linesNLB[v-1][linesNLB[v-1].length-1]=='')linesNLB[v-1].pop();
+    linesNLB[v] = phraseArray;
+	
+	// return weather or not to re paginate
+	if(oldLineBreaks = false || oldLineBreaks-phraseArray.length!=0){
+		return true
+	}
+	else{
+		return false
+	}
+}
+
+/**
+ * Figures out if the caret (pos) is 
+ * visible. If not, scroll so that it
+ * is.
+ */
+function autoScroll(){
+	// find position of caret. X is less important
+	// so just feed pageStartX as 0
+	var p = canvasPosition(pos.row,pos.col,0)
+	var c = goog.dom.getElement('canvas').height //canvas height
+	if(p.canvasY>c-40 || p.canvasY<-2){
+		vOffset+=p.canvasY-(c*0.5);
+		scroll(0);
+	}
+}
+
