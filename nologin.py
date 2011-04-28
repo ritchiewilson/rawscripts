@@ -249,14 +249,14 @@ class ScriptContent (webapp.RequestHandler):
 				else:
 					autosave='false'
 			
-			ja=[]
-			ja.append(title)
-			ja.append(simplejson.loads(results[0].data))
-			ja.append(sp)
-			ja.append(notes)
-			ja.append(sharedwith)
-			ja.append(contacts)
-			ja.append(autosave)
+			ja={}
+			ja['title'] = title
+			ja['lines'] = simplejson.loads(results[0].data)
+			ja['spelling'] = sp
+			ja['notes'] = notes
+			ja['sharedwith'] = sharedwith
+			ja['contacts'] = contacts
+			ja['autosave'] = autosave
 
 			content = simplejson.dumps(ja)
 			

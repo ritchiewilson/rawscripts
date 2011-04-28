@@ -262,21 +262,21 @@ function parseInitialJSON(e){
     }
 	// else, parse json, put stuff in place
     var p = e.target.getResponseJson();
-	// p[0] = script title
-	// p[1] = lines of text in the script
-	// p[2] = spelling data
-	// p[3] = notes on the script
-	// p[4] = collaborators on script
-	// p[5] = contacts list
-	// p[6] = autosave setting
+	// script title
+	// lines of text in the script
+	// spelling data
+	// notes on the script
+	// collaborators on script
+	// contacts list
+	// autosave setting
 
 	// set up title
-    var title=p[0];
+    var title=p.title;
     goog.dom.getElement('title').innerHTML=title;
 	document.title = title;
 
 	// set up lines of text into global variable
-    var x = p[1];
+    var x = p.lines;
     for(var i=0; i<x.length; i++){
         lines.push([x[i][0], x[i][1]]);
     }
@@ -288,9 +288,9 @@ function parseInitialJSON(e){
     }
 
 	// put in spelling data into global variable
-    if(p[2].length!=0){
-        var wrong=p[2][0];
-        var ignore =p[2][1];
+    if(p.spelling.length!=0){
+        var wrong=p.spelling[0];
+        var ignore =p.spelling[1];
         for (w in wrong){
             spellWrong.push(wrong[w])
         }
@@ -299,13 +299,13 @@ function parseInitialJSON(e){
         }
     }
     // put notes into global variable
-    for(i in p[3]){
-        notes.push(p[3][i]);
+    for(i in p.notes){
+        notes.push(p.notes[i]);
     }
 
 	// take collaborators list and put them
 	// into dom
-    var collabs=p[4];
+    var collabs=p.sharedwith;
     var c = goog.dom.getElement('hasAccess');
     for (i in collabs){
         var TR = c.appendChild(document.createElement('tr'));
@@ -318,11 +318,11 @@ function parseInitialJSON(e){
 
 	// well, shit. This looks redundant. Gotta test this
 	// out and see why this is here. Done on init()
-	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p[5], goog.dom.getElement('recipient'), true);
-	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p[5], goog.dom.getElement('collaborator'), true);
+	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p.contacts, goog.dom.getElement('recipient'), true);
+	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p.contacts, goog.dom.getElement('collaborator'), true);
 
 	// changes the autosave bool to user prefrence
-	autosaveBool = (p[6]=='true' ? true : false);
+	autosaveBool = (p.autosave=='true' ? true : false);
 
 	// open up scene tab
     tabs(0);
