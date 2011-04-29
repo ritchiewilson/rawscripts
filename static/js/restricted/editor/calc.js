@@ -13,28 +13,28 @@ function pagination(){
         }
         var s=0;
         r=0;
-        if(lines[i][1]==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
+        if(lines[i].format==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
             s=55-lineCount;
             r=1-s;
             lineCount=56;
         }
-        else if(lines[i][1]==3 && lineCount<54 && linesNLB[i].length>4){
+        else if(lines[i].format==3 && lineCount<54 && linesNLB[i].length>4){
             s=linesNLB[i].length-3;
             r=1-s;
             lineCount=55;
         }
-        else if(lines[i][1]==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
+        else if(lines[i].format==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
             s=55-lineCount;
             r=1-s;
             lineCount=56;
         }
-        else if(lines[i][1]==1 && lineCount<55 && linesNLB[i].length>4){
+        else if(lines[i].format==1 && lineCount<55 && linesNLB[i].length>4){
             s=linesNLB[i].length-3;
             r=1-s;
             lineCount=55;
         }
         else{
-            while(lines[i-1][1]==0 || lines[i-1][1]==2 || lines[i-1][1]==4){
+            while(lines[i-1].format==0 || lines[i-1].format==2 || lines[i-1].format==4){
                 i--;
                 lineCount-=linesNLB[i].length;
             }
@@ -75,7 +75,7 @@ function canvasPosition(r,c, pageStartX){
 	// there may be page splits in text
 	if(page!=0){
 		y-=(pageBreaks[page-1][2]*lineheight);
-		y+=(lines[pageBreaks[page-1][0]][1]==3 ? lineheight : 0);
+		y+=(lines[pageBreaks[page-1][0]].format==3 ? lineheight : 0);
 	}
 	
 	//figure which line to start counting from
@@ -86,7 +86,7 @@ function canvasPosition(r,c, pageStartX){
 	}
 	
 	// figure out lateral position
-	var x = WrapVariableArray[lines[r][1]][1];
+	var x = WrapVariableArray[lines[r].format][1];
 	x+=pageStartX;
 
 	var s = 0; // start of line
@@ -105,7 +105,7 @@ function canvasPosition(r,c, pageStartX){
 	x+=(c-s-i)*fontWidth;
 	
 	// for Transition format
-	if(lines[r][1]==5){
+	if(lines[r].format==5){
 		x-=(linesNLB[r][i].length*fontWidth)
 	}
 	return {canvasX:x, canvasY:y-vOffset}
@@ -123,11 +123,11 @@ function wrapAll(){
 }
 function getLines(v) {
 	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length);
-	var wa=lines[v][0].split(" ");
+	var wa=lines[v].text.split(" ");
 	var phraseArray=[];
 	var lastPhrase="";
-	var l=WrapVariableArray[lines[v][1]][0];
-	var uc=WrapVariableArray[lines[v][1]][3];
+	var l=WrapVariableArray[lines[v].format][0];
+	var uc=WrapVariableArray[lines[v].format][3];
 	var measure=0;
 	for (var i=0;i<wa.length;i++) {
 		var w=wa[i];
@@ -146,13 +146,13 @@ function getLines(v) {
 			break;
 		}
 	}
-	var addBlankLine=WrapVariableArray[lines[v][1]][4]-1;
+	var addBlankLine=WrapVariableArray[lines[v].format][4]-1;
 	var i=0;
 	while(i < addBlankLine){
 		phraseArray.push("");
 		i++;
 	}
-	if(lines[v][1]==4 && v!=0 && lines[v-1][1]==3 && linesNLB[v-1][linesNLB[v-1].length-1]=='')linesNLB[v-1].pop();
+	if(lines[v].format==4 && v!=0 && lines[v-1].format==3 && linesNLB[v-1][linesNLB[v-1].length-1]=='')linesNLB[v-1].pop();
     linesNLB[v] = phraseArray;
 	
 	// return weather or not to re paginate

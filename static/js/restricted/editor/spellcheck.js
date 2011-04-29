@@ -15,7 +15,7 @@ function spellCheckCycle(firstLine, r, w){
         hideSpellCheck();
         return;
     }
-    var line=lines[r][0].split(' ');
+    var line=lines[r].text.split(' ');
     var found = false;
     while (found==false){
         var word = line[w].replace("?", "").replace(".","").replace(",","").replace("(","").replace(")","");
@@ -36,7 +36,7 @@ function spellCheckCycle(firstLine, r, w){
                     found='finished';
                 }
                 else{
-                    line = lines[r][0].split(' ');
+                    line = lines[r].text.split(' ');
                 }
             }
         }
@@ -48,11 +48,11 @@ function spellCheckCycle(firstLine, r, w){
         hideSpellCheck()
     }
     else{
-        var sen =lines[r][0];
+        var sen =lines[r].text;
         var reg = new RegExp(word,'i');
         var rep = "<span id='sFocus' title='"+word+"' style='color:red'>"+word+"</span>"
         sen = sen.replace(reg, rep);
-        if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
+        if(lines[r].format==0 || lines[r].format==2 || lines[r].format==5){
             goog.dom.getElement('sSentance').innerHTML = sen.toUpperCase();
             goog.dom.getElement('sSentance').innerHTML =goog.dom.getElement('sSentance').innerHTML.replace("SFOCUS","sFocus")
         }
@@ -74,7 +74,7 @@ function spellCheckCycle(firstLine, r, w){
 	            e.target.id='spellcheckfocus'
 	            goog.dom.getElement('sFocus').innerHTML=e.target.title;
 			})
-            if(lines[r][1]==0 || lines[r][1]==2 || lines[r][1]==5){
+            if(lines[r].format==0 || lines[r].format==2 || lines[r].format==5){
                 item.appendChild(document.createTextNode(sug[i].toUpperCase()));
             }
             else{
@@ -90,7 +90,7 @@ function spellCheckCycle(firstLine, r, w){
                 found='finished';
             }
             else{
-                line = lines[r][0].split(' ');
+                line = lines[r].text.split(' ');
             }
         }
         var h = (found=='finished' ? found : [r,w].join(','))
@@ -116,13 +116,13 @@ function s_ignore_all(){
 function s_change(){
     var s=goog.dom.getElement('sSentance');
     var r = s.title;
-    lines[r][0]="";
+    lines[r].text="";
     for (i in s.childNodes){
-        if(s.childNodes[i].nodeName=="#text")lines[r][0]=lines[r][0]+s.childNodes[i].nodeValue;
+        if(s.childNodes[i].nodeName=="#text")lines[r].text=lines[r].text+s.childNodes[i].nodeValue;
         else{
             var c = s.childNodes[i].childNodes;
             for (j in c){
-                if (c[j].nodeName=="#text")lines[r][0]=lines[r][0]+c[j].nodeValue;
+                if (c[j].nodeName=="#text")lines[r].text=lines[r].text+c[j].nodeValue;
             }
         }
     }

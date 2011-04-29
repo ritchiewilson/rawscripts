@@ -194,14 +194,14 @@ function mousePosition(e, w){
 		else{
 			var i = pageBreaks[page-1][0];// first line on this page to count from
 			var ly = linesNLB[i].length-pageBreaks[page-1][2];
-			if(lines[pageBreaks[page-1][0]][1]==3)ly++; //add line for character CONT'D acrross pages
+			if(lines[pageBreaks[page-1][0]].format==3)ly++; //add line for character CONT'D acrross pages
 		}
 		while(l>ly){
-			if(i==lines.length-1) return {row:i, col:lines[i][0].length} //  if this is last page, cursor below the text
+			if(i==lines.length-1) return {row:i, col:lines[i].text.length} //  if this is last page, cursor below the text
 			i++;
 			ly+=linesNLB[i].length;
 			if(page<pageBreaks.length && i>=pageBreaks[page][0]){// handes pos in white space at end of page, 
-				if(pageBreaks[page][2]==0)return {row:i-1, col:lines[i-1][0].length}// no split text
+				if(pageBreaks[page][2]==0)return {row:i-1, col:lines[i-1].text.length}// no split text
 				
 				pageSplit=true; // with split text across page
 				break; 
@@ -218,13 +218,13 @@ function mousePosition(e, w){
 		}
 		
 		// now add to position based on mouse X
-		var x = e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i][1]][1]; // x diastance into block of text
+		var x = e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i].format][1]; // x diastance into block of text
 		var c = Math.round(x/fontWidth); // number of characters x represents
 		if(c<0)c=0;
 		if(c>linesNLB[i][j].length)c=linesNLB[i][j].length;
 		
 		tc+=c;
-		if(tc>lines[i][0].length)tc=lines[i][0].length; // don't let the position be more than number of characters
+		if(tc>lines[i].text.length)tc=lines[i].text.length; // don't let the position be more than number of characters
 		
 		if(pageSplit==true){
 			var ptc=0; //potential total characters

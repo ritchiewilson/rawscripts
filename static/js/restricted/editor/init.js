@@ -256,7 +256,7 @@ function init(){
 function parseInitialJSON(e){
 	// if script was not found on server, show that
     if(e.target.getResponseText()=='not found'){
-        lines = [["Sorry, the script wasn't found.",1]];
+        lines = [{"text":"Sorry, the script wasn't found.","format":1}];
         paint();
         return;
     }
@@ -278,13 +278,13 @@ function parseInitialJSON(e){
 	// set up lines of text into global variable
     var x = p.lines;
     for(var i=0; i<x.length; i++){
-        lines.push([x[i][0], x[i][1]]);
+        lines.push({'text':x[i][0], 'format':x[i][1]});
     }
 	// if this script has just been started
 	// put cursor at the end of line
     if(lines.length==2){
         pos.row=anch.row=1;
-        pos.col=anch.col=lines[1][0].length;
+        pos.col=anch.col=lines[1].text.length;
     }
 
 	// put in spelling data into global variable

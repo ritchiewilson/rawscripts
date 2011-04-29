@@ -148,7 +148,7 @@ function drawRange(ctx, pageStartX){
 				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 					y=72*lineheight*(count+1)+9*lineheight+3;
 					count++;
-					if(j!=0 && lines[i][1]==3){
+					if(j!=0 && lines[i].format==3){
 						y+=lineheight;
 					}
 					if(count>=pageBreaks.length){
@@ -159,11 +159,11 @@ function drawRange(ctx, pageStartX){
 					// for drawing range in a block that contains
 					// the start of the range, but not the end
 					if(tc>startRange.col){
-						if(lines[i][1]==5){
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						if(lines[i].format==5){
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 					}
 					if(tc<=startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
@@ -174,11 +174,11 @@ function drawRange(ctx, pageStartX){
 					// for drawing range in a block that contains
 					// the end of the range, but not the start
 					if(tc+linesNLB[i][j].length<endRange.col){
-						if(lines[i][1]==5){
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						if(lines[i].format==5){
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 					}
 					if(tc<endRange.col && endRange.col<=(tc+linesNLB[i][j].length)){
@@ -196,11 +196,11 @@ function drawRange(ctx, pageStartX){
 						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
 					}
 					else if(tc>startRange.col && tc<endRange.col){
-						if(lines[i][1]==5){
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						if(lines[i].format==5){
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 						}
 					}
 				}
@@ -208,11 +208,11 @@ function drawRange(ctx, pageStartX){
 					// for drawing range in a block that contains
 					// neither the start or the end of the range
 					// i.e. the stuff int he middle.
-					if(lines[i][1]==5){
-						ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+					if(lines[i].format==5){
+						ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
 					}
 					else{
-						ctx.fillRect(WrapVariableArray[lines[i][1]][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
 					}
 				}
 				y+=lineheight;
@@ -298,7 +298,7 @@ function drawSluglineBacking(ctx, pageStartX){
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
 	for (var i=startLine;i<linesNLB.length;i++){
-		if(lines[i][1]==0){
+		if(lines[i].format==0){
 			var p = canvasPosition(i,0,pageStartX)
 			if(p.canvasY>1200)break;
 			if(p.canvasY>-10){
@@ -354,25 +354,25 @@ function drawText(ctx, pageStartX){
 	var i=startLine;
 	while(i>0){
 		i--;
-		if(lines[i][1]==0)break; // if a scene header is encounterd, don't look further
-		if(lines[i][1]==2){latestCharacter=lines[i][0];break} //when character found
+		if(lines[i].format==0)break; // if a scene header is encounterd, don't look further
+		if(lines[i].format==2){latestCharacter=lines[i].format;break} //when character found
 	}
 	//Stary Cycling through lines
 	for (var i=startLine; i<linesNLB.length; i++){
 		if(y-vOffset>1200)break; // quit drawing if off page
 		for(var j=0; j<linesNLB[i].length; j++){
 			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
-				if(j!=0 && lines[i][1]==3){
+				if(j!=0 && lines[i].format==3){
 					ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
 				}
 				y=72*lineheight*(count+1)+10*lineheight;
 				count++;
-				if(j!=0 && lines[i][1]==3){
+				if(j!=0 && lines[i].format==3){
 					var cbpb=''; // character before page break
 					var lci=i-1 //latest character iterator
 					while(lci>=0){
-						if(lines[lci][1]==2){
-							cbpb = lines[lci][0];
+						if(lines[lci].format==2){
+							cbpb = lines[lci].text;
 							break;
 						}
 						lci--;
@@ -384,18 +384,18 @@ function drawText(ctx, pageStartX){
 					count=pageBreaks.length-2;
 				}
 			}
-			if(lines[i][1]==5){
-				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
+			if(lines[i].format==5){
+				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
 			}
-			else if(lines[i][1]==2 && lines[i][0]==latestCharacter && latestCharacter!=''){
-					ctx.fillText(linesNLB[i][j]+" (CONT'D)", WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+			else if(lines[i].format==2 && lines[i].text==latestCharacter && latestCharacter!=''){
+					ctx.fillText(linesNLB[i][j]+" (CONT'D)", WrapVariableArray[lines[i].format][1]+pageStartX , y-vOffset);
 			}
 			else{
-				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i][1]][1]+pageStartX , y-vOffset);
+				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i].format][1]+pageStartX , y-vOffset);
 			}
 			
-			if(lines[i][1]==2)latestCharacter=lines[i][0];
-			if(lines[i][1]==0)latestCharacter='';
+			if(lines[i].format==2)latestCharacter=lines[i].text;
+			if(lines[i].text==0)latestCharacter='';
 			y+=lineheight;
 		}
 	}

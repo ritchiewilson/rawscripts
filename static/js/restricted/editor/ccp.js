@@ -49,20 +49,20 @@ function paste(){
 	    //[5]=deleted empty line at end
 	    if(data[0]=='[' && data[1]=='[')j=true;
 	    if(!j){
-	        lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+ data + lines[pos.row][0].slice(pos.col);
+	        lines[pos.row].text=lines[pos.row].text.slice(0,pos.col)+ data + lines[pos.row].text.slice(pos.col);
 	        pos.col+=goog.dom.getElement('ccp').value.length;
 	        anch.col=pos.col;
 	    }
 	    else{
 			forceCalc = true;
 	        var arr=JSON.parse(data);
-	        if (lines[pos.row][0]==''){
-	            lines[pos.row][1]=arr[0][1];
+	        if (lines[pos.row].text==''){
+	            lines[pos.row].format=arr[0][1];
 	        }
-	        if (lines[pos.row][1]==arr[0][1]){
+	        if (lines[pos.row].format==arr[0][1]){
 	            undoQue[undoQue.length-1].push(1);
-	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col)+arr[0][0];
+	            var tmp=[lines[pos.row].text.slice(pos.col), lines[pos.row].format];
+	            lines[pos.row].text=lines[pos.row].text.slice(0,pos.col)+arr[0][0];
 	            var i=1;
 	            var p=pos.row+1;
 	            while(i<arr.length){
@@ -71,7 +71,7 @@ function paste(){
 	                i++;
 	            }
 	            lines.splice(p,0,tmp);
-	            if(lines[p][0]=='' || lines[p][0]==' '){
+	            if(lines[p].text=='' || lines[p].text==' '){
 	                lines.splice(p,1);
 	                undoQue[undoQue.length-1].push(0);
 	            }
@@ -79,8 +79,8 @@ function paste(){
 	        }
 	        else{
 	            undoQue[undoQue.length-1].push(0);
-	            var tmp=[lines[pos.row][0].slice(pos.col), lines[pos.row][1]];
-	            lines[pos.row][0]=lines[pos.row][0].slice(0,pos.col);
+	            var tmp=[lines[pos.row].text.slice(pos.col), lines[pos.row].format];
+	            lines[pos.row].text=lines[pos.row].text.slice(0,pos.col);
 	            pos.row++;
 	            lines.splice(pos.row,0,arr[0]);
 	            var i=1;
@@ -91,7 +91,7 @@ function paste(){
 	                i++;
 	            }
 	            lines.splice(p,0,tmp);
-	            if(lines[p][0]=='' || lines[p][0]==' '){
+	            if(lines[p].text=='' || lines[p].text==' '){
 	                lines.splice(p,1);
 	                undoQue[undoQue.length-1].push(0);
 	            }
@@ -101,7 +101,7 @@ function paste(){
 	        pos.col=anch.col=0;
 	        if(pos.row>=lines.length){
 	            pos.row=anch.row=lines.length-1
-	            pos.col=anch.col=lines[pos.row][0].length;
+	            pos.col=anch.col=lines[pos.row].text.length;
 	        }
 	    }
 	    pasting=false;

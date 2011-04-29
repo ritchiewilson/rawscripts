@@ -133,7 +133,7 @@ function scroll(v){
 	milli = d.getMilliseconds();
 	// if a suggest box is open, redraw it in position
 	if(goog.dom.getElement('suggestBox')!=null){
-		createSuggestBox((lines[pos.row][1]==0 ? "s" : "c"));
+		createSuggestBox((lines[pos.row].format==0 ? "s" : "c"));
 	}
 }
 
@@ -175,29 +175,29 @@ function changeFormat(v){
 	// this is a change, so set up save timer
     saveTimer();
 	// update the undoQue, flush redoQue
-    undoQue.push(['format',pos.row,pos.col,lines[pos.row][1],v]);
+    undoQue.push(['format',pos.row,pos.col,lines[pos.row].format,v]);
     redoQue=[];
 	//change format
-    lines[pos.row][1]=v;
+    lines[pos.row].format=v;
 	// deselect drawn text
     anch.col=pos.col;
     anch.row=pos.row;
 	// handle parentheses if applicalble
-    if(lines[pos.row][1]==4){
-        if(lines[pos.row][0].charAt(0)!='('){
-            lines[pos.row][0]='('+lines[pos.row][0];
+    if(lines[pos.row].format==4){
+        if(lines[pos.row].text.charAt(0)!='('){
+            lines[pos.row].text='('+lines[pos.row].text;
             pos.col++;
             anch.col++;
         }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+        if(lines[pos.row].text.charAt(lines[pos.row].text.length-1)!=')')lines[pos.row].text=lines[pos.row].text+')';
     }
     if(lines[pos.row][1]==3){
-        if(lines[pos.row][0].charAt(0)=='('){
-            lines[pos.row][0]=lines[pos.row][0].substr(1);
+        if(lines[pos.row].text.charAt(0)=='('){
+            lines[pos.row].text=lines[pos.row].text.substr(1);
             pos.col--;
             anch.col--;
         }
-        if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+        if(lines[pos.row].text.charAt(lines[pos.row].text.length-1)==')')lines[pos.row].text=lines[pos.row].text.slice(0,-1);
     }
 	// update scene index
     sceneIndex();
@@ -217,9 +217,9 @@ function changeFormat(v){
  */
 function lineFormatGuiUpdate(){
 	if(EOV=='editor'){
-		goog.dom.getElement('format').selectedIndex=lines[pos.row][1];
+		goog.dom.getElement('format').selectedIndex=lines[pos.row].format;
 		for(i=0; i<=5; i++){
-			eMenu.getChild('format'+i).setChecked((lines[pos.row][1]==i ? true : false));
+			eMenu.getChild('format'+i).setChecked((lines[pos.row].format==i ? true : false));
 		}
 	}
 }
@@ -257,7 +257,7 @@ function findInputKeyUp(e, w){
 	}
 	var c = 0;
 	for (i in lines){
-		while (r.test(lines[i][0])==true){
+		while (r.test(lines[i].text)==true){
 			if(w=="f"){findArr.push([i*1,r.lastIndex-f.length])}
 			else{findReplaceArr.push([i*1,r.lastIndex-f.length])}
 		}
@@ -319,8 +319,8 @@ function findUp(){
 function ajaxSpell(v, r){
 	if(EOV=='viewer')return;
     checkSpell=false;
-    var data = lines[v][0];
-    if (lines[v][1]==0 || lines[v][1]==2 || lines[v][1]==5){
+    var data = lines[v].text;
+    if (lines[v].format==0 || lines[v].format==2 || lines[v].format==5){
         data=data.toUpperCase();
     }
     var words = data.split(' ');
@@ -374,17 +374,17 @@ function selection(){
 	}
 	//figure and copy range
 	if (startRange.row==endRange.row){
-		var sel = lines[startRange.row][0].slice(startRange.col, endRange.col);
+		var sel = lines[startRange.row].text.slice(startRange.col, endRange.col);
 	}
 	else{
 		arr=[];
-		arr.push([lines[startRange.row][0].slice(startRange.col),lines[startRange.row][1]]);
+		arr.push([lines[startRange.row].text.slice(startRange.col),lines[startRange.row].format]);
 		startRange.row=startRange.row*1+1;
 		while(startRange.row<endRange.row){
-			arr.push([lines[startRange.row][0],lines[startRange.row][1]]);
+			arr.push([lines[startRange.row].text,lines[startRange.row].format]);
 			startRange.row+=1;
 		}
-		arr.push([lines[endRange.row][0].slice(0,endRange.col),lines[endRange.row][1]]);
+		arr.push([lines[endRange.row].text.slice(0,endRange.col),lines[endRange.row].text]);
 		var sel=JSON.stringify(arr);
 	}
 	var c = goog.dom.getElement('ccp');
@@ -422,7 +422,7 @@ function jumpTo(v){
         var e = parseInt(v.replace('row',''));
         pos.row=e;
         anch.row=pos.row;
-        pos.col=lines[pos.row][0].length;
+        pos.col=lines[pos.row].text.length;
         anch.col=pos.col;
 		this.style.backgroundColor="#999ccc"
     }
@@ -465,10 +465,10 @@ function undo(){
 	}
     redoQue.push(tmp);
     if(dir[0]=='enter'){
-        var j = lines[dir[1]+1][0];
+        var j = lines[dir[1]+1].text;
         lines.splice((dir[1]+1),1);
-        if(lines[dir[1]][1]==4 && lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
-        lines[dir[1]][0]+=j;
+        if(lines[dir[1]].format==4 && lines[dir[1]].text.charAt(lines[dir[1]].text.length-1)==')')lines[dir[1]].text=lines[dir[1]].text.slice(0,-1);
+        lines[dir[1]].text+=j;
         forceCalc=true;
     }
     else if(dir[0]=='back'){
@@ -483,19 +483,19 @@ function undo(){
                 }
                 else if(dir[1]<notes[x].row)notes[x].row=notes[x].row+1;
             }
-            var j = lines[dir[1]][0].slice(0,dir[2]);
-            var k = lines[dir[1]][0].slice(dir[2]);
+            var j = lines[dir[1]].text.slice(0,dir[2]);
+            var k = lines[dir[1]].text.slice(dir[2]);
             if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-            lines[dir[1]][0] = j;
-            var newArr = [k,dir[4]];
+            lines[dir[1]].text = j;
+            var newArr = [{'text':k, 'format':dir[4]}];
             lines.splice(dir[1]+1,0,newArr);
             dir[1]=dir[1]+1;
             dir[2]=0;
             forceCalc=true;
         }
         else{
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+            lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2]-1) + dir[3] +lines[dir[1]].text.slice(dir[2]-1);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
             //shift notes
             for(x in notes){
                 if(dir[1]==notes[x].row){
@@ -506,23 +506,23 @@ function undo(){
     }
     else if(dir[0]=='delete'){
         if(dir[3]=='line'){
-            var j = lines[dir[1]][0].slice(0,dir[2]);
-            var k = lines[dir[1]][0].slice(dir[2]);
+            var j = lines[dir[1]].text.slice(0,dir[2]);
+            var k = lines[dir[1]].text.slice(dir[2]);
             if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
-            lines[dir[1]][0] = j;
-            var newArr = [k,dir[4]];
+            lines[dir[1]].text = j;
+            var newArr = {'text':k, 'format':dir[4]};
             lines.splice(dir[1]+1,0,newArr);
             forceCalc=true;
         }
         else{
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[3] +lines[dir[1]][0].slice(dir[2]);
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+            lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2]) + dir[3] +lines[dir[1]].text.slice(dir[2]);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
         }
     }
     else if(dir[0]=='format'){
-        lines[dir[1]][1]=dir[3];
-        if(lines[dir[1]][0].charAt(0)=='(')lines[dir[1]][0]=lines[dir[1]][0].substr(1);
-        if(lines[dir[1]][0].charAt(lines[dir[1]][0].length-1)==')')lines[dir[1]][0]=lines[dir[1]][0].slice(0,-1);
+        lines[dir[1]].format=dir[3];
+        if(lines[dir[1]].text.charAt(0)=='(')lines[dir[1]].text=lines[dir[1]].text.substr(1);
+        if(lines[dir[1]].text.charAt(lines[dir[1]].text.length-1)==')')lines[dir[1]].text=lines[dir[1]].text.slice(0,-1);
 		forceCalc = true;
     }
     else if(dir[0]=='br' || dir[0]=="dr"){
@@ -535,27 +535,27 @@ function undo(){
 			}
             redoQue.splice(redoQue.length-1,0,tmp);
             if(dir[3]=='line'){
-                var j = lines[dir[1]][0].slice(0,dir[2]);
-                var k = lines[dir[1]][0].slice(dir[2]);
+                var j = lines[dir[1]].text.slice(0,dir[2]);
+                var k = lines[dir[1]].text.slice(dir[2]);
                 if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
                 lines[dir[1]][0] = j;
-                var newArr = [k,dir[4]];
+                var newArr = {'text':k, 'format':dir[4]};
                 lines.splice(dir[1]+1,0,newArr);
                 dir[1]=dir[1]+1;
                 dir[2]=0;
                 forceCalc=true;
             }
             else{
-                lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1) + dir[3] +lines[dir[1]][0].slice(dir[2]-1);
-				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+                lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2]-1) + dir[3] +lines[dir[1]].text.slice(dir[2]-1);
+				if (lines[dir[1]].format==0)updateOneScene(dir[1]);
             }
         }
     }
     else if(dir[0]=='paste'){
         // if string and not json
         if(dir[3][0]!='[' && dir[3][1]!='['){
-            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+lines[dir[1]][0].slice(dir[2]+dir[3].length);
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+            lines[dir[1]].text=lines[dir[1]].text.slice(0, dir[2])+lines[dir[1]].text.slice(dir[2]+dir[3].length);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
         }
         // if json
         else{
@@ -566,17 +566,17 @@ function undo(){
                 lines.splice(dir[1]+1,d.length);
                 //if deleted extra blank line from bad programing
                 if(dir[5]==1){
-                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
+                    lines[dir[1]].text=lines[dir[1]].text+lines[dir[1]+1].text;
                     lines.splice(dir[1]+1,1);
                 }
             }
             //iff added text to first line at paste
             else{
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
+                lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2]);
                 lines.splice(dir[1]+1,d.length-1);
                 //if deleted extra blank line from bad programing
                 if(dir[5]==1){
-                    lines[dir[1]][0]=lines[dir[1]][0]+lines[dir[1]+1][0];
+                    lines[dir[1]].text=lines[dir[1]].text+lines[dir[1]+1].text;
                     lines.splice(dir[1]+1,1);
                 }
             }
@@ -584,12 +584,12 @@ function undo(){
         }
     }
     else{
-        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
-        if(lines[dir[1]][1]==4 && lines[dir[1]][0][dir[2]-1]==')'){
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
+        lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2])+lines[dir[1]].text.slice(dir[2]+1);
+        if(lines[dir[1]].format==4 && lines[dir[1]].text[dir[2]-1]==')'){
+            lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2])+lines[dir[1]].text.slice(dir[2]+1);
             dir[2]=dir[2]-1;
         }
-		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+		if (lines[dir[1]].format==0)updateOneScene(dir[1]);
         //shift notes
         for(x in notes){
             if(dir[1]==notes[x].row){
@@ -622,16 +622,16 @@ function redo(){
     undoQue.push(tmp);
     var forceCalc=false;
     if(dir[0]=='enter'){
-        var j = lines[dir[1]][0].slice(0,dir[2]);
-        var k = lines[dir[1]][0].slice(dir[2]);
-        lines[dir[1]][0] = j;
-        if (lines[dir[1]][1] == 0)var newElem = 1;
-        else if (lines[dir[1]][1] == 1)var newElem = 2;
-        else if (lines[dir[1]][1] == 2)var newElem = 3;
-        else if (lines[dir[1]][1] == 4)var newElem = 3;
-        else if (lines[dir[1]][1] == 3)var newElem = 2;
-        else if (lines[dir[1]][1] == 5)var newElem = 0;
-        var newArr = [k,newElem];
+        var j = lines[dir[1]].text.slice(0,dir[2]);
+        var k = lines[dir[1]].text.slice(dir[2]);
+        lines[dir[1]].text = j;
+        if (lines[dir[1]].format == 0)var newElem = 1;
+        else if (lines[dir[1]].format == 1)var newElem = 2;
+        else if (lines[dir[1]].format == 2)var newElem = 3;
+        else if (lines[dir[1]].format == 4)var newElem = 3;
+        else if (lines[dir[1]].format == 3)var newElem = 2;
+        else if (lines[dir[1]].format == 5)var newElem = 0;
+        var newArr = {'text':k, 'format':newElem};
         lines.splice(dir[1]+1,0,newArr);
 		dir[1]=dir[1]+1;
 		dir[2]=0;
@@ -639,40 +639,40 @@ function redo(){
     }
     else if(dir[0]=='back'){
         if(dir[3]!='line'){
-            lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
+            lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2]-1)+lines[dir[1]].text.slice(dir[2]);
             dir[2]=dir[2]-1;
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
         }
         else{
-            var j = lines[dir[1]+1][0];
+            var j = lines[dir[1]+1].text;
             lines.splice(dir[1]+1,1);
-            lines[dir[1]][0] = lines[dir[1]][0]+j;
+            lines[dir[1]].text = lines[dir[1]].text+j;
 			forceCalc=true;
         }
     }
     else if(dir[0]=='delete'){
 		if(dir[3]!='line'){
-			lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2])+lines[dir[1]][0].slice(dir[2]+1);
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+			lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2])+lines[dir[1]].text.slice(dir[2]+1);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
 		}
 		else{
-			var j =lines[dir[1]+1][0];
+			var j =lines[dir[1]+1].text;
 			lines.splice(dir[1]+1,1);
-			lines[dir[1]][0]=lines[dir[1]][0]+j;
+			lines[dir[1]].text=lines[dir[1]].text+j;
 		}
     }
     else if(dir[0]=='format'){
 		if (dir[4]!='tab'){
-			lines[dir[1]][1]=dir[4];
+			lines[dir[1]].format=dir[4];
 		}
 		else{
 			var j = dir[3];
-			if (j==0) lines[dir[1]][1]=2;
-			else if(j==1)lines[dir[1]][1]=0;
-			else if(j==2)lines[dir[1]][1]=1;
-			else if(j==3)lines[dir[1]][1]=4;
-			else if(j==4)lines[dir[1]][1]=3;
-			else if(j==5)lines[dir[1]][1]=0;
+			if (j==0) lines[dir[1]].format=2;
+			else if(j==1)lines[dir[1]].format=0;
+			else if(j==2)lines[dir[1]].format=1;
+			else if(j==3)lines[dir[1]].format=4;
+			else if(j==4)lines[dir[1]].format=3;
+			else if(j==5)lines[dir[1]].format=0;
 		}
 		forceCalc=true;
     }
@@ -686,14 +686,14 @@ function redo(){
 			}
             undoQue.splice(undoQue.length-1,0,tmp);
             if(dir[3]=='line'){
-				var j=lines[dir[1]+1][0]
+				var j=lines[dir[1]+1].text;
 				lines.splice(dir[1]+1,1);
-				lines[dir[1]][0]=lines[dir[1]][0]+j;
+				lines[dir[1]].text=lines[dir[1]].text+j;
 				forceCalc=true;
 			}
 			else{
-				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
-				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+				lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2]-1)+lines[dir[1]].text.slice(dir[2]);
+				if (lines[dir[1]].format==0)updateOneScene(dir[1]);
 			}
 		}
 		dir[2]=dir[2]-1;
@@ -708,14 +708,14 @@ function redo(){
 			}
             undoQue.splice(undoQue.length-1,0,tmp);
             if(dir[3]=='line'){
-				var j=lines[dir[1]+1][0]
+				var j=lines[dir[1]+1].text;
 				lines.splice(dir[1]+1,1);
-				lines[dir[1]][0]=lines[dir[1]][0]+j;
+				lines[dir[1]].text=lines[dir[1]].text+j;
 				forceCalc=true;
 			}
 			else{
-				lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]-1)+lines[dir[1]][0].slice(dir[2]);
-				if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+				lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2]-1)+lines[dir[1]].text.slice(dir[2]);
+				if (lines[dir[1]].format==0)updateOneScene(dir[1]);
 			}
 		}
 		dir[2]=dir[2]-1;
@@ -723,45 +723,45 @@ function redo(){
     else if(dir[0]=='paste'){
         //for single line, no json
         if(dir[3][0]!='[' && dir[3][1]!='['){
-            lines[dir[1]][0]=lines[dir[1]][0].slice(0, dir[2])+dir[3]+lines[dir[1]][0].slice(dir[2]);
-			if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+            lines[dir[1]].text=lines[dir[1]].text.slice(0, dir[2])+dir[3]+lines[dir[1]].text.slice(dir[2]);
+			if (lines[dir[1]].format==0)updateOneScene(dir[1]);
         }
         //for json
         else{
 			forceCalc=true;
             var arr=JSON.parse(dir[3]);
-            if (lines[dir[1]][0]==''){
-                lines[dir[1]][1]=arr[0][1];
+            if (lines[dir[1]].text==''){
+                lines[dir[1]].format=arr[0][1];
             }
-            if (lines[dir[1]][1]==arr[0][1]){
-                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2])+arr[0][0];
+            if (lines[dir[1]].format==arr[0][1]){
+                var tmp={'text':lines[dir[1]].text.slice(dir[2]), 'format':lines[dir[1]].format};
+                lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2])+arr[0][0];
                 var i=1;
                 var p=dir[1]+1;
                 while(i<arr.length){
-                    lines.splice(p,0,arr[i]);
+                    lines.splice(p,0,{'text':arr[i][0], 'format':arr[i][1]});
                     p++;
                     i++;
                 }
                 lines.splice(p,0,tmp);
-                if(lines[p][0]=='' || lines[p][0]==' '){
+                if(lines[p].text=='' || lines[p].text==' '){
                     lines.splice(p,1);
                 }
             }
             else{
-                var tmp=[lines[dir[1]][0].slice(dir[2]), lines[dir[1]][1]];
-                lines[dir[1]][0]=lines[dir[1]][0].slice(0,dir[2]);
+                var tmp={'text':lines[dir[1]].text.slice(dir[2]), 'format':lines[dir[1]].format};
+                lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2]);
                 dir[1]++;
-                lines.splice(dir[1],0,arr[0]);
+                lines.splice(dir[1],0,{'text':arr[0][0], 'format':arr[0][1]});
                 var i=1;
                 var p=dir[1]+1;
                 while(i<arr.length){
-                    lines.splice(p,0,arr[i]);
+                    lines.splice(p,0,{'text':arr[i][0], 'format':arr[i][1]});
                     p++;
                     i++;
                 }
                 lines.splice(p,0,tmp);
-                if(lines[p][0]=='' || lines[p][0]==' '){
+                if(lines[p].text=='' || lines[p].text==' '){
                     lines.splice(p,1);
                 }
             }
@@ -769,9 +769,9 @@ function redo(){
         
     }
     else{
-        lines[dir[1]][0] = lines[dir[1]][0].slice(0,dir[2]) + dir[0] +lines[dir[1]][0].slice(dir[2]);
+        lines[dir[1]].text = lines[dir[1]].text.slice(0,dir[2]) + dir[0] +lines[dir[1]].text.slice(dir[2]);
         dir[2]=dir[2]+1;
-		if (lines[dir[1]][1]==0)updateOneScene(dir[1]);
+		if (lines[dir[1]].format==0)updateOneScene(dir[1]);
     }
 	for(var i=0;i<lines.length;i++){
 		getLines(i);
@@ -787,7 +787,7 @@ function redo(){
 function selectAll(){
 	anch.col=anch.row=0;
 	pos.row=lines.length-1;
-	pos.col=lines[pos.row][0].length;
+	pos.col=lines[pos.row].text.length;
 	selection();
 }
 
@@ -796,8 +796,8 @@ function selectAll(){
 
 function characterInit(){
 	for(var i=0; i<lines.length;i++){
-		if (lines[i][1]==2){
-			characterIndex(lines[i][0]);
+		if (lines[i].format==2){
+			characterIndex(lines[i].text);
 		}
 	}
 }
@@ -818,17 +818,17 @@ function sceneIndex(){
     scenes=[];
     var num = 0;
     for (var i=0; i<lines.length; i++){
-        if(lines[i][1]==0){
+        if(lines[i].format==0){
             num++;
 			var tooltip="";
 			if (i!=lines.length-1){
-				tooltip=lines[i+1][0];
-				if((lines[i+1][1]==2 || lines[i+1][1]==5) && i!=lines.length-2){
-					tooltip+=" "+lines[i+2][0];
+				tooltip=lines[i+1].text;
+				if((lines[i+1].format==2 || lines[i+1].format==5) && i!=lines.length-2){
+					tooltip+=" "+lines[i+2].text;
 				}
 				
 			}
-            scenes.push([String(num)+') '+lines[i][0].toUpperCase(), i, tooltip]);
+            scenes.push([String(num)+') '+lines[i].text.toUpperCase(), i, tooltip]);
 			tooltip=null;
         }
     }
@@ -849,7 +849,7 @@ function updateOneScene(v){
 		var d = goog.dom.getElement("row"+v);	
 		var num = d.innerHTML.split(")")[0];
 		d.removeChild(d.firstChild);
-		d.appendChild(document.createTextNode(num+") "+lines[v][0].toUpperCase()));
+		d.appendChild(document.createTextNode(num+") "+lines[v].text.toUpperCase()));
 	}
 	catch(e){};
 }
@@ -862,29 +862,32 @@ function updateOneScene(v){
 // closing the window
 function closeScript(){
 	clearTimeout(timer);
-    if(resource_id=='Demo' || EOV=='viewer'){
-        self.close()
-    }
-    var data=JSON.stringify(lines);
-    goog.dom.getElement('saveButton').value='Saving...';
-    goog.net.XhrIo.send('/save', function(d){
-        self.close();
+	if(resource_id=='Demo' || EOV=='viewer'){
+		self.close()
+	}
+	var arr=[]
+	for(x in lines){
+		arr.push([lines[x].text,lines[x].format])
+	}
+	var data=JSON.stringify(arr);
+	goog.dom.getElement('saveButton').value='Saving...';
+	goog.net.XhrIo.send('/save', function(d){
+		self.close();
 		},
 		'POST',
 		"data="+escape(data)+"&resource_id="+resource_id+"&autosave=0"
 	);
-    var arr = []
-    for (i in notes){
-        arr.push([notes[i].row, notes[i].col, notes[i].thread_id])
-    }
-    if(arr.length!=0){
+	var arr = []
+	for (i in notes){
+		arr.push([notes[i].row, notes[i].col, notes[i].thread_id])
+	}
+	if(arr.length!=0){
 		goog.net.XhrIo.send('/notesposition', 
 			function(d){},
 			'POST',
 			"positions="+escape(JSON.stringify(arr))+"&resource_id="+resource_id
 		);
-    }
-	data=arr=i=null;
+	}
 }
 // new script
 function newScriptPrompt(){
@@ -955,7 +958,11 @@ function save(v){
         }
         return;
     }
-    var data=JSON.stringify(lines);
+	var arr=[];
+	for(x in lines){
+		arr.push([lines[x].text, lines[x].format])
+	}
+    var data=JSON.stringify(arr);
     goog.dom.getElement('saveButton').value='Saving...';
     goog.net.XhrIo.send('/save', function(d){
 			if(d.target.getResponseText()=='1'){
@@ -983,7 +990,6 @@ function save(v){
 			"positions="+escape(JSON.stringify(arr))+"&resource_id="+resource_id
 		);
     }
-	data=arr=i=null;
 }
 // open other script
 function openPrompt(){
@@ -1280,7 +1286,6 @@ function replaceText(){
 	anch.col=pos.col-d.length;
 	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	//backspace();
-	//lines[pos.row][0]=lines[pos.row][0].slice(0, pos.col)+d+lines[pos.row][0].slice(pos.col)
 }
 function replaceAndFind(){
 	if(EOV=='viewer')return;

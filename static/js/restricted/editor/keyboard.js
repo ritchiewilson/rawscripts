@@ -98,7 +98,7 @@ function handlekeypress(e) {
 				if(pos.row!=anch.row || pos.col!=anch.col)deleteButton();
 				
 				// Add the letter to the line at the right spot
-				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col) + String.fromCharCode(e.charCode) +lines[pos.row][0].slice(pos.col);
+				lines[pos.row].text = lines[pos.row].text.slice(0,pos.col) + String.fromCharCode(e.charCode) +lines[pos.row].text.slice(pos.col);
 				
 				// Put this action in the undoQue
 				undoQue.push([String.fromCharCode(e.charCode), pos.row, pos.col]);
@@ -109,14 +109,14 @@ function handlekeypress(e) {
 				anch.row=pos.row;
 				
 				// update scene list, if this is a Slugline
-				if (lines[pos.row][1]==0)updateOneScene(pos.row);
+				if (lines[pos.row].format==0)updateOneScene(pos.row);
 				
 				// recreate suggest box if this is
 				// a character or scene foramted line
-				if (lines[pos.row][1]==2){
+				if (lines[pos.row].format==2){
 					createSuggestBox('c');
 				}
-				if(lines[pos.row][1]==0){
+				if(lines[pos.row].format==0){
 					createSuggestBox('s');
 				}
 				//shift notes
@@ -171,7 +171,7 @@ function backspace(e){
 		// remember if we need to calc
 		// or update things at the end.
 		// assume no
-		var calcSlug=(lines[pos.row][1]==0 ? true : false)
+		var calcSlug=(lines[pos.row].format==0 ? true : false)
 		
 		// simple case, nothing selected
 		if(pos.row==anch.row && pos.col==anch.col){
@@ -189,17 +189,17 @@ function backspace(e){
 						notes[x].row=notes[x].row-1;
 					}
 					else if(pos.row==notes[x].row){
-						notes[x].col=notes[x].col+lines[pos.row-1][0].length;
+						notes[x].col=notes[x].col+lines[pos.row-1].text.length;
 						notes[x].row=notes[x].row-1;
 					}
 					if (notes[x].col<0)notes[x].col=0;
 				}
 				//actually do the operation
-				var elem = lines[pos.row][1];
-				var j = lines[pos.row][0];
+				var elem = lines[pos.row].format;
+				var j = lines[pos.row].text;
 				lines.splice(pos.row,1);
-				var newPos = lines[pos.row-1][0].length;
-				lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+				var newPos = lines[pos.row-1].text.length;
+				lines[pos.row-1].text = lines[pos.row-1].text+j;
 				pos.col=newPos;
 				pos.row--;
 				
@@ -220,10 +220,10 @@ function backspace(e){
 				// backspace
 				
 				// add to undo que
-				undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
+				undoQue.push(['back',pos.row, pos.col,lines[pos.row].text[pos.col-1]]);
 				
 				// do it
-				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+				lines[pos.row].text = lines[pos.row].text.slice(0,pos.col-1)+lines[pos.row].text.slice(pos.col);
 				pos.col--;
 				// shift notes
 				for(x in notes){
@@ -269,7 +269,7 @@ function backspace(e){
 			// while anch != pos, keep deleting, character by character
 			while(pos.col!=anch.col || pos.row!=anch.row){
 				undoCount++;
-				if(lines[pos.row][1]==0)slug=true;
+				if(lines[pos.row].format==0)slug=true;
 				if(pos.col==0){
 					// if character to delete is virtual
 					// nlb
@@ -280,18 +280,18 @@ function backspace(e){
 							notes[x].row=notes[x].row-1;
 						}
 						else if(pos.row==notes[x].row){
-							notes[x].col=notes[x].col+lines[pos.row-1][0].length;
+							notes[x].col=notes[x].col+lines[pos.row-1].text.length;
 							notes[x].row=notes[x].row-1;
 						}
 						if (notes[x].col<0)notes[x].col=0;
 					}
 					
 					// combine two lines of text
-					var elem = lines[pos.row][1];
-					var j = lines[pos.row][0];
+					var elem = lines[pos.row].format;
+					var j = lines[pos.row].text;
 					lines.splice(pos.row,1);
-					var newPos = lines[pos.row-1][0].length;
-					lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+					var newPos = lines[pos.row-1].text.length;
+					lines[pos.row-1].text = lines[pos.row-1].text+j;
 					pos.col=newPos;
 					pos.row--;
 					undoQue.push(['back',pos.row, pos.col,'line',elem]);
@@ -299,8 +299,8 @@ function backspace(e){
 				else{
 					// if character to delete is just 
 					// a character of text
-					undoQue.push(['back',pos.row, pos.col,lines[pos.row][0][pos.col-1]]);
-					lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+					undoQue.push(['back',pos.row, pos.col,lines[pos.row].text[pos.col-1]]);
+					lines[pos.row].text = lines[pos.row].text.slice(0,pos.col-1)+lines[pos.row].text.slice(pos.col);
 					pos.col--;
 					//shift notes
 					for(x in notes){
@@ -361,19 +361,19 @@ function deleteButton(){
 		// if this is the last posible
 		// position in the script. Delete
 		// nothing, return
-		if(pos.col==(lines[pos.row][0].length) && pos.row==lines.length-1) return;
+		if(pos.col==(lines[pos.row].text.length) && pos.row==lines.length-1) return;
 		
 		// remember to recalc scene list
-		if (lines[pos.row][1]==0)var slug=true;
+		if (lines[pos.row].format==0)var slug=true;
 		
-		if(pos.col==(lines[pos.row][0].length)){
+		if(pos.col==(lines[pos.row].text.length)){
 			// if caret is at end of line, combine
 			// two lines of text
 			
 			// shift notes
 			for(x in notes){
 				if(pos.row+1==notes[x].row){
-					notes[x].col=notes[x].col+lines[pos.row][0].length;
+					notes[x].col=notes[x].col+lines[pos.row].text.length;
 					notes[x].row=notes[x].row-1;
 				}
 				else if(pos.row<notes[x].row){
@@ -381,13 +381,13 @@ function deleteButton(){
 				}
 				if (notes[x].col<0)notes[x].col=0;
 			}
-			undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1][1]]);
-			if (lines[pos.row+1][1]==0)slug=true;
+			undoQue.push(['delete',pos.row,pos.col,'line',lines[pos.row+1].format]);
+			if (lines[pos.row+1].format==0)slug=true;
 			
 			// actually do it
-			var j = lines[pos.row+1][0];
+			var j = lines[pos.row+1].text;
 			lines.splice((pos.row+1),1);
-			lines[pos.row][0]+=j;
+			lines[pos.row].text+=j;
 			forceCalc=true;
 			
 			//recalc lines
@@ -397,8 +397,8 @@ function deleteButton(){
 		}
 		else{
 			// delete one character
-			undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col]]);
-			lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col)+lines[pos.row][0].slice(pos.col+1);
+			undoQue.push(['delete',pos.row,pos.col,lines[pos.row].text[pos.col]]);
+			lines[pos.row].text = lines[pos.row].text.slice(0,pos.col)+lines[pos.row].text.slice(pos.col+1);
 			
 			//shift notes
 			for(x in notes){
@@ -436,7 +436,7 @@ function deleteButton(){
 		// while pos!=anch, delete character by character
 		while(pos.col!=anch.col || pos.row!=anch.row){
 			undoCount++;
-			if(lines[pos.row][1]==0)slug=true;
+			if(lines[pos.row].format==0)slug=true;
 			if(pos.col==0){
 				// if caret is at the start of 
 				// line, delete nlb and combine
@@ -445,7 +445,7 @@ function deleteButton(){
 				//shift notes
 				for(x in notes){
 					if(pos.row+1==notes[x].row){
-						notes[x].col=notes[x].col+lines[pos.row][0].length;
+						notes[x].col=notes[x].col+lines[pos.row].text.length;
 						notes[x].row=notes[x].row-1;
 					}
 					else if(pos.row<notes[x].row){
@@ -453,11 +453,11 @@ function deleteButton(){
 					}
 					if (notes[x].col<0)notes[x].col=0;
 				}
-				undoQue.push(['delete',pos.row-1,lines[pos.row-1][0].length,'line',lines[pos.row][1]]);
-				var j = lines[pos.row][0];
+				undoQue.push(['delete',pos.row-1,lines[pos.row-1].text.length,'line',lines[pos.row].format]);
+				var j = lines[pos.row].text;
 				lines.splice(pos.row,1);
-				var newPos = lines[pos.row-1][0].length;
-				lines[pos.row-1][0] = lines[pos.row-1][0]+j;
+				var newPos = lines[pos.row-1].text.length;
+				lines[pos.row-1].text = lines[pos.row-1].text+j;
 				pos.col=newPos;
 				pos.row--;
 				slug=true;
@@ -465,8 +465,8 @@ function deleteButton(){
 			}
 			else{
 				// delete one character of text
-				undoQue.push(['delete',pos.row,pos.col,lines[pos.row][0][pos.col-1]]);
-				lines[pos.row][0] = lines[pos.row][0].slice(0,pos.col-1)+lines[pos.row][0].slice(pos.col);
+				undoQue.push(['delete',pos.row,pos.col,lines[pos.row].text[pos.col-1]]);
+				lines[pos.row].text = lines[pos.row].text.slice(0,pos.col-1)+lines[pos.row].text.slice(pos.col);
 				pos.col--;
 				//shift notes
 				for(x in notes){
@@ -514,12 +514,12 @@ function enter(){
 	// text of selection, put it in
 	if(goog.dom.getElement('suggestBox')!=null){
         saveTimer();
-        var len = lines[pos.row][0].length;
+        var len = lines[pos.row].text.length;
 		var txt = googSuggestMenu.getHighlighted().getCaption();
-		lines[pos.row][0]= txt;
-        undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
+		lines[pos.row].text= txt;
+        undoQue.push(['paste', pos.row, pos.col, lines[pos.row].text.substr(len)]);
 		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
-		pos.col=anch.col=lines[pos.row][0].length;
+		pos.col=anch.col=lines[pos.row].text.length;
 		var p = getLines(pos.row);
 		if(p)pagination();
 	}
@@ -531,7 +531,7 @@ function enter(){
 		
 		// remove trailing white space.... don't
 		// know why
-		lines[pos.row][0]=lines[pos.row][0].replace(/\s+$/,"");
+		lines[pos.row].text=lines[pos.row].text.replace(/\s+$/,"");
 		
 		//shift notes
 		for(x in notes){
@@ -545,29 +545,29 @@ function enter(){
 		}
 		undoQue.push(['enter', pos.row, pos.col]);
 		redoQue=[];
-		if(lines[pos.row][1]==2)characterIndex(lines[pos.row][0]);
+		if(lines[pos.row].format==2)characterIndex(lines[pos.row].text);
 		
 		// actually do it. split lines of text
-		var j = lines[pos.row][0].slice(0,pos.col);
-		var k = lines[pos.row][0].slice(pos.col);
-		lines[pos.row][0] = j;
+		var j = lines[pos.row].text.slice(0,pos.col);
+		var k = lines[pos.row].text.slice(pos.col);
+		lines[pos.row].text = j;
 		
 		// figure out format of next line of text
-		if (lines[pos.row][1] == 0)var newElem = 1;
-		else if (lines[pos.row][1] == 1)var newElem = 2;
-		else if (lines[pos.row][1] == 2)var newElem = 3;
-		else if (lines[pos.row][1] == 4){
+		if (lines[pos.row].format == 0)var newElem = 1;
+		else if (lines[pos.row].format == 1)var newElem = 2;
+		else if (lines[pos.row].format == 2)var newElem = 3;
+		else if (lines[pos.row].format == 4){
 			//with parenthetical, get rid of pesky ")"
 			var newElem = 3;
 			if(k.slice(-1)==")"){
 				k=k.slice(0,-1)
 			}
 		}
-		else if (lines[pos.row][1] == 3)var newElem = 2;
-		else if (lines[pos.row][1] == 5)var newElem = 0;
+		else if (lines[pos.row].format == 3)var newElem = 2;
+		else if (lines[pos.row].format == 5)var newElem = 0;
 		
 		// put second half of text in new line
-		var newArr = [k,newElem];
+		var newArr = {'text':k, 'format':newElem};
 		lines.splice(pos.row+1,0,newArr);
 		pos.row++;
 		pos.col=0;
@@ -604,27 +604,27 @@ function tab(){
 		// remove suggest box if exists
 		if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
 		saveTimer();
-		undoQue.push(['format',pos.row,pos.col,lines[pos.row][1], 'tab']);
+		undoQue.push(['format',pos.row,pos.col,lines[pos.row].format, 'tab']);
 		redoQue=[];
 		
 		// remember to recalc scenes if needed
 		var slug=false;
-		if (lines[pos.row][1]==0)var slug=true;
+		if (lines[pos.row].format==0)var slug=true;
 		
 		// what type of line is this now
-		var type = lines[pos.row][1];
+		var type = lines[pos.row].format;
 		
 		// change it to the correct new format
 		if (type==1){
-			lines[pos.row][1]=0;
+			lines[pos.row].format=0;
 			slug=true;
 		}
-		else if (type==0)lines[pos.row][1]=2;
-		else if (type==2)lines[pos.row][1]=1;
-		else if (type==3)lines[pos.row][1]=4;
-		else if (type==4)lines[pos.row][1]=3;
+		else if (type==0)lines[pos.row].format=2;
+		else if (type==2)lines[pos.row].format=1;
+		else if (type==3)lines[pos.row].format=4;
+		else if (type==4)lines[pos.row].format=3;
 		else if (type==5){
-			lines[pos.row][1]=0;
+			lines[pos.row].format=0;
 			slug=true;
 		}
 		
@@ -632,23 +632,23 @@ function tab(){
 		if(slug)sceneIndex();
 		
 		// add parentheses if switched to parenthetical
-		if(lines[pos.row][1]==4){
-			if(lines[pos.row][0].charAt(0)!='('){
-				lines[pos.row][0]='('+lines[pos.row][0];
+		if(lines[pos.row].format==4){
+			if(lines[pos.row].text.charAt(0)!='('){
+				lines[pos.row].text='('+lines[pos.row].text;
 				pos.col++;
 				anch.col++;
 			}
-			if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)!=')')lines[pos.row][0]=lines[pos.row][0]+')';
+			if(lines[pos.row].text.charAt(lines[pos.row].text.length-1)!=')')lines[pos.row].text=lines[pos.row].text+')';
 		}
 		
 		// remove parentheses if switched from parenthetical
-		if(lines[pos.row][1]==3){
-			if(lines[pos.row][0].charAt(0)=='('){
-				lines[pos.row][0]=lines[pos.row][0].substr(1);
+		if(lines[pos.row].format==3){
+			if(lines[pos.row].text.charAt(0)=='('){
+				lines[pos.row].text=lines[pos.row].text.substr(1);
 				pos.col--;
 				anch.col--;
 			}
-			if(lines[pos.row][0].charAt(lines[pos.row][0].length-1)==')')lines[pos.row][0]=lines[pos.row][0].slice(0,-1);
+			if(lines[pos.row].text.charAt(lines[pos.row].text.length-1)==')')lines[pos.row].text=lines[pos.row].text.slice(0,-1);
 		}
 		
 		//recalc line wraping/pagination
@@ -668,10 +668,10 @@ function upArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
 		if (pos.row==0 && pos.col==0)return;
 
-		var wrapVars = WrapVariableArray[lines[pos.row][1]];
+		var wrapVars = WrapVariableArray[lines[pos.row].format];
 		// Only do calculations if 
 		// there is wrapped text
-		if(lines[pos.row][0].length>wrapVars[0]){
+		if(lines[pos.row].text.length>wrapVars[0]){
 			var lineLengths=[];
 			for(i in linesNLB[pos.row]){
 				lineLengths.push(linesNLB[pos.row][i].length)
@@ -698,12 +698,12 @@ function upArrow(e){
 			if(integ==0){
 				if(checkSpell)ajaxSpell(pos.row);
 
-				var newWrapVars = WrapVariableArray[lines[pos.row-1][1]];
+				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
 				// If the previous line (the one we're jumping into)
 				// has only one line, don't run the calcs, just go to it
-				if(lines[pos.row-1][0].length<newWrapVars[0]){
+				if(lines[pos.row-1].text.length<newWrapVars[0]){
 					pos.row--;
-					if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+					if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
 				}
 				else{
 					var lineLengths=[];
@@ -711,8 +711,8 @@ function upArrow(e){
 						lineLengths.push(linesNLB[pos.row][i].length)
 					}
 					pos.row--;
-					pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-					if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+					pos.col+=lines[pos.row].text.length-lineLengths[lineLengths.length-1];
+					if(pos.col>lines[pos.row].text.length)pos.col = lines[pos.row].text.length;
 				}
 			}
 			// if this is some middle line in a block of wrapped text
@@ -730,12 +730,12 @@ function upArrow(e){
 			else{
 				if(checkSpell)ajaxSpell(pos.row);
 				
-				var newWrapVars = WrapVariableArray[lines[pos.row-1][1]];
+				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
 				//If the previous line (the one we're jumping into)
 				//has only one line, don't run the calcs, just go to it
-				if(lines[pos.row-1][0].length<newWrapVars[0]){
+				if(lines[pos.row-1].text.length<newWrapVars[0]){
 					pos.row--;
-					if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+					if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
 				}
                 //if the previous line has wrapped text
 				else{
@@ -744,8 +744,8 @@ function upArrow(e){
 						lineLengths.push(linesNLB[pos.row-1][i].length)
 					}
 					pos.row--;
-					pos.col+=lines[pos.row][0].length-lineLengths[lineLengths.length-1];
-					if(pos.col>lines[pos.row][0].length)pos.col = lines[pos.row][0].length;
+					pos.col+=lines[pos.row].text.length-lineLengths[lineLengths.length-1];
+					if(pos.col>lines[pos.row].text.length)pos.col = lines[pos.row].text.length;
 				}
 			}
 		}
@@ -768,10 +768,10 @@ function upArrow(e){
  */
 function downArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
-		if(pos.row==lines.length-1 && pos.col==lines[pos.row][0].length)return;
+		if(pos.row==lines.length-1 && pos.col==lines[pos.row].text.length)return;
 		
-		var wrapVars = WrapVariableArray[lines[pos.row][1]];
-		if (lines[pos.row][0].length>wrapVars[0]){
+		var wrapVars = WrapVariableArray[lines[pos.row].format];
+		if (lines[pos.row].text.length>wrapVars[0]){
             var lineLengths=[];
 			for(i in linesNLB[pos.row]){
 				if(linesNLB[pos.row][i]!=""){
@@ -796,9 +796,9 @@ function downArrow(e){
 				pos.row++;
 				if(pos.row>lines.length-1){
 					pos.row--;
-					pos.col=lines[pos.row][0].length;
+					pos.col=lines[pos.row].text.length;
 				}
-				if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+				if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
 			}
 			// if this is some middle line in a block of wrapped text
 			else{
@@ -808,12 +808,12 @@ function downArrow(e){
 		}
 		else{
 			if(pos.row==lines.length-1){
-				pos.col=lines[pos.row][0].length;
+				pos.col=lines[pos.row].text.length;
 			}
 			else{
 				pos.row++;
 				if(pos.row>lines.length-1) pos.row=lines.length-1;
-				if(pos.col>lines[pos.row][0].length)pos.col=lines[pos.row][0].length;
+				if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
 			}
 		}
 		if(!e.shiftKey){
@@ -840,7 +840,7 @@ function leftArrow(e){
 		if(pos.col==0){
 			if(checkSpell)ajaxSpell(pos.row);
 			pos.row--;
-			pos.col=lines[pos.row][0].length;
+			pos.col=lines[pos.row].text.length;
 			var change=true;
 		}
 		else{
@@ -866,8 +866,8 @@ function leftArrow(e){
 function rightArrow(e){
 	if(typeToScript){
 		var change=false;
-		if(pos.col==lines[pos.row][0].length && pos.row==lines.length-1)return;
-		if(pos.col==lines[pos.row][0].length){
+		if(pos.col==lines[pos.row].text.length && pos.row==lines.length-1)return;
+		if(pos.col==lines[pos.row].text.length){
 			if(checkSpell)ajaxSpell(pos.row);
 			pos.row++;
 			pos.col=0;

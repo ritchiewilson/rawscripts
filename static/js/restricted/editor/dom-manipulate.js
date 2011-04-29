@@ -27,7 +27,7 @@ function fillInfoBar(){
 	//first cell
 	if(EOV=='editor'){
 		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
-		goog.dom.setTextContent(cell, wordArr[lines[pos.row][1]]);
+		goog.dom.setTextContent(cell, wordArr[lines[pos.row].format]);
 	}
 	
 	//second cell
@@ -35,7 +35,7 @@ function fillInfoBar(){
 	var ts=0; //total scenes
 	var cs=0; // current scene
 	for(i in lines){
-		if(lines[i][1]==0)ts++;
+		if(lines[i].format==0)ts++;
 		if(i==pos.row)cs=ts;
 	}
 	goog.dom.setTextContent(cell, "Scene "+cs+" of "+ts);
@@ -113,8 +113,8 @@ function createSuggestBox(d){
             v.push([scenes[i][0].split(') ').splice(1).join(') ')]);
         }
     }
-	var l=lines[pos.row][0].length;
-	var part=lines[pos.row][0].toUpperCase();
+	var l=lines[pos.row].text.length;
+	var part=lines[pos.row].text.toUpperCase();
 	for (x in v){
 		var s = v[x][0].substr(0,l).toUpperCase();
 		if (part==s){
@@ -125,7 +125,7 @@ function createSuggestBox(d){
 				box.id='suggestBox';
 				box.style.position='fixed';
 				box.style.top=canvasPosition(pos.row,0,pageStartX).canvasY+headerHeight+9+lineheight+"px";
-				box.style.left=WrapVariableArray[lines[pos.row][1]][1]+pageStartX+'px';
+				box.style.left=WrapVariableArray[lines[pos.row].format][1]+pageStartX+'px';
 				box.className = 'goog-menu'
 			}
 			// Scene list could double up
@@ -157,7 +157,7 @@ function createSuggestBox(d){
 	// suggest box
 	if(goog.dom.getElement('suggestBox')!=null){
 		if (goog.dom.getElement('suggestBox').childNodes.length==1){
-			if(goog.dom.getElement('suggestBox').firstChild.value.toUpperCase()==lines[pos.row][0].toUpperCase())goog.dom.removeNode(goog.dom.getElement('suggestBox'))
+			if(goog.dom.getElement('suggestBox').firstChild.value.toUpperCase()==lines[pos.row].text.toUpperCase())goog.dom.removeNode(goog.dom.getElement('suggestBox'))
 		}
 	}
 	// Finally, if there is still a suggest box with
@@ -174,10 +174,10 @@ function createSuggestBox(d){
 		// add to undoQue, remove suggest box
 		goog.events.listen(googSuggestMenu, 'action', function(e) {
 			var txt = e.target.getCaption();
-			var len = lines[pos.row][0].length;
-			lines[pos.row][0]=txt;
-		    undoQue.push(['paste', pos.row, pos.col, lines[pos.row][0].substr(len)]);
-			pos.col=anch.col=lines[pos.row][0].length;
+			var len = lines[pos.row].text.length;
+			lines[pos.row].text=txt;
+		    undoQue.push(['paste', pos.row, pos.col, lines[pos.row].text.substr(len)]);
+			pos.col=anch.col=lines[pos.row].text.length;
 			goog.dom.removeNode(goog.dom.getElement('suggestBox'))
 	    });
 	}
