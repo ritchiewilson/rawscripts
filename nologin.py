@@ -217,9 +217,14 @@ class ScriptContent (webapp.RequestHandler):
 								found=True
 						if found==False:
 							unit.append(1)
+				
+				msgsArr=[]
+				for j in msgs:
+					msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':[3]})
+				
 				dic = { 'row':i.row, 
 						'col':i.col, 
-						'msgs':msgs, 
+						'msgs':msgsArr,
 						'thread_id':i.thread_id}
 				notes.append(dic)
 

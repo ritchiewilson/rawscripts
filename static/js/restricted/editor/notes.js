@@ -32,7 +32,7 @@ function noteIndex(){
 		}
 		//get note snippet
 		var tmpEl = goog.dom.createElement('div');
-		tmpEl.innerHTML = notes[x].msgs[0][0];
+		tmpEl.innerHTML = notes[x].msgs[0].text;
 		var snippet = goog.dom.getTextContent(tmpEl);
 		if (snippet.length>80)snippet = snippet.substr(0,77)+'...';
 		snippet = '"'+snippet+'"';
@@ -47,7 +47,7 @@ function noteIndex(){
 		//figure out how many new replies
 		var r = 0;
 		for (y in notes[x].msgs){
-			if(String(notes[x].msgs[y][3])=='0')r++;
+			if(String(notes[x].msgs[y].readBool)=='0')r++;
 		}
 		var newReplySpan = goog.dom.createElement('span');
 		newReplySpan.style.color = 'red';
@@ -105,16 +105,16 @@ function notesDialog(e, id, top, left){
 	for (i in notes){
 		if(notes[i].thread_id==id){
 			for(j in notes[i].msgs){
-				var classN = (parseInt(notes[i].msgs[j][3])==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
-				str+="<div class='"+classN+"' id='"+notes[i].msgs[j][2]+"' onclick='markAsRead(this)'>";
-				str+="<b>"+notes[i].msgs[j][1]+" - </b><span> </span> ";
-				str+=notes[i].msgs[j][0];
+				var classN = (parseInt(notes[i].msgs[j].readBool)==0 ? "noteMessageUnread' title='Click To Mark As Read'" : 'noteMessage')
+				str+="<div class='"+classN+"' id='"+notes[i].msgs[j].msg_id+"' onclick='markAsRead(this)'>";
+				str+="<b>"+notes[i].msgs[j].user+" - </b><span> </span> ";
+				str+=notes[i].msgs[j].text;
 				//edit controls
 				var edit = "";
-				if(notes[i].msgs[j][1].toLowerCase()==user){
+				if(notes[i].msgs[j].user.toLowerCase()==user){
 					edit+=" <span class='noteControls' onclick='newMessage(this)'>edit</span> |"
 				}
-				if(notes[i].msgs[j][1].toLowerCase()==user || EOV=='editor'){
+				if(notes[i].msgs[j].user.toLowerCase()==user || EOV=='editor'){
 					edit+=" <span class='noteControls' onclick='deleteMessage(this)'>delete</span>"
 				}
 				if(j==0 && EOV=='editor'){
@@ -172,8 +172,8 @@ function markAsRead(e){
 			for (i in notes){
 				if (notes[i].thread_id==thread_id){
 					for(j in notes[i].msgs){
-						if (notes[i].msgs[j][2]==msg_id){
-							notes[i].msgs[j][3]=1;
+						if (notes[i].msgs[j].msg_id==msg_id){
+							notes[i].msgs[j].readBool=1;
 						}
 					}
 				}
@@ -197,7 +197,7 @@ function newThread(){
             }
         }
     }
-	notes.push({row:pos.row, col:pos.col, msgs:['temp', 'temp', 'temp'], thread_id:id})
+	notes.push({row:pos.row, col:pos.col, msgs:{'text':'temp', 'user':'temp', 'msg_id':'temp', 'readBool':1}, thread_id:id})
 	viewNotes=true;
 	//set up dialog box
 	var d = new goog.ui.Dialog();
@@ -291,7 +291,7 @@ function submitNewThread(){
 				var user = r[4];
 				for (i in notes){
 					if (notes[i].thread_id==thread_id){
-						notes[i].msgs=[[content, user, msg_id]];
+						notes[i].msgs=[{'text':content, 'user':user, 'msg_id':msg_id}];
 					}
 				}
 				noteIndex();
@@ -428,13 +428,13 @@ function submitMessage(){
 					if(notes[i].thread_id==thread_id){
 						var found = false;
 						for(j in notes[i].msgs){
-							if(notes[i].msgs[j][2]==timestamp){
-								notes[i].msgs[j][0]=new_content;
+							if(notes[i].msgs[j].msg_id==timestamp){
+								notes[i].msgs[j].text=new_content;
 								found=true;
 							}
 						}
 						if(!found){
-							notes[i].msgs.push([new_content, user, timestamp])
+							notes[i].msgs.push({'text':new_content, 'user':user,'msg_id':timestamp})
 						}
 					}
 				}
@@ -446,7 +446,6 @@ function submitMessage(){
 		'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
 	);
 	noteIndex();
-	x=d=content=u=n=null;
 }
 
 function deleteThread(v){
@@ -487,7 +486,7 @@ function deleteMessage(v){
 					for(i in notes){
 						if(notes[i].thread_id==threadId){
 							for (j in notes[i].msgs){
-								if(notes[i].msgs[j][2]==msgId){
+								if(notes[i].msgs[j].msg_id==msgId){
 									notes[i].msgs.splice(j,1)
 									if(notes[i].msgs.length==0){
 										notes.splice(i,1);
