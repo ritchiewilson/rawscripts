@@ -273,14 +273,14 @@ function findDown(){
 			anch.row=pos.row=tmpArr[i][0];
 			anch.col=tmpArr[i][1]*1;
 			pos.col=tmpArr[i][1]*1+l*1;
-			jumpTo("find"+pos.row);
+			autoScroll();
 			return;
 		}
 		if(tmpArr[i][0]*1>pos.row*1){
 			anch.row=pos.row=tmpArr[i][0]*1;
 			anch.col=tmpArr[i][1]*1;
 			pos.col=tmpArr[i][1]*1+l*1;
-			jumpTo("find"+pos.row);
+			autoScroll();
 			return;
 		}
 	}
@@ -298,21 +298,21 @@ function findUp(){
 			anch.row=pos.row=tmpArr[i][0];
 			anch.col=tmpArr[i][1]*1;
 			pos.col=tmpArr[i][1]*1+l*1;
-			jumpTo("find"+pos.row);
+			autoScroll();
 			return;
 		}
 		if(tmpArr[i][0]*1<pos.row*1){
 			anch.row=pos.row=tmpArr[i][0]*1;
 			anch.col=tmpArr[i][1]*1;
 			pos.col=tmpArr[i][1]*1+l*1;
-			jumpTo("find"+pos.row);
+			autoScroll();
 			return;
 		}
 	}
 	pos.row=anch.row=tmpArr[tmpArr.length-1][0];
 	anch.col = tmpArr[tmpArr.length-1][1];
 	pos.col = anch.col+l;
-	jumpTo("find"+pos.row);
+	autoScroll();
 }
 
 
@@ -426,26 +426,7 @@ function jumpTo(v){
         anch.col=pos.col;
 		this.style.backgroundColor="#999ccc"
     }
-	else if(v[0]=="f"){
-		var e = parseInt(v.replace('find',''));
-	}
-    else {var e=pos.row;}
-    var scrollHeight=0;
-    for(var i=0;i<e;i++){
-        for(var count=0; count<pageBreaks.length; count++){
-            if(pageBreaks[count][0]==i){
-                scrollHeight=lineheight*72*(count*1+1);
-				if(pageBreaks[count][2]!=0){
-					scrollHeight-=lineheight*(linesNLB[i].length-pageBreaks[count][2]);
-				}
-            }
-        }
-		count=null;
-        scrollHeight+=(linesNLB[i].length*lineheight);
-    }
-    vOffset=scrollHeight;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height;
-    if(vOffset>pagesHeight)vOffset=pagesHeight;
+	autoScroll();
 }
 
 	

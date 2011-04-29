@@ -18,7 +18,6 @@ function topMenuOver(e){
 		arr[open][1].setVisible(false);
 		t.setVisible(true)
 	}
-	open=i=null;
 }
 
 function topMenuOut(e){
