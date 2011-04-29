@@ -271,15 +271,19 @@ function parseInitialJSON(e){
 	// autosave setting
 
 	// set up title
-    var title=p.title;
+    var title=p['title'];
     goog.dom.getElement('title').innerHTML=title;
 	document.title = title;
 
 	// set up lines of text into global variable
-    var x = p.lines;
+    var x = p['lines'];
+
     for(var i=0; i<x.length; i++){
-        lines.push({'text':x[i][0], 'format':x[i][1]});
+        lines.push({});
+		lines[i].text=x[i][0] 
+		lines[i].format=x[i][1]
     }
+
 	// if this script has just been started
 	// put cursor at the end of line
     if(lines.length==2){
@@ -288,9 +292,9 @@ function parseInitialJSON(e){
     }
 
 	// put in spelling data into global variable
-    if(p.spelling.length!=0){
-        var wrong=p.spelling[0];
-        var ignore =p.spelling[1];
+    if(p['spelling'].length!=0){
+        var wrong=p['spelling'][0];
+        var ignore =p['spelling'][1];
         for (w in wrong){
             spellWrong.push(wrong[w])
         }
@@ -299,14 +303,26 @@ function parseInitialJSON(e){
         }
     }
     // put notes into global variable
-    for(i in p.notes){
-        notes.push(p.notes[i]);
+	var x=p['notes'];
+    for(i in x){
+        notes.push({});
+		notes[i].row=x[i]['row'];
+		notes[i].col=x[i]['col'];
+		notes[i].thread_id=x[i]['thread_id'];
+		notes[i].msgs=[];
+		for(j in x[i]['msgs']){
+			notes[i].msgs.push({});
+			notes[i].msgs[j].text=x[i]['msgs'][j]['text'];
+			notes[i].msgs[j].msg_id=x[i]['msgs'][j]['msg_id'];
+			notes[i].msgs[j].user=x[i]['msgs'][j]['user'];
+			notes[i].msgs[j].readBool=x[i]['msgs'][j]['readBool'];
+		}
     }
 	uniqueNotePositions();
 
 	// take collaborators list and put them
 	// into dom
-    var collabs=p.sharedwith;
+    var collabs=p['sharedwith'];
     var c = goog.dom.getElement('hasAccess');
     for (i in collabs){
         var TR = c.appendChild(document.createElement('tr'));
@@ -319,11 +335,11 @@ function parseInitialJSON(e){
 
 	// well, shit. This looks redundant. Gotta test this
 	// out and see why this is here. Done on init()
-	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p.contacts, goog.dom.getElement('recipient'), true);
-	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p.contacts, goog.dom.getElement('collaborator'), true);
+	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p['contacts'], goog.dom.getElement('recipient'), true);
+	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p['contacts'], goog.dom.getElement('collaborator'), true);
 
 	// changes the autosave bool to user prefrence
-	autosaveBool = (p.autosave=='true' ? true : false);
+	autosaveBool = (p['autosave']=='true' ? true : false);
 
 	// open up scene tab
     tabs(0);
