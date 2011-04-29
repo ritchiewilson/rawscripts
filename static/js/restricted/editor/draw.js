@@ -270,7 +270,6 @@ function drawNote(x, y, ctx, note){
 		ctx.lineTo(x+width-2, y+(2*i));
 		ctx.stroke();
 	}
-	
 }
 
 function drawPages(ctx, pageStartX){

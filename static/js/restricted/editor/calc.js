@@ -51,6 +51,12 @@ function pagination(){
  * @ param { integer } c Colulmn of text
  */
 function canvasPosition(r,c, pageStartX){
+	// for if notes appear before line
+	var cd=0; //character differance
+	if(c<0){
+		cd=c;
+		c=0;
+	}
 	//figure out what page the caret is on
 	var page = 0;
 	for(i in pageBreaks){
@@ -102,7 +108,7 @@ function canvasPosition(r,c, pageStartX){
 	// it also equals the number of dropped spaces in linesNLB
 	
 	//tally it all up
-	x+=(c-s-i)*fontWidth;
+	x+=(c-s-i+cd)*fontWidth;
 	
 	// for Transition format
 	if(lines[r].format==5){

@@ -44,6 +44,7 @@ function keyEvent(e){
 	if(e.keyCode!=33 && e.keyCode!=34){
 		autoScroll();
 	}
+	uniqueNotePositions();
 }
 
 /**

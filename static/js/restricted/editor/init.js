@@ -302,6 +302,7 @@ function parseInitialJSON(e){
     for(i in p.notes){
         notes.push(p.notes[i]);
     }
+	uniqueNotePositions();
 
 	// take collaborators list and put them
 	// into dom

@@ -198,6 +198,7 @@ function newThread(){
         }
     }
 	notes.push({row:pos.row, col:pos.col, msgs:{'text':'temp', 'user':'temp', 'msg_id':'temp', 'readBool':1}, thread_id:id})
+	uniqueNotePositions();
 	viewNotes=true;
 	//set up dialog box
 	var d = new goog.ui.Dialog();
@@ -541,3 +542,41 @@ function notesDialogFromScript(e){
 		}
 	}
 }
+
+/**
+ * if multiple notes occupy the same position, shift them arround so they are all unique
+ */
+function uniqueNotePositions(){
+	for(i in notes){
+		for(j in notes){
+			if(notes[i].thread_id!=notes[j].thread_id){
+				if(notes[i].row==notes[j].row && notes[i].col==notes[j].col){
+					var r=notes[i].row;
+					var c=notes[i].col
+					var unique=false;
+					while(unique==false){
+						var found = false;
+						for(k in notes){
+							if(notes[k].row==r && notes[k].col==c)found=true;
+						}
+						if(!found)unique=true;
+						else c--;
+					}
+					notes[j].col=c;
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
