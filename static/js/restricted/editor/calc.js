@@ -186,3 +186,17 @@ function autoScroll(){
 	}
 }
 
+/*
+ * figures if pos or anch is out of 
+ * acceptible range, fixes it
+ */
+function caretInLimits(){
+	if(pos.row<0)pos.row=0;
+	if(anch.row<0)anch.row=0;
+	if(pos.row>lines.length-1)pos.row=lines.length-1;
+	if(anch.row>lines.length-1)anch.row=lines.length-1;
+	if(pos.col<0)pos.col=0;
+	if(anch.col<0)anch.col=0;
+	if(pos.col>lines[lines.length-1].text.length)pos.col=lines[lines.length-1].text.length
+	if(anch.col>lines[lines.length-1].text.length)anch.col=lines[lines.length-1].text.length
+}

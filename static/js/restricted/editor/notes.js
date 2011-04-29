@@ -75,9 +75,10 @@ function noteIndex(){
 					var col = notes[i].col;
 					pos.row=anch.row=row;
 					pos.col=anch.col=col;
+					caretInLimits();
 				}
 			}
-			jumpTo('find'+row);
+			autoScroll();
 			notesDialog(e, false, false, false)
 		});
 	}
