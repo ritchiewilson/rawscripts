@@ -773,9 +773,12 @@ function redo(){
         dir[2]=dir[2]+1;
 		if (lines[dir[1]].format==0)updateOneScene(dir[1]);
     }
+	linesNLB=[]
 	for(var i=0;i<lines.length;i++){
 		getLines(i);
 	}
+	if(pos.row>=lines.length)pos.row=anch.row=lines.length-1;
+	if(pos.col>=lines[lines.length-1].text.length)pos.col=anch.col=lines[lines.length-1].text.length;
 	pagination();
 	sceneIndex();
 	scroll(0);

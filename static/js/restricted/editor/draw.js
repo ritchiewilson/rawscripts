@@ -297,6 +297,7 @@ function drawSluglineBacking(ctx, pageStartX){
 	ctx.fillStyle='#ddd';
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
+	try{
 	for (var i=startLine;i<linesNLB.length;i++){
 		if(lines[i].format==0){
 			var p = canvasPosition(i,0,pageStartX)
@@ -308,6 +309,8 @@ function drawSluglineBacking(ctx, pageStartX){
 			}
 		}
 	}
+	}
+	catch(err){console.log(i)}
 }
 
 function drawCaret(ctx, pageStartX){
