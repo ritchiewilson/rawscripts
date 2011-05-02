@@ -568,7 +568,9 @@ function enter(){
 		else if (lines[pos.row].format == 5)var newElem = 0;
 		
 		// put second half of text in new line
-		var newArr = {'text':k, 'format':newElem};
+		var newArr = {};
+		newArr.text=k;
+		newArr.format=newElem;
 		lines.splice(pos.row+1,0,newArr);
 		pos.row++;
 		pos.col=0;

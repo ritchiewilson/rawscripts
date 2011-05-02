@@ -35,10 +35,12 @@ function paste(){
 	        var tmp=data.split(r);
 	        var tmpArr=[];
 	        for (x in tmp){
-	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push([tmp[x],1])
+				var nl={}; //new line to add
+				nl.text=tmp[x];
+				nl.format=1;
+	            if(tmp[x]!='' && tmp[x]!=null)tmpArr.push(nl)
 	        }
 	        data=JSON.stringify(tmpArr);
-			x=tmp=tmpArr=null;
 	    }
 	    undoQue.push(['paste',pos.row,pos.col,data]);
 	    //undoQue[x][0] ==paste
@@ -47,7 +49,7 @@ function paste(){
 	    //[3]=data
 	    //[4]=added to line
 	    //[5]=deleted empty line at end
-	    if(data[0]=='[' && data[1]=='[')j=true;
+	    if(data[0]=='[' && data[1]=='{')j=true;
 	    if(!j){
 	        lines[pos.row].text=lines[pos.row].text.slice(0,pos.col)+ data + lines[pos.row].text.slice(pos.col);
 	        pos.col+=goog.dom.getElement('ccp').value.length;
@@ -57,16 +59,21 @@ function paste(){
 			forceCalc = true;
 	        var arr=JSON.parse(data);
 	        if (lines[pos.row].text==''){
-	            lines[pos.row].format=arr[0][1];
+	            lines[pos.row].format=arr[0].format;
 	        }
-	        if (lines[pos.row].format==arr[0][1]){
+	        if (lines[pos.row].format==arr[0].format){
 	            undoQue[undoQue.length-1].push(1);
-	            var tmp=[lines[pos.row].text.slice(pos.col), lines[pos.row].format];
-	            lines[pos.row].text=lines[pos.row].text.slice(0,pos.col)+arr[0][0];
+	            var tmp={};
+				tmp.text=lines[pos.row].text.slice(pos.col);
+				tmp.format=lines[pos.row].format;
+	            lines[pos.row].text=lines[pos.row].text.slice(0,pos.col)+arr[0].text;
 	            var i=1;
 	            var p=pos.row+1;
 	            while(i<arr.length){
-	                lines.splice(p,0,arr[i]);
+					var nl={}; //new line to insert
+					nl.text=arr[i].text;
+					nl.format=arr[i].format;
+	                lines.splice(p,0,nl);
 	                p++;
 	                i++;
 	            }
@@ -79,14 +86,22 @@ function paste(){
 	        }
 	        else{
 	            undoQue[undoQue.length-1].push(0);
-	            var tmp=[lines[pos.row].text.slice(pos.col), lines[pos.row].format];
+	            var tmp={};
+				tmp.text=lines[pos.row].text.slice(pos.col);
+				tmp.format=lines[pos.row].format;
 	            lines[pos.row].text=lines[pos.row].text.slice(0,pos.col);
 	            pos.row++;
-	            lines.splice(pos.row,0,arr[0]);
+				var nl={}; //new line to insert
+				nl.text=arr[0].text;
+				nl.format=arr[0].format;
+	            lines.splice(pos.row,0,nl);
 	            var i=1;
 	            var p=pos.row+1;
 	            while(i<arr.length){
-	                lines.splice(p,0,arr[i]);
+					var nl={}; //new line to insert
+					nl.text=arr[i].text;
+					nl.format=arr[i].format;
+	                lines.splice(p,0,nl);
 	                p++;
 	                i++;
 	            }

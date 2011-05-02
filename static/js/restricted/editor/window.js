@@ -42,3 +42,4 @@ window['cut'] = cut;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 window['removeAccess'] = removeAccess;
+window['selection'] = selection;

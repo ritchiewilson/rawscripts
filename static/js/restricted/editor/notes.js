@@ -198,7 +198,7 @@ function newThread(){
             }
         }
     }
-	notes.push({row:pos.row, col:pos.col, msgs:{'text':'temp', 'user':'temp', 'msg_id':'temp', 'readBool':1}, thread_id:id})
+	notes.push({row:pos.row, col:pos.col, msgs:{text:'temp', user:'temp', msg_id:'temp', readBool:1}, thread_id:id})
 	uniqueNotePositions();
 	viewNotes=true;
 	//set up dialog box
@@ -293,7 +293,7 @@ function submitNewThread(){
 				var user = r[4];
 				for (i in notes){
 					if (notes[i].thread_id==thread_id){
-						notes[i].msgs=[{'text':content, 'user':user, 'msg_id':msg_id}];
+						notes[i].msgs=[{text:content, user:user, msg_id:msg_id}];
 					}
 				}
 				noteIndex();
@@ -436,7 +436,7 @@ function submitMessage(){
 							}
 						}
 						if(!found){
-							notes[i].msgs.push({'text':new_content, 'user':user,'msg_id':timestamp})
+							notes[i].msgs.push({text:new_content, user:user,msg_id:timestamp})
 						}
 					}
 				}

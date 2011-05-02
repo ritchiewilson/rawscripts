@@ -378,13 +378,22 @@ function selection(){
 	}
 	else{
 		arr=[];
-		arr.push([lines[startRange.row].text.slice(startRange.col),lines[startRange.row].format]);
+		var nl={}; //new line
+		nl.text=lines[startRange.row].text.slice(startRange.col);
+		nl.format=lines[startRange.row].format;
+		arr.push(nl);
 		startRange.row=startRange.row*1+1;
 		while(startRange.row<endRange.row){
-			arr.push([lines[startRange.row].text,lines[startRange.row].format]);
+			var nl={}; //new line
+			nl.text=lines[startRange.row].text;
+			nl.format=lines[startRange.row].format;
+			arr.push(nl);
 			startRange.row+=1;
 		}
-		arr.push([lines[endRange.row].text.slice(0,endRange.col),lines[endRange.row].text]);
+		var nl={}; //new line
+		nl.text=lines[endRange.row].text.slice(0,endRange.col)
+		nl.format=lines[startRange.row].format;
+		arr.push(nl);
 		var sel=JSON.stringify(arr);
 	}
 	var c = goog.dom.getElement('ccp');
@@ -468,7 +477,9 @@ function undo(){
             var k = lines[dir[1]].text.slice(dir[2]);
             if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
             lines[dir[1]].text = j;
-            var newArr = [{'text':k, 'format':dir[4]}];
+            var newArr = {};
+			newArr.text=k;
+			newArr.format=dir[4];
             lines.splice(dir[1]+1,0,newArr);
             dir[1]=dir[1]+1;
             dir[2]=0;
@@ -491,7 +502,9 @@ function undo(){
             var k = lines[dir[1]].text.slice(dir[2]);
             if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
             lines[dir[1]].text = j;
-            var newArr = {'text':k, 'format':dir[4]};
+            var newArr = {};
+			newArr.text=k;
+			newArr.format=dir[4];
             lines.splice(dir[1]+1,0,newArr);
             forceCalc=true;
         }
@@ -520,7 +533,9 @@ function undo(){
                 var k = lines[dir[1]].text.slice(dir[2]);
                 if(dir[4]==3 && k.charAt(k.length-1)==')')k=k.slice(0,-1);
                 lines[dir[1]][0] = j;
-                var newArr = {'text':k, 'format':dir[4]};
+                var newArr = {};
+				newArr.text=k;
+				newArr.format=dir[4];
                 lines.splice(dir[1]+1,0,newArr);
                 dir[1]=dir[1]+1;
                 dir[2]=0;
@@ -612,7 +627,9 @@ function redo(){
         else if (lines[dir[1]].format == 4)var newElem = 3;
         else if (lines[dir[1]].format == 3)var newElem = 2;
         else if (lines[dir[1]].format == 5)var newElem = 0;
-        var newArr = {'text':k, 'format':newElem};
+        var newArr = {};
+		newArr.text=k;
+		newArr.format=newElem;
         lines.splice(dir[1]+1,0,newArr);
 		dir[1]=dir[1]+1;
 		dir[2]=0;
@@ -712,15 +729,20 @@ function redo(){
 			forceCalc=true;
             var arr=JSON.parse(dir[3]);
             if (lines[dir[1]].text==''){
-                lines[dir[1]].format=arr[0][1];
+                lines[dir[1]].format=arr[0].format;
             }
-            if (lines[dir[1]].format==arr[0][1]){
-                var tmp={'text':lines[dir[1]].text.slice(dir[2]), 'format':lines[dir[1]].format};
-                lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2])+arr[0][0];
+            if (lines[dir[1]].format==arr[0].format){
+                var tmp={};
+				tmp.text=lines[dir[1]].text.slice(dir[2]);
+				tmp.format=lines[dir[1]].format;
+                lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2])+arr[0].text;
                 var i=1;
                 var p=dir[1]+1;
                 while(i<arr.length){
-                    lines.splice(p,0,{'text':arr[i][0], 'format':arr[i][1]});
+					var nl={} //new line to insert
+					nl.text=arr[i].text;
+					nl.format=arr[i].format;
+                    lines.splice(p,0,nl);
                     p++;
                     i++;
                 }
@@ -730,14 +752,22 @@ function redo(){
                 }
             }
             else{
-                var tmp={'text':lines[dir[1]].text.slice(dir[2]), 'format':lines[dir[1]].format};
+                var tmp={};
+				tmp.text=lines[dir[1]].text.slice(dir[2]);
+				tmp.format=lines[dir[1]].format;
                 lines[dir[1]].text=lines[dir[1]].text.slice(0,dir[2]);
                 dir[1]++;
-                lines.splice(dir[1],0,{'text':arr[0][0], 'format':arr[0][1]});
+				var nl={} //new line to insert
+				nl.text=arr[0].text;
+				nl.format=arr[0].format;
+                lines.splice(dir[1],0,nl);
                 var i=1;
                 var p=dir[1]+1;
                 while(i<arr.length){
-                    lines.splice(p,0,{'text':arr[i][0], 'format':arr[i][1]});
+					var nl={} //new line to insert
+					nl.text=arr[i].text;
+					nl.format=arr[i].format;
+                    lines.splice(p,0,nl);
                     p++;
                     i++;
                 }

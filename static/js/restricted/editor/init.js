@@ -256,7 +256,9 @@ function init(){
 function parseInitialJSON(e){
 	// if script was not found on server, show that
     if(e.target.getResponseText()=='not found'){
-        lines = [{"text":"Sorry, the script wasn't found.","format":1}];
+        lines = [{}];
+		lines[0].text="Sorry, the script wasn't found.";
+		lines[0].format=1;
         paint();
         return;
     }
@@ -280,8 +282,15 @@ function parseInitialJSON(e){
 
     for(var i=0; i<x.length; i++){
         lines.push({});
-		lines[i].text=x[i][0] 
-		lines[i].format=x[i][1]
+		lines[i].text=x[i][0];
+		lines[i].format=x[i][1];
+		var v=lines[i].format;
+		if(v!=0 && v!=1 && v!=2 && v!=3 && v!=4 && v!=5){
+			lines[i].format=1;
+		}
+		if(typeof lines[i].text!='string'){
+			lines[i].text='';
+		}
     }
 
 	// if this script has just been started
