@@ -29,6 +29,7 @@ function fillInfoBar(){
 		var wordArr=["Enter : Action  --  Tab : Character", "Enter : Character  --  Tab : Slugline", "Enter : Dialog  --  Tab : Action", "Enter : Character  --  Tab : Parenthetical", "Enter : Dialog  --  Tab : Dialog", "Enter : Slugline  --  Tab : Slugline"];
 		goog.dom.setTextContent(cell, wordArr[lines[pos.row].format]);
 	}
+	else{goog.dom.setTextContent(cell, '');}
 	
 	//second cell
 	cell = goog.dom.getNextElementSibling(cell);
