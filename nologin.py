@@ -220,7 +220,7 @@ class ScriptContent (webapp.RequestHandler):
 				
 				msgsArr=[]
 				for j in msgs:
-					msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':[3]})
+					msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':j[3]})
 				
 				dic = { 'row':i.row, 
 						'col':i.col, 
