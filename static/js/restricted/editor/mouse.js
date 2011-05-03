@@ -28,14 +28,6 @@ function mouseDown(e){
 			// ok, so the user is interacting with a drawing
 			// ont he canvas. 
 			
-			// figure out where the fake scroll bar is
-			var height = goog.dom.getElement('canvas').height;
-			var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-			var barHeight = ((height)/pagesHeight)*(height-39-22);
-			if (barHeight<20)barHeight=20;
-			if (barHeight>=height-39-22)barHeight=height-39-22;
-			var topPixel = (vOffset/(pagesHeight-height))*(height-39-22-barHeight)+headerHeight;
-			
 			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
 				// user is clicking on text, put the anchor there
 				mouseDownBool=true;
@@ -45,8 +37,9 @@ function mouseDown(e){
 				lineFormatGuiUpdate();
 				fillInfoBar();
 			}
-			else if(e.clientX<editorWidth && e.clientX>editorWidth-20 && e.clientY>topPixel && e.clientY<topPixel+barHeight){
-				// user is clicking on the scroll bar
+			// figure out where the fake scroll bar is
+			var cp={x:e.clientX, y:e.clientY-headerHeight-8}; //canvas posititon of 
+			if(e.clientX<editorWidth && e.clientX>scrollBarPos.x && cp.y>scrollBarPos.y && cp.y<scrollBarPos.y+scrollBarPos.h){
 				scrollBarBool=true;
 			}
 		}
@@ -111,14 +104,9 @@ function mouseMove(e){
 	}
 	// figure out if mouse if hovering over
 	// fake scrollbar, change mouse pointer if true
-	var height = goog.dom.getElement('canvas').height;
-	var pagesHeight = (pageBreaks.length+1)*72*lineheight;
-	var barHeight = ((height)/pagesHeight)*(height-39-22);
-	if (barHeight<20)barHeight=20;
-	if (barHeight>=height-39-22)barHeight=height-39-22;
-	var topPixel = (vOffset/(pagesHeight-height))*(height-39-22-barHeight)+headerHeight;
-	if (e.clientX<editorWidth && e.clientX>editorWidth-20){
-		goog.dom.getElement('canvas').style.cursor = ((e.clientY>topPixel && e.clientY<topPixel+barHeight) ? "default" : "text");
+	var cp={x:e.clientX, y:e.clientY-headerHeight-8}; //canvas posititon of 
+	if(e.clientX<editorWidth && e.clientX>scrollBarPos.x && cp.y>scrollBarPos.y && cp.y<scrollBarPos.y+scrollBarPos.h){
+		goog.dom.getElement('canvas').style.cursor = "default";
 	}
 	else{
 		//check if the mouse if over a note on the script

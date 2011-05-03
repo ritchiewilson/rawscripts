@@ -35,20 +35,22 @@ function drawScrollBar(ctx){
 	ctx.strokeStyle="#333";
 	//ctx.lineWidth=2;
 	ctx.fillStyle=lingrad;
-    var height = goog.dom.getElement('canvas').height-20;
-    var pagesHeight = (pageBreaks.length+1)*72*lineheight+40;
-    var barHeight = ((height)/pagesHeight)*(height-39);
+    var height = goog.dom.getElement('canvas').height-23;
+    var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight;
+    var barHeight = height*height/pagesHeight;
     if (barHeight<20)barHeight=20;
-    if (barHeight>=height-39)barHeight=height-39;
-    var topPixel = (vOffset/(pagesHeight-height))*(height-39-barHeight);
-    ctx.fillRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
-	ctx.strokeRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
+    if (barHeight>=height)barHeight=height;
+    var topPixel = (vOffset/(pagesHeight-height))*(height-barHeight);
+	// remember where we're drawing this
+	scrollBarPos={x:editorWidth-16.5, y:topPixel, w:14, h:barHeight-5}
+    ctx.fillRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
+	ctx.strokeRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
 	ctx.beginPath();
-	ctx.arc(editorWidth-10.5, topPixel+9,8, 0, Math.PI, true);
+	ctx.arc(editorWidth-9.5, topPixel+9,7, 0, Math.PI, true);
 	ctx.fill();
 	ctx.stroke();
 	ctx.beginPath()
-	ctx.arc(editorWidth-10.5, topPixel+barHeight-11, 8, 0, Math.PI, false);
+	ctx.arc(editorWidth-9.5, topPixel+barHeight-11, 7, 0, Math.PI, false);
 	ctx.fill();
 	ctx.stroke();
 	var sh = topPixel;
@@ -58,7 +60,7 @@ function drawScrollBar(ctx){
 		radgrad.addColorStop(0.4, 'rgba(180,160,240,0.4)');  
 		radgrad.addColorStop(1, 'rgba(1,159,98,0)');
 		ctx.fillStyle=radgrad;
-		ctx.fillRect(editorWidth-18.5, topPixel+8, 16,barHeight-17);
+		ctx.fillRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
 		
 		
 		sh+=20;
@@ -418,7 +420,7 @@ function paint(){
 	drawText(ctx, pageStartX);
 	drawCaret(ctx, pageStartX);
 	drawNotes(ctx, pageStartX);	
-	drawScrollArrows(ctx);
+	//drawScrollArrows(ctx);
 	drawScrollBar(ctx);
 	
 	if(mouseDownBool && pos.row<anch.row && mouseY<110)scroll(-20);

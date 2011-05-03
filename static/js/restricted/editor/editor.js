@@ -13,6 +13,7 @@ var pageBreaks=[];
 var mouseY=0;
 var mouseDownBool=false;
 var scrollBarBool=false;
+var scrollBarPos={x:0, y:0, w:0, h:0};
 var commandDownBool=false;
 var characters =[];
 var scenes=[];
@@ -109,12 +110,10 @@ var selectionTimer;
  */
 function scrollBarDrag(e){
 	var diff = mouseY-e.clientY;
-	var height = goog.dom.getElement('canvas').height-50;
-	var pagesHeight = (pageBreaks.length+1)*72*lineheight;
+	var height = goog.dom.getElement('canvas').height-36;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight*2;
 	vOffset-=pagesHeight/height*diff;
-	if (vOffset<0)vOffset=0;
-	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
-	if(vOffset>pagesHeight)vOffset=pagesHeight+20;
+	scroll(0);
 }
 
 /**
