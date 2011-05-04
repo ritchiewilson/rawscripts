@@ -126,8 +126,8 @@ function scrollBarDrag(e){
 function scroll(v){
 	vOffset+=v;
 	if (vOffset<0)vOffset=0;
-	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+20;
-	if(vOffset>pagesHeight)vOffset=pagesHeight+20;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+lineheight*2;
+	if(vOffset>pagesHeight)vOffset=pagesHeight;
 	var d= new Date();
 	milli = d.getMilliseconds();
 	// if a suggest box is open, redraw it in position
