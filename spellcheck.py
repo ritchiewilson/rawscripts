@@ -1,3 +1,7 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '1.2')
 import httplib
 from xml.dom import minidom
 import StringIO

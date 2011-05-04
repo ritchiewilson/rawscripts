@@ -81,6 +81,7 @@ class Welcome (webapp.RequestHandler):
 		template_values = { 'google_sign_in': users.create_login_url('/scriptlist', None, "gmail.com"),
 						'yahoo_sign_in' : users.create_login_url('/scriptlist', None, "yahoo.com"),
 						'aol_sign_in' : users.create_login_url('/scriptlist', None, "aol.com")}
+		template_values['TRACKER'] = config.TRACKER
 		path = os.path.join(os.path.dirname(__file__), 'html/welcome.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile == 1:
@@ -152,6 +153,7 @@ class Editor (webapp.RequestHandler):
 		template_values['MODE'] = config.MODE
 		template_values['EDITOR_JS'] = config.EDITOR_JS
 		template_values['EDITOR_CSS'] = config.EDITOR_CSS
+		template_values['TRACKER'] = config.TRACKER
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)
@@ -360,15 +362,39 @@ class SubmitBug (webapp.RequestHandler):
 	def get(self):
 		#This is the one for public
 		self.redirect('http://spreadsheets.google.com/viewform?hl=en&formkey=dDBkVlZfV0RJUWxORjZGdzVWOHVnUXc6MQ#gid=0')
+
+class TOS(webapp.RequestHandler):
+	def get(self):
+		path = os.path.join(os.path.dirname(__file__), 'html/tos.html')
+		template_values={'TRACKER' : config.TRACKER}
+		self.response.headers['Content-Type'] = 'text/html'
+		self.response.out.write(template.render(path, template_values))
+
+class Contact(webapp.RequestHandler):
+	def get(self):
+		path = os.path.join(os.path.dirname(__file__), 'html/contact.html')
+		template_values={'TRACKER' : config.TRACKER}
+		self.response.headers['Content-Type'] = 'text/html'
+		self.response.out.write(template.render(path, template_values))
+
+class About(webapp.RequestHandler):
+	def get(self):
+		path = os.path.join(os.path.dirname(__file__), 'html/about.html')
+		template_values={'TRACKER' : config.TRACKER}
+		self.response.headers['Content-Type'] = 'text/html'
+		self.response.out.write(template.render(path, template_values))
 		
 def main():
 	application = webapp.WSGIApplication([('/editor', Editor),
 																				('/', Welcome),
+																				('/tos', TOS),
 																				('/scriptcontent', ScriptContent),
 																				('/contactemail', ContactEmail),
 																				('/_ah/login_required', LoginRequired),
 																				('/bugs', Bugs),
 																				('/save', Save),
+																				('/contact', Contact),
+																				('/about', About),
 																				('/submitbug', SubmitBug),],
 																			 debug=True)
 	

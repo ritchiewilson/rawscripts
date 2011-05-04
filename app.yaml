@@ -46,24 +46,14 @@ handlers:
   upload: static/text/robots.txt
 
 - url: /convert
-  static_files: html/convert.html
-  upload: html/convert.html
+  script: scripteditor.py
 
 - url: /about
   static_files: html/about.html
   upload: html/about.html
 
 - url: /contact
-  static_files: html/contact.html
-  upload: html/contact.html
-
-- url: /uploadhelp
-  static_files: html/uploadhelp.html
-  upload: html/uploadhelp.html
-
-- url: /tos
-  static_files: html/tos.html
-  upload: html/tos.html
+  script: nologin.py
 
 - url: /rawscripts.manifest
   static_files: rawscripts.manifest
@@ -146,6 +136,9 @@ handlers:
 - url: /stats.*
   login: admin
   script: stats.py
+
+- url: /tos
+  script: nologin.py
 
 - url: /.*
   login: required

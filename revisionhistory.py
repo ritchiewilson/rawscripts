@@ -1,5 +1,8 @@
-import StringIO
 import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '1.2')
+import StringIO
 import wsgiref.handlers
 from google.appengine.api import users
 from google.appengine.api import urlfetch
@@ -200,6 +203,7 @@ class RevisionHistory(webapp.RequestHandler):
 											 'user': user_email,
 											 }
 			path = os.path.join(os.path.dirname(__file__), 'html/revisionhistory.html')
+			template_values['TRACKER'] = config.TRACKER
 			self.response.out.write(template.render(path, template_values))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("revisionhistory", users.get_current_user().email().lower(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)

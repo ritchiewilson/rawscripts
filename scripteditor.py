@@ -185,7 +185,7 @@ class ScriptList(webapp.RequestHandler):
 		template_values['MODE'] = config.MODE
 		template_values['SCRIPTLIST_CSS'] = config.SCRIPTLIST_CSS
 		template_values['SCRIPTLIST_JS'] = config.SCRIPTLIST_JS
-		
+		template_values['TRACKER'] = config.TRACKER
 		
 		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -305,6 +305,7 @@ class TitlePage(webapp.RequestHandler):
 			
 
 		template_values['MODE'] = config.MODE
+		template_values['TRACKER'] = config.TRACKER
 		path = os.path.join(os.path.dirname(__file__), 'html/titlepage.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
@@ -824,7 +825,8 @@ class ConvertProcess (webapp.RequestHandler):
 		
 
 		template_values = { 'url': resource_id }
-
+		template_values['TRACKER'] = config.TRACKER
+		
 		taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : resource_id})
 		
 		self.response.headers['Content-Type'] = 'text/html'
@@ -1104,6 +1106,7 @@ class SettingsPage (webapp.RequestHandler):
 					template_values['shared_daily_selected']=''
 					template_values['shared_none_selected']='selected'
 			
+			template_values['TRACKER'] = config.TRACKER
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 
@@ -1197,6 +1200,7 @@ class SyncContactsPage (webapp.RequestHandler):
 						y.put()
 						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 			
+			template_values['TRACKER'] = config.TRACKER
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
@@ -1293,28 +1297,19 @@ class SyncContacts (webapp.RequestHandler):
 		self.response.out.write(output)
 
 
-class OneScript (webapp.RequestHandler):
+class UploadHelp(webapp.RequestHandler):
 	def get(self):
-		return
-		q=db.GqlQuery("SELECT * FROM UsersScripts")
-		r=q.fetch(1000)
-		for i in r:
-			perm = "owner"
-			if i.permission[0]=="c":
-				perm = "collab"
-			else:
-				perm = "owner"
-			u = UsersScripts(key_name = perm+i.user+i.resource_id,
-							user = i.user,
-							resource_id = i.resource_id,
-							title = i.title,
-							last_updated = i.last_updated,
-							permission = i.permission,
-							folder = "?none?")
-			i.delete()
-			u.put()
-		self.response.headers["Content-Type"]="text/plain"
-		self.response.out.write(len(r))
+		path = os.path.join(os.path.dirname(__file__), 'html/uploadhelp.html')
+		template_values={'TRACKER' : config.TRACKER}
+		self.response.headers['Content-Type'] = 'text/html'
+		self.response.out.write(template.render(path, template_values))
+
+class Convert(webapp.RequestHandler):
+	def get(self):
+		path = os.path.join(os.path.dirname(__file__), 'html/convert.html')
+		template_values={'TRACKER' : config.TRACKER}
+		self.response.headers['Content-Type'] = 'text/html'
+		self.response.out.write(template.render(path, template_values))
 		
 class YahooVerification(webapp.RequestHandler):
 	def get(self):
@@ -1337,7 +1332,6 @@ def main():
 											('/titlepage', TitlePage),
 											('/titlepagesave', SaveTitlePage),
 											('/newfolder', NewFolder),
-											("/onescript", OneScript),
 											("/changefolder", ChangeFolder),
 											("/deletefolder", DeleteFolder),
 											('/renamefolder', RenameFolder),
@@ -1347,6 +1341,8 @@ def main():
 											('/synccontacts', SyncContacts),
 											('/changeusersetting', ChangeUserSetting),
 											('/list', List),
+											('/uploadhelp', UploadHelp),
+											('/convert', Convert),
 											('/hUoVeIFNIgngfTnTdlGQRg--.html', YahooVerification),],
 											debug=True)
 	
