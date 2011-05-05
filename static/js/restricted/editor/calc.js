@@ -1,3 +1,20 @@
+/**
+ * Makes sure the pos is after anch. helpful
+ * in a half dozen functions
+ */
+function switchPosAndAnch(){
+	var switchPos = false;
+	if(anch.row>pos.row)switchPos=true;
+	if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
+	if(switchPos){
+		var coor = anch.row;
+		anch.row = pos.row;
+		pos.row = coor;
+		coor = anch.col;
+		anch.col = pos.col;
+		pos.col = coor;
+	}
+}
 function pagination(){
     pageBreaks = [];
     i = 0;

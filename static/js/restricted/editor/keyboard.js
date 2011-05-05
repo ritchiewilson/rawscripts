@@ -252,17 +252,7 @@ function backspace(e){
 			
 			// It's easier to start by putting the focus after 
 			// the anchor, just so it's always the same operation
-			var switchPos =false;
-			if(anch.row>pos.row)switchPos=true;
-			if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-			if(switchPos){
-				var coor = anch.row;
-				anch.row = pos.row;
-				pos.row = coor;
-				coor = anch.col;
-				anch.col = pos.col;
-				pos.col = coor;
-			}
+			switchPosAndAnch()
 			
 			// count how many items are added to the undo que
 			var undoCount=0;
@@ -419,17 +409,7 @@ function deleteButton(){
 		forceCalc=true;
 		// put the focus after the anchor, so
 		// the operation is always the same
-		var switchPos = false;
-		if(anch.row>pos.row)switchPos=true;
-		if(anch.row==pos.row && anch.col>pos.col)switchPos=true;
-		if(switchPos){
-			var coor = anch.row;
-			anch.row = pos.row;
-			pos.row = coor;
-			coor = anch.col;
-			anch.col = pos.col;
-			pos.col = coor;
-		}
+		switchPosAndAnch()
 		
 		// count how many things are deleted
 		var undoCount=0;
@@ -669,6 +649,14 @@ function tab(){
  */
 function upArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
+		if(pos.row!=anch.row || pos.col!=anch.col){
+			if(!e.shiftKey){
+				switchPosAndAnch();
+				pos.row=anch.row;
+				pos.col=anch.col;
+				return;
+			}
+		}
 		if (pos.row==0 && pos.col==0)return;
 
 		var wrapVars = WrapVariableArray[lines[pos.row].format];
@@ -771,6 +759,14 @@ function upArrow(e){
  */
 function downArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
+		if(pos.row!=anch.row || pos.col!=anch.col){
+			if(!e.shiftKey){
+				switchPosAndAnch();
+				anch.row=pos.row;
+				anch.col=pos.col;
+				return;
+			}
+		}
 		if(pos.row==lines.length-1 && pos.col==lines[pos.row].text.length)return;
 		
 		var wrapVars = WrapVariableArray[lines[pos.row].format];
@@ -838,6 +834,14 @@ function downArrow(e){
  */
 function leftArrow(e){
 	if(typeToScript){
+		if(pos.row!=anch.row || pos.col!=anch.col){
+			if(!e.shiftKey){
+				switchPosAndAnch();
+				pos.row=anch.row;
+				pos.col=anch.col;
+				return;
+			}
+		}
 		var change=false;
 		if(pos.row==0 && pos.col==0) return;
 		if(pos.col==0){
@@ -868,6 +872,14 @@ function leftArrow(e){
  */
 function rightArrow(e){
 	if(typeToScript){
+		if(pos.row!=anch.row || pos.col!=anch.col){
+			if(!e.shiftKey){
+				switchPosAndAnch();
+				anch.row=pos.row;
+				anch.col=pos.col;
+				return;
+			}
+		}
 		var change=false;
 		if(pos.col==lines[pos.row].text.length && pos.row==lines.length-1)return;
 		if(pos.col==lines[pos.row].text.length){
