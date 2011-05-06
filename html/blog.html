@@ -34,7 +34,7 @@
 	                <li>
 	                	<span class="headline"><a href="{{  i.link  }}">{{  i.title  }}</a></span>
 						<p class="date">{{i.timestamp|date:"M d, Y"}}</p>
-						<div class="data">{{i.data}}</div>
+						<div class="data">{% autoescape off %}{{i.data}}{% endautoescape %}</div>
 	                </li>
 	            {% endfor %}
 	            </ul>
