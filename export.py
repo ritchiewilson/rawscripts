@@ -20,6 +20,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.rl_config import defaultPageSize
 import reportlab
 folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
+import config
 
 class TitlePageData (db.Model):
 	resource_id = db.StringProperty()

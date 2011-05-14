@@ -7,6 +7,7 @@ import datetime
 import logging
 from google.appengine.ext import db
 from google.appengine.api import users
+import config
 
 class ActivityDB (db.Model):
 	activity = db.StringProperty()

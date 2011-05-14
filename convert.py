@@ -11,6 +11,7 @@ import string
 import time
 import zipfile
 import logging
+import config
 
 def FinalDraft(data):
 	from xml.dom import minidom

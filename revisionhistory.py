@@ -16,6 +16,7 @@ import logging
 from django.utils import simplejson
 import activity
 import mobileTest
+import config
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+

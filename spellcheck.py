@@ -12,6 +12,7 @@ from django.utils import simplejson
 from google.appengine.ext import db
 import logging
 from google.appengine.api.labs import taskqueue
+import config
 
 class ScriptData (db.Model):
 	resource_id = db.StringProperty()

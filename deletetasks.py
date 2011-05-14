@@ -19,6 +19,7 @@ import export
 import logging
 from django.utils import simplejson
 from google.appengine.api.labs import taskqueue
+import config
 
 
 class ShareDB (db.Model):
