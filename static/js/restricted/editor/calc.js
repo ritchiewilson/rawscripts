@@ -15,49 +15,67 @@ function switchPosAndAnch(){
 		pos.col = coor;
 	}
 }
+
+/**
+ * Looks through linesNLB to figure out
+ * where to put pageBreaks. Updates
+ * the array pageBreaks for other functions
+ * to use. Identical to pagination in PDF
+ * export on serverside python
+ */
 function pagination(){
-    pageBreaks = [];
-    i = 0;
-    var r=0;
-    while(i<lines.length){
-        lineCount = r;
-        while(lineCount+linesNLB[i].length<56){
-            lineCount+=linesNLB[i].length;
-            i++;
-            if (i==lines.length){
-                return;
-            }
-        }
-        var s=0;
-        r=0;
-        if(lines[i].format==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
-            s=55-lineCount;
-            r=1-s;
-            lineCount=56;
-        }
-        else if(lines[i].format==3 && lineCount<54 && linesNLB[i].length>4){
-            s=linesNLB[i].length-3;
-            r=1-s;
-            lineCount=55;
-        }
-        else if(lines[i].format==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
-            s=55-lineCount;
-            r=1-s;
-            lineCount=56;
-        }
-        else if(lines[i].format==1 && lineCount<55 && linesNLB[i].length>4){
-            s=linesNLB[i].length-3;
-            r=1-s;
-            lineCount=55;
-        }
-        else{
-            while(lines[i-1].format==0 || lines[i-1].format==2 || lines[i-1].format==4){
-                i--;
-                lineCount-=linesNLB[i].length;
-            }
-        }
-        pageBreaks.push([i, lineCount, s]);
-    }
+	// get rid of old results
+	pageBreaks = [];
+	var i = 0; // iterator through all lines
+	var r=0; // remainder, for when lines split across pages
+	while(i<lines.length){
+		lineCount = r;
+		//cycle through lines until you get to the end of a page
+		while(lineCount+linesNLB[i].length<56){
+			lineCount+=linesNLB[i].length;
+			i++;
+			if (i==lines.length){
+				return;
+			}
+		}
+		var s=0; // split across page. i.e. number of lines that end up on new page
+		r=0;
+		if(lines[i].format==3 && lineCount<54 && lineCount+linesNLB[i].length>57){
+			// for if dialog is split across pages
+			s=55-lineCount;
+			r=1-s;
+			lineCount=56;
+		}
+		else if(lines[i].format==3 && lineCount<54 && linesNLB[i].length>4){
+			// for if dialog is split across pages, keeping two lines on both pages
+			s=linesNLB[i].length-3;
+			r=1-s;
+			lineCount=55;
+		}
+		else if(lines[i].format==1 && lineCount<55 && lineCount+linesNLB[i].length>57){
+			// for if dialog is split across pages
+			s=55-lineCount;
+			r=1-s;
+			lineCount=56;
+		}
+		else if(lines[i].format==1 && lineCount<55 && linesNLB[i].length>4){
+			// for if action is split across pages, keeping two lines on both pages
+			s=linesNLB[i].length-3;
+			r=1-s;
+			lineCount=55;
+		}
+		else{
+			// not splitting lines across pages, so just
+			// make sure that the page doesn't end with 
+			// Slugline, character or parenthetical
+			while(lines[i-1].format==0 || lines[i-1].format==2 || lines[i-1].format==4){
+				i--;
+				lineCount-=linesNLB[i].length;
+			}
+		}
+		// add info to pageBreaks array
+		pageBreaks.push([i, lineCount, s]);
+	}
 }
 
 /**
@@ -134,48 +152,62 @@ function canvasPosition(r,c, pageStartX){
 	return {canvasX:x, canvasY:y-vOffset}
 }
 
-// wrapp all m'fer
+/**
+ * Called on init, wrap each line
+ */
 function wrapAll(){
-	//var d = new Date();
-	//var timestamp = d.getMilliseconds();
 	for(var i=0;i<lines.length;i++){
 		var a = getLines(i);
 	}
-	//var d = new Date();
-	//console.log(d.getMilliseconds()-timestamp)
 }
+
+/**
+ * @ param {integer} which line to figure out
+ * @ return {bool} whether or not should re-paginate after wrap
+ */
 function getLines(v) {
-	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length);
-	var wa=lines[v].text.split(" ");
-	var phraseArray=[];
-	var lastPhrase="";
-	var l=WrapVariableArray[lines[v].format][0];
-	var uc=WrapVariableArray[lines[v].format][3];
+	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length); // remember how many wrapped lines currently
+	var wa=lines[v].text.split(" "); // word array
+	var phraseArray=[]; // phrase is the wrapped line, incrementally assembled
+	var lastPhrase=""; // the wrapped line to add to array
+	var l=WrapVariableArray[lines[v].format][0]; // number or character per line
+	var uc=WrapVariableArray[lines[v].format][3]; // uppercase?
 	var measure=0;
-	for (var i=0;i<wa.length;i++) {
-		var w=wa[i];
+	for (var i=0;i<wa.length;i++){
+		// loop through all words in this line
+		// figuring out where to put line breaks
+		var w=wa[i]; // word in word array
 		measure=(lastPhrase+" "+w).length;
 		if (measure<l) {
+			// add another word to phrase if there is room
 			lastPhrase+=(w+" ");
 		}
-		else {
+		else{
+			// add phrase to array when limit is reached
 			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
 			phraseArray.push(lastPhrase.slice(0,-1));
+			// get set to start over
 			lastPhrase=w+" ";
 		}
-		if (i===wa.length-1) {
+		if (i===wa.length-1){
+			// when reach the last word, just add the
+			// remainder to the array
 			if(uc==1)lastPhrase=lastPhrase.toUpperCase();
 			phraseArray.push(lastPhrase.slice(0,-1));
 			break;
 		}
 	}
+	// for stuff that needs bottom spacing, add blank lines
 	var addBlankLine=WrapVariableArray[lines[v].format][4]-1;
 	var i=0;
 	while(i < addBlankLine){
 		phraseArray.push("");
 		i++;
 	}
+	// when parenthetical is between two dialogs, remove that blank line
 	if(lines[v].format==4 && v!=0 && lines[v-1].format==3 && linesNLB[v-1][linesNLB[v-1].length-1]=='')linesNLB[v-1].pop();
+	
+	// add all this data to linesNLB
     linesNLB[v] = phraseArray;
 	
 	// return weather or not to re paginate
