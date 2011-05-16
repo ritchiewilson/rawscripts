@@ -43,3 +43,16 @@ window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 window['removeAccess'] = removeAccess;
 window['selection'] = selection;
+window['requestAnimFrame'] = requestAnimFrame;
+
+// shim layer with setTimeout fallback
+var requestAnimFrame = (function(){
+	return  window['requestAnimationFrame']       || 
+			window['webkitRequestAnimationFrame'] || 
+			window['mozRequestAnimationFrame']    || 
+			window['oRequestAnimationFrame']      || 
+			window['msRequestAnimationFrame']     || 
+			function(/* function */ callback, /* DOMElement */ element){
+				window.setTimeout(callback, 1000 / 60);
+			};
+	})();

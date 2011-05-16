@@ -426,7 +426,7 @@ function paint(){
 	if(mouseDownBool && pos.row<anch.row && mouseY<110)scroll(-20);
 	if(mouseDownBool && pos.row>anch.row && mouseY>goog.dom.getElement('canvas').height-50)scroll(20);
 	var d = new Date();
-	var TIME = d.getMilliseconds();
-	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
+	TIME = d.getMilliseconds();
 }
+var TIME=new Date().getMilliseconds();

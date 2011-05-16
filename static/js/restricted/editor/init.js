@@ -377,8 +377,11 @@ function parseInitialJSON(e){
 	goog.dom.getElement('info').style.visibility="visible";
 	fillInfoBar();
 	
-	
-    setInterval('paint()', 25);
+	(function animloop(){
+	      paint();
+	      requestAnimFrame(animloop, goog.dom.getElement('canvas'));
+	    })();
+    //setInterval('paint()', 25);
 
 	// stuff is running, gracefully fade to standard GUI
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
