@@ -96,11 +96,7 @@ function mouseMove(e){
 	// this means the user is draggin across
 	// drawn text, so move the caret postion
 	if (mouseDownBool){
-		var p=mousePosition(e);
-		pos.row=p.row;
-		pos.col=p.col;
-		lineFormatGuiUpdate();
-		fillInfoBar();
+		updateMouseDrag=e;
 	}
 	// figure out if mouse if hovering over
 	// fake scrollbar, change mouse pointer if true

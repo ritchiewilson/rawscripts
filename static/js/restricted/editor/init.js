@@ -378,6 +378,7 @@ function parseInitialJSON(e){
 	fillInfoBar();
 	
 	(function animloop(){
+		  calculate();
 	      paint();
 	      requestAnimFrame(animloop, goog.dom.getElement('canvas'));
 	    })();

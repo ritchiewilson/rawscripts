@@ -35,6 +35,7 @@ var formatMenu = false;
 var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Transition'];
 var resource_id='random123456789';
 var autosaveBool = true;
+var updateMouseDrag=false;
    // Use the same wrapping procedure over and over
    // just define an array to pass into it
     //wrapVars[0]=character length before wrap

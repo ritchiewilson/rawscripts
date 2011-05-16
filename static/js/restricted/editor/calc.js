@@ -217,3 +217,18 @@ function caretInLimits(){
 	if(pos.col>lines[lines.length-1].text.length)pos.col=lines[lines.length-1].text.length
 	if(anch.col>lines[lines.length-1].text.length)anch.col=lines[lines.length-1].text.length
 }
+
+/**
+ * Go through captured user inputs and 
+ * update stuff
+ */
+function calculate(){
+	if(updateMouseDrag!=false){
+		var p=mousePosition(updateMouseDrag);
+		pos.row=p.row;
+		pos.col=p.col;
+		lineFormatGuiUpdate();
+		fillInfoBar();
+		updateMouseDrag=false;
+	}
+}
