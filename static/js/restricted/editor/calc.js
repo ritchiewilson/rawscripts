@@ -82,8 +82,8 @@ function pagination(){
  * Given a col and row of text, finds
  * the onscreen position. Used for caret
  * and range, and any future uses
- * @ param { integer } r Row of text
- * @ param { integer } c Colulmn of text
+ * @param { integer } r Row of text
+ * @param { integer } c Colulmn of text
  */
 function canvasPosition(r,c, pageStartX){
 	// for if notes appear before line
@@ -162,8 +162,8 @@ function wrapAll(){
 }
 
 /**
- * @ param {integer} which line to figure out
- * @ return {bool} whether or not should re-paginate after wrap
+ * @param {integer} which line to figure out
+ * @return {boolean} whether or not should re-paginate after wrap
  */
 function getLines(v) {
 	var oldLineBreaks = (linesNLB[v]==null ? false : linesNLB[v].length); // remember how many wrapped lines currently
@@ -257,12 +257,25 @@ function caretInLimits(){
  */
 function calculate(){
 	if(updateMouseDrag!=false){
-		var p=mousePosition(updateMouseDrag);
-		pos.row=p.row;
-		pos.col=p.col;
-		lineFormatGuiUpdate();
-		fillInfoBar();
-		updateMouseDrag=false;
+		if(updateMouseDrag.clientY<100){
+			scroll(-20);
+			var c=goog.dom.getElement('ccp');
+			c.focus();
+			c.select();
+		}
+		else if(updateMouseDrag.clientY>goog.style.getSize(goog.dom.getElement('container')).height-20)scroll(20);
+		else{
+			var p=mousePosition(updateMouseDrag);
+			pos.row=p.row;
+			pos.col=p.col;
+			lineFormatGuiUpdate();
+			fillInfoBar();
+			updateMouseDrag=false;
+		}
 		redrawRange=true;
+	}
+	if(resizeElements==true){
+		setElementSizes('r');
+		resizeElements=false;
 	}
 }

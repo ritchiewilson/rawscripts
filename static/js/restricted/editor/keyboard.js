@@ -1,7 +1,7 @@
 /**
  * When a key is pressed, figures
  * out what to do with it
- * @ param {goog event} e key event
+ * @param {goog.events.BrowserEvent} e key event
  */
 function keyEvent(e){
 	redrawRange=true;
@@ -72,7 +72,7 @@ function shortcutTriggered(e){
 /**
  * Basicly typing. When a user types a letter, 
  * this puts it in the script.
- * @ param {goog.event.KeyEvent} e Button pressed
+ * @param {goog.event.KeyEvent} e Button pressed
  */
 function handlekeypress(e) {
 	//console.log(e.keyCode)
@@ -152,7 +152,7 @@ function handlekeypress(e) {
 
 /**
  * What do when a user hits backspace
- * @ param {goog.event.KeyEvent} e keypress
+ * @param {goog.event.KeyEvent} e keypress
  */
 function backspace(e){
 	
@@ -646,7 +646,7 @@ function tab(){
  * Moving the position of the Caret when
  * canvas is selected and user presses up
  * arrow
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the mousedown event with associated data
  */
 function upArrow(e){
@@ -756,7 +756,7 @@ function upArrow(e){
  * Moving the position of the Caret when
  * canvas is selected and user presses Down
  * arrow
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the key event with associated data
  */
 function downArrow(e){
@@ -831,7 +831,7 @@ function downArrow(e){
  * Moving the position of the Caret when
  * canvas is selected and user presses left
  * arrow
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the key event with associated data
  */
 function leftArrow(e){
@@ -869,7 +869,7 @@ function leftArrow(e){
  * Moving the position of the Caret when
  * canvas is selected and user presses right
  * arrow
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the key event with associated data
  */
 function rightArrow(e){

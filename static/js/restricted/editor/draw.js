@@ -1,43 +1,14 @@
-//drawing functions
-// like the scroll arrows
-function drawScrollArrows(ctx){
-    var height = goog.dom.getElement('canvasText').height;
-    //up arrow
-    ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-21, height-39-22, 21,20);
-    ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-19, height-37-22, 16, 16);
-    ctx.beginPath();
-    ctx.moveTo(editorWidth-16, height-24-22);
-    ctx.lineTo(editorWidth-10.5, height-35-22);
-    ctx.lineTo(editorWidth-5, height-24-22);
-    ctx.closePath();
-    ctx.fillStyle="#333";
-    ctx.fill();
-    //down arrow
-    ctx.fillStyle="#333";
-    ctx.fillRect(editorWidth-21, height-19-22, 20,20);
-    ctx.fillStyle='#ddd';
-    ctx.fillRect(editorWidth-19, height-18-22, 16, 16);
-    ctx.beginPath();
-    ctx.moveTo(editorWidth-16, height-15-22);
-    ctx.lineTo(editorWidth-10.5, height-4-22);
-    ctx.lineTo(editorWidth-5, height-15-22);
-    ctx.closePath();
-    ctx.fillStyle="#333";
-    ctx.fill();
-	height=null;
-}
+
 function drawScrollBar(){
 	if(redrawScrollbar==false)return;
 	var canvas = goog.dom.getElement('canvasScrollbar');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(editorWidth-50,0,50,1200)
+	ctx.clearRect(0,0,editorWidth,1200)
 	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
 	lingrad.addColorStop(0, "#5587c4");
 	lingrad.addColorStop(.8, "#95a7d4"); 
 	ctx.strokeStyle="#333";
-	//ctx.lineWidth=2;
+	ctx.lineWidth=1;
 	ctx.fillStyle=lingrad;
     var height = goog.dom.getElement('canvasText').height-23;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight;
@@ -87,7 +58,7 @@ function drawScrollBar(){
 }
 function drawFindArr(pageStartX){
 	if(redrawFindArr==false)return;
-	var canvas = goog.dom.getElement('canvasText');
+	var canvas = goog.dom.getElement('canvasFindArr');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0,editorWidth,1200)
 	if(findArr.length!=0 || findReplaceArr.length!=0){
@@ -452,7 +423,4 @@ function paint(){
 	drawScrollBar();
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
-	
-	//if(mouseDownBool && pos.row<anch.row && mouseY<110)scroll(-20);
-	//if(mouseDownBool && pos.row>anch.row && mouseY>goog.getElement('canvasText').height-50)scroll(20);
 }

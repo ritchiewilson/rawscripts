@@ -16,7 +16,7 @@ function init(){
 	}
 	// set up function for resizing windows
 	var vsm = new goog.dom.ViewportSizeMonitor();
-	goog.events.listen(vsm, goog.events.EventType.RESIZE, function(e) {setElementSizes("r");});
+	goog.events.listen(vsm, goog.events.EventType.RESIZE, function(e) {resizeElements=true;});
 	// then initial resize
 	setElementSizes("i");
 	
@@ -250,7 +250,7 @@ function init(){
 /**
  * Gets script data and puts it all in
  * it's place.
- * @ param e goog.event.BroswerEvent
+ * @param {goog.event.BroswerEvent} e
  * JSON from the server with all the script data
  */
 function parseInitialJSON(e){

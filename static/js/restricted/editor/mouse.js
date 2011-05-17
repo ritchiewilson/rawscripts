@@ -1,7 +1,7 @@
 /**
  * Takes MouseDown Event, figures out what
  * to do with it.
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the mousedown event with associated data
  */
 function mouseDown(e){
@@ -51,11 +51,12 @@ function mouseDown(e){
 /**
  * Takes MouseUp Event, figures out what
  * to do with it.
- * @ param { goog.events.BrowserEvent } e
+ * @param {goog.events.BrowserEvent} e
  * gives the mouseup event with associated data
  */
 function mouseUp(e){
 	redrawRange=true;
+	updateMouseDrag=false; // no longer draggin
 	// if there is a character or scene 
 	// suggestion box, remove it
 	if(goog.dom.getElement('suggestBox')!=null){
@@ -131,7 +132,7 @@ function mouseMove(e){
 
 /**
  * Simple, scroll when users scrolls on canvas
- * @ param { goog.events.BrowserEvent} e 
+ * @param { goog.events.BrowserEvent} e 
  */
 function handleMouseWheel(e){
 	scroll(e.deltaY*2)
@@ -141,8 +142,8 @@ function handleMouseWheel(e){
  * where the mouse is. Used for onclick
  * and onmousemove. God this is messy. 
  * Redo it.
- * @ param { goog.event.BrowserEvent} e browser event
- * @ param { string } w Either "anch" for moving the
+ * @param { goog.event.BrowserEvent} e browser event
+ * @param { string } w Either "anch" for moving the
  * selection anchor, or "pos" for moving the caret
  */
 function mousePosition(e, w){

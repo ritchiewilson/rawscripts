@@ -2,7 +2,7 @@
  * Sets the size of elements based
  * on browser size. Does it on load
  * and more on resize.
- * @ param {string} v 
+ * @param {string} v 
  * "r" indicates window resize
  * "i" indicates initial setup
  */
@@ -20,7 +20,6 @@ function setElementSizes(v){
 	goog.dom.getElement('info').style.width = (editorWidth-6)+'px';
 	if(v=="r"){
 		scroll(0);
-		paint();
 	}
 }
 
@@ -72,7 +71,7 @@ function fillInfoBar(){
  * Awe shit. Why is there stying in this function
  * make it calss based or something
  *
- * @ param {int} v ; a zero indexed tab thingy
+ * @param {number} v ; a zero indexed tab thingy
  * only two tabs, so v is 0 or 1
  */
 function tabs(v){
@@ -96,7 +95,7 @@ function tabs(v){
  * Creates a menu of character or scene
  * names the user might by typing. Uses
  * goog.UI.Menu()
- * @ param { string } d denotes character "c"
+ * @param { string } d denotes character "c"
  * or scene "s"
  */
 function createSuggestBox(d){

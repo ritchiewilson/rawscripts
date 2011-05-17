@@ -100,7 +100,7 @@ var redrawSluglines=true;
 var redrawRange=true;
 var redrawScrollbar=true;
 var redrawFindArr=true;
-
+var resizeElements=false;
 
 
 
@@ -109,7 +109,7 @@ var redrawFindArr=true;
 /**
  * When the user drags the drawn scrollbar
  * scroll the page
- * @ param {goog.events.BrowserEvent} e mouse position
+ * @param {goog.events.BrowserEvent} e mouse position
  */
 function scrollBarDrag(e){
 	var diff = mouseY-e.clientY;
@@ -124,7 +124,7 @@ function scrollBarDrag(e){
  * scrolling. Where the canvas drawing is 
  * scrolled to is stored and contorled by 
  * vOffset. 
- * @ param {int} v How many pixels to scroll
+ * @param {number} v How many pixels to scroll
  */
 function scroll(v){
 	vOffset+=v;
@@ -147,7 +147,7 @@ function scroll(v){
 
 /**
  * Action handler for toobar GUI
- * @ param {goog.events.Event} e 
+ * @param {goog.events.Event} e 
  */
 function toolbarActions(e){
 	var c = e.target.getId().replace('toolbar','')
@@ -170,7 +170,7 @@ function toolbarActions(e){
 /**
  * Changes the format of the line of text
  * i.e. Dialog -> Action, or whatever
- * @ param { integer } v number for the new line format
+ * @param {number} v number for the new line format
  */
 function changeFormat(v){
 	// do nothing if this isn't and editor window
@@ -213,6 +213,9 @@ function changeFormat(v){
 	//recalc line wraping/pagination
 	var p = getLines(pos.row);
 	if(p)pagination()
+	redrawRange=true;
+	redrawFindArr=true;
+	redrawSluglines=true;
 }
 /**
  * Updates the GUI for the line format; 
@@ -273,6 +276,7 @@ function findInputKeyUp(e, w){
 	if(w=="f"){goog.dom.getElement('find_number_found').innerHTML=findArr.length+" found"}
 }
 function findDown(){
+	redrawRange=true;
 	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
 	if (tmpArr.length==0)return;
 	var l = (findArr.length!=0 ? goog.dom.getElement('find_input').value.length : goog.dom.getElement('fr_find_input').value.length);
@@ -297,6 +301,7 @@ function findDown(){
 }
 
 function findUp(){
+	redrawRange=true;
 	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
 	if (tmpArr.length==0)return;
 	var l = (findArr.length!=0 ? goog.dom.getElement('find_input').value.length : goog.dom.getElement('fr_find_input').value.length);
