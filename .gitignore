@@ -12,3 +12,5 @@ reportlab/
 rl_addons/
 scripts/compiler/
 
+# compiled js
+/static/js/min/
