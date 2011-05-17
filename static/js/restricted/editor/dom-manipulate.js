@@ -9,8 +9,11 @@
 function setElementSizes(v){
 	var s = goog.dom.getViewportSize();
 	goog.style.setSize(goog.dom.getElement('container'), s);
-	goog.dom.getElement('canvas').height = s.height - 60-38;
-	goog.dom.getElement('canvas').width = s.width-320;
+	var c=goog.dom.getElementsByClass('canvas');
+	for(i in c){
+		c[i].height = s.height - 60-38;
+		c[i].width = s.width-320;
+	}
 	editorWidth=s.width-323;
 	goog.dom.getElement('insertNewNote').style.marginLeft=editorWidth-630*1+"px";
 	goog.dom.getElement('sidebar').style.height = (s.height-70)+'px';

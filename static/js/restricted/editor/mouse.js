@@ -5,6 +5,7 @@
  * gives the mousedown event with associated data
  */
 function mouseDown(e){
+	redrawRange=true;
 	// only do stuff if canvas is active
 	// i.e. popups and dom sutff isn't being
 	// interacted with
@@ -28,7 +29,7 @@ function mouseDown(e){
 			// ok, so the user is interacting with a drawing
 			// ont he canvas. 
 			
-			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvas"){
+			if(e.clientX<editorWidth-100 && e.clientY>60 && e.target.id=="canvasText"){
 				// user is clicking on text, put the anchor there
 				mouseDownBool=true;
 				var a=mousePosition(e);
@@ -54,6 +55,7 @@ function mouseDown(e){
  * gives the mouseup event with associated data
  */
 function mouseUp(e){
+	redrawRange=true;
 	// if there is a character or scene 
 	// suggestion box, remove it
 	if(goog.dom.getElement('suggestBox')!=null){
@@ -102,7 +104,7 @@ function mouseMove(e){
 	// fake scrollbar, change mouse pointer if true
 	var cp={x:e.clientX, y:e.clientY-headerHeight-8}; //canvas posititon of 
 	if(e.clientX<editorWidth && e.clientX>scrollBarPos.x && cp.y>scrollBarPos.y && cp.y<scrollBarPos.y+scrollBarPos.h){
-		goog.dom.getElement('canvas').style.cursor = "default";
+		goog.dom.getElement('canvasText').style.cursor = "default";
 	}
 	else{
 		//check if the mouse if over a note on the script
@@ -118,11 +120,11 @@ function mouseMove(e){
 		// if the mouse is over a note, make it clickable
 		if (found!=false){
 			goog.dom.getElement('canvas').style.cursor='pointer';
-			goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+			goog.events.listen(goog.dom.getElement('canvasText'), goog.events.EventType.CLICK, notesDialogFromScript);
 		}
 		else{
-			goog.dom.getElement('canvas').style.cursor = 'text';
-			goog.events.unlisten(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, notesDialogFromScript);
+			goog.dom.getElement('canvasText').style.cursor = 'text';
+			goog.events.unlisten(goog.dom.getElement('canvasText'), goog.events.EventType.CLICK, notesDialogFromScript);
 		}
 	}
 }

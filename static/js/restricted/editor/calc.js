@@ -212,6 +212,7 @@ function getLines(v) {
 	
 	// return weather or not to re paginate
 	if(oldLineBreaks = false || oldLineBreaks-phraseArray.length!=0){
+		redrawSluglines=true;
 		return true
 	}
 	else{
@@ -228,7 +229,7 @@ function autoScroll(){
 	// find position of caret. X is less important
 	// so just feed pageStartX as 0
 	var p = canvasPosition(pos.row,pos.col,0)
-	var c = goog.dom.getElement('canvas').height //canvas height
+	var c = goog.dom.getElement('canvasText').height //canvas height
 	if(p.canvasY>c-40 || p.canvasY<-2){
 		vOffset+=p.canvasY-(c*0.5);
 		scroll(0);
@@ -262,5 +263,6 @@ function calculate(){
 		lineFormatGuiUpdate();
 		fillInfoBar();
 		updateMouseDrag=false;
+		redrawRange=true;
 	}
 }

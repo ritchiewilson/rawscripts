@@ -6,7 +6,9 @@ td a{
 	color: black;
 	text-decoration:none;
 }
-
+.canvas{
+	position:absolute;
+}
 .fade{
 	background:#fff; 
 	opacity:0.5; 

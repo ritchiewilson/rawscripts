@@ -95,9 +95,11 @@ var fMenu, eMenu, vMenu, sMenu;
 var notesPosition=[];
 var googSuggestMenu;
 var selectionTimer;
-
-
-
+var redrawPages=true;
+var redrawSluglines=true;
+var redrawRange=true;
+var redrawScrollbar=true;
+var redrawFindArr=true;
 
 
 
@@ -111,7 +113,7 @@ var selectionTimer;
  */
 function scrollBarDrag(e){
 	var diff = mouseY-e.clientY;
-	var height = goog.dom.getElement('canvas').height-36;
+	var height = goog.dom.getElement('canvasText').height-36;
 	var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight*2;
 	vOffset-=pagesHeight/height*diff;
 	scroll(0);
@@ -127,7 +129,7 @@ function scrollBarDrag(e){
 function scroll(v){
 	vOffset+=v;
 	if (vOffset<0)vOffset=0;
-	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvas').height+lineheight*2;
+	var pagesHeight = (pageBreaks.length+1)*72*lineheight-goog.dom.getElement('canvasText').height+lineheight*2;
 	if(vOffset>pagesHeight)vOffset=pagesHeight;
 	var d= new Date();
 	milli = d.getMilliseconds();
@@ -135,6 +137,11 @@ function scroll(v){
 	if(goog.dom.getElement('suggestBox')!=null){
 		createSuggestBox((lines[pos.row].format==0 ? "s" : "c"));
 	}
+	redrawPages=true;
+	redrawSluglines=true;
+	redrawRange=true;
+	redrawScrollbar=true;
+	redrawFindArr=true;
 }
 
 
@@ -242,6 +249,7 @@ function saveTimer(){
 }
 
 function findInputKeyUp(e, w){
+	redrawFindArr=true;
 	if(e.which==13 && e.which!=1000){
 		e.preventDefault();
 		findDown();
@@ -407,7 +415,7 @@ function selection(){
 
 function contextmenu(e){
 	if(EOV=='viewer')return;
-	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvas"){
+	if(e.clientX>headerHeight && e.clientX<editorWidth-100 && e.clientY-headerHeight>40 && e.target.id=="canvasText"){
 		e.preventDefault();
 		var d = document.body.appendChild(document.createElement('div'));
 		d.style.position="fixed";
@@ -1263,6 +1271,7 @@ function findPrompt(){
 	goog.dom.getElement('find_div').style.display="block";
 	goog.dom.getElement('find_input').select();
 	goog.dom.getElement('find_input').focus();
+	redrawFindArr=true;
 }
 function hideFindPrompt(){
 	typeToScript=true;
@@ -1270,6 +1279,7 @@ function hideFindPrompt(){
 	findArr=[];
 	goog.dom.getElement('find_div').style.display="none";
 	commandDownBool=false;
+	redrawFindArr=true;
 }
 // Find Replace Prompt
 function findReplacePrompt(){
@@ -1280,6 +1290,7 @@ function findReplacePrompt(){
 	goog.dom.getElement('find_replace_div').style.display="block";
 	goog.dom.getElement('fr_find_input').select();
 	goog.dom.getElement('fr_find_input').focus();
+	redrawFindArr=true;
 }
 function hideFindReplacePrompt(){
 	typeToScript=true;
@@ -1287,6 +1298,7 @@ function hideFindReplacePrompt(){
 	findReplaceArr=[];
 	goog.dom.getElement('find_replace_div').style.display="none";
 	commandDownBool=false;
+	redrawFindArr=true;
 }
 function replaceText(){
 	if(EOV=='viewer')return;
@@ -1300,11 +1312,13 @@ function replaceText(){
 	anch.col=pos.col-d.length;
 	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	//backspace();
+	redrawFindArr=true;
 }
 function replaceAndFind(){
 	if(EOV=='viewer')return;
 	replaceText();
 	findDown();
+	redrawFindArr=true;
 }
 
 

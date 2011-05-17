@@ -10,7 +10,7 @@ function init(){
 	// tell them to get a better browser
 	if(goog.userAgent.IE==true){
 		goog.dom.removeNode(goog.dom.getElement('loading'));
-		goog.dom.flattenElement(goog.dom.getElement('canvas'));
+		goog.dom.flattenElement(goog.dom.getElement('canvasText'));
 		goog.dom.removeNode(goog.dom.getElement('gtb'));
 		return;
 	}
@@ -32,7 +32,7 @@ function init(){
 	// set up mouse wheel handler
 	var MouseWheelHandler = goog.events.MouseWheelHandler;
 	var MOUSEWHEEL = MouseWheelHandler.EventType.MOUSEWHEEL;
-    var mwh = new MouseWheelHandler(goog.dom.getElement('canvas'));
+    var mwh = new MouseWheelHandler(goog.dom.getElement('canvasText'));
 	goog.events.listen(mwh, MOUSEWHEEL, handleMouseWheel);
 	goog.events.listen(window, 'unload', function(e){goog.events.unlisten(mwh, MOUSEWHEEL, handleMouseWheel);});
 	
@@ -117,7 +117,7 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
-	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "f")})
+	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "f");redrawFindArr=true;})
 	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.FOCUS, function(e){
 		typeToScript=false;
 		findForcePaint=true;
@@ -128,7 +128,7 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
-	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "r")});
+	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "r");redrawFindArr=true;});
 	goog.events.listen(goog.dom.getElement('fr_replace_input'), goog.events.EventType.FOCUS, function(e){
 		typeToScript=false;
 		findForcePaint=true;
@@ -152,7 +152,7 @@ function init(){
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOVER, topMenuOver);
 	goog.events.listen(goog.dom.getElement('file'), goog.events.EventType.MOUSEOUT, topMenuOut);
 	goog.events.listen(fMenu, 'action', menuSelect)
-	goog.events.listen(goog.dom.getElement('canvas'), goog.events.EventType.CLICK, function(e){typeToScript=true})
+	goog.events.listen(goog.dom.getElement('canvasText'), goog.events.EventType.CLICK, function(e){typeToScript=true})
 	
 	eMenu = new goog.ui.Menu();
 	eMenu.decorate(goog.dom.getElement('editMenu'))
@@ -367,8 +367,6 @@ function parseInitialJSON(e){
     goog.dom.getElement('saveButton').disabled=true;
 
 	// set up canvas for printing, then print and repeat
-	var canvas = goog.dom.getElement('canvas');
-    var ctx = canvas.getContext('2d');
     wrapAll();
 	pagination();
 	
@@ -380,7 +378,7 @@ function parseInitialJSON(e){
 	(function animloop(){
 		  calculate();
 	      paint();
-	      requestAnimFrame(animloop, goog.dom.getElement('canvas'));
+	      requestAnimFrame(animloop);
 	    })();
     //setInterval('paint()', 25);
 
