@@ -9,8 +9,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 	<script type="text/javascript">
 	function setup(){
-		//alert({{j}});
-		var notes = {{j}};
+		var notes = {% autoescape off %}{{ j }}{%endautoescape%};
 		var c = document.getElementById('content');
 		c.innerHTML="";
 		if (notes.length==0)c.innerHTML="There are no notes for this script."
