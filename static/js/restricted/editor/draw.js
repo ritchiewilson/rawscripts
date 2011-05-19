@@ -3,7 +3,7 @@ function drawScrollBar(){
 	if(redrawScrollbar==false)return;
 	var canvas = goog.dom.getElement('canvasScrollbar');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0,editorWidth,1200)
+	ctx.clearRect(editorWidth-20,0,20,editorHeight)
 	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
 	lingrad.addColorStop(0, "#5587c4");
 	lingrad.addColorStop(.8, "#95a7d4"); 
@@ -60,7 +60,7 @@ function drawFindArr(pageStartX){
 	if(redrawFindArr==false)return;
 	var canvas = goog.dom.getElement('canvasFindArr');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0,editorWidth,1200)
+	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight)
 	if(findArr.length!=0 || findReplaceArr.length!=0){
 		ctx.fillStyle="yellow";
 		var l = (findArr.length==0 ? goog.dom.getElement("fr_find_input").value.length : goog.dom.getElement("find_input").value.length);
@@ -73,7 +73,7 @@ function drawFindArr(pageStartX){
 		for(i in drawArr){
 			if(drawArr[i][0]>startLine){
 				var p = canvasPosition(drawArr[i][0],drawArr[i][1],pageStartX);
-				if(p.canvasY>1200)break;
+				if(p.canvasY>editorHeight)break;
 				ctx.fillRect(p.canvasX,p.canvasY+4,l*fontWidth,lineheight-2);
 			}
 		}
@@ -84,7 +84,7 @@ function drawRange(pageStartX){
 	if(redrawRange==false)return;
 	var canvas = goog.dom.getElement('canvasRange');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0,editorWidth,1200)
+	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight);
 	if(pos.row==anch.row && anch.col==pos.col)return;
 	if(pos.row>anch.row){
 		var startRange = {row:anch.row, col:anch.col};
@@ -129,7 +129,7 @@ function drawRange(pageStartX){
 			startLine=pageBreaks[count][0];
 		}
 		for (var i=startLine; i<linesNLB.length; i++){
-			if(y-vOffset>1200)break;
+			if(y-vOffset>editorHeight)break;
 			if(i>endRange.row)break;
 			var tc=0; // keep track of total characters passed through so far
 			for(var j=0; j<linesNLB[i].length; j++){
@@ -225,7 +225,7 @@ function drawNotes(ctx, pageStartX){
 	ctx.fillStyle="dodgerBlue"
 	for(i in notesArr){
 		var p = canvasPosition(notes[i].row, notes[i].col, pageStartX);
-		if(p.canvasY>1200)break;
+		if(p.canvasY>editorHeight)break;
 		if(p.canvasY>-10){
 			drawNote(p.canvasX, p.canvasY, ctx, notes[i]);
 		}
@@ -273,7 +273,7 @@ function drawPages(pageStartX){
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	pageStartY+=(firstPrintedPage*72*lineheight);
 	for(var i=firstPrintedPage; i<=pageBreaks.length;i++){
-		if (pageStartY>1200)break;
+		if (pageStartY>editorHeight)break;
 		ctx.fillStyle = background;
 		ctx.fillRect(pageStartX, pageStartY, fontWidth*87, lineheight*70);
 		ctx.strokeStyle = '#000';
@@ -291,7 +291,7 @@ function drawSluglineBacking(pageStartX){
 	if(redrawSluglines==false)return;
 	var canvas = goog.dom.getElement('canvasSluglines');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0,editorWidth,1200)
+	ctx.clearRect(pageStartX+WrapVariableArray[0][1]-3,0,fontWidth*61.5,editorHeight)
 	ctx.fillStyle='#ddd';
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
@@ -299,7 +299,7 @@ function drawSluglineBacking(pageStartX){
 	for (var i=startLine;i<linesNLB.length;i++){
 		if(lines[i].format==0){
 			var p = canvasPosition(i,0,pageStartX)
-			if(p.canvasY>1200)break;
+			if(p.canvasY>editorHeight)break;
 			if(p.canvasY>-10){
 				for(var j=0; j<linesNLB[i].length-1;j++){
 					ctx.fillRect(p.canvasX-3,p.canvasY+2+(lineheight*j), fontWidth*61.5, 14)
@@ -361,7 +361,7 @@ function drawText(ctx, pageStartX){
 	}
 	//Stary Cycling through lines
 	for (var i=startLine; i<linesNLB.length; i++){
-		if(y-vOffset>1200)break; // quit drawing if off page
+		if(y-vOffset>editorHeight)break; // quit drawing if off page
 		for(var j=0; j<linesNLB[i].length; j++){
 			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 				if(j!=0 && lines[i].format==3){
@@ -414,7 +414,7 @@ function paint(){
 	
 	var canvas = goog.dom.getElement('canvasText');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(0,0,editorWidth,1200)
+	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight)
 	
 	drawText(ctx, pageStartX);
 	drawCaret(ctx, pageStartX);

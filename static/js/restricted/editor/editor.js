@@ -56,6 +56,7 @@ var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1]
     
     //if ($.browser.mozilla)fontWidth=9;
 var editorWidth = 850;
+var editorHeight = 850;
 var headerHeight=65+26;
 var lines = [];
 	/*

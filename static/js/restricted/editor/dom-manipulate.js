@@ -15,6 +15,7 @@ function setElementSizes(v){
 		c[i].width = s.width-320;
 	}
 	editorWidth=s.width-323;
+	editorHeight=s.height;
 	goog.dom.getElement('insertNewNote').style.marginLeft=editorWidth-630*1+"px";
 	goog.dom.getElement('sidebar').style.height = (s.height-70)+'px';
 	goog.dom.getElement('info').style.width = (editorWidth-6)+'px';
