@@ -120,7 +120,7 @@ function mouseMove(e){
 		}
 		// if the mouse is over a note, make it clickable
 		if (found!=false){
-			goog.dom.getElement('canvas').style.cursor='pointer';
+			goog.dom.getElement('canvasText').style.cursor='pointer';
 			goog.events.listen(goog.dom.getElement('canvasText'), goog.events.EventType.CLICK, notesDialogFromScript);
 		}
 		else{
