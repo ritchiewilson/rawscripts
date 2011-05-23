@@ -62,9 +62,13 @@ class Users (db.Model):
 class Stats(webapp.RequestHandler):
 	def get(self):
 		q=db.GqlQuery("SELECT * FROM Users")
-		r=q.fetch(10000)
-						
-		template_values= { 'num': str(len(r)) }
+		u=q.fetch(10000)	
+		template_values= { 'users': str(len(u)) }
+		
+		q=db.GqlQuery("SELECT * FROM UsersScripts WHERE permission='owner'")
+		s=q.fetch(10000)
+		template_values['scripts']=str(len(s))
+		
 		path = os.path.join(os.path.dirname(__file__), 'html/stats.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))

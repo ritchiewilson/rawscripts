@@ -5,7 +5,12 @@
 </head>
 <body id="stats">
 	<div id="content">
-		<p>Number of users: {{ num }}</p>
+		<p>Number of users: {{ users }}</p>
+		<p>Number of scripts: {{ scripts }}</p>
+		<p>Average: <span id='average'></span></p>
+		<script>
+		document.getElementById('average').innerHTML={{ users }}/{{ scripts }}
+		</script>
 	</div>
 </body>
 </html>
