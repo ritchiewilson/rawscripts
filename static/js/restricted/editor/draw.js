@@ -414,7 +414,7 @@ function paint(){
 	
 	var canvas = goog.dom.getElement('canvasText');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight)
+	ctx.clearRect(pageStartX+WrapVariableArray[0][1]-10,0,fontWidth*63,editorHeight)
 	
 	drawText(ctx, pageStartX);
 	drawCaret(ctx, pageStartX);
