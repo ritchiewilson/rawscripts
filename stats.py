@@ -61,11 +61,23 @@ class Users (db.Model):
 		
 class Stats(webapp.RequestHandler):
 	def get(self):
+		
+		# Get User
 		q=db.GqlQuery("SELECT * FROM Users")
 		u=q.fetch(10000)	
 		template_values= { 'users': str(len(u)),
 		 					'Users': u}
 		
+		# Figure out users who havn't made a script
+		ns=[] # no scripts
+		for i in u:
+			q=db.GqlQuery("SELECT __key__ FROM UsersScripts WHERE user='"+i.name.lower()+"'")
+			g=q.get()
+			if g==None:
+				ns.append(i)
+		template_values['noScripts']=ns
+		
+		# count scripts
 		q=db.GqlQuery("SELECT * FROM UsersScripts WHERE permission='owner'")
 		s=q.fetch(10000)
 		template_values['scripts']=str(len(s))
@@ -74,9 +86,11 @@ class Stats(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		
+		
 
 def main():
-	application = webapp.WSGIApplication([('/stats', Stats)],
+	application = webapp.WSGIApplication([('/stats', Stats),
+											],
 																			 debug=True)
 	
 	wsgiref.handlers.CGIHandler().run(application)
