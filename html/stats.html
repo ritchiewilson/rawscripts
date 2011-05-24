@@ -2,6 +2,50 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<title>stats</title>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script>
+	google.load("visualization", "1", {packages:["corechart"]});
+		google.setOnLoadCallback(drawChart);
+		function drawChart() {
+			var users = [
+				{% for user in Users %}
+				{{ user.firstUse.date|date:'Ymd' }},
+				{% endfor %}
+			]
+			users.sort(function(a,b){return a - b})
+			var d = {};
+			for(var i=0;i<users.length;i++){
+				if(d[users[i]]==undefined)d[users[i]]=1;
+				else d[users[i]]=d[users[i]]+1;
+			}
+			console.log(d)
+			var data = new google.visualization.DataTable();
+			data.addColumn('string', 'Date');
+			data.addColumn('number', 'New Users');
+			var j = new Date();
+			j.setFullYear(2010,7,1);
+			var today = new Date();
+			while(j<=today){
+				var day=String(j.getDate());
+				if(day.length==1)day='0'+day;
+				
+				var month=String(j.getMonth()+1);
+				if(month.length==1)month='0'+month;
+				
+				var year = String(j.getFullYear())
+				
+				var date=parseInt(year+month+day)
+				
+				var perday=0;
+				if(d[date]!=undefined)perday=d[date];
+				data.addRow([year+'/'+month+'/'+day, d[date]])
+				j.setDate(j.getDate()+1);
+			}
+			
+			var chart = new google.visualization.LineChart(document.getElementById('chart'));
+			chart.draw(data, {width: 1500, height: 240, title: 'New Users per Day'});
+		}
+	</script>
 </head>
 <body id="stats">
 	<div id="content">
@@ -9,8 +53,9 @@
 		<p>Number of scripts: {{ scripts }}</p>
 		<p>Average: <span id='average'></span></p>
 		<script>
-		document.getElementById('average').innerHTML={{ users }}/{{ scripts }}
+		document.getElementById('average').innerHTML={{ scripts }}/{{ users }}
 		</script>
+		<div id='chart'></div>
 	</div>
 </body>
 </html>

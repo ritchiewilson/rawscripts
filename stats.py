@@ -63,7 +63,8 @@ class Stats(webapp.RequestHandler):
 	def get(self):
 		q=db.GqlQuery("SELECT * FROM Users")
 		u=q.fetch(10000)	
-		template_values= { 'users': str(len(u)) }
+		template_values= { 'users': str(len(u)),
+		 					'Users': u}
 		
 		q=db.GqlQuery("SELECT * FROM UsersScripts WHERE permission='owner'")
 		s=q.fetch(10000)
