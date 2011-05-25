@@ -66,12 +66,21 @@
 					t.value="Edit Title Page";
 					t.addEventListener("click", titlePage, false);
 					t.title = resource_id;
+					// view notes
 					var n = controlDiv.appendChild(document.createElement("input"));
 					n.type="button";
 					n.addEventListener("click",viewNotes, false);
 					n.title = title;
 					n.name=resource_id;
-					n.value = "View Notes"
+					n.value = "View Notes";
+					// open pdf
+					var p = controlDiv.appendChild(document.createElement("input"));
+					p.type='button';
+					p.addEventListener("click",viewscript, false);
+					p.title = title;
+					p.name=resource_id;
+					p.value = "View PDF";
+					
 				}
 			}
 			var c = document.getElementById('othersContent');
@@ -256,8 +265,8 @@
 	function titlePage(){
 		window.open("titlepage?resource_id="+this.title)
 	}
-	function script(v){
-		url = '/editor?resource_id=' + v;
+	function viewscript(){
+		url = '/export?resource_id='+this.name+'&fromPage=mobileScriptlist&export_format=pdf&title_page=0';
 		window.open(url);
 	}
 	function renameScript(){
