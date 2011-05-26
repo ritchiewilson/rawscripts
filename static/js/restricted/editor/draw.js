@@ -85,7 +85,10 @@ function drawRange(pageStartX){
 	var canvas = goog.dom.getElement('canvasRange');
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight);
-	if(pos.row==anch.row && anch.col==pos.col)return;
+	if(pos.row==anch.row && anch.col==pos.col){
+		redrawRange=false;
+		return;
+	}
 	if(pos.row>anch.row){
 		var startRange = {row:anch.row, col:anch.col};
 		var endRange = {row:pos.row, col:pos.col};
@@ -295,7 +298,6 @@ function drawSluglineBacking(pageStartX){
 	ctx.fillStyle='#ddd';
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
-	try{
 	for (var i=startLine;i<linesNLB.length;i++){
 		if(lines[i].format==0){
 			var p = canvasPosition(i,0,pageStartX)
@@ -307,8 +309,6 @@ function drawSluglineBacking(pageStartX){
 			}
 		}
 	}
-	}
-	catch(err){console.log(i)}
 	redrawSluglines=false;
 }
 
