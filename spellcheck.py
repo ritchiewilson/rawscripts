@@ -67,7 +67,8 @@ class SpellCheckBigScript(webapp.RequestHandler):
 			word = i[0].split(" ")
 			for t in word:
 				w.append(t)
-
+		
+		# make a unique list of words
 		keys = {} 
 		for e in w: 
 			keys[e] = 1
@@ -80,7 +81,7 @@ class SpellCheckBigScript(webapp.RequestHandler):
 			while j<=200:
 				j+=1
 				arr.append(words.pop())
-				if len(words)==0: j=260
+				if len(words)==0: break
 			taskqueue.add(url="/spellcheck", params={'resource_id' :resource_id, 'data' : simplejson.dumps(arr)})
 		
 
