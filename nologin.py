@@ -183,7 +183,7 @@ class ScriptContent (webapp.RequestHandler):
 			q = db.GqlQuery("SELECT * FROM ScriptData "+
 											"WHERE resource_id='"+resource_id+"' "+
 											"ORDER BY version DESC")
-			results = q.fetch(1000)
+			results = q.fetch(2)
 			
 			q = db.GqlQuery("SELECT * FROM SpellingData "+
 											"WHERE resource_id='"+resource_id+"'")
