@@ -3,6 +3,7 @@
 chardet/*.pyc
 reportlab.zip
 config.py
+simplejson/*.pyc
 
 # external libraries
 gdata/
