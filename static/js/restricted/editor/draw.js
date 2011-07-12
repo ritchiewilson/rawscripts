@@ -1,9 +1,5 @@
 
-function drawScrollBar(){
-	if(redrawScrollbar==false)return;
-	var canvas = goog.dom.getElement('canvasScrollbar');
-	var ctx = canvas.getContext('2d');
-	ctx.clearRect(editorWidth-20,0,20,editorHeight)
+function drawScrollBar(ctx){
 	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
 	lingrad.addColorStop(0, "#5587c4");
 	lingrad.addColorStop(.8, "#95a7d4"); 
@@ -54,13 +50,8 @@ function drawScrollBar(){
 	ctx.lineWidth=2;
 	ctx.stroke();
 	
-	redrawScrollbar=false;
 }
-function drawFindArr(pageStartX){
-	if(redrawFindArr==false)return;
-	var canvas = goog.dom.getElement('canvasFindArr');
-	var ctx = canvas.getContext('2d');
-	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight)
+function drawFindArr(ctx, pageStartX){
 	if(findArr.length!=0 || findReplaceArr.length!=0){
 		ctx.fillStyle="yellow";
 		var l = (findArr.length==0 ? goog.dom.getElement("fr_find_input").value.length : goog.dom.getElement("find_input").value.length);
@@ -78,15 +69,9 @@ function drawFindArr(pageStartX){
 			}
 		}
 	}
-	redrawFindArr=false;
 }
-function drawRange(pageStartX){
-	if(redrawRange==false)return;
-	var canvas = goog.dom.getElement('canvasRange');
-	var ctx = canvas.getContext('2d');
-	ctx.clearRect(pageStartX+WrapVariableArray[0][1],0,fontWidth*61.5,editorHeight);
+function drawRange(ctx, pageStartX){
 	if(pos.row==anch.row && anch.col==pos.col){
-		redrawRange=false;
 		return;
 	}
 	if(pos.row>anch.row){
@@ -211,7 +196,6 @@ function drawRange(pageStartX){
 			}
 		}
     }
-	redrawRange=false;
 }
 
 function drawNotes(ctx, pageStartX){
@@ -264,12 +248,9 @@ function drawNote(x, y, ctx, note){
 	}
 }
 
-function drawPages(pageStartX){
-	if(redrawPages==false)return;
-	var canvas = goog.dom.getElement('canvasPages');
-	var ctx = canvas.getContext('2d');
+function drawPages(ctx, pageStartX){
 	ctx.fillStyle = '#bbb';
-	ctx.fillRect(0, 0, editorWidth, canvas.height);
+	ctx.fillRect(0, 0, editorWidth, goog.dom.getElement('canvasText').height);
 	ctx.font=font;
 	ctx.lineWidth = 1;
 	var pageStartY = lineheight-vOffset;
@@ -287,14 +268,9 @@ function drawPages(pageStartX){
 		if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY+85);
 		pageStartY+= lineheight*72;
 	}
-	redrawPages=false;
 }
 
-function drawSluglineBacking(pageStartX){
-	if(redrawSluglines==false)return;
-	var canvas = goog.dom.getElement('canvasSluglines');
-	var ctx = canvas.getContext('2d');
-	ctx.clearRect(pageStartX+WrapVariableArray[0][1]-3,0,fontWidth*61.5,editorHeight)
+function drawSluglineBacking(ctx, pageStartX){
 	ctx.fillStyle='#ddd';
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
 	var startLine=(firstPrintedPage!=0 ? pageBreaks[firstPrintedPage-1][0] : 0);
@@ -309,7 +285,6 @@ function drawSluglineBacking(pageStartX){
 			}
 		}
 	}
-	redrawSluglines=false;
 }
 
 function drawCaret(ctx, pageStartX){
@@ -406,21 +381,18 @@ function drawText(ctx, pageStartX){
 function paint(){
 	var TIME=new Date().getMilliseconds();
 	var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
-	
-	drawPages(pageStartX);
-	drawSluglineBacking(pageStartX);
-	drawFindArr(pageStartX);
-	drawRange(pageStartX);
-	
 	var canvas = goog.dom.getElement('canvasText');
 	var ctx = canvas.getContext('2d');
-	ctx.clearRect(pageStartX+WrapVariableArray[0][1]-10,0,fontWidth*63,editorHeight)
 	
+	drawPages(ctx, pageStartX);
+	drawSluglineBacking(ctx, pageStartX);
+	drawFindArr(ctx, pageStartX);
+	drawRange(ctx, pageStartX);
 	drawText(ctx, pageStartX);
 	drawCaret(ctx, pageStartX);
 	drawNotes(ctx, pageStartX);
+	drawScrollBar(ctx);
 	
-	drawScrollBar();
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
 }

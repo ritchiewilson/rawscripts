@@ -5,7 +5,6 @@
  * gives the mousedown event with associated data
  */
 function mouseDown(e){
-	redrawRange=true;
 	// only do stuff if canvas is active
 	// i.e. popups and dom sutff isn't being
 	// interacted with
@@ -55,7 +54,6 @@ function mouseDown(e){
  * gives the mouseup event with associated data
  */
 function mouseUp(e){
-	redrawRange=true;
 	updateMouseDrag=false; // no longer draggin
 	// if there is a character or scene 
 	// suggestion box, remove it

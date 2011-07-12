@@ -4,8 +4,6 @@
  * @param {goog.events.BrowserEvent} e key event
  */
 function keyEvent(e){
-	redrawRange=true;
-	redrawFindArr=true;
 	if(e.platformModifierKey){
 		// if ctrl or comman is pressed, the shortcut
 		// handler should take care of it

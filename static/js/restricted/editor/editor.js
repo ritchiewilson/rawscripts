@@ -96,11 +96,6 @@ var fMenu, eMenu, vMenu, sMenu;
 var notesPosition=[];
 var googSuggestMenu;
 var selectionTimer;
-var redrawPages=true;
-var redrawSluglines=true;
-var redrawRange=true;
-var redrawScrollbar=true;
-var redrawFindArr=true;
 var resizeElements=false;
 
 
@@ -138,11 +133,6 @@ function scroll(v){
 	if(goog.dom.getElement('suggestBox')!=null){
 		createSuggestBox((lines[pos.row].format==0 ? "s" : "c"));
 	}
-	redrawPages=true;
-	redrawSluglines=true;
-	redrawRange=true;
-	redrawScrollbar=true;
-	redrawFindArr=true;
 }
 
 
@@ -214,9 +204,6 @@ function changeFormat(v){
 	//recalc line wraping/pagination
 	var p = getLines(pos.row);
 	if(p)pagination()
-	redrawRange=true;
-	redrawFindArr=true;
-	redrawSluglines=true;
 }
 /**
  * Updates the GUI for the line format; 
@@ -253,7 +240,6 @@ function saveTimer(){
 }
 
 function findInputKeyUp(e, w){
-	redrawFindArr=true;
 	if(e.which==13 && e.which!=1000){
 		e.preventDefault();
 		findDown();
@@ -277,7 +263,6 @@ function findInputKeyUp(e, w){
 	if(w=="f"){goog.dom.getElement('find_number_found').innerHTML=findArr.length+" found"}
 }
 function findDown(){
-	redrawRange=true;
 	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
 	if (tmpArr.length==0)return;
 	var l = (findArr.length!=0 ? goog.dom.getElement('find_input').value.length : goog.dom.getElement('fr_find_input').value.length);
@@ -302,7 +287,6 @@ function findDown(){
 }
 
 function findUp(){
-	redrawRange=true;
 	var tmpArr= (findArr.length!=0 ? findArr : findReplaceArr)
 	if (tmpArr.length==0)return;
 	var l = (findArr.length!=0 ? goog.dom.getElement('find_input').value.length : goog.dom.getElement('fr_find_input').value.length);
@@ -1277,7 +1261,6 @@ function findPrompt(){
 	goog.dom.getElement('find_div').style.display="block";
 	goog.dom.getElement('find_input').select();
 	goog.dom.getElement('find_input').focus();
-	redrawFindArr=true;
 }
 function hideFindPrompt(){
 	typeToScript=true;
@@ -1285,7 +1268,6 @@ function hideFindPrompt(){
 	findArr=[];
 	goog.dom.getElement('find_div').style.display="none";
 	commandDownBool=false;
-	redrawFindArr=true;
 }
 // Find Replace Prompt
 function findReplacePrompt(){
@@ -1296,7 +1278,6 @@ function findReplacePrompt(){
 	goog.dom.getElement('find_replace_div').style.display="block";
 	goog.dom.getElement('fr_find_input').select();
 	goog.dom.getElement('fr_find_input').focus();
-	redrawFindArr=true;
 }
 function hideFindReplacePrompt(){
 	typeToScript=true;
@@ -1304,7 +1285,6 @@ function hideFindReplacePrompt(){
 	findReplaceArr=[];
 	goog.dom.getElement('find_replace_div').style.display="none";
 	commandDownBool=false;
-	redrawFindArr=true;
 }
 function replaceText(){
 	if(EOV=='viewer')return;
@@ -1318,20 +1298,14 @@ function replaceText(){
 	anch.col=pos.col-d.length;
 	if(goog.dom.getElement('find_replace_div').style.display=="block")findInputKeyUp({"which":1000}, "r");
 	//backspace();
-	redrawFindArr=true;
 }
 function replaceAndFind(){
 	if(EOV=='viewer')return;
 	replaceText();
 	findDown();
-	redrawFindArr=true;
 }
 
 
 function sortNumbers(a,b){
     return a - b;
 }
-
-
-
-

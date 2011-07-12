@@ -117,7 +117,7 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
-	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "f");redrawFindArr=true;})
+	goog.events.listen(goog.dom.getElement('find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "f")})
 	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.FOCUS, function(e){
 		typeToScript=false;
 		findForcePaint=true;
@@ -128,7 +128,7 @@ function init(){
 		findForcePaint=false;
 		commandDownBool=false
 	});
-	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "r");redrawFindArr=true;});
+	goog.events.listen(goog.dom.getElement('fr_find_input'), goog.events.EventType.KEYUP, function(e){findInputKeyUp(e, "r")});
 	goog.events.listen(goog.dom.getElement('fr_replace_input'), goog.events.EventType.FOCUS, function(e){
 		typeToScript=false;
 		findForcePaint=true;

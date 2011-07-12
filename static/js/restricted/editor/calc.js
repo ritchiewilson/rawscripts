@@ -212,7 +212,6 @@ function getLines(v) {
 	
 	// return weather or not to re paginate
 	if(oldLineBreaks = false || oldLineBreaks-phraseArray.length!=0){
-		redrawSluglines=true;
 		return true
 	}
 	else{
@@ -272,7 +271,6 @@ function calculate(){
 			fillInfoBar();
 			updateMouseDrag=false;
 		}
-		redrawRange=true;
 	}
 	if(resizeElements==true){
 		setElementSizes('r');
