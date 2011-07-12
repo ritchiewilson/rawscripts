@@ -44,6 +44,11 @@
 			
 			document.getElementById('uwns').innerHTML=noScripts.length/newUsers.length;
 			
+			var growthData = new google.visualization.DataTable();
+			growthData.addColumn('string', 'Date');
+			growthData.addColumn('number', 'total');
+			var total=0;
+			
 			var j = new Date();
 			j.setFullYear(2011,0,1);
 			var today = new Date();
@@ -71,6 +76,9 @@
 				// ratio of the two
 				ratioNoScriptsData.addRow([year+'/'+month+'/'+day, noScriptsPerday/usersPerday])
 				
+				// growthData
+				total+=usersPerday;
+				growthData.addRow([year+'/'+month+'/'+day, total])
 				// go to next day
 				j.setDate(j.getDate()+1);
 			}
@@ -83,6 +91,9 @@
 			
 			var chart = new google.visualization.LineChart(document.getElementById('ratioChart'));
 			chart.draw(ratioNoScriptsData, {width: 1500, height: 240, title: 'Ratio of above charts'});
+			
+			var chart = new google.visualization.LineChart(document.getElementById('growthChart'));
+			chart.draw(growthData, {width: 1500, height: 500, title: 'Cumulative Growth of Users'});
 		}
 	</script>
 </head>
@@ -98,6 +109,8 @@
 		<div id='noScriptsChart'></div>
 		<p>Overall Ratio of users with no scripts: <span id='uwns'></span></p>
 		<div id='ratioChart'></div>
+		<p>Cumulative growth of users</p>
+		<div id='growthChart'></div>
 	</div>
 </body>
 </html>
