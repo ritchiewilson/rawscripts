@@ -404,7 +404,7 @@ def Pdf(data, title, title_page, resource_id):
 	
 	# draw text onto pdf, just like
 	# it's done in editor.js
-	pageStartY = 730
+	pageStartY = 740
 	y=pageStartY
 	numX=483
 	numY= pageStartY+(lh*3)
