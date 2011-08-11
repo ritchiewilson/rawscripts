@@ -15,3 +15,6 @@ scripts/compiler/
 
 # compiled js
 /static/js/min/
+
+# documentation
+/docs/build/
