@@ -603,7 +603,7 @@ class EmailScript (webapp.RequestHandler):
 		q=db.GqlQuery("SELECT * FROM ScriptData "+
 									"WHERE resource_id='"+resource_id+"' "+
 									"ORDER BY version DESC")
-		results = q.fetch(1000)
+		results = q.fetch(1)
 		data=results[0].data
 		newfile = export.Pdf(data, str(title), title_page, resource_id)
 		filename=title+'.pdf'
@@ -704,7 +704,7 @@ class Duplicate (webapp.RequestHandler):
 			q=db.GqlQuery("SELECT * FROM ScriptData "+
 										"WHERE resource_id='"+resource_id+"' "+
 										"ORDER BY version DESC")
-			results = q.fetch(1000)
+			results = q.fetch(1)
 			data=results[0].data
 			version=results[0].version
 			user=users.get_current_user().email()
