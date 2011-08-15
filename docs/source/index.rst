@@ -13,8 +13,9 @@ Contents:
 
    intro
    contribute
-   philosophy
+   code
    tech
+   philosophy
 
 Indices and tables
 ==================

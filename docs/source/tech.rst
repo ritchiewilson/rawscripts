@@ -11,6 +11,8 @@ Languages Used
 
 Python on the server
 
+AppEngine for the server
+
 Javascript in the browser
 
 Lots o' HTML5 -- the editor is drawn in <canvas>
