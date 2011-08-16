@@ -11,25 +11,34 @@ visionaries, evangelists, graphic designers, UI designers, system
 administrators, and sages. But if you DO write code, that's awesome
 too. Either way, you should start by:
 
+.. _community:
+
 Joining the Community
 =====================
 
-Get in on the conversation, say "hey", see what people are up to.
+The first thing to do is get in on the conversation, say "hey", see
+what people are up to.
 
 * Check out the mailing list on google groups
 * Come chat on IRC at #rawscripts on Freenode.net
 
+Step one complete? Awesome. Start getting involved in any number of ther ways. Like:
+
 Use the Software
 ================
 
-You can also start by just using the software. Go to rawscripts.com,
-sign up and start writing. Poke around and tell us what you think.
+You can go use the software this minute at `rawscripts.com <http://www.rawscripts.com>`_.
+
+We need writers using the software, and we need their feedback. It can
+also be a good way to familiarize yourself with the project.
 
 Write Code
 ==========
 
-The code is hosted at gitorious.org/rawscripts/rawscripts, so grab it,
-start a new branch and see what you can do.
+Download code and libraries, make a new branch in git and go for it.
+
+Check out more complete :ref:`instructions <working-on-code>` for
+getting started.
 
 Evangelize
 ==========
@@ -41,7 +50,7 @@ cooler. And let us know what you're up to.
 File Bugs
 =========
 
-There is an issue tracker set up at issues.rawscripts.org 
+There is an issue tracker set up at `issues.rawscripts.org <http://issues.rawscripts.org>`_. 
 
 There you can tell everyone what's broken or missing or odd. Be sure
 to write up everything you know, like how to reproduce the problem,
@@ -51,5 +60,6 @@ everything.
 Run Your Own Instance
 =====================
 
-Have mercy, you want to run this code yourself?! Cool! Check out
-RUNNING YOUR OWN INSTANCE
+Have mercy, you want to run this code yourself?! 
+
+Cool! Check out :ref:`instructions and warnings <deployment>`.
