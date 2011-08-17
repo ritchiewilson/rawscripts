@@ -1,0 +1,41 @@
+========
+ README
+========
+
+
+What is Rawscripts?
+===================
+
+Rawscripts is screenwriting software that runs in a browser and stores
+everything online. This allows you to write, edit, and manage
+screenplays from any computer and have access to all your work.
+
+It's the code that is running at <http://www.rawscripts.com>.
+
+
+Fastest Way To Use Rawscripts
+=============================
+
+If you just want to write screenplays, you can go to
+<http://www.rawscripts.com>. Log in and start writing.
+
+
+Can I Participate in the Project?
+=================================
+
+Heavens, yes! We need writers, coders, graphic designers, bug finders,
+smart people, bastards, brawlers, and bawlers.
+
+Check out <http://www.rawscripts.org/join> for more information about
+contact, mailing lists, IRC, and more.
+
+
+Cool, Where's the Documentation?
+================================
+
+In "docs/source/" you'll find all the documentation as .rst files.
+
+The same docs may be found online at <http://docs.rawscripts.org>
+
+There you can find information on the software, libraraies used,
+getting up and running, and contributing generally.
