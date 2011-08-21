@@ -27,3 +27,10 @@ goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.object');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.ui.PopupMenu')
+
+////////////////////////////////////////////////////
+// This is a list of required closure components  //
+// for the site to work. This file is used in DEV //
+// mode to dynamicly load relevent files. It is   //
+// also used by the compiler find everything	  //
+////////////////////////////////////////////////////
