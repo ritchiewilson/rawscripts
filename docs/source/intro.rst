@@ -108,3 +108,10 @@ should be:
 * Committed to using and supporting open standards and platforms
 
 So, that's pretty straight forward.
+
+How is Rawscripts Licensed?
+===========================
+
+AGPLv3. 
+
+The text of the license should be included when the project is downloaded. It can also be read online at http://www.gnu.org/licenses
