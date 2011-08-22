@@ -16,6 +16,25 @@ fi
 args=("$@")
 PAGE=${args[0]}
 
+# make sure there's a good argument here
+
+if [ "$PAGE" = "editor" ]
+then
+  echo "Compiling editor files..."
+elif [ "$PAGE" = "scriptlist" ]
+then
+  echo "Compiling scriptlist files...."
+elif [ "$PAGE" = "titlepage" ]
+then
+  echo "Compiling titlepage files..."
+else
+  echo "
+************ERROR: No such page $PAGE.*************
+Choose from 'editor', 'scriptlist', or 'titlepage'.
+***************************************************"
+  exit $E_BADARGS
+fi
+
 #Get the root directory of the project
 DIR="$( cd "$( dirname "$0" )" && pwd )"
 cd $DIR
