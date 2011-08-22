@@ -16,8 +16,12 @@ fi
 args=("$@")
 PAGE=${args[0]}
 
+#Get the root directory of the project
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+cd $DIR
 cd ..
-ROOT=$(cd `dirname $0` && pwd)
+ROOT=$(pwd)
+
 
 # Remove old compiled file if exists
 rm $ROOT"/static/js/min/"$PAGE"-compiled.js"
