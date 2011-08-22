@@ -37,14 +37,14 @@ ERROR: that's not a thing. Try 'editor' or 'scriptlist'
 fi
 
 #Remove old file if it exists
-rm $ROOT'/static/css/'$PAGE'-all.css'
+rm $ROOT'/static/css/min/'$PAGE'-all.css'
 
 #Concat closure library css files
 for f in "${CAT_FILES[@]}"
 do
-cat $ROOT'/static/closure-library/closure/goog/css/'${f}'.css' >> $ROOT'/static/css/'$PAGE'-all.css'
+cat $ROOT'/static/closure-library/closure/goog/css/'${f}'.css' >> $ROOT'/static/css/min/'$PAGE'-all.css'
 done
 
-cat $ROOT'/static/css/editor.css' >> $ROOT'/static/css/editor-all.css'
+cat $ROOT'/static/css/'$PAGE'.css' >> $ROOT'/static/css/min/'$PAGE'-all.css'
 
 echo "***Done! Combined all usefull CSS for ${PAGE}***"

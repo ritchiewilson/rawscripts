@@ -16,5 +16,8 @@ scripts/compiler/
 # compiled js
 /static/js/min/
 
+# Concat CSS
+/static/css/min/
+
 # documentation
 /docs/build/
