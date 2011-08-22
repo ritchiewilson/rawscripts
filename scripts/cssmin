@@ -1,0 +1,50 @@
+#!/bin/bash
+
+E_BADARGS=65
+
+if [ ! -n "$1" ]
+then
+  echo "usage: compile-js.sh <page-to-compile>
+
+for Example:
+	./compile-js editor
+or:
+	./compile-js scriptlist"
+  exit $E_BADARGS
+fi
+
+args=("$@")
+PAGE=${args[0]}
+
+#Get the root directory of the project
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+cd $DIR
+cd ..
+ROOT=$(pwd)
+
+if [ "$PAGE" = "editor" ]
+then
+  declare -a CAT_FILES=('menu' 'menuitem' 'menuseparator' 'common' 'toolbar' 'button' 'dialog' 'custombutton' 'autocomplete' 'tab' 'tabbar' 'colormenubutton' 'palette' 'colorpalette' 'editor/bubble' 'editor/dialog' 'editortoolbar')
+elif [ "$PAGE" = "scriptlist" ]
+then
+  declare -a CAT_FILES=('menu' 'menuitem' 'menuseparator' 'common' 'toolbar' 'button' 'custombutton' 'autocomplete')
+else
+  echo "
+*******************************************************
+ERROR: that's not a thing. Try 'editor' or 'scriptlist'
+*******************************************************"
+  exit $E_BADARGS
+fi
+
+#Remove old file if it exists
+rm $ROOT'/static/css/'$PAGE'-all.css'
+
+#Concat closure library css files
+for f in "${CAT_FILES[@]}"
+do
+cat $ROOT'/static/closure-library/closure/goog/css/'${f}'.css' >> $ROOT'/static/css/'$PAGE'-all.css'
+done
+
+cat $ROOT'/static/css/editor.css' >> $ROOT'/static/css/editor-all.css'
+
+echo "***Done! Combined all usefull CSS for ${PAGE}***"
