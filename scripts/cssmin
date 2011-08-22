@@ -4,12 +4,12 @@ E_BADARGS=65
 
 if [ ! -n "$1" ]
 then
-  echo "usage: compile-js.sh <page-to-compile>
+  echo "usage: ./cssmin <page-to-compile>
 
 for Example:
-	./compile-js editor
+	./cssmin editor
 or:
-	./compile-js scriptlist"
+	./cssmin scriptlist"
   exit $E_BADARGS
 fi
 

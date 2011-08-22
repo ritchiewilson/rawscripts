@@ -4,7 +4,7 @@ E_BADARGS=65
 
 if [ ! -n "$1" ]
 then
-  echo "usage: compile-js.sh <page-to-compile>
+  echo "usage: compile-js <page-to-compile>
 
 for Example:
 	./compile-js editor
