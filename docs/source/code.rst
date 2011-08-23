@@ -28,8 +28,8 @@ Use git::
 Get the Libraries Used
 ----------------------
 
-The sofware needs the closure libraray, the closure compiler, js-min
-(for css compiling) and a handfull of others.
+The sofware needs the closure libraray, the closure compiler, and a
+handfull of others.
 
 For ease of use, There is a script that will grab all these and put
 them in the right places.::
@@ -51,7 +51,8 @@ Set up Config.py
 ================
 
 There is a sample config.py.sample, and you should be able to copy
-that to config.py. The settings in that file should be obvious. Except for maybe "DEV" or "PRO" modes.
+that to config.py. The settings in that file should be obvious. Except
+for maybe "DEV" or "PRO" modes.
 
 "DEV" versus "PRO" Mode
 =======================
@@ -96,9 +97,9 @@ select the project directory, click "Run".
 
 Linux
 -----
-Unzip the downloaded SDK
+Unzip the downloaded SDK.
 
-In the terminal run:::
+Then in the terminal run:::
 
     python /path/to/google_appengine/dev_appserver.py path/to/project/root
 
