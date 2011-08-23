@@ -1,5 +1,5 @@
 
-MODE='PRO' # DEV or PRO
+MODE='DEV' # DEV or PRO
 
 # Google Analytics
 GA='UA-16492540-1'
