@@ -546,7 +546,7 @@ function createScript (){
 				refreshList();
 			},
 			'POST',
-			'fromPage=scriptlist&filename='+escape(filename)
+			'fromPage=scriptlist&filename='+encodeURIComponent(filename)
 		);
 	}
 }
@@ -950,7 +950,7 @@ function emailScript(){
 	goog.net.XhrIo.send('emailscript',
 		emailComplete,
 		'POST',
-		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+escape(subject)+'&body_message='+escape(body_message)+'&fromPage=scriptlist&title_page='+title_page
+		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+encodeURIComponent(subject)+'&body_message='+encodeURIComponent(body_message)+'&fromPage=scriptlist&title_page='+title_page
 	);
 	goog.dom.getElement('emailS').disabled = true;
 	goog.dom.getElement('emailS').value = 'Sending...';
@@ -1050,7 +1050,7 @@ function shareScript(){
 	var resource_id = goog.dom.getElement('shareResource_id').value;
 	var sendEmail = (goog.dom.getElement('email_notify_share').checked==true ? 'y' : 'n');
 	var addMsg = (goog.dom.getElement('email_notify_msg').checked==true ? 'y' : 'n');
-	var msg = ((sendEmail=='y' && addMsg=='y') ? escape(goog.dom.getElement('share_message').innerHTML) : 'n');
+	var msg = ((sendEmail=='y' && addMsg=='y') ? encodeURIComponent(goog.dom.getElement('share_message').innerHTML) : 'n');
 	goog.net.XhrIo.send('/share',
 		function(){
 			goog.dom.getElement('email_notify_share').checked=true;
@@ -1178,7 +1178,7 @@ function newFolder(){
 		goog.net.XhrIo.send('/newfolder',
 			function(){},
 			'POST',
-			'folder_name='+escape(f)+'&folder_id='+id
+			'folder_name='+encodeURIComponent(f)+'&folder_id='+id
 		)
 		var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
 		d.className="tab";

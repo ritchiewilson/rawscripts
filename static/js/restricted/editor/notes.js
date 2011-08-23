@@ -182,7 +182,7 @@ function markAsRead(e){
 			noteIndex();
 		},
 		'POST',
-		'resource_id='+resource_id+'&thread_id='+thread_id+'&msg_id='+escape(msg_id)
+		'resource_id='+resource_id+'&thread_id='+thread_id+'&msg_id='+encodeURIComponent(msg_id)
 	)
 }
 function newThread(){
@@ -302,7 +302,7 @@ function submitNewThread(){
 			}
 		},
 		'POST',
-		'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+escape(content)+'&thread_id='+thread_id
+		'fromPage=editor&resource_id='+resource_id+'&row='+pos.row+'&col='+pos.col+'&content='+encodeURIComponent(content)+'&thread_id='+thread_id
 	);
 	this.disabled = true;
 	this.value = 'Saving...';
@@ -445,7 +445,7 @@ function submitMessage(){
 			}
 		},
 		'POST',
-		'resource_id='+resource_id+'&content='+escape(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
+		'resource_id='+resource_id+'&content='+encodeURIComponent(content)+'&thread_id='+thread_id+'&msg_id='+msg_id+'&fromPage=editor'
 	);
 	noteIndex();
 }
@@ -511,7 +511,7 @@ function deleteMessage(v){
 				}
 			},
 			'POST',
-			'resource_id='+resource_id+'&thread_id='+threadId+'&msgId='+escape(msgId)
+			'resource_id='+resource_id+'&thread_id='+threadId+'&msgId='+encodeURIComponent(msgId)
 		);
 	}
 }

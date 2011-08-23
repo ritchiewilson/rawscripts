@@ -38,26 +38,26 @@ function save(){
             i.push(data);
         }
     }
-	var postData = 'title='+escape(i[0]);
-	postData+='&authorOne='+escape(i[1]);
-	postData+='&authorTwo='+escape(i[2]);
-	postData+='&authorTwoChecked='+escape(i[3]);
-	postData+='&authorThree='+escape(i[4]);
-	postData+='&authorThreeChecked='+escape(i[5]);
-	postData+='&based_onChecked='+escape(i[6]);
-	postData+='&addressChecked='+escape(i[7]);
-	postData+='&phone='+escape(i[8]);
-	postData+='&phoneChecked='+escape(i[9]);
-	postData+='&cell='+escape(i[10]);
-	postData+='&cellChecked='+escape(i[11]);
-	postData+='&email='+escape(i[12]);
-	postData+='&emailChecked='+escape(i[13]);
-	postData+='&registered='+escape(i[14]);
-	postData+='&registeredChecked='+escape(i[15]);
-	postData+='&other='+escape(i[16]);
-	postData+='&otherChecked='+escape(i[17]);
-	postData+='&based_on='+escape(i[18]);
-	postData+='&address='+escape(i[19]);
+	var postData = 'title='+encodeURIComponent(i[0]);
+	postData+='&authorOne='+encodeURIComponent(i[1]);
+	postData+='&authorTwo='+encodeURIComponent(i[2]);
+	postData+='&authorTwoChecked='+encodeURIComponent(i[3]);
+	postData+='&authorThree='+encodeURIComponent(i[4]);
+	postData+='&authorThreeChecked='+encodeURIComponent(i[5]);
+	postData+='&based_onChecked='+encodeURIComponent(i[6]);
+	postData+='&addressChecked='+encodeURIComponent(i[7]);
+	postData+='&phone='+encodeURIComponent(i[8]);
+	postData+='&phoneChecked='+encodeURIComponent(i[9]);
+	postData+='&cell='+encodeURIComponent(i[10]);
+	postData+='&cellChecked='+encodeURIComponent(i[11]);
+	postData+='&email='+encodeURIComponent(i[12]);
+	postData+='&emailChecked='+encodeURIComponent(i[13]);
+	postData+='&registered='+encodeURIComponent(i[14]);
+	postData+='&registeredChecked='+encodeURIComponent(i[15]);
+	postData+='&other='+encodeURIComponent(i[16]);
+	postData+='&otherChecked='+encodeURIComponent(i[17]);
+	postData+='&based_on='+encodeURIComponent(i[18]);
+	postData+='&address='+encodeURIComponent(i[19]);
 	postData+='&resource_id='+resource_id;
 	goog.net.XhrIo.send('/titlepagesave',
 		function(e){

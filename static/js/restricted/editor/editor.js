@@ -351,7 +351,7 @@ function ajaxSpell(v, r){
 			x=i=null;
 		},
 		'POST',
-		'data='+escape(j)+'&resource_id='+resource_id
+		'data='+encodeURIComponent(j)+'&resource_id='+resource_id
 	)
 }
 
@@ -887,7 +887,7 @@ function closeScript(){
 		self.close();
 		},
 		'POST',
-		"data="+escape(data)+"&resource_id="+resource_id+"&autosave=0"
+		"data="+encodeURIComponent(data)+"&resource_id="+resource_id+"&autosave=0"
 	);
 	var arr = []
 	for (i in notes){
@@ -897,7 +897,7 @@ function closeScript(){
 		goog.net.XhrIo.send('/notesposition', 
 			function(d){},
 			'POST',
-			"positions="+escape(JSON.stringify(arr))+"&resource_id="+resource_id
+			"positions="+encodeURIComponent(JSON.stringify(arr))+"&resource_id="+resource_id
 		);
 	}
 }
@@ -935,7 +935,7 @@ function createScript (){
 				hideNewScriptPrompt();
 			},
 			'POST',
-			'filename='+escape(filename)+'&fromPage=editor'
+			'filename='+encodeURIComponent(filename)+'&fromPage=editor'
 		);
 	}
 }
@@ -989,7 +989,7 @@ function save(v){
 			}
 		},
 		'POST',
-		"data="+escape(data)+"&resource_id="+resource_id+"&autosave="+v
+		"data="+encodeURIComponent(data)+"&resource_id="+resource_id+"&autosave="+v
 	);
     var arr = []
     for (i in notes){
@@ -999,7 +999,7 @@ function save(v){
 		goog.net.XhrIo.send('/notesposition', 
 			function(d){},
 			'POST',
-			"positions="+escape(JSON.stringify(arr))+"&resource_id="+resource_id
+			"positions="+encodeURIComponent(JSON.stringify(arr))+"&resource_id="+resource_id
 		);
     }
 }
@@ -1119,7 +1119,7 @@ function emailScript(){
 	goog.net.XhrIo.send('/emailscript', 
 		emailComplete,
 		'POST',
-		"resource_id="+resource_id+"&recipients="+recipients+"&subject="+subject+"&body_message="+escape(body_message)+"&fromPage=editor"
+		"resource_id="+resource_id+"&recipients="+recipients+"&subject="+subject+"&body_message="+encodeURIComponent(body_message)+"&fromPage=editor"
 	);
 	goog.dom.getElement('emailS').disabled = true;
 	goog.dom.getElement('emailS').value = 'Sending...';
@@ -1172,7 +1172,7 @@ function removeAccess(v){
 			var id = d.target.getResponseText();
 	        goog.dom.removeNode(goog.dom.getElement(id))},
 			'POST',
-			"removePerson="+escape(v)+"&resource_id="+resource_id+"&autosave="+v
+			"removePerson="+encodeURIComponent(v)+"&resource_id="+resource_id+"&autosave="+v
 		);
     }
 	c=null;
@@ -1206,7 +1206,7 @@ function shareScript(){
 	var collaborators = arr.join(',');
 	var sendEmail = (goog.dom.getElement('email_notify_share').checked==true ? 'y' : 'n');
 	var addMsg = (goog.dom.getElement('email_notify_msg').checked==true ? 'y' : 'n');
-	var msg = ((sendEmail=='y' && addMsg=='y') ? escape(goog.dom.getElement('share_message').innerHTML) : 'n');
+	var msg = ((sendEmail=='y' && addMsg=='y') ? encodeURIComponent(goog.dom.getElement('share_message').innerHTML) : 'n');
 	goog.net.XhrIo.send('/share',
 		function(d){
 			goog.dom.getElement('email_notify_share').checked=true;
@@ -1230,7 +1230,7 @@ function shareScript(){
 	        goog.dom.getElement('shareS').value = "Send Invitations";
 		},
 		'POST',
-		'resource_id='+resource_id+'&collaborators='+escape(collaborators)+'&fromPage=editor&sendEmail='+sendEmail+'&addMsg='+addMsg+'&msg='+msg	
+		'resource_id='+resource_id+'&collaborators='+encodeURIComponent(collaborators)+'&fromPage=editor&sendEmail='+sendEmail+'&addMsg='+addMsg+'&msg='+msg	
 	)
 	goog.dom.getElement('shareS').disabled = true;
 	goog.dom.getElement('shareS').value = "Sending Invites...";
@@ -1248,7 +1248,7 @@ function tagPrompt(){
 				}
 			},
 			'POST',
-			'resource_id='+resource_id+'&version=latest&tag='+escape(t)
+			'resource_id='+resource_id+'&version=latest&tag='+encodeURIComponent(t)
 		)
 	}
 }
