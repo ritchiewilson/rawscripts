@@ -16,13 +16,14 @@ Download Everything
 Get the Code
 ------------
 
-Download the code from gitorious
+Download the code from https://gitorious.org/rawscripts/rawscripts
 
 --OR--
 
 Use git::
 
-    git clone https://gitorious.org/rawscripts/rawscripts
+    git clone git://gitorious.org/rawscripts/rawscripts.git
+
 
 Get the Libraries Used
 ----------------------
@@ -100,6 +101,15 @@ Unzip the downloaded SDK
 In the terminal run:::
 
     python /path/to/google_appengine/dev_appserver.py path/to/project/root
+
+Windows
+-------
+
+I don't have a Windows machine.
+
+Running this on Windows should be easy, though. If you get it going,
+add what you've learned to the docs. If you have any questions, lemme
+know.
 
 Open in Browser
 ---------------
