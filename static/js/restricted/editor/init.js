@@ -1,9 +1,8 @@
 /**
- * Run on body onload. Checks the brower, 
- * and the mode the user is running in
- * and from that alters the DOM and sets
- * up event listeners.
- * Then calls for script data
+ * Run on body onload. Checks the browser, and the mode the user is
+ * running in (either 'editor' or 'viewer'. Basicaly "write' or "read
+ * only"). From that alters the DOM and sets up event listeners.  Then
+ * calls for script data
  */
 function init(){
 	// basicaly, quit stuff if in IE,
@@ -250,8 +249,9 @@ function init(){
 /**
  * Gets script data and puts it all in
  * it's place.
- * @param {goog.event.BroswerEvent} e
- * JSON from the server with all the script data
+ * 
+ * @param {goog.event.BroswerEvent} e JSON from the server with all
+ * the script data
  */
 function parseInitialJSON(e){
 	// if script was not found on server, show that
