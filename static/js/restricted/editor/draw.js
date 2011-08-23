@@ -1,4 +1,9 @@
-
+/**
+ * Draw the scrollbar for the editor in the <canvas> element. Called
+ * from paint().
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ */
 function drawScrollBar(ctx){
 	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
 	lingrad.addColorStop(0, "#5587c4");
@@ -51,6 +56,15 @@ function drawScrollBar(ctx){
 	ctx.stroke();
 	
 }
+
+/**
+ * When user is searching for text in a script, the result of the
+ * RegExp is put into an array.  This goes through and highlights
+ * everything in the array.
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawFindArr(ctx, pageStartX){
 	if(findArr.length!=0 || findReplaceArr.length!=0){
 		ctx.fillStyle="yellow";
@@ -70,6 +84,14 @@ function drawFindArr(ctx, pageStartX){
 		}
 	}
 }
+
+/**
+ * Draws the range of highlighted text in the script. Done on the
+ * <canvas> element.
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawRange(ctx, pageStartX){
 	if(pos.row==anch.row && anch.col==pos.col){
 		return;
@@ -198,9 +220,16 @@ function drawRange(ctx, pageStartX){
     }
 }
 
+/**
+ * Cycle through the notes in the global array "notes". Sort the notes
+ * so they are in order.  figure out where they are, and if it is in
+ * view, send it to drawNote() to draw it.
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawNotes(ctx, pageStartX){
 	notesPosition=[];
-	// calc if there are notes in this line
 	var notesArr=[];
 	if(viewNotes){
 		for (note in notes){
@@ -219,6 +248,14 @@ function drawNotes(ctx, pageStartX){
 	}
 		
 }
+
+/**
+ * Get the on screen position and id of note and draw it to <canvas>.
+ *
+ * @param { integer } x The x position on the canvas of the note to be drawn
+ * @param { integer } y The y position on the canvas of the note to be drawn
+ * @param { canvas context} ctx The canvas context
+ */
 function drawNote(x, y, ctx, note){
 	y+=0.5;
 	x-=3.5;
@@ -248,6 +285,13 @@ function drawNote(x, y, ctx, note){
 	}
 }
 
+/**
+ * Draws the grey backing on the canvas, then the white pages and the
+ * dark grey border.
+ * 
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawPages(ctx, pageStartX){
 	ctx.fillStyle = '#bbb';
 	ctx.fillRect(0, 0, editorWidth, goog.dom.getElement('canvasText').height);
@@ -270,6 +314,12 @@ function drawPages(ctx, pageStartX){
 	}
 }
 
+/**
+ * Draws the grey backing behind sluglines to the <canvas>
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawSluglineBacking(ctx, pageStartX){
 	ctx.fillStyle='#ddd';
 	var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
@@ -286,7 +336,12 @@ function drawSluglineBacking(ctx, pageStartX){
 		}
 	}
 }
-
+/**
+ * Draws the caret to the <canvas>
+ *
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawCaret(ctx, pageStartX){
 	var d= new Date();
 	var newMilli = d.getMilliseconds();
@@ -299,6 +354,11 @@ function drawCaret(ctx, pageStartX){
 	}
 }
 
+/**
+ * Draws a series of parallel lines down the page. Not used in the
+ * software, just occasionally used for development in measuring
+ * things.
+ */
 function drawGuides(){
 	var canvas = goog.dom.getElement('canvasText');
 	var ctx = canvas.getContext('2d');
@@ -313,6 +373,13 @@ function drawGuides(){
 	}
 }
 
+/**
+ * Draws text to the <canvas>. Only draws text if it will actually be
+ * shown in the window.
+ * 
+ * @param { canvas context } ctx The canvas context to be drawn on
+ * @param { integer } pageStartX The x coordinate of start of page
+ */
 function drawText(ctx, pageStartX){
 	ctx.fillStyle=foreground;
 	ctx.font=font;
@@ -377,7 +444,16 @@ function drawText(ctx, pageStartX){
 		}
 	}
 }
-
+/**
+ * BIG ASS IMPORTANT FUNCTION. This is called multiple times a second
+ * and draws an animation frame. The result of the animation is the
+ * screenplay editor in a <canvas> element.
+ *
+ * Depending on the browser and it's capabilites, this is called from
+ * mozRequestAnimationFrame, webkitRequestAnimationFrame, etc. The
+ * fallback is setTimeout(). All these posible posible APIs are kept
+ * in the shim window.requestAnimeFrame().
+ */
 function paint(){
 	var TIME=new Date().getMilliseconds();
 	var pageStartX= Math.round((editorWidth-fontWidth*87-24)/2);
