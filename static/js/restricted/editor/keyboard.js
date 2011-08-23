@@ -1,6 +1,6 @@
 /**
- * When a key is pressed, figures
- * out what to do with it
+ * When a key is pressed, figures out what to do with it
+ * 
  * @param {goog.events.BrowserEvent} e key event
  */
 function keyEvent(e){
@@ -68,8 +68,9 @@ function shortcutTriggered(e){
 
 
 /**
- * Basicly typing. When a user types a letter, 
- * this puts it in the script.
+ * Basicly typing. When a user types a letter, this puts it in the
+ * script.
+ * 
  * @param {goog.event.KeyEvent} e Button pressed
  */
 function handlekeypress(e) {
@@ -149,7 +150,12 @@ function handlekeypress(e) {
 }
 
 /**
- * What do when a user hits backspace
+ * What do when a user hits backspace. Checks if user is editing the
+ * screenplay. Adds the action to the undo que. Shifts the position of
+ * notes. Then deletes the relevant character or space. Finally
+ * rewraps the line of text as needed, and recalculates page breaks as
+ * needed.
+ *
  * @param {goog.event.KeyEvent} e keypress
  */
 function backspace(e){
@@ -324,10 +330,9 @@ function backspace(e){
 }
 
 /**
- * Logic of the Delete button
- * Called when user presses delete
- * button while focused on the canvas
- * script.
+ * Logic of the Delete button. Called when user presses delete button
+ * while focused on the canvas script. Removes the character or space,
+ * shifts notes, recalculates all that is needed.
  */
 function deleteButton(){
 	// if this isn't an editor window
@@ -482,10 +487,9 @@ function deleteButton(){
 }
 
 /**
- * called when enter is pressed and 
- * handles all posible enter situations
- * including creating new line of text
- * or interacting other normal GUI
+ * called when enter is pressed and handles all posible enter
+ * situations including creating new line of text or interacting other
+ * normal GUI
  */
 function enter(){
 	// if this is an editor window, do nothing
@@ -578,8 +582,8 @@ function enter(){
 }
 
 /**
- * when user presses 'tab' reformat current
- * line, or whatever else
+ * when user presses 'tab' reformat current line if the user is
+ * focused on the canvas. Else, normal dom interaction.
  */
 function tab(){
 	if(EOV=='viewer')return;
@@ -641,11 +645,11 @@ function tab(){
 }
 
 /**
- * Moving the position of the Caret when
- * canvas is selected and user presses up
- * arrow
- * @param {goog.events.BrowserEvent} e
- * gives the mousedown event with associated data
+ * Moving the position of the Caret when canvas is selected and user
+ * presses up arrow
+ *
+ * @param {goog.events.BrowserEvent} e gives the keydown event with
+ * associated data
  */
 function upArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
@@ -751,11 +755,11 @@ function upArrow(e){
 }
 
 /**
- * Moving the position of the Caret when
- * canvas is selected and user presses Down
- * arrow
- * @param {goog.events.BrowserEvent} e
- * gives the key event with associated data
+ * Moving the position of the Caret when canvas is selected and user
+ * presses Down arrow
+ *
+ * @param {goog.events.BrowserEvent} e gives the key event with
+ * associated data
  */
 function downArrow(e){
 	if(typeToScript && goog.dom.getElement('suggestBox')==null){
@@ -826,11 +830,11 @@ function downArrow(e){
 }
 
 /**
- * Moving the position of the Caret when
- * canvas is selected and user presses left
- * arrow
- * @param {goog.events.BrowserEvent} e
- * gives the key event with associated data
+ * Moving the position of the Caret when canvas is selected and user
+ * presses left arrow
+ *
+ * @param {goog.events.BrowserEvent} e gives the key event with
+ * associated data
  */
 function leftArrow(e){
 	if(typeToScript){
@@ -864,11 +868,11 @@ function leftArrow(e){
 }
 
 /**
- * Moving the position of the Caret when
- * canvas is selected and user presses right
- * arrow
- * @param {goog.events.BrowserEvent} e
- * gives the key event with associated data
+ * Moving the position of the Caret when canvas is selected and user
+ * presses right arrow
+ *
+ * @param {goog.events.BrowserEvent} e gives the key event with
+ * associated data
  */
 function rightArrow(e){
 	if(typeToScript){
@@ -900,16 +904,14 @@ function rightArrow(e){
 }
 
 /**
- * just call scroll for PageUp
- * don't move cursor
+ * When pageup is pressed scroll the script up one full page.
  */
 function pageUp(){
 	scroll(-(lineheight*72))
 }
 
 /**
- * just call scroll for page down
- * don't move cursor
+ * When pagedown is pressed scroll the script down one full page.
  */
 function pageDown(){
 	scroll(lineheight*72)
