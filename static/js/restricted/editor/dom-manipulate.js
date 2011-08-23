@@ -23,7 +23,13 @@ function setElementSizes(v){
 		scroll(0);
 	}
 }
-
+/**
+ * This fills the info bar at the
+ * bottom of the editor window.
+ * If this is read only for the
+ * viewer, it does not give the 
+ * keyboard shortcuts.
+ */
 function fillInfoBar(){
 	var cell = goog.dom.getElement('info').getElementsByTagName('table')[0].getElementsByTagName('tr')[0].getElementsByTagName('td')[0];
 	
@@ -69,7 +75,7 @@ function fillInfoBar(){
 /**
  * In the right column, there's a scene
  * tab and notes tab. Switch between them
- * Awe shit. Why is there stying in this function
+ * Awe shit. Why is there styling in this function
  * make it calss based or something
  *
  * @param {number} v ; a zero indexed tab thingy
