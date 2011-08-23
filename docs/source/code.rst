@@ -65,14 +65,16 @@ do development.
 
 When it is deployed for actual use, though, it is a terrible idea to
 make all those calls for resources. So what you do is compile all the
-resources into one big JS files and one big CSS file. There is a
-script to help you do this::
+resources into one big JS files and one big CSS file. There is are
+scripts to help you do this.::
 
-    sh scripts/compile-js.sh [editor|scriptlist|titlepage]
+    sh scripts/compile-js.sh [ editor | scriptlist | titlepage ]
+    ./cssmin [ editor | scriptlist ]
 
-Page is whichever page need be compiled. The compiler take all the
-static resources and compile them into one big JS file and one big CSS
-file.
+These take all the static resources and compile them into one big JS
+file and one big CSS file. Only 'editor', 'scriptlist', and
+'titlepage' pages need the JS compiled. Only 'editor' and 'scriptlist'
+need the CSS combined.
 
 Then, in config.py, you can change the mode to "PRO". When each page
 loads it won't load scores of tiny files but just a couple of large
