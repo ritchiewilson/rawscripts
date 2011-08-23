@@ -71,7 +71,7 @@ resources into one big JS files and one big CSS file. There is are
 scripts to help you do this.::
 
     sh scripts/compile-js.sh [ editor | scriptlist | titlepage ]
-    ./cssmin [ editor | scriptlist ]
+    ./scripts/cssmin [ editor | scriptlist ]
 
 These take all the static resources and compile them into one big JS
 file and one big CSS file. Only 'editor', 'scriptlist', and
