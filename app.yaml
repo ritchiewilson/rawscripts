@@ -65,10 +65,6 @@ handlers:
 - url: /convert
   script: scripteditor.py
 
-- url: /about
-  static_files: html/about.html
-  upload: html/about.html
-
 - url: /contact
   script: nologin.py
 
