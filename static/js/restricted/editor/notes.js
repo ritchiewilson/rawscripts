@@ -16,7 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//notes
+/**
+ * put notes in order.
+ */
 function sortNotes(a,b){
     if (a.row<b.row) return -1;
     if (a.row>b.row) return 1;
@@ -24,11 +26,20 @@ function sortNotes(a,b){
     if (a.col>b.col) return 1;
     return 0;
 }
+
+/**
+ * Sort notes by column
+ */
 function sortNotesCol(a,b){
     if (a.col<b.col) return -1;
     if (a.col>b.col) return 1;
     return 0;
 }
+
+/**
+ * Take notes array and makes notes list GUI in the right of the
+ * window.
+ */
 function noteIndex(){
     notes.sort(sortNotes);
 	var c = goog.dom.getElement('noteBox')
@@ -102,6 +113,10 @@ function noteIndex(){
 	}
     typeToScript=true;
 }
+
+/**
+ * Create notes dialog box.
+ */
 function notesDialog(e, id, top, left){
 	if (e){
 		var c = e.target;
@@ -173,6 +188,14 @@ function notesDialog(e, id, top, left){
 		}
 	}
 }
+
+/**
+ * Rawscripts keeps track of unread notes. Used to require a user to
+ * click on the individual response to mark it as read. Now when the
+ * notes dialog pops up, all unread messages are marked as read.
+ *
+ * @param {this} noteMessageUnread div
+ */
 function markAsRead(e){
 	var el = e;
 	while(el.className!='noteMessage' && el.className!='noteMessageUnread'){el=el.parentNode}
@@ -203,6 +226,13 @@ function markAsRead(e){
 		'resource_id='+resource_id+'&thread_id='+thread_id+'&msg_id='+encodeURIComponent(msg_id)
 	)
 }
+
+/**
+ * Create a new notes thread. Give it a unique id for notes of this
+ * screenplay. Launch a dialog box for the first message. Nothing is
+ * sent to the server yet, as a user can cancel the thread instead of
+ * saving.
+ */
 function newThread(){
 	tabs(1);
 	var id=Math.round(Math.random()*1000000000);
@@ -277,6 +307,11 @@ function newThread(){
 	goog.events.listen(sb, goog.events.EventType.CLICK, submitNewThread);
 	goog.events.listen(cb, goog.events.EventType.CLICK, cancelNewThread);
 }
+
+/**
+ * User can cancel the new thread instead of saving anything. Removes
+ * thread from notes array and closes dialog box.
+ */
 function cancelNewThread(){
 	var el = this;
 	while(el.className!='modal-dialog')el=el.parentNode;
@@ -289,6 +324,11 @@ function cancelNewThread(){
 	}
 	goog.dom.removeNode(el);
 }
+
+/**
+ * Sends new thread to server with thread_id, position in script, and
+ * the contents of the first message.
+ */
 function submitNewThread(){
 	var el = this;
 	while(el.className!='messageEditBox editable')el=el.previousSibling;
@@ -325,6 +365,13 @@ function submitNewThread(){
 	this.disabled = true;
 	this.value = 'Saving...';
 }
+
+/**
+ * Allows users to create a new message within an existing
+ * thread. Does not save that message, just opens an editing box.
+ *
+ * @param {this} t the new message button
+ */
 function newMessage(t){
     typeToScript=false;
 	if (this.nodeName=='INPUT'){
@@ -402,6 +449,10 @@ function newMessage(t){
 	goog.events.listen(cb, goog.events.EventType.CLICK, cancelMessage);
 }
 
+/**
+ * Cancels the new message in an existing thread. Closes the opened
+ * editing box and does not save anything.
+ */
 function cancelMessage(){
 	var el = this;
 	while(el.className!='modal-dialog'){el=el.parentNode}
@@ -413,6 +464,11 @@ function cancelMessage(){
 	notesDialog(false, id, top, left);
 }
 
+/**
+ * Saves the message the user has created. Collects relevant data,
+ * marks the new message with a timestamp, then posts everything to
+ * the server. On response, puts the new message into the notes array.
+ */
 function submitMessage(){
 	this.disabled=true;
 	this.value='Saving...'
@@ -468,6 +524,12 @@ function submitMessage(){
 	noteIndex();
 }
 
+/**
+ * Deletes an entire thread and all its messages. Can only be done by
+ * the owner of the script.
+ *
+ * @param {this} v the "delete" span for the thread.
+ */
 function deleteThread(v){
 	var el = v;
 	while(el.className!='modal-dialog')el=el.parentNode;
@@ -490,6 +552,12 @@ function deleteThread(v){
     }
 }
 
+/**
+ * Delete just one message within a thread. Posts data to server, then
+ * removes it from the local notes array on confimation.
+ *
+ * @param {this} v span element for "delete"
+ */
 function deleteMessage(v){
 	var c = confirm("Are you sure you want to delete this message? This cannot be undone.")
 	if(c==true){
@@ -534,6 +602,12 @@ function deleteMessage(v){
 	}
 }
 
+/**
+ * When there are multiple notes dialogs open, this brings the
+ * identified one to the front by changing it's zindex.
+ *
+ * @param {integer} id The thread_id of the thread to move forward.
+ */
 function bringDialogToFront(id){
 	var z=0;
 	var c = goog.dom.getElementsByClass('modal-dialog');
@@ -548,10 +622,14 @@ function bringDialogToFront(id){
 	catch(err){};
 }
 
-
+/**
+ * Called when user clicks on a note drawn on canvas. Checks the
+ * posision of the mouse, then figures out which note was clicked,
+ * opens it. Set up in mouseMove().
+ *
+ * @param {goog.events.BrowserEvent} e MouseClick event
+ */
 function notesDialogFromScript(e){
-	// This is a weird loophole to get 
-	//the notesDialog going on script click
 	for(i in notesPosition){
 		if (notesPosition[i][0]<e.clientX && notesPosition[i][0]+fontWidth>e.clientX){
 			if(notesPosition[i][1]+headerHeight+6<e.clientY && notesPosition[i][1]+lineheight+headerHeight+6>e.clientY){
@@ -563,7 +641,11 @@ function notesDialogFromScript(e){
 }
 
 /**
- * if multiple notes occupy the same position, shift them arround so they are all unique
+ * if multiple notes occupy the same position, shift them arround so
+ * they are all unique.
+ * 
+ * The editor cannot currently support two notes in the same spot, so
+ * this forces uniqness.
  */
 function uniqueNotePositions(){
 	for(i in notes){
@@ -587,15 +669,3 @@ function uniqueNotePositions(){
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
