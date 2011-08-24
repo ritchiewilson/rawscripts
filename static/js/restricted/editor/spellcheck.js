@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// spellCheck
+/**
+ * Launches the spell check window, and handles little necessary
+ * things first.
+ */
 function launchSpellCheck(){
 	if(EOV=='viewer')return;
     typeToScript=false;
@@ -26,6 +29,19 @@ function launchSpellCheck(){
     spellCheckCycle(firstLine, 0, 0)
     
 }
+
+/**
+ * The spell check works by calling this function row by row, word by
+ * word. On correct words, it does nothing. on Inccorect words, it
+ * presents options. At then end of the function it calls itself to
+ * start where it left off.
+ * 
+ * @param {boolean} firstLine I HAVE NO IDEA WHAT THIS DOES ANYMORE
+ * 
+ * @param {integer} r Row that the spell checker is on.
+ *
+ * @param {integer} w Word within row that was last checked.
+ */
 function spellCheckCycle(firstLine, r, w){
 	if(EOV=='viewer')return;
     if(r=='finished'){
@@ -116,21 +132,42 @@ function spellCheckCycle(firstLine, r, w){
     }
 }
 
+/**
+ * hides the spellcheck dialog box. Called by user click, or by
+ * reaching the end of the spell check.
+ */
 function hideSpellCheck(){
     goog.dom.getElement('spellcheckpopup').style.visibility='hidden';
     typeToScript=true;
     //spellIgnore=[];
 	saveTimer()
 }
+
+/**
+ * Ignores word once and moves on to the next word.
+ */
 function s_ignore(){
     var tmp = goog.dom.getElement('sHidden').value;
     spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
 }
+
+/**
+ *  Adds word to ignore list so that it is always skipped. Then starts
+ *  spell check loop again at the next word.
+ */
 function s_ignore_all(){
     spellIgnore.push(goog.dom.getElement('sFocus').title);
     var tmp = goog.dom.getElement('sHidden').value;
     spellCheckCycle(false, tmp.split(',')[0], tmp.split(',')[1]);
 }
+
+/**
+ * Changes the one word to one of the suggestions.
+ *
+ * More specifically, a user has the option to manually change the
+ * text in the spellcheck window. Whatever is in that box will be
+ * entered as the new text for that row.
+ */
 function s_change(){
     var s=goog.dom.getElement('sSentance');
     var r = s.title;
