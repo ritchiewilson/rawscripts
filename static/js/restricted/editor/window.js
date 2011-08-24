@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Closure Compiler for JS changes all function
- * names. To have human readable function names
- * in the html, need to attach those functions
+/** 
+ * Closure Compiler for JS changes all function names. To have human
+ * readable function names in the html, need to attach those functions
  * to the window object; as done here.
  */
 window['markAsRead'] = markAsRead;
@@ -62,15 +62,3 @@ window['emailNotifyMsg'] = emailNotifyMsg;
 window['removeAccess'] = removeAccess;
 window['selection'] = selection;
 window['requestAnimFrame'] = requestAnimFrame;
-
-// shim layer with setTimeout fallback
-var requestAnimFrame = (function(){
-	return  window['requestAnimationFrame']       || 
-			window['webkitRequestAnimationFrame'] || 
-			window['mozRequestAnimationFrame']    || 
-			window['oRequestAnimationFrame']      || 
-			window['msRequestAnimationFrame']     || 
-			function(/* function */ callback, /* DOMElement */ element){
-				window.setTimeout(callback, 1000 / 60);
-			};
-	})();

@@ -462,6 +462,28 @@ function drawText(ctx, pageStartX){
 		}
 	}
 }
+
+/**
+ * requestAnimationFrame is a nice new HTML5 API. It let's the browser
+ * know that what you're doing is an animation, so it can sync it with
+ * other graphics functions. It can harware accelrate it. It will only
+ * do it when necessary. Great stuff.
+ *
+ * But, it's nonstandard, to check if the browser supports it, use the
+ * right right API, and use setTimeout() as a fallback. Nice shim.
+ */
+var requestAnimFrame = (function(){
+	return  window['requestAnimationFrame']       || 
+		window['webkitRequestAnimationFrame'] || 
+		window['mozRequestAnimationFrame']    || 
+		window['oRequestAnimationFrame']      || 
+		window['msRequestAnimationFrame']     || 
+		function(/* function */ callback, /* DOMElement */ element){
+			window.setTimeout(callback, 1000 / 60);
+		};
+})();
+
+
 /**
  * BIG ASS IMPORTANT FUNCTION. This is called multiple times a second
  * and draws an animation frame. The result of the animation is the
