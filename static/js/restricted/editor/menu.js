@@ -16,6 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+/**
+ * Called on hover over DOM based menubar items in the browser window
+ * (File, Edit, View, Share). If one of the drop downs is open, this
+ * closes that one and opens the new apropriate one. Also handles
+ * styling the menu header with correct colors.
+ *
+ * Jeez. It handles styling. Should really make it handle classes.
+ *
+ * @param {goog.events.BrowserEvent} e gives the hover event with
+ * associated data
+ */
+
 function topMenuOver(e){
 	var v = e.target.id
 	var arr = [['file', fMenu],['edit', eMenu],['view', vMenu],['share', sMenu]];
@@ -38,6 +51,13 @@ function topMenuOver(e){
 	}
 }
 
+/**
+ * Called when mouse leaves one of the DOM based menubar items. Just
+ * corrects the styling.
+ *
+ * @param {goog.events.BrowserEvent} e Mouse out event for the DOM
+ * object.
+ */
 function topMenuOut(e){
 	var v = e.target.id;
     if(goog.dom.getElement(v+'Menu').style.display=='none'){
@@ -46,6 +66,17 @@ function topMenuOut(e){
     }
 }
 
+/**
+ * When a Closure Library menu item is chosen, an action event is
+ * called. It's called when the item is clicked, or when it's
+ * highlighted and user presses enter.
+ * 
+ * Shitty. Should be written as a readable array of commands, not some
+ * endless fucking ifelse list
+ *
+ * @param {goog.events.BrowserEvent} e The 'action' event on the menu
+ * item and associated data
+ */
 function menuSelect(e){
 	var id=e.target.getId();
 	if(id=='save')save(0);
@@ -131,9 +162,13 @@ function menuSelect(e){
 	}
 }
 
-//Menu
-// function to hand the file like menu
-
+/**
+ * Open the Closure Libraray DOM menu when menu header (File, Menu,
+ * View, Share) is CLICKED
+ * 
+ * @param {goog.events.BrowserEvent} e Click event with all associated
+ * data
+ */
 function openMenu(e){
 	var v = e.target.id;
 	var arr = [['file', fMenu],['edit', eMenu],['view', vMenu],['share', sMenu]];
