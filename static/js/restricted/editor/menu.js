@@ -71,95 +71,66 @@ function topMenuOut(e){
  * called. It's called when the item is clicked, or when it's
  * highlighted and user presses enter.
  * 
- * Shitty. Should be written as a readable array of commands, not some
- * endless fucking ifelse list
+ * Not as shitty as it could be. Should be made more easily
+ * extensible, but I don't know what the syntax would look like.
  *
  * @param {goog.events.BrowserEvent} e The 'action' event on the menu
  * item and associated data
  */
 function menuSelect(e){
-	var id=e.target.getId();
-	if(id=='save')save(0);
-    else if(id=='new'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to start saving.");
-        }
-        else {newScriptPrompt();}
-    }
-    else if(id=='open'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to open new scripts.");
-        }
-        else{openPrompt();}
-    }
+    var id=e.target.getId();
+    //File
+    if(id=='save')save(0);
+    else if(id=='new')newScriptPrompt();
+    else if(id=='open')openPrompt();
     else if(id=='rename')renamePrompt();
     else if(id=='exportas')exportPrompt();
-    else if(id=='duplicate'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to start doing that.");
-            return;
-        }
-        else{duplicate();}
-    }
+    else if(id=='duplicate')duplicate();
     else if(id=='close')closeScript();
     //Edit
     else if(id=='undo')undo();
     else if(id=='redo')redo();
-    else if(id=='insertNote'){
-        viewNotes=true;
-        newThread();
-    }
-    else if(id=='editTitlePage')window.open('/titlepage?resource_id='+resource_id);
-	else if(id=='tag'){
-		if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to start doing that.");
-            return;
-        }
-		else{tagPrompt();}
-	}
+    else if(id=='insertNote')newThread();
+    else if(id=='editTitlePage')editTitlePage();
+    else if(id=='tag')tagPrompt();
     else if(id=='spellCheck')launchSpellCheck();
-	else if(id=='find')findPrompt();
-	else if(id=='findReplace')findReplacePrompt();
-	else if(id=='selectAll')selectAll();
+    else if(id=='find')findPrompt();
+    else if(id=='findReplace')findReplacePrompt();
+    else if(id=='selectAll')selectAll();
     //View
-    else if(id=='revision'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to start doing that.");
-            return;
-        }
-        else{window.open('/revisionhistory?resource_id='+resource_id);}
-    }
-    else if(id=='notes'){
-        viewNotes = (viewNotes ? false : true);
-    }
-	else if(id.substr(0,6)=='format'){
-		changeFormat(parseInt(id.replace('format','')))
-	}
+    else if(id=='revision')revisionHistoryPage();
+    else if(id=='notes')viewNotes = (viewNotes ? false : true);
+    else if(id.substr(0,6)=='format')changeFormat(parseInt(id.replace('format','')));
     //Share
-    else if(id=='collaborators'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to start doing that.");
-            return;
-        }
-        else{sharePrompt();}
+    else if(id=='collaborators')sharePrompt();
+    else if(id=='email')emailPrompt();
+
+    //Close menus and return to normal.
+    fMenu.setVisible(false)
+    eMenu.setVisible(false)
+    vMenu.setVisible(false)
+    sMenu.setVisible(false)
+    var arr=["file",'edit','view','share'];
+    for(i in arr){
+	var d = goog.dom.getElement(arr[i])
+	d.style.backgroundColor='#A2BAE9';
+	d.style.color='black';
     }
-    else if(id=='email'){
-        if(resource_id=="Demo"){
-            alert("Sorry, you'll have to login to email scripts.");
-            return;
-        }
-        else{emailPrompt();}
+}
+
+/**
+ * A quick but oft repeaded check if this script is the Demo page. If
+ * so, tell the user they can't do soemthing, then return true.
+ * 
+ * Any feature that should be blocked in the Demo can now just run the
+ * line if(checkIfDemo())return;
+ */
+function checkIfDemo(){
+    if(resource_id=="Demo"){
+	alert("Sorry, you'll have to login to do that.");
+	return true;
     }
-	fMenu.setVisible(false)
-	eMenu.setVisible(false)
-	vMenu.setVisible(false)
-	sMenu.setVisible(false)
-	var arr=["file",'edit','view','share'];
-	for(i in arr){
-		var d = goog.dom.getElement(arr[i])
-		d.style.backgroundColor='#A2BAE9';
-        d.style.color='black';
-	}
+    else{return false;}
 }
 
 /**

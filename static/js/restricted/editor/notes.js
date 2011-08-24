@@ -234,6 +234,7 @@ function markAsRead(e){
  * saving.
  */
 function newThread(){
+    viewNotes=true;
 	tabs(1);
 	var id=Math.round(Math.random()*1000000000);
     var found=true;

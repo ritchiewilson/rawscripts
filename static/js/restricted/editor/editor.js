@@ -921,10 +921,7 @@ function closeScript(){
 }
 // new script
 function newScriptPrompt(){
-	if(resource_id=="Demo"){
-        alert("Sorry, you'll have to login to open new scripts.");
-		return;
-    }
+    if(checkIfDemo())return;
     typeToScript=false;
 	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
 	goog.dom.getElement('newScript').value = "Untitled Screenplay";
@@ -959,6 +956,7 @@ function createScript (){
 }
 // duplicate
 function duplicate(){
+    if(checkIfDemo())return;
 	if(EOV=='viewer')return;
 	goog.net.XhrIo.send('/duplicate',
 		function(e){
@@ -1023,7 +1021,23 @@ function save(v){
 }
 // open other script
 function openPrompt(){
+    if(checkIfDemo())return;
     window.open("/scriptlist")
+}
+
+/**
+ * Open the title page editor in a new window.
+ */
+function editTitlePage(){
+    window.open('/titlepage?resource_id='+resource_id);
+}
+
+/**
+ * Open revision history in a new window
+ */
+function revisionHistoryPage(){
+    if(checkIfDemo())return;
+    window.open('/revisionhistory?resource_id='+resource_id);
 }
 
 //rename
@@ -1094,10 +1108,7 @@ function exportScripts(){
 }
 // emailing
 function emailPrompt(){
-	if(resource_id=="Demo"){
-        alert("Sorry, you'll have to login to email scripts.");
-		return;
-    }
+    if(checkIfDemo())return;
     if(goog.dom.getElement('saveButton').value=="Save")save(0);
     typeToScript=false;
     goog.dom.getElement("emailpopup").style.visibility='visible'
@@ -1146,6 +1157,7 @@ function emailScript(){
 
 //Sharing scripts
 function sharePrompt(){
+    if(checkIfDemo())return;
 	if(EOV=='viewer')return;
 	typeToScript=false;
     goog.dom.getElement("sharepopup").style.visibility="visible";
@@ -1255,6 +1267,7 @@ function shareScript(){
 }
 //tag
 function tagPrompt(){
+    if(checkIfDemo())return;
 	if(EOV=='viewer')return;
 	save(0);
 	var t = prompt("Leave a tag for this version:");
