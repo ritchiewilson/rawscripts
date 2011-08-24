@@ -16,11 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 /**
- * Takes MouseDown Event, figures out what
- * to do with it.
- * @param {goog.events.BrowserEvent} e
- * gives the mousedown event with associated data
+ * Takes MouseDown Event, figures out what to do with it depending on
+ * if that's in a menu, or other DOM things, or in the canvas.
+ *
+ * If the mouse down event is on the canvas, it moves pos and anch to
+ * the same point.
+ * 
+ * @param {goog.events.BrowserEvent} e gives the mousedown event with
+ * associated data
  */
 function mouseDown(e){
 	// only do stuff if canvas is active
@@ -66,10 +71,11 @@ function mouseDown(e){
 }
 
 /**
- * Takes MouseUp Event, figures out what
- * to do with it.
- * @param {goog.events.BrowserEvent} e
- * gives the mouseup event with associated data
+ * Takes MouseUp Event, figures out what to do with it. Changes globar
+ * varialbes then changes dom stuff.
+ * 
+ * @param {goog.events.BrowserEvent} e gives the mouseup event with
+ * associated data
  */
 function mouseUp(e){
 	updateMouseDrag=false; // no longer draggin
@@ -103,8 +109,15 @@ function mouseUp(e){
 }
 
 /**
- * Figure mouse position, and what that means
- * for various GUI thigns
+ * Handle when the mouse moves. If the mouse button is down on the
+ * scrollbar, handle the move by scrolling. If the mouse button is
+ * down on text, this is a "drag" across text, so prep to find new
+ * posistion.
+ *
+ * If the new mouse position is over a note drawn on canvas, change
+ * the cursor, make it clickable.
+ * 
+ * @param {goog.events.BrowserEvent} e MouseMove event
  */
 function mouseMove(e){
 	// if mouse is down on the fake scroll
@@ -147,20 +160,22 @@ function mouseMove(e){
 }
 
 /**
- * Simple, scroll when users scrolls on canvas
- * @param { goog.events.BrowserEvent} e 
+ * Simple, scroll when users used a mouse wheel or two finger mouse
+ * pad scroll on canvas
+ *
+ * @param { goog.events.BrowserEvent} e Scroll event
  */
 function handleMouseWheel(e){
 	scroll(e.deltaY*2)
 }
 /**
- * Figures out the posision in the text
- * where the mouse is. Used for onclick
- * and onmousemove. God this is messy. 
- * Redo it.
- * @param { goog.event.BrowserEvent} e browser event
- * @param { string } w Either "anch" for moving the
- * selection anchor, or "pos" for moving the caret
+ * Figures out the posision in the text where the mouse is. Used for
+ * onclick and onmousemove. God this is messy.  Redo it.
+ *
+ * @param { goog.event.BrowserEvent} e Mouse Move event
+ *
+ * @param { string } w "anch" for moving the selection anchor, or
+ * "pos" for moving the caret
  */
 function mousePosition(e, w){
 	// pageBreaks
