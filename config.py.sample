@@ -14,26 +14,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-MODE='DEV' # DEV or PRO
 
-# Google Analytics
-GA='UA-16492540-1'
+# MODE -- DEV or PRO. 
+#
+# In development mode, closure libraray dynamicaly calls javascript
+# and css files as it needs them, and as a result makes dozens of http
+# requests. On localhost this is fine, and is the recommended way to
+# do development.
+#
+# Production mode assumes you have compiled javascript into one big
+# file for each page, and have concat'd css into one file for each
+# page. There are tools in scripts/ to help you with this.
 
-TRACKER="""<script type="text/javascript">
+MODE='DEV'
 
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', '"""+GA+"""']);
-_gaq.push(['_trackPageview']);
 
-(function() {
-	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
-
-</script>"""
-if MODE=='DEV':
-	TRACKER=''
+# GOOGLE ANALYTICS
+#
+# Enter your analytics id number for tracking. For example
+# 'UA-12345678-1', with quotes.
+#
+# To disable, leave as False.
+GA=False
 
 EDITOR_JS=[]
 if MODE=='DEV':
