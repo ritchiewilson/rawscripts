@@ -108,20 +108,10 @@ class RSS(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/xml'
 		self.response.out.write(feed.writeString('utf-8'))
 		
-class BlogDataMigrate(webapp.RequestHandler):
-	def get(self):
-		return
-		q = db.GqlQuery("SELECT * FROM BlogDB ORDER BY timestamp desc")
-		r = q.fetch(50)
-		for i in r:
-			i.data = i.data.replace("/images/", "http://www.rawscripts.com/images/")
-			i.put()
-		self.response.out.write("out")
 
 def main():
 	application = webapp.WSGIApplication([('/blogpostgui', BlogPostGUI),
 											('/blogpost', BlogPost),
-											('/blogdatamigrate', BlogDataMigrate),
 											('/blog+.*', Blog),
 											('/rss', RSS)],
 											 debug=True)
