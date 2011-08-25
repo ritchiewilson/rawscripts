@@ -49,8 +49,9 @@ class Welcome (webapp.RequestHandler):
 		template_values = { 'google_sign_in': users.create_login_url('/scriptlist', None, "gmail.com"),
 						'yahoo_sign_in' : users.create_login_url('/scriptlist', None, "yahoo.com"),
 						'aol_sign_in' : users.create_login_url('/scriptlist', None, "aol.com")}
-		template_values['TRACKER'] = config.TRACKER
-		path = os.path.join(os.path.dirname(__file__), 'html/welcome.html')
+		template_values['MODE'] = config.MODE
+		template_values['GA'] = config.GA
+		path = os.path.join(os.path.dirname(__file__), 'html', 'welcome.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile == 1:
 			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileWelcome.html')
@@ -121,7 +122,7 @@ class Editor (webapp.RequestHandler):
 		template_values['MODE'] = config.MODE
 		template_values['EDITOR_JS'] = config.EDITOR_JS
 		template_values['EDITOR_CSS'] = config.EDITOR_CSS
-		template_values['TRACKER'] = config.TRACKER
+		template_values['GA'] = config.GA
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)
@@ -334,14 +335,16 @@ class SubmitBug (webapp.RequestHandler):
 class TOS(webapp.RequestHandler):
 	def get(self):
 		path = os.path.join(os.path.dirname(__file__), 'html/tos.html')
-		template_values={'TRACKER' : config.TRACKER}
+		template_values={'MODE' : config.MODE}
+		template_values['GA'] = config.GA
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 
 class Contact(webapp.RequestHandler):
 	def get(self):
 		path = os.path.join(os.path.dirname(__file__), 'html/contact.html')
-		template_values={'TRACKER' : config.TRACKER}
+		template_values={'MODE' : config.MODE}
+		template_values['GA'] = config.GA
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 

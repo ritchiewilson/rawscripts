@@ -61,9 +61,7 @@
     </style>
 </head>
 <body onload="update()">
-	{% autoescape off %}
-	{{ TRACKER }}
-	{% endautoescape %}
+	{% include "analytics.html" %}
 <div id="header">
     <input id="saveButton" type="button" value="Save" onclick='save()'>
     <input type="button" value="Close" onclick="closeTitlePage()">

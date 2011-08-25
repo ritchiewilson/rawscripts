@@ -57,10 +57,7 @@
 </head>
 
 <body>
-{% autoescape off %}
-{{ TRACKER }}
-{% endautoescape %}
-
+	{% include "analytics.html" %}
 	<div id="header" style="position:fixed; top:0; left:0; right:0; height:100pt;">
 		<div id="logo">
 			<h1><a href="/">RawScripts.com</a></h1>

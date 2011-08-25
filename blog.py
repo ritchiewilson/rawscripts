@@ -68,7 +68,8 @@ class Blog(webapp.RequestHandler):
 			i.link= "http://www.rawscripts.com/blog/"+''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
 		template_values = { "r": r,
 							"error_message" : error_message}
-		template_values['TRACKER'] = config.TRACKER
+		template_values['MODE'] = config.MODE
+		template_values['GA'] = config.GA
 		path = os.path.join(os.path.dirname(__file__), 'html/blog.html')
 		self.response.out.write(template.render(path, template_values))
 							

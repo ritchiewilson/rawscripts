@@ -26,9 +26,7 @@ function titleChange(){
 </script>
 </head>
 <body style="padding:0; margin:0;">
-{% autoescape off %}
-{{ TRACKER }}
-{% endautoescape %}
+	{% include "analytics.html" %}
 <p>Upload a .fdx, .celtx, or a .txt file (<a href="/uploadhelp" onclick="window.open(this.href, 'popupwindow', 'width=450,height=500,scrollbars,resizable'); return false;">?</a>)</p>
 <p id="warning" style='display:none; background-color:salmon'><b>We can only accept .fdx, .celtx or .txt files at the moment</b></p>
 <form onSubmit="post()" id='target' method="post" enctype="multipart/form-data" action="/convertprocess">

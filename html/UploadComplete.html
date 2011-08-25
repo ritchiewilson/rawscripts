@@ -7,9 +7,7 @@
 
 </head>
 <body>
-	{% autoescape off %}
-	{{ TRACKER }}
-	{% endautoescape %}
+	{% include "analytics.html" %}
 Upload Complete!
 <p style="width:200px;">If you don't see the new script, you may need to allow popups for this site.</p>
 <a href="editor?resource_id={{ url }}" target="_blank">Go to the script</a>

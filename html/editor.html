@@ -17,9 +17,7 @@
 		</script>
 	</head>
 	<body onload="init()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
-	{% autoescape off %}
-	{{ TRACKER }}
-	{% endautoescape %}
+	{% include "analytics.html" %}
 	<div id="loading" class="fullscreen_popup">
 		<div class="fade"></div>
 		<div class="popup_block">

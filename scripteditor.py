@@ -99,7 +99,7 @@ class ScriptList(webapp.RequestHandler):
 		template_values['MODE'] = config.MODE
 		template_values['SCRIPTLIST_CSS'] = config.SCRIPTLIST_CSS
 		template_values['SCRIPTLIST_JS'] = config.SCRIPTLIST_JS
-		template_values['TRACKER'] = config.TRACKER
+		template_values['GA'] = config.GA
 		
 		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -219,7 +219,7 @@ class TitlePage(webapp.RequestHandler):
 			
 
 		template_values['MODE'] = config.MODE
-		template_values['TRACKER'] = config.TRACKER
+		template_values['GA'] = config.GA
 		path = os.path.join(os.path.dirname(__file__), 'html/titlepage.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
@@ -739,7 +739,8 @@ class ConvertProcess (webapp.RequestHandler):
 		
 
 		template_values = { 'url': resource_id }
-		template_values['TRACKER'] = config.TRACKER
+		template_values['MODE'] = config.MODE
+		template_values['GA'] = config.GA
 		
 		taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : resource_id})
 		
@@ -1019,8 +1020,8 @@ class SettingsPage (webapp.RequestHandler):
 					template_values['shared_every_selected']=''
 					template_values['shared_daily_selected']=''
 					template_values['shared_none_selected']='selected'
-			
-			template_values['TRACKER'] = config.TRACKER
+			template_values['GA'] = config.GA
+			template_values['MODE'] = config.MODE
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 
@@ -1114,7 +1115,8 @@ class SyncContactsPage (webapp.RequestHandler):
 						y.put()
 						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 			
-			template_values['TRACKER'] = config.TRACKER
+			template_values['GA'] = config.GA
+			template_values['MODE'] = config.MODE
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
 			
@@ -1214,14 +1216,16 @@ class SyncContacts (webapp.RequestHandler):
 class UploadHelp(webapp.RequestHandler):
 	def get(self):
 		path = os.path.join(os.path.dirname(__file__), 'html/uploadhelp.html')
-		template_values={'TRACKER' : config.TRACKER}
+		template_values={'GA' : config.GA}
+		template_values['MODE'] = config.MODE
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 
 class Convert(webapp.RequestHandler):
 	def get(self):
 		path = os.path.join(os.path.dirname(__file__), 'html/convert.html')
-		template_values={'TRACKER' : config.TRACKER}
+		template_values={'GA' : config.GA}
+		template_values['MODE'] = config.MODE
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 		
