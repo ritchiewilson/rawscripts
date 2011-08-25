@@ -97,9 +97,15 @@ class ScriptList(webapp.RequestHandler):
 		template_values = { 'sign_out': users.create_logout_url('/') }
 		template_values['user'] = users.get_current_user().email()
 		template_values['MODE'] = config.MODE
-		template_values['SCRIPTLIST_CSS'] = config.SCRIPTLIST_CSS
-		template_values['SCRIPTLIST_JS'] = config.SCRIPTLIST_JS
 		template_values['GA'] = config.GA
+
+		dev_js = ['base', 'scriptlist']
+		pro_js = []
+		dev_css = ['menu','menuitem','menuseparator','common','toolbar','button',	'custombutton',	'autocomplete']
+		pro_css = []
+		template_values['SCRIPTLIST_CSS'] = pro_css if config.MODE=="PRO" else dev_css
+		template_values['SCRIPTLIST_JS'] = pro_js if config.MODE=="PRO" else dev_js
+
 		
 		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)

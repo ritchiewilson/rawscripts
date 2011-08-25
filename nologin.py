@@ -118,10 +118,15 @@ class Editor (webapp.RequestHandler):
 			user=user.email().lower()
 		else:
 			user="unknown"
+
+		dev_js = ['base', 'calc', 'canvas-manipulate', 'ccp', 'dom-manipulate', 'draw', 'editor', 'findAndReplace', 'init', 'keyboard',	'menu',	'mouse',	'notes', 'prompts', 'sort', 'spellcheck', 'window']
+		pro_js = ['editor-compiled']
+		dev_css = ['menu', 'menuitem','menuseparator','common','toolbar','button','custombutton','autocomplete', 'dialog', 'linkbutton', 'tab', 'tabbar', 'colormenubutton', 'palette',	'colorpalette',	'editor/bubble', 'editor/dialog', 'editor/linkdialog', 'editortoolbar']
+		pro_css = []
 		template_values['resource_id'] = resource_id
 		template_values['MODE'] = config.MODE
-		template_values['EDITOR_JS'] = config.EDITOR_JS
-		template_values['EDITOR_CSS'] = config.EDITOR_CSS
+		template_values['EDITOR_JS'] = pro_js if config.MODE == "PRO" else dev_js
+		template_values['EDITOR_CSS'] = pro_css if config.MODE == "PRO" else dev_css
 		template_values['GA'] = config.GA
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
