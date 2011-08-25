@@ -322,15 +322,6 @@ class ContactEmail (webapp.RequestHandler):
 											 body=body)
 			self.response.out.write('1')
 
-class Bugs (webapp.RequestHandler):
-	def get(self):
-		#This is the one for admins
-		self.redirect('http://spreadsheets.google.com/viewform?hl=en&formkey=dE15YkVNa095dVRBYkl3eXdBVHJHVXc6MQ#gid=0')
-
-class SubmitBug (webapp.RequestHandler):
-	def get(self):
-		#This is the one for public
-		self.redirect('http://spreadsheets.google.com/viewform?hl=en&formkey=dDBkVlZfV0RJUWxORjZGdzVWOHVnUXc6MQ#gid=0')
 
 class TOS(webapp.RequestHandler):
 	def get(self):
@@ -348,26 +339,17 @@ class Contact(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 
-class About(webapp.RequestHandler):
-	def get(self):
-		path = os.path.join(os.path.dirname(__file__), 'html/about.html')
-		template_values={'TRACKER' : config.TRACKER}
-		self.response.headers['Content-Type'] = 'text/html'
-		self.response.out.write(template.render(path, template_values))
 		
 def main():
 	application = webapp.WSGIApplication([('/editor', Editor),
-																				('/', Welcome),
-																				('/tos', TOS),
-																				('/scriptcontent', ScriptContent),
-																				('/contactemail', ContactEmail),
-																				('/_ah/login_required', LoginRequired),
-																				('/bugs', Bugs),
-																				('/save', Save),
-																				('/contact', Contact),
-																				('/about', About),
-																				('/submitbug', SubmitBug),],
-																			 debug=True)
+					       	('/', Welcome),
+						('/tos', TOS),
+				       		('/scriptcontent', ScriptContent),
+		       				('/contactemail', ContactEmail),
+					       	('/_ah/login_required', LoginRequired),
+				       		('/save', Save),
+				       		('/contact', Contact),],
+			       			 debug=True)
 	
 	wsgiref.handlers.CGIHandler().run(application)
 
