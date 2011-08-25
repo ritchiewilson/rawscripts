@@ -30,29 +30,8 @@ from google.appengine.ext import db
 import logging
 from google.appengine.api.labs import taskqueue
 import config
+import models
 
-class ScriptData (db.Model):
-	resource_id = db.StringProperty()
-	data = db.TextProperty()
-	version = db.IntegerProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
-	autosave = db.IntegerProperty()
-	export = db.StringProperty()
-	tag = db.StringProperty()
-
-class SpellingData (db.Model):
-	resource_id = db.StringProperty()
-	wrong = db.TextProperty()
-	ignore = db.TextProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
-
-class UsersScripts (db.Model):
-	user = db.StringProperty()
-	resource_id = db.StringProperty()
-	title = db.StringProperty()
-	last_updated = db.DateTimeProperty()
-	permission = db.StringProperty()
-	folder = db.StringProperty()
 
 class SpellDB(webapp.RequestHandler):
 	def get(self):

@@ -34,6 +34,7 @@ from django.utils import simplejson
 import activity
 import mobileTest
 import config
+import models
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -46,42 +47,6 @@ def permission (resource_id):
 				p=i.title
 	return p
 
-class Notes (db.Model):
-	resource_id = db.StringProperty()
-	thread_id=db.StringProperty()
-	updated = db.DateTimeProperty(auto_now_add=True)
-	data = db.TextProperty()
-	row = db.IntegerProperty()
-	col = db.IntegerProperty()
-
-
-class ScriptData (db.Model):
-	resource_id = db.StringProperty()
-	data = db.TextProperty()
-	version = db.IntegerProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
-	autosave = db.IntegerProperty()
-	export = db.StringProperty()
-	tag = db.StringProperty()
-
-class UsersScripts (db.Model):
-	user = db.StringProperty()
-	resource_id = db.StringProperty()
-	title = db.StringProperty()
-	last_updated = db.DateTimeProperty()
-	permission = db.StringProperty()
-	folder = db.StringProperty()
-
-class DuplicateScripts (db.Model):
-	new_script = db.StringProperty()
-	from_script = db.StringProperty()
-	from_version = db.IntegerProperty()
-
-class SpellingData (db.Model):
-	resource_id = db.StringProperty()
-	wrong = db.TextProperty()
-	ignore = db.TextProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class RevisionTag(webapp.RequestHandler):
 	def post(self):
@@ -139,18 +104,18 @@ class DuplicateOldRevision(webapp.RequestHandler):
 											"WHERE resource_id='"+new_resource_id+"'")
 				results=q.fetch(2)
 			
-			s = ScriptData(resource_id=new_resource_id,
+			s = models.ScriptData(resource_id=new_resource_id,
 										 data=data,
 										 tag="",
 										 export="[[],[]]",
 										 version=int(version)+1,
 										 autosave=0)
 			s.put()
-			d= DuplicateScripts(new_script = new_resource_id,
+			d= models.DuplicateScripts(new_script = new_resource_id,
 													from_script = resource_id,
 													from_version=int(version))
 			d.put()
-			u = UsersScripts(key_name="owner"+user+new_resource_id,
+			u = models.UsersScripts(key_name="owner"+user+new_resource_id,
 							user=user,
 											 title='Copy of '+p,
 											 resource_id=new_resource_id,
@@ -161,7 +126,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 			q=db.GqlQuery("SELECT * FROM SpellingData "+
 										"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(2)
-			s= SpellingData(resource_id=new_resource_id,
+			s= models.SpellingData(resource_id=new_resource_id,
 											wrong=r[0].wrong,
 											ignore=r[0].ignore)
 			s.put()

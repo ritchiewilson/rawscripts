@@ -34,11 +34,7 @@ from django.utils import simplejson
 from django.utils import feedgenerator
 import activity
 import config
-
-class BlogDB (db.Model):
-	data = db.TextProperty()
-	title = db.StringProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
+import models
 
 class Blog(webapp.RequestHandler):
 	def get(self):
@@ -90,7 +86,7 @@ class BlogPost (webapp.RequestHandler):
 		exclude = set(string.punctuation)
 		key_name = ''.join(ch for ch in title if ch not in exclude)
 		key_name = key_name.title().replace(" ","-")
-		b = BlogDB(key_name = key_name,
+		b = models.BlogDB(key_name = key_name,
 					title = title,
 					data = data)
 		b.put()

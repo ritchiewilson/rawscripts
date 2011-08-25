@@ -38,29 +38,7 @@ from reportlab.rl_config import defaultPageSize
 import reportlab
 folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
 import config
-
-class TitlePageData (db.Model):
-	resource_id = db.StringProperty()
-	title = db.StringProperty()
-	authorOne = db.StringProperty()
-	authorTwo = db.StringProperty()
-	authorTwoChecked = db.StringProperty()
-	authorThree  = db.StringProperty()
-	authorThreeChecked  = db.StringProperty()
-	based_on  = db.StringProperty()
-	based_onChecked  = db.StringProperty()
-	address = db.StringProperty()
-	addressChecked = db.StringProperty()
-	phone = db.StringProperty()
-	phoneChecked = db.StringProperty()
-	cell = db.StringProperty()
-	cellChecked = db.StringProperty()
-	email = db.StringProperty()
-	emailChecked = db.StringProperty()
-	registered = db.StringProperty()
-	registeredChecked = db.StringProperty()
-	other = db.StringProperty()
-	otherChecked = db.StringProperty()
+import models
 
 def Text(data, title, title_page, resource_id):
 	widths=[[62,15,1],[62,15,1],[40,35,0],[35,25,1],[35,30,0],[62,61,1]]
@@ -73,7 +51,7 @@ def Text(data, title, title_page, resource_id):
 							 "WHERE resource_id='"+resource_id+"'")
 		results=q.fetch(2)
 		if len(results)==0:
-			p=TitlePageData()
+			p=models.TitlePageData()
 			p.title = title
 			p.authorOne = users.get_current_user().nickname()
 			p.authorTwo = ""
@@ -238,7 +216,7 @@ def Pdf(data, title, title_page, resource_id):
 							 "WHERE resource_id='"+resource_id+"'")
 		results=q.fetch(2)
 		if len(results)==0:
-			p=TitlePageData()
+			p=models.TitlePageData()
 			p.title = title
 			p.authorOne = users.get_current_user().nickname()
 			p.authorTwo = ""

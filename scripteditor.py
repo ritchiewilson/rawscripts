@@ -43,7 +43,7 @@ import gdata.gauth
 import gdata.data
 import gdata.contacts.client
 import config
-
+import models
 
 def get_contacts_google_token(request):
 	current_user = users.get_current_user()
@@ -87,110 +87,7 @@ def ownerPermission (resource_id):
 				p=i.title
 	return p
 
-class SpellingData (db.Model):
-	resource_id = db.StringProperty()
-	wrong = db.TextProperty()
-	ignore = db.TextProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
 
-class ShareDB (db.Model):
-	name = db.StringProperty()
-	resource_id = db.StringProperty()
-	fromPage = db.StringProperty()
-
-class ShareNotify (db.Model):
-	user= db.StringProperty()
-	resource_id = db.StringProperty()
-	timeshared = db.DateTimeProperty()
-	timeopened = db.DateTimeProperty()
-	opened = db.BooleanProperty()
-	
-class LastUpdatedEtag (db.Model):
-	name = db.StringProperty()
-	etag = db.StringProperty()
-	resource_id = db.StringProperty()
-	
-class Users (db.Model):
-	name = db.StringProperty()
-	firstUse = db.DateTimeProperty(auto_now_add=True)
-
-class Notes (db.Model):
-	resource_id = db.StringProperty()
-	thread_id=db.StringProperty()
-	updated = db.DateTimeProperty(auto_now_add=True)
-	data = db.TextProperty()
-	row = db.IntegerProperty()
-	col = db.IntegerProperty()
-	
-class NotesNotify (db.Model):
-	resource_id = db.StringProperty()
-	thread_id = db.StringProperty()
-	user = db.StringProperty()
-	new_notes= db.IntegerProperty()
-
-class UnreadNotes (db.Model):
-	resource_id = db.StringProperty()
-	thread_id = db.StringProperty()
-	user = db.StringProperty()
-	msg_id = db.StringProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
-
-class ScriptData (db.Model):
-	resource_id = db.StringProperty()
-	data = db.TextProperty()
-	version = db.IntegerProperty()
-	timestamp = db.DateTimeProperty(auto_now_add=True)
-	autosave = db.IntegerProperty()
-	export = db.StringProperty()
-	tag = db.StringProperty()
-
-class TitlePageData (db.Model):
-	resource_id = db.StringProperty()
-	title = db.StringProperty()
-	authorOne = db.StringProperty()
-	authorTwo = db.StringProperty()
-	authorTwoChecked = db.StringProperty()
-	authorThree  = db.StringProperty()
-	authorThreeChecked  = db.StringProperty()
-	based_on  = db.StringProperty()
-	based_onChecked  = db.StringProperty()
-	address = db.StringProperty()
-	addressChecked = db.StringProperty()
-	phone = db.StringProperty()
-	phoneChecked = db.StringProperty()
-	cell = db.StringProperty()
-	cellChecked = db.StringProperty()
-	email = db.StringProperty()
-	emailChecked = db.StringProperty()
-	registered = db.StringProperty()
-	registeredChecked = db.StringProperty()
-	other = db.StringProperty()
-	otherChecked = db.StringProperty()
-
-class UsersScripts (db.Model):
-	user = db.StringProperty()
-	resource_id = db.StringProperty()
-	title = db.StringProperty()
-	last_updated = db.DateTimeProperty()
-	permission = db.StringProperty()
-	folder = db.StringProperty()
-
-class DuplicateScripts (db.Model):
-	new_script = db.StringProperty()
-	from_script = db.StringProperty()
-	from_version = db.IntegerProperty()
-
-class Folders (db.Model):
-	data = db.StringProperty()
-	user = db.StringProperty()
-
-class UsersSettings(db.Model):
-	autosave = db.BooleanProperty()
-	owned_notify = db.StringProperty()
-	shared_notify = db.StringProperty()
-
-class YahooOAuthTokens (db.Model):
-	t = db.TextProperty()
 
 class ScriptList(webapp.RequestHandler):
 	"""Requests the list of the user's Screenplays in the RawScripts folder."""
@@ -219,7 +116,7 @@ class ScriptList(webapp.RequestHandler):
 		for p in results:
 			k=1
 		if k == 0:
-			newUser = Users(name=users.get_current_user().email())
+			newUser = models.Users(name=users.get_current_user().email())
 			newUser.put()
 		activity.activity("scriptlistpage", users.get_current_user().email().lower(), None, mobile, None, None, None, None, None,None,None,None,None, None)
 
@@ -348,7 +245,7 @@ class SaveTitlePage (webapp.RequestHandler):
 				i=results[0]
 
 			else:
-				i = TitlePageData()
+				i = models.TitlePageData()
 				
 			i.resource_id= resource_id
 			i.title = self.request.get('title')
@@ -686,7 +583,7 @@ class NewScript (webapp.RequestHandler):
 										"WHERE resource_id='"+resource_id+"'")
 			results=q.fetch(2)
 		
-		s = ScriptData(resource_id=resource_id,
+		s = models.ScriptData(resource_id=resource_id,
 									 data='[["Fade In:",1],["Int. ",0]]',
 									 version=1,
 									 export='[[],[]]',
@@ -694,12 +591,12 @@ class NewScript (webapp.RequestHandler):
 									 autosave=0)
 		s.put()
 
-		s = SpellingData(resource_id=resource_id,
+		s = models.SpellingData(resource_id=resource_id,
 									 wrong='[]',
 									 ignore="[]")
 		s.put()
 
-		u = UsersScripts(key_name="owner"+user.lower()+resource_id,
+		u = models.UsersScripts(key_name="owner"+user.lower()+resource_id,
 						user=user.lower(),
 						title=filename,
 						resource_id=resource_id,
@@ -742,19 +639,19 @@ class Duplicate (webapp.RequestHandler):
 											"WHERE resource_id='"+new_resource_id+"'")
 				results=q.fetch(2)
 			
-			s = ScriptData(resource_id=new_resource_id,
+			s = models.ScriptData(resource_id=new_resource_id,
 										 data=data,
 										 version=version+1,
 										 export="[[],[]]",
 										 tag="",
 										 autosave=0)
 			s.put()
-			d= DuplicateScripts(new_script = new_resource_id,
+			d= models.DuplicateScripts(new_script = new_resource_id,
 													from_script = resource_id,
 													from_version=version)
 
 			d.put()
-			u = UsersScripts(key_name="owner"+user.lower()+new_resource_id,
+			u = models.UsersScripts(key_name="owner"+user.lower()+new_resource_id,
 							user=user.lower(),
 							title='Copy of '+title,
 							resource_id=new_resource_id,
@@ -765,7 +662,7 @@ class Duplicate (webapp.RequestHandler):
 			q=db.GqlQuery("SELECT * FROM SpellingData "+
 										"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(2)
-			s= SpellingData(resource_id=new_resource_id,
+			s= models.SpellingData(resource_id=new_resource_id,
 											wrong=r[0].wrong,
 											ignore=r[0].ignore)
 			s.put()
@@ -823,7 +720,7 @@ class ConvertProcess (webapp.RequestHandler):
 			contents = convert.Celtx(data)
 		
 
-		s = ScriptData(resource_id=resource_id,
+		s = models.ScriptData(resource_id=resource_id,
 									 data=contents,
 									 version=1,
 									 tag="",
@@ -831,7 +728,7 @@ class ConvertProcess (webapp.RequestHandler):
 									 autosave=0)
 		s.put()
 
-		u = UsersScripts(key_name="owner"+user.lower()+resource_id,
+		u = models.UsersScripts(key_name="owner"+user.lower()+resource_id,
 						user=user.lower(),
 						title=filename,
 						resource_id=resource_id,
@@ -882,7 +779,7 @@ class Share (webapp.RequestHandler):
 						found=True
 				if found==False:
 					output.append(i.lower())
-					u = UsersScripts(key_name="collab"+i.lower()+resource_id,
+					u = models.UsersScripts(key_name="collab"+i.lower()+resource_id,
 									resource_id=resource_id,
 									permission="collab",
 									user = i.lower(),
@@ -930,7 +827,7 @@ class Share (webapp.RequestHandler):
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			activity.activity("share", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
 			for i in output:
-				s = ShareNotify(user = i,
+				s = models.ShareNotify(user = i,
 								resource_id = resource_id,
 								timeshared = datetime.datetime.today(),
 								timeopened = datetime.datetime.today(),
@@ -978,7 +875,7 @@ class NewFolder (webapp.RequestHandler):
 						"WHERE user='"+user+"'")
 		r=q.fetch(1)
 		if len(r)==0:
-			f=Folders(user=user,
+			f=models.Folders(user=user,
 						data=simplejson.dumps([[folder_name, folder_id]]))
 			f.put()
 		else:
@@ -1077,7 +974,7 @@ class SettingsPage (webapp.RequestHandler):
 			except:
 				us = None
 			if us==None:
-				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+				us = models.UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
 									autosave=True,
 									owned_notify = 'every',
 									shared_notify = 'every')
@@ -1141,7 +1038,7 @@ class ChangeUserSetting(webapp.RequestHandler):
 			except:
 				us = None
 			if us==None:
-				us = UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+				us = models.UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
 									autosave=True,
 									owned_notify = 'every',
 									shared_notify = 'every')
@@ -1212,7 +1109,7 @@ class SyncContactsPage (webapp.RequestHandler):
 						logging.info(request_token)
 						access_token = oauthapp.get_access_token(request_token, verifier)
 						oauthapp.token = access_token
-						y = YahooOAuthTokens(key_name='yahoo_oauth_token'+user.email().lower(),
+						y = models.YahooOAuthTokens(key_name='yahoo_oauth_token'+user.email().lower(),
 											t = access_token.to_string())
 						y.put()
 						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
