@@ -68,10 +68,6 @@ handlers:
 - url: /contact
   script: nologin.py
 
-- url: /rawscripts.manifest
-  static_files: rawscripts.manifest
-  upload: rawscripts.manifest
-
 - url: /images
   static_dir: static/images
 
@@ -96,16 +92,10 @@ handlers:
 - url: /scriptcontent.*
   script: nologin.py
 
-- url: /bugs.*
-  script: nologin.py
-
 - url: /contactemail.*
   script: nologin.py
 
 - url: /submitbug.*
-  script: nologin.py
-
-- url: /test.*
   script: nologin.py
 
 - url: /save.*
@@ -137,10 +127,6 @@ handlers:
 
 - url: /notes.*
   script: notes.py
-
-- url: /onescript.*
-  login: admin
-  script: scripteditor.py
 
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
