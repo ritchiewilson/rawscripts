@@ -270,6 +270,58 @@ function caretInLimits(){
 }
 
 /**
+ * There is no native method for getting text height in HTML5
+ * canvas. So there is this, grabbed verbatim from
+ * stackoverflow. Thanks Prestaul.
+ */
+function measureTextHeight(ctx, left, top, width, height) {
+    return 13;
+}
+/**
+    // Draw the text in the specified area
+    ctx.save();
+    ctx.translate(left, top + Math.round(height * 0.8));
+    ctx.fillText('gM'); // This seems like tall text...  Doesn't it?
+    ctx.restore();
+
+    // Get the pixel data from the canvas
+    var canvasData = ctx.getImageData(left, top, width, height).data,
+        first = false, 
+        last = false
+        r = height,
+        c = 0;
+
+    // Find the last line with a non-white pixel
+    while(!last && r) {
+        r--;
+        for(c = 0; c < width; c++) {
+                if(canvasData[r * width * 4 + c * 4 + 3]) {
+                        last = r;
+                        break;
+                }
+        }
+    }
+
+    // Find the first line with a non-white pixel
+    while(r) {
+        r--;
+        for(c = 0; c < width; c++) {
+                if(canvasData[r * width * 4 + c * 4 + 3]) {
+                        first = r;
+                        break;
+                }
+        }
+
+        // If we've got it then return the height
+        if(first != r) return last - first;
+    }
+
+    // We screwed something up...  What do you expect from free code?
+    return 0;
+}
+*/
+
+/**
  * Go through captured user inputs and 
  * update stuff
  */
@@ -295,4 +347,11 @@ function calculate(){
 		setElementSizes('r');
 		resizeElements=false;
 	}
+	if(fontWidth==0){
+		var ctx = goog.dom.getElement('canvasText').getContext('2d');
+		ctx.font = font;
+		fontWidth = ctx.measureText('A').width;
+		lineheight = measureTextHeight(ctx, 0, 0, 50, 50);
+	}
+	
 }
