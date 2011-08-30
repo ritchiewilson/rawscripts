@@ -146,7 +146,7 @@ function canvasPosition(r,c, pageStartX){
 	}
 	
 	// figure out lateral position
-	var x = WrapVariableArray[lines[r].format][1];
+	var x = textDistanceFromEdge[lines[r].format]*fontWidth;
 	x+=pageStartX;
 
 	var s = 0; // start of line

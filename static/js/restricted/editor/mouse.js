@@ -236,7 +236,7 @@ function mousePosition(e, w){
 		}
 		
 		// now add to position based on mouse X
-		var x = e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-WrapVariableArray[lines[i].format][1]; // x diastance into block of text
+		var x = e.clientX-Math.round((editorWidth-fontWidth*87-24)/2)-textDistanceFromEdge[lines[i].format]*fontWidth; // x diastance into block of text
 		var c = Math.round(x/fontWidth); // number of characters x represents
 		if(c<0)c=0;
 		if(c>linesNLB[i][j].length)c=linesNLB[i][j].length;

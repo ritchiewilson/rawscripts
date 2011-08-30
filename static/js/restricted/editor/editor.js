@@ -71,8 +71,11 @@ var updateMouseDrag=false;
     //wrapvariablearray[4]=p
     //wrapvariablearray[5]=t
 var WrapVariableArray = [[62, 111-10,0,1,2],[62,111-10,0,0,2],[40, 271-10,0,1,1],[36, 191-10,0,0,2],[30, 231-10,0,0,1],[61, 601-10,1,1,2]];
-    
-    //if ($.browser.mozilla)fontWidth=9;
+
+// When printing text, this distance from edge of page, in terms of
+// fontWidth.
+var textDistanceFromEdge = [12.625, 12.625, 32.625, 22.625, 27.625, 73.875];
+
 var editorWidth = 850;
 var editorHeight = 850;
 var headerHeight=65+26;

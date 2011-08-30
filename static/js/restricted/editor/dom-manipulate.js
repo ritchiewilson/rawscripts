@@ -153,7 +153,7 @@ function createSuggestBox(d){
 				box.id='suggestBox';
 				box.style.position='fixed';
 				box.style.top=canvasPosition(pos.row,0,pageStartX).canvasY+headerHeight+9+lineheight+"px";
-				box.style.left=WrapVariableArray[lines[pos.row].format][1]+pageStartX+'px';
+				box.style.left=textDistanceFromEdge[lines[pos.row].format]*fontWidth+pageStartX+'px';
 				box.className = 'goog-menu'
 			}
 			// Scene list could double up

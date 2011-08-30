@@ -97,7 +97,7 @@ function drawFindArr(ctx, pageStartX){
 			if(drawArr[i][0]>startLine){
 				var p = canvasPosition(drawArr[i][0],drawArr[i][1],pageStartX);
 				if(p.canvasY>editorHeight)break;
-				ctx.fillRect(p.canvasX,p.canvasY+4,l*fontWidth,lineheight-2);
+				ctx.fillRect(p.canvasX,p.canvasY+4,l*fontWidth,Math.round(lineheight * 0.8));
 			}
 		}
 	}
@@ -132,6 +132,7 @@ function drawRange(ctx, pageStartX){
 	var e = canvasPosition(endRange.row, endRange.col, pageStartX);
 	s.canvasY+=3;
 	e.canvasY+=3;
+	var blueheight = Math.round(lineheight * 0.9);
 	
 	// Now compare stuff and draw blue boxen
 	ctx.fillStyle='lightBlue';
@@ -139,7 +140,7 @@ function drawRange(ctx, pageStartX){
 	// if this is only on one wrapped line
 	if(e.canvasY==s.canvasY){
 		var onlyBlueLine = s.canvasX;
-		ctx.fillRect(onlyBlueLine, s.canvasY,e.canvasX-s.canvasX, 12);
+		ctx.fillRect(onlyBlueLine, s.canvasY,e.canvasX-s.canvasX, blueheight);
 	}
 	else{
 		// if the range doesn't fall on one bit of wrapped
@@ -176,14 +177,14 @@ function drawRange(ctx, pageStartX){
 					// the start of the range, but not the end
 					if(tc>startRange.col){
 						if(lines[i].format==5){
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
 						}
 					}
 					if(tc<=startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
+						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,blueheight);
 					}
 				}
 				else if(i==endRange.row && i!=startRange.row){
@@ -191,14 +192,14 @@ function drawRange(ctx, pageStartX){
 					// the end of the range, but not the start
 					if(tc+linesNLB[i][j].length<endRange.col){
 						if(lines[i].format==5){
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
 						}
 					}
 					if(tc<endRange.col && endRange.col<=(tc+linesNLB[i][j].length)){
-						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
+						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, blueheight)
 					}
 					
 				}
@@ -206,17 +207,17 @@ function drawRange(ctx, pageStartX){
 					// for drawing range in a block that contains
 					// the both the start and end of the range
 					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,12);
+						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,blueheight);
 					}
 					else if(tc<endRange.col && endRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, 12)
+						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, blueheight)
 					}
 					else if(tc>startRange.col && tc<endRange.col){
 						if(lines[i].format==5){
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
 						}
 						else{
-							ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
 						}
 					}
 				}
@@ -225,10 +226,10 @@ function drawRange(ctx, pageStartX){
 					// neither the start or the end of the range
 					// i.e. the stuff int he middle.
 					if(lines[i].format==5){
-						ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
 					}
 					else{
-						ctx.fillRect(WrapVariableArray[lines[i].format][1]+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,12);
+						ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
 					}
 				}
 				y+=lineheight;
@@ -327,7 +328,7 @@ function drawPages(ctx, pageStartX){
 		ctx.strokeStyle = '#999';
 		ctx.strokeRect(pageStartX-2, pageStartY-2, Math.round(fontWidth*87)+4, lineheight*70+4);
 		ctx.fillStyle = foreground;
-		if(i>0)ctx.fillText(String(i+1)+'.', 550+pageStartX, pageStartY+85);
+		if(i>0)ctx.fillText(String(i+1)+'.', 68.75*fontWidth+pageStartX, pageStartY+85);
 		pageStartY+= lineheight*72;
 	}
 }
@@ -348,7 +349,7 @@ function drawSluglineBacking(ctx, pageStartX){
 			if(p.canvasY>editorHeight)break;
 			if(p.canvasY>-10){
 				for(var j=0; j<linesNLB[i].length-1;j++){
-					ctx.fillRect(p.canvasX-3,p.canvasY+2+(lineheight*j), fontWidth*61.5, 14)
+					ctx.fillRect(p.canvasX-3,p.canvasY+2+(lineheight*j), fontWidth*61.5, (lineheight * 1.1));
 				}
 			}
 		}
@@ -368,7 +369,7 @@ function drawCaret(ctx, pageStartX){
 	if ((diff>0 && diff<500) || (diff<0 && diff<-500)){
 		ctx.fillStyle=foreground;
 		var p = canvasPosition(pos.row,pos.col, pageStartX);
-		ctx.fillRect(p.canvasX, p.canvasY, 2, 17);
+		ctx.fillRect(p.canvasX, p.canvasY, 2, (lineheight * 1.3));
 	}
 }
 
@@ -425,7 +426,7 @@ function drawText(ctx, pageStartX){
 		for(var j=0; j<linesNLB[i].length; j++){
 			if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
 				if(j!=0 && lines[i].format==3){
-					ctx.fillText("(MORE)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+					ctx.fillText("(MORE)", textDistanceFromEdge[2]*fontWidth+pageStartX, y-vOffset)
 				}
 				y=72*lineheight*(count+1)+10*lineheight;
 				count++;
@@ -439,7 +440,7 @@ function drawText(ctx, pageStartX){
 						}
 						lci--;
 					}
-					ctx.fillText(cbpb.toUpperCase()+" (CONT'D)", WrapVariableArray[2][1]+pageStartX, y-vOffset)
+					ctx.fillText(cbpb.toUpperCase()+" (CONT'D)", textDistanceFromEdge[2]*fontWidth+pageStartX, y-vOffset)
 					y+=lineheight;
 				}
 				if(count>=pageBreaks.length){
@@ -447,13 +448,13 @@ function drawText(ctx, pageStartX){
 				}
 			}
 			if(lines[i].format==5){
-				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i].format][1]+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
+				ctx.fillText(linesNLB[i][j], textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth) , y-vOffset);
 			}
 			else if(lines[i].format==2 && lines[i].text==latestCharacter && latestCharacter!=''){
-					ctx.fillText(linesNLB[i][j]+" (CONT'D)", WrapVariableArray[lines[i].format][1]+pageStartX , y-vOffset);
+					ctx.fillText(linesNLB[i][j]+" (CONT'D)", textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX , y-vOffset);
 			}
 			else{
-				ctx.fillText(linesNLB[i][j], WrapVariableArray[lines[i].format][1]+pageStartX , y-vOffset);
+				ctx.fillText(linesNLB[i][j], textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX , y-vOffset);
 			}
 			
 			if(lines[i].format==2)latestCharacter=lines[i].text;
