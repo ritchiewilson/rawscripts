@@ -261,7 +261,7 @@ function changeFontSize(v){
 		if(size==options[i][0])font=options[i][1];
 	}
 
-	//fontWidth=0 forces recalc for fontwidth and lineheight
+	//fontWidth=0 forces recalc for fontWidth and lineheight
 	fontWidth=0;
 
 	//update checks in view menu
