@@ -388,6 +388,7 @@ function parseInitialJSON(e){
 	// set up canvas for printing, then print and repeat
     wrapAll();
 	pagination();
+    changeFontSize('font-small');
 	
 	//make info bar visible
 	goog.dom.getElement('info').style.width=(editorWidth-6)+"px";

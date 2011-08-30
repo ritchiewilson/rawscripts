@@ -240,7 +240,36 @@ function lineFormatGuiUpdate(){
 	}
 }
 
+/**
+ * Change the size of text on the canvas, and update relevant
+ * GUIs. Called when user changes font size from View menu. Also
+ * called on init to get things set up first time.
+ *
+ * @param {string} v Id of selected menu item 
+ */
+function changeFontSize(v){
+	// these are the posbile font sizes, human readable and css
+	var options = [
+	['small', '10pt Courier'],
+	['medium', '12pt Courier'],
+	['large', '14pt Courier']
+	];
+	
+	// loop through options and change font
+	var size = v.replace('font-','');
+	for(var i=0; i<options.length; i++){
+		if(size==options[i][0])font=options[i][1];
+	}
 
+	//fontWidth=0 forces recalc for fontwidth and lineheight
+	fontWidth=0;
+
+	//update checks in view menu
+	for(i=0; i<options.length; i++){
+		var option = 'font-'+options[i][0];
+		vMenu.getChild(option).setChecked((v==option ? true : false));
+	}
+}
 
 /**
  * When a user makes a change to the script,

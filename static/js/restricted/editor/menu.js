@@ -101,6 +101,7 @@ function menuSelect(e){
     else if(id=='revision')revisionHistoryPage();
     else if(id=='notes')viewNotes = (viewNotes ? false : true);
     else if(id.substr(0,6)=='format')changeFormat(parseInt(id.replace('format','')));
+    else if(id.substr(0,5)=='font-')changeFontSize(id);
     //Share
     else if(id=='collaborators')sharePrompt();
     else if(id=='email')emailPrompt();
