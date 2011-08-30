@@ -274,15 +274,17 @@ function caretInLimits(){
  * canvas. So there is this, grabbed verbatim from
  * stackoverflow. Thanks Prestaul.
  */
-function measureTextHeight(ctx, left, top, width, height) {
-    return 13;
-}
-/**
+function measureTextHeight() {
+    var ctx = goog.dom.getElement('canvasText').getContext('2d');
+    var height = goog.dom.getElement('canvasText').height,
+        width = goog.dom.getElement('canvasText').width,
+        top = Math.round(height * 0.8),
+        left = 0;
     // Draw the text in the specified area
-    ctx.save();
-    ctx.translate(left, top + Math.round(height * 0.8));
-    ctx.fillText('gM'); // This seems like tall text...  Doesn't it?
-    ctx.restore();
+    ctx.fillStyle="white";
+    ctx.clearRect(0,0,width,height);
+    ctx.fillStyle="red";
+    ctx.fillText('gM', left, top); // This seems like tall text...  Doesn't it?
 
     // Get the pixel data from the canvas
     var canvasData = ctx.getImageData(left, top, width, height).data,
@@ -290,6 +292,7 @@ function measureTextHeight(ctx, left, top, width, height) {
         last = false
         r = height,
         c = 0;
+
 
     // Find the last line with a non-white pixel
     while(!last && r) {
@@ -301,13 +304,15 @@ function measureTextHeight(ctx, left, top, width, height) {
                 }
         }
     }
-
+    console.log(last);
     // Find the first line with a non-white pixel
     while(r) {
         r--;
         for(c = 0; c < width; c++) {
+	    console.log(canvasData[r *width*4 +c*4+3]);
                 if(canvasData[r * width * 4 + c * 4 + 3]) {
                         first = r;
+		    console.log(c);
                         break;
                 }
         }
@@ -319,7 +324,7 @@ function measureTextHeight(ctx, left, top, width, height) {
     // We screwed something up...  What do you expect from free code?
     return 0;
 }
-*/
+
 
 /**
  * Go through captured user inputs and 
@@ -351,7 +356,7 @@ function calculate(){
 		var ctx = goog.dom.getElement('canvasText').getContext('2d');
 		ctx.font = font;
 		fontWidth = ctx.measureText('A').width;
-		lineheight = measureTextHeight(ctx, 0, 0, 50, 50);
+		lineheight = measureTextHeight();
 	}
 	
 }
