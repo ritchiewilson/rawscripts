@@ -319,7 +319,7 @@ function measureTextHeight() {
     }
 
     // We screwed something up...  What do you expect from free code?
-    return 0;
+    return 13; // return a default value
 }
 
 
