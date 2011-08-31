@@ -171,6 +171,7 @@ function toolbarActions(e){
 	else if(c=='InsertNote')newThread();
 	else if(c=='Spellcheck')launchSpellCheck();
 	else if(c=='Email')emailPrompt();
+	else if(c.substr(0,6)=='-font-')changeFontSize(c.substr(1));
 }
 
 

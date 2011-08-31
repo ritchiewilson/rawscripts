@@ -253,6 +253,24 @@ function init(){
 	var tb = new goog.ui.Toolbar();
 	tb.decorate(goog.dom.getElement('gtb'));
 	goog.events.listen(tb, goog.ui.Component.EventType.ACTION, toolbarActions)
+	 // Have the font size buttons be controlled by a selection model.
+	var selectionModel = new goog.ui.SelectionModel();
+ 	selectionModel.setSelectionHandler(function(button, select) {
+ 		if (button) {
+ 			button.setChecked(select);
+ 		}
+ 	});
+ 	goog.array.forEach(['toolbar-font-small', 'toolbar-font-medium', 'toolbar-font-large'],
+ 	function(id) {
+ 		var button = tb.getChild(id);
+ 		// Let the selection model control the button's checked state.
+ 		button.setAutoStates(goog.ui.Component.State.CHECKED, false);
+ 		selectionModel.addItem(button);
+ 		goog.events.listen(button, goog.ui.Component.EventType.ACTION,
+ 		function(e) {
+ 			selectionModel.setSelectedItem(e.target);
+ 		});
+ 	});
 	goog.dom.getElement('gtb').style.visibility = 'visible';
 	goog.dom.getElement('sidebar').style.visibility = 'visible';
 	

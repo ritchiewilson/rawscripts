@@ -60,6 +60,10 @@
 				<div class="goog-toolbar-button" id='toolbarSpellcheck'><img src="images/spellcheck.png" alt="SpellCheck"></div>
 				<div class="goog-toolbar-button" id='toolbarEmail'><img src="images/email.gif" alt="Email Screenplay"></div>
 				<hr>
+				<div id="toolbar-font-small" title="Small" class="goog-toolbar-toggle-button goog-toolbar-button-collapse-right">S</div> 
+				<div id="toolbar-font-medium" title="Medium" class="goog-toolbar-toggle-button goog-toolbar-button-collapse-left goog-toolbar-button-collapse-right">M</div> 
+				<div id="toolbar-font-large" title="Large" class="goog-toolbar-toggle-button goog-toolbar-button-collapse-left">L</div>
+				<hr> 
 				<select id="format" onchange="changeFormat(this.selectedIndex)">
 					<option>Slugline</option>
 					<option>Action</option>
@@ -176,13 +180,12 @@
 		<div id="format5" class="goog-menuitem goog-option">Transition</div>
 	</div>
 	<div class="topMenu" id="viewMenu">
-		<!--<div id='fontsize' class="submenu"><table cellpadding="0" cellspacing="0"><tr><td style="width:25px">  </td><td>Font Size</td></tr></table></div>-->
-		<div id='notes' class="goog-menuitem goog-option goog-option-selected">View Notes</div>
-		<div id='revision' class="goog-menuitem">Revision History</div>
+		<div id="notes" class="goog-menuitem goog-option goog-option-selected">View Notes</div>
+		<div id="revision" class="goog-menuitem">Revision History</div>
 		<hr>
-		<div id='font-small' class="goog-menuitem goog-option">Font Size Small</div>
-		<div id='font-medium' class="goog-menuitem goog-option">Font Size Medium</div>
-		<div id='font-large' class="goog-menuitem goog-option">Font Size Large</div>
+		<div id="font-small" class="goog-menuitem goog-option">Font Size Small</div>
+		<div id="font-medium" class="goog-menuitem goog-option">Font Size Medium</div>
+		<div id="font-large" class="goog-menuitem goog-option">Font Size Large</div>
 	</div>
 	<div class="topMenu" id="shareMenu">
 		<div id='collaborators' class="goog-menuitem">Collaborators</div>
