@@ -1,4 +1,4 @@
-<html>
+<!DOCTYPE html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>RawScripts - Title Page</title>
@@ -12,32 +12,25 @@
         font-size:10pt;
     }
     #controls{
-        position:absolute;
-        top:40px;
-        left:0;
-        bottom:0;
-        width:200px;
         border-right:ridge;
         padding:20px;
         background-color:#ddd;
         font-family:serif;
+	float: left;
     }
     #pageContainer{
-        position: absolute;
-        top:40px;
-        bottom:0;
-        right:0;
-        left: 202px;
-        
+        float:left;
+	width: 900px;
     }
     #page{
         border:1px black solid;
         background-color:white;
-        margin:auto;
+        margin: auto;
         margin-top:30px;
         margin-bottom:30px;
         width:600px;
         height:800px;
+	visibility:hidden;
     }
     #header{
         background-color:#6484DF;
@@ -48,6 +41,7 @@
         width:200px;
         margin:auto;
         margin-top:270px;
+ 	text-decoration: underline;
     }
     #writtenBy{
         margin-top:25px;
@@ -66,7 +60,6 @@
     <input id="saveButton" type="button" value="Save" onclick='save()'>
     <input type="button" value="Close" onclick="closeTitlePage()">
 </div>
-<div id="container">
     <div id="controls">
         <table cellpadding=0 cellspacing=0>
             <tr><td colspan="2">Title</td></tr>
@@ -149,6 +142,5 @@
 	{% else %}
 	<script src="js/min/titlepage-compiled.js" type="text/javascript"></script>
 	{% endif %}
-</div>
 </body>
 </html>

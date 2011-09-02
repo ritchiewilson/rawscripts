@@ -17,18 +17,34 @@
  */
 
 
+window['closeTitlePage']=closeTitlePage;
+window['save']=save;
+window['update']=update;
+
+
+//Set up global events.
+//First Clicking on checkbox
 var arr = goog.dom.getElementsByClass('checkbox')
 for (i in arr){
 	if(arr[i].type=='checkbox')goog.events.listen(arr[i], goog.events.EventType.CLICK, update)
 }
+// Listen for keyup events in text boxes
 var arr = goog.dom.getElementsByClass('textbox')
 for (i in arr){
 	if(arr[i].nodeName=='INPUT' || arr[i].nodeName=='TEXTAREA')goog.events.listen(arr[i], goog.events.EventType.KEYUP, update)
 }
+// Listen for resize events because I suck at css. Suck suck suck.
+var vsm = new goog.dom.ViewportSizeMonitor();
+goog.events.listen(vsm, goog.events.EventType.RESIZE, setElementSizes);
+// then initial resize
+setElementSizes();
 
-window['closeTitlePage']=closeTitlePage;
-window['save']=save;
-window['update']=update;
+function setElementSizes(){
+    var s = goog.dom.getViewportSize();
+    var c = goog.style.getSize(goog.dom.getElement('controls'));
+    goog.dom.getElement('pageContainer').style.width = (s.width - c.width ) + "px";
+    goog.dom.getElement('page').style.visibility = 'visible';
+}
 
 function closeTitlePage(){
     window.close()
@@ -85,18 +101,18 @@ function save(){
 		'POST',
 		postData
 	);
-    document.getElementById('saveButton').disabled=true;
-    document.getElementById('saveButton').value="Saving..."
+    goog.dom.getElement('saveButton').disabled=true;
+    goog.dom.getElement('saveButton').value="Saving..."
 }
 
 
 function update(){
-    document.getElementById('saveButton').value="Save";
-    document.getElementById('saveButton').disabled=false;
-    document.getElementById('title').innerHTML="";
-    document.getElementById('title').appendChild(document.createTextNode(document.getElementById("title_input").value));
-    document.getElementById('authorOne').innerHTML="";
-    document.getElementById('authorOne').appendChild(document.createTextNode(document.getElementById("authorOne_input").value));
+    goog.dom.getElement('saveButton').value="Save";
+    goog.dom.getElement('saveButton').disabled=false;
+    goog.dom.getElement('title').innerHTML="";
+    goog.dom.getElement('title').appendChild(document.createTextNode(goog.dom.getElement("title_input").value));
+    goog.dom.getElement('authorOne').innerHTML="";
+    goog.dom.getElement('authorOne').appendChild(document.createTextNode(goog.dom.getElement("authorOne_input").value));
     var c=document.getElementsByTagName('input')
     for(i in c){
         if (c[i].type=='checkbox'){
@@ -111,19 +127,19 @@ function update(){
             if (c[i].id=="address_checkbox" || c[i].id=="based_on_checkbox"){
                 var re = new RegExp( "\\n", "g" );
                 data=data.replace(re,'<br>');
-                document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML=data;
+                goog.dom.getElement(c[i].id.replace('_checkbox',"")).innerHTML=data;
             }
             else{
-                document.getElementById(c[i].id.replace('_checkbox',"")).innerHTML="";
-                document.getElementById(c[i].id.replace('_checkbox',"")).appendChild(document.createTextNode(data));
+                goog.dom.getElement(c[i].id.replace('_checkbox',"")).innerHTML="";
+                goog.dom.getElement(c[i].id.replace('_checkbox',"")).appendChild(document.createTextNode(data));
             }
             if(check){
-                document.getElementById(c[i].id.replace('_checkbox',"_input")).disabled=false;
-                document.getElementById(c[i].id.replace('_checkbox',"")).style.visibility='visible';
+                goog.dom.getElement(c[i].id.replace('_checkbox',"_input")).disabled=false;
+                goog.dom.getElement(c[i].id.replace('_checkbox',"")).style.visibility='visible';
             }
             else{
-                document.getElementById(c[i].id.replace('_checkbox',"_input")).disabled=true;
-                document.getElementById(c[i].id.replace('_checkbox',"")).style.visibility='hidden';
+                goog.dom.getElement(c[i].id.replace('_checkbox',"_input")).disabled=true;
+                goog.dom.getElement(c[i].id.replace('_checkbox',"")).style.visibility='hidden';
             }
         }
     }

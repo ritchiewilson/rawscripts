@@ -27,6 +27,7 @@ goog.require('goog.ui.Menu');
 goog.require('goog.ui.Container');
 goog.require('goog.net.XhrIo');
 goog.require('goog.array');
+goog.require('goog.dom.ViewportSizeMonitor')
 
 ////////////////////////////////////////////////////
 // This is a list of required closure components  //
