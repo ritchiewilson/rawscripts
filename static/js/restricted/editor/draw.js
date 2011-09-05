@@ -26,15 +26,15 @@ function drawScrollBar(ctx){
     var height = goog.dom.getElement('canvasText').height-23;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight;
     var barHeight = height*height/pagesHeight;
-    if (barHeight<20)barHeight=20;
+    if (barHeight<20)barHeight=25;
     if (barHeight>=height)barHeight=height;
     var topPixel = (vOffset/(pagesHeight-height))*(height-barHeight);
     if (goog.dom.getElement('canvasText').style.cursor == 'default' || scrollBarBool){ctx.fillStyle = '#22b'}
-    else{ctx.fillStyle = '#33f'};
-    ctx.fillRect(editorWidth-16.5, topPixel, 13,barHeight);
+    else{ctx.fillStyle = '#55f'};
+    ctx.fillRect(editorWidth-16.5, topPixel, 12,barHeight);
 
     // remember where we're drawing this
-    scrollBarPos={x:editorWidth-16.5, y:topPixel, w:13, h:barHeight}
+    scrollBarPos={x:editorWidth-16.5, y:topPixel, w:12, h:barHeight}
 }
 
 /**
