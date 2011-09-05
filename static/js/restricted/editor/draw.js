@@ -23,56 +23,18 @@
  * @param { canvas context } ctx The canvas context to be drawn on
  */
 function drawScrollBar(ctx){
-	var lingrad = ctx.createLinearGradient(editorWidth-15,0,editorWidth,0);
-	lingrad.addColorStop(0, "#5587c4");
-	lingrad.addColorStop(.8, "#95a7d4"); 
-	ctx.strokeStyle="#333";
-	ctx.lineWidth=1;
-	ctx.fillStyle=lingrad;
     var height = goog.dom.getElement('canvasText').height-23;
     var pagesHeight = (pageBreaks.length+1)*72*lineheight+lineheight;
     var barHeight = height*height/pagesHeight;
     if (barHeight<20)barHeight=20;
     if (barHeight>=height)barHeight=height;
     var topPixel = (vOffset/(pagesHeight-height))*(height-barHeight);
-	// remember where we're drawing this
-	scrollBarPos={x:editorWidth-16.5, y:topPixel, w:14, h:barHeight-5}
-    ctx.fillRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
-	ctx.strokeRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
-	ctx.beginPath();
-	ctx.arc(editorWidth-9.5, topPixel+9,7, 0, Math.PI, true);
-	ctx.fill();
-	ctx.stroke();
-	ctx.beginPath()
-	ctx.arc(editorWidth-9.5, topPixel+barHeight-11, 7, 0, Math.PI, false);
-	ctx.fill();
-	ctx.stroke();
-	var sh = topPixel;
-	while(sh < topPixel+barHeight){
-		var radgrad = ctx.createRadialGradient(editorWidth,sh+10,4,editorWidth+200,sh,10);  
-		radgrad.addColorStop(0, 'rgba(100,140,210,0.4)');  
-		radgrad.addColorStop(0.4, 'rgba(180,160,240,0.4)');  
-		radgrad.addColorStop(1, 'rgba(1,159,98,0)');
-		ctx.fillStyle=radgrad;
-		ctx.fillRect(editorWidth-16.5, topPixel+8, 14,barHeight-17);
-		
-		
-		sh+=20;
-	}
-	ctx.beginPath();
-	ctx.moveTo(editorWidth-7, topPixel+9);
-	ctx.lineTo(editorWidth-7, topPixel+barHeight-10);
-	ctx.lineCap="round";
-	ctx.strokeStyle = "rgba(200,220,255,0.3)";
-	ctx.lineWidth=4;
-	ctx.stroke()
-	ctx.beginPath();
-	ctx.moveTo(editorWidth-9, topPixel+10);
-	ctx.lineTo(editorWidth-9, topPixel+barHeight-10);
-	ctx.strokeStyle = "rgba(200,220,255,0.1)";
-	ctx.lineWidth=2;
-	ctx.stroke();
-	
+    if (goog.dom.getElement('canvasText').style.cursor == 'default' || scrollBarBool){ctx.fillStyle = '#22b'}
+    else{ctx.fillStyle = '#33f'};
+    ctx.fillRect(editorWidth-16.5, topPixel, 13,barHeight);
+
+    // remember where we're drawing this
+    scrollBarPos={x:editorWidth-16.5, y:topPixel, w:13, h:barHeight}
 }
 
 /**
