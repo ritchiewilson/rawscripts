@@ -43,7 +43,7 @@ class SpellDB(webapp.RequestHandler):
 										"WHERE resource_id='"+i.resource_id+"'")
 			r = q.fetch(2)
 			if len(r)==0:
-				s = SpellingData(resource_id=i.resource_id,
+				s = models.SpellingData(resource_id=i.resource_id,
 												 wrong="[]",
 												 ignore="[]")
 				s.put()
@@ -138,7 +138,7 @@ class SpellCheck(webapp.RequestHandler):
 												"WHERE resource_id='"+resource_id+"'")
 				r=q.fetch(2)
 				if len(r)==0:
-					s=SpellingData(resource_id=resource_id,
+					s=models.SpellingData(resource_id=resource_id,
 												 wrong="[]",
 												 ignore='[]')
 					s.put()
