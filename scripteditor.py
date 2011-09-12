@@ -87,13 +87,24 @@ def ownerPermission (resource_id):
 				p=i.title
 	return p
 
-
+def openid_data():
+	u = users.get_current_user()
+	q = models.OpenIDData.all()
+	q.filter('federated_id = ', u.federated_identity())
+	q.filter('email = ', u.email())
+	
+	result = q.get()
+	if result == None:
+		n = models.OpenIDData()
+		n.federated_id = u.federated_identity()
+		n.email = u.email()
+		n.put()
 
 class ScriptList(webapp.RequestHandler):
 	"""Requests the list of the user's Screenplays in the RawScripts folder."""
 
 	def get(self):
-
+		openid_data()
 		template_values = { 'sign_out': users.create_logout_url('/') }
 		template_values['user'] = users.get_current_user().email()
 		template_values['MODE'] = config.MODE
