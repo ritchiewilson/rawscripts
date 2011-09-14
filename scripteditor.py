@@ -89,15 +89,21 @@ def ownerPermission (resource_id):
 
 def openid_data():
 	u = users.get_current_user()
-	q = models.OpenIDData.all()
-	q.filter('federated_id = ', u.federated_identity())
+	q = models.OpenIDData2.all()
+	q.filter('nickname =', u.nickname())
 	q.filter('email = ', u.email())
+	q.filter('user_id =', u.user_id())
+	q.filter('federated_identity = ', u.federated_identity())
+	q.filter('federated_provider =', u.federated_provider())
 	
 	result = q.get()
 	if result == None:
-		n = models.OpenIDData()
-		n.federated_id = u.federated_identity()
+		n = models.OpenIDData2()
+		n.nickname = u.nickname()
 		n.email = u.email()
+		n.user_id = u.user_id()
+		n.federated_identity = u.federated_identity()
+		n.federated_provider = u.federated_provider()
 		n.put()
 
 class ScriptList(webapp.RequestHandler):

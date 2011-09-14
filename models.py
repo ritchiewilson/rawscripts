@@ -128,7 +128,10 @@ class BlogDB (db.Model):
 	title = db.StringProperty()
 	timestamp = db.DateTimeProperty(auto_now_add=True)
 
-class OpenIDData(db.Model):
-	federated_id = db.StringProperty()
+class OpenIDData2(db.Model):
+	nickname = db.StringProperty()
 	email = db.StringProperty()
+	user_id = db.StringProperty()
+	federated_identity = db.StringProperty()
+	federated_provider = db.StringProperty()
 	timestamp = db.DateTimeProperty(auto_now_add=True)
