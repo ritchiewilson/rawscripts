@@ -297,18 +297,15 @@ class Save (webapp.RequestHandler):
 							autosave=b)
 			a.put()
 
-			q = db.GqlQuery("SELECT * FROM UsersScripts WHERE resource_id='"+resource_id+"'")
-			results=q.fetch(500)
-			for i in results:
-				i.last_updated=datetime.datetime.today()
-				i.put()
+
+			u.last_updated=datetime.datetime.today()
+			u.put()
 			
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('1')
 		else:
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('0')
-		activity.activity("save", users.get_current_user().email().lower(), resource_id, None, len(data), None, int(autosave), None, None,None,None,None,None, None)
 
 class LoginRequired(webapp.RequestHandler):
 	def get(self):
