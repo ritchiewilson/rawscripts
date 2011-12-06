@@ -118,19 +118,22 @@ class SpellCheck(webapp.RequestHandler):
 					data=data+'</spellrequest>'
 					con = httplib.HTTPSConnection("www.google.com")
 					con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
-					response = con.getresponse()
-					r=response.read()
-					dom = minidom.parse(StringIO.StringIO(r))
-					con.close()
-					for i in dom.getElementsByTagName('c'):
-						tmp=[]
-						tmp.append(text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))])
-						if not len(i.childNodes)==0:
-							tmp.append(i.firstChild.data.split('\t'))
-						else:
-							tmp.append(["No Suggestions"])
-						if not tmp==[]:
+					try:
+						response = con.getresponse()
+						r=response.read()
+						dom = minidom.parse(StringIO.StringIO(r))
+						con.close()
+						for i in dom.getElementsByTagName('c'):
+							tmp=[]
+							tmp.append(text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))])
+							if not len(i.childNodes)==0:
+								tmp.append(i.firstChild.data.split('\t'))
+							else:
+								tmp.append(["No Suggestions"])
+							if not tmp==[]:
 								cr.append(tmp)
+					except:
+						cr = cr
 			if len(cr)==0:
 				content = 'correct'
 			else:
