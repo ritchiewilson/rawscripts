@@ -31,7 +31,7 @@ import logging
 from google.appengine.api.labs import taskqueue
 import config
 import models
-
+from google.appengine.api import memcache
 
 class SpellDB(webapp.RequestHandler):
 	def get(self):
@@ -94,6 +94,14 @@ class SpellCheck(webapp.RequestHandler):
 			for e in w: 
 					keys[e] = 1
 			words=keys.keys()
+			
+			# use memcache to find stored correct words
+			stored_spelling = memcache.get_multi(words, namespace='spelling')
+			new_words=[]
+			for i in words:
+				if not i in stored_spelling:
+					new_words.append(i)
+			words = new_words
 
 			n=0
 			cr=[]
@@ -118,6 +126,7 @@ class SpellCheck(webapp.RequestHandler):
 					data=data+'</spellrequest>'
 					con = httplib.HTTPSConnection("www.google.com")
 					con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
+					incorrect_words = []
 					try:
 						response = con.getresponse()
 						r=response.read()
@@ -125,13 +134,23 @@ class SpellCheck(webapp.RequestHandler):
 						con.close()
 						for i in dom.getElementsByTagName('c'):
 							tmp=[]
-							tmp.append(text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))])
+							incorrect_word = text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))]
+							incorrect_words.append(incorrect_word)
+							tmp.append(incorrect_word)
 							if not len(i.childNodes)==0:
 								tmp.append(i.firstChild.data.split('\t'))
 							else:
 								tmp.append(["No Suggestions"])
 							if not tmp==[]:
 								cr.append(tmp)
+						# find correct words and add them to memcache
+						for i in arr:
+							found=False
+							for j in incorrect_words:
+								if i==j:
+									found=True
+							if found==False:
+								memcache.set(i, '?correct?', namespace='spelling')
 					except:
 						cr = cr
 			if len(cr)==0:
