@@ -280,13 +280,18 @@ class Save (webapp.RequestHandler):
 			return
 		else:
 			if u.user==users.get_current_user().email().lower():
-				q = db.GqlQuery("SELECT * FROM ScriptData "+
-								"WHERE resource_id='"+resource_id+"' "+
-								"ORDER BY version DESC")
-				most_recent = q.get()
-				v = most_recent.version
-				v+=1
-
+				v = memcache.get('version'+resource_id)
+				if v==None:
+					q = db.GqlQuery("SELECT * FROM ScriptData "+
+							"WHERE resource_id='"+resource_id+"' "+
+							"ORDER BY version DESC")
+					most_recent = q.get()
+					v = most_recent.version
+					v+=1
+					memcache.set('version'+resource_id, v)
+				else:
+					v+=1
+					memcache.set('version'+resource_id, v)
 		if not v==0:
 			a = models.ScriptData(resource_id=resource_id,
 							title='title',
