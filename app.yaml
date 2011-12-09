@@ -20,6 +20,9 @@ version: 3
 runtime: python
 api_version: 1
 
+builtins:
+- appstats: on
+
 handlers:
 - url: /
   script: nologin.py
