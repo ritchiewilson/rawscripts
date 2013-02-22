@@ -38,14 +38,22 @@ import mobileTest
 import config
 import models
 
+# Get Current User String
+def gcu():
+	user = users.get_current_user().email().lower()
+	if user == 'mwap.cw@gmail.com':
+		user = 'mwap.cw@googlemail.com'
+	return user
+
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
 									"WHERE resource_id='"+resource_id+"'")
 	results = q.fetch(1000)
+	user = gcu()
 	p=False
 	for i in results:
 		if i.permission=='owner' or i.permission=="collab":
-			if i.user==users.get_current_user().email().lower():
+			if i.user==user:
 				p=i.permission
 	return p
 
@@ -54,9 +62,10 @@ def ownerPermission (resource_id):
 									"WHERE resource_id='"+resource_id+"'")
 	results = q.fetch(1000)
 	p=False
+	user = gcu()
 	for i in results:
 		if i.permission=='owner':
-			if i.user==users.get_current_user().email().lower():
+			if i.user==user:
 				p=i.title
 	return p
 
@@ -66,7 +75,7 @@ class NewThread(webapp.RequestHandler):
 		resource_id=self.request.get('resource_id')
 		fromPage=self.request.get('fromPage')
 		try:
-			user=users.get_current_user().email()
+			user=gcu()
 		except:
 			user = 'test@example.com'
 		row = self.request.get('row')
@@ -93,7 +102,7 @@ class NewThread(webapp.RequestHandler):
 							"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(500)
 			for i in r:
-				if not i.user==users.get_current_user().email().lower():
+				if not i.user==gcu():
 					nn = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
 									resource_id=resource_id,
 									user=i.user,
@@ -114,7 +123,7 @@ class SubmitMessage(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
 		try:
-			user=users.get_current_user().email()
+			user=gcu()
 		except:
 			user = 'test@example.com'
 		thread_id = self.request.get('thread_id')
@@ -238,7 +247,7 @@ class DeleteMessage(webapp.RequestHandler):
 				deleted=False
 				for i in J:
 					if i[2]==msg_id:
-						if p!=False or i[1]==users.get_current_user().email().lower():
+						if p!=False or i[1]==gcu():
 							deleted=True
 						else:
 							newJ.append(i)
@@ -265,7 +274,7 @@ class DeleteMessage(webapp.RequestHandler):
 class MarkAsRead(webapp.RequestHandler):
 	def post(self):
 		try:
-			user=users.get_current_user().email()
+			user=gcu()
 		except:
 			user = 'test@example.com'
 		msg_id = self.request.get('msg_id')
@@ -294,7 +303,7 @@ class ViewNotes(webapp.RequestHandler):
 				export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
 				
 			template_values={'j':simplejson.dumps(export),
-							"user":users.get_current_user().email(),
+							"user":gcu(),
 							"sign_out": users.create_logout_url("/"),
 							"title":title,
 							"f":f

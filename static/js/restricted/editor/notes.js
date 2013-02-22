@@ -53,7 +53,7 @@ function noteIndex(){
 		if(pageBreaks.length==0){var pn = 1}
 		else{
 			var i=0;
-			while(notes[x].row*1+1*1>pageBreaks[i][0]){
+			while(notes[x].row*1>=pageBreaks[i][0]*1){
 				i++;
 				if(i==pageBreaks.length)break
 			}

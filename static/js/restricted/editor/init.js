@@ -336,6 +336,14 @@ function parseInitialJSON(e){
         pos.row=anch.row=1;
         pos.col=anch.col=lines[1].text.length;
     }
+    
+    // lots of blank lines at the end causes problems for some
+    // reason. This is a bad fix for that.
+    for (var i=lines.length-1; i>=0; i--){
+	if (lines[i].text==''){
+	    lines.splice(i,1);
+	}
+    }
 
 	// put in spelling data into global variable
     if(p['spelling'].length!=0){
@@ -363,6 +371,13 @@ function parseInitialJSON(e){
 			notes[i].msgs[j].user=x[i]['msgs'][j]['user'];
 			notes[i].msgs[j].readBool=x[i]['msgs'][j]['readBool'];
 		}
+    }
+    // big fuck ups if notes arn't actually on a line
+    for(i in notes){
+	if(notes[i].row>lines.length-1){
+	    notes[i].row=lines.length-1;
+	    notes[i].col=0;
+	}
     }
 	uniqueNotePositions();
 
@@ -393,7 +408,6 @@ function parseInitialJSON(e){
 	// figure out character and scene names
     characterInit();
     sceneIndex();
-	noteIndex();
 
 	// put actual dom cursor into hidden text box
     goog.dom.getElement('ccp').focus();
@@ -407,6 +421,8 @@ function parseInitialJSON(e){
     wrapAll();
 	pagination();
     changeFontSize('font-small');
+    	noteIndex();
+
 	
 	//make info bar visible
 	goog.dom.getElement('info').style.width=(editorWidth-6)+"px";

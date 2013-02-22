@@ -42,6 +42,16 @@ from google.appengine.api import memcache
 import config
 import models
 
+# Get Current User String
+def gcu():
+	c_user = users.get_current_user()
+	if c_user:
+		user = c_user.email().lower()
+	else:
+		user = 'test@example.com'
+	if user == 'mwap.cw@gmail.com':
+		user = 'mwap.cw@googlemail.com'
+	return user
 
 class Welcome (webapp.RequestHandler):
 	def get(self):
@@ -70,6 +80,7 @@ class Welcome (webapp.RequestHandler):
 class Editor (webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
+		user_string = gcu()
 		path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
 		template_values = {}
 		template_values['EOV'] = "editor"
@@ -85,15 +96,16 @@ class Editor (webapp.RequestHandler):
 			template_values['user'] = users.get_current_user().email()
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"' "+
-										"AND user='"+user.email().lower()+"'")
+										"AND user='"+user_string+"'")
 			r=q.fetch(1)
+			#here's where admin could be added.
 			if len(r)!=0:
 				if r[0].permission=='collab':
 					format='viewer'
 					path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
 					template_values['EOV'] = "viewer"
 					q=db.GqlQuery("SELECT * FROM ShareNotify "+
-									"WHERE user='"+user.email().lower()+"' "+
+									"WHERE user='"+user_string+"' "+
 									"AND resource_id='"+resource_id+"' "+
 									"AND opened=False")
 					unopened = q.fetch(1)
@@ -115,7 +127,7 @@ class Editor (webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'html/login.html')
 				
 		if user:
-			user=user.email().lower()
+			user=gcu()
 		else:
 			user="unknown"
 
@@ -134,6 +146,7 @@ class Editor (webapp.RequestHandler):
 
 class ScriptContent (webapp.RequestHandler):
 	def post(self):
+		user = gcu()
 		resource_id = self.request.get('resource_id')
 
 		q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -149,8 +162,8 @@ class ScriptContent (webapp.RequestHandler):
 		else:
 			for i in results:
 				title=i.title
-				if i.user==users.get_current_user().email().lower():
-					if i.permission=='owner' or i.permission=="collab":
+				if i.user==user or users.is_current_user_admin():
+					if i.permission=='owner' or i.permission=="collab" or users.is_current_user_admin():
 						p=True
 		
 		if p==True:
@@ -174,7 +187,7 @@ class ScriptContent (webapp.RequestHandler):
 			if user:
 				q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 							"WHERE resource_id='"+resource_id+"' "+
-							"AND user='"+user.email().lower()+"'")
+							"AND user='"+gcu()+"'")
 				un=q.fetch(500)
 			else:
 				un=None
@@ -213,7 +226,7 @@ class ScriptContent (webapp.RequestHandler):
 					sharedwith.append(i.user)
 			
 			try:
-				c = memcache.get('contacts' + users.get_current_user().email().lower())
+				c = memcache.get('contacts' + gcu())
 			except:
 				c=None
 			if c==None:
@@ -222,7 +235,7 @@ class ScriptContent (webapp.RequestHandler):
 				contacts = simplejson.loads(c)
 		
 			try:
-				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
 			except:
 				us = None
 			if us==None:
@@ -248,7 +261,7 @@ class ScriptContent (webapp.RequestHandler):
 			self.response.out.write(content)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
 			if user:
-				user=user.email().lower()
+				user=gcu()
 			else:
 				user="unknown"
 			activity.activity("scriptcontent", user, resource_id, mobile, len(results[0].data), None, None, None, None,title,None,None,None, None)
@@ -279,7 +292,7 @@ class Save (webapp.RequestHandler):
 			logging.info('script not found')
 			return
 		else:
-			if u.user==users.get_current_user().email().lower():
+			if u.user==gcu():
 				v = memcache.get('version'+resource_id)
 				if v==None:
 					q = db.GqlQuery("SELECT * FROM ScriptData "+

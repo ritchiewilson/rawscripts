@@ -28,18 +28,20 @@ import config
 import models
 	
 def activity(activity, user, resource_id, mobile, size, new_notes, autosave, thread_id, numberOfScripts, scriptName, format, numberOfRecipients, fromPage, error):
-	a = models.ActivityDB(activity=activity,
-					user=user,
-					resource_id=resource_id,
-					mobile=mobile,
-					size=size,
-					new_notes=new_notes,
-					autosave=autosave,
-					thread_id=thread_id,
-					numberOfScripts=numberOfScripts,
-					scriptName=scriptName,
-					format=format,
-					numberOfRecipients=numberOfRecipients,
-					fromPage=fromPage,
-					error=error)
-	a.put()
+	# a = models.ActivityDB(activity=activity,
+	# 				user=user,
+	# 				resource_id=resource_id,
+	# 				mobile=mobile,
+	# 				size=size,
+	# 				new_notes=new_notes,
+	# 				autosave=autosave,
+	# 				thread_id=thread_id,
+	# 				numberOfScripts=numberOfScripts,
+	# 				scriptName=scriptName,
+	# 				format=format,
+	# 				numberOfRecipients=numberOfRecipients,
+	# 				fromPage=fromPage,
+	# 				error=error)
+	# a.put()
+    x = 1
+    return 1

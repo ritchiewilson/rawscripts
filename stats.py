@@ -39,14 +39,7 @@ class Stats(webapp.RequestHandler):
 		template_values= { 'users': str(len(u)),
 		 					'Users': u}
 		
-		# Figure out users who havn't made a script
-		ns=[] # no scripts
-		for i in u:
-			q=db.GqlQuery("SELECT __key__ FROM UsersScripts WHERE user='"+i.name.lower()+"'")
-			g=q.get()
-			if g==None:
-				ns.append(i)
-		template_values['noScripts']=ns
+		template_values['noScripts']='ns'
 		
 		# count scripts
 		q=db.GqlQuery("SELECT * FROM UsersScripts WHERE permission='owner'")

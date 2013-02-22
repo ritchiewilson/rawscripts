@@ -51,11 +51,11 @@ def get_contacts_google_token(request):
 		return False
 	token_string, token_scopes = gdata.gauth.auth_sub_string_from_url(request.url)
 	if token_string is None:
-		return gdata.gauth.ae_load('contacts' + users.get_current_user().email().lower())
+		return gdata.gauth.ae_load('contacts' + gcu())
 	single_use_token = gdata.gauth.AuthSubToken(token_string, token_scopes)
 	client = gdata.client.GDClient()
 	session_token = client.upgrade_token(single_use_token)
-	gdata.gauth.ae_save(session_token, 'contacts' + users.get_current_user().email().lower())
+	gdata.gauth.ae_save(session_token, 'contacts' + gcu())
 	return session_token
 
 def get_contacts_yahoo_token(request):
@@ -63,16 +63,23 @@ def get_contacts_yahoo_token(request):
 	if current_user is None or current_user.user_id() is None:
 		return False
 	return False
-	
-	
+
+# Get Current User String
+def gcu():
+	user = users.get_current_user().email().lower()
+	if user == 'mwap.cw@gmail.com':
+		user = 'mwap.cw@googlemail.com'
+	return user
+
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
 									"WHERE resource_id='"+resource_id+"'")
 	results = q.fetch(1000)
+	user = gcu()
 	p=False
 	for i in results:
 		if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=='collab':
-			if i.user==users.get_current_user().email().lower():
+			if i.user==user:
 				p=i.title
 	return p
 
@@ -80,10 +87,11 @@ def ownerPermission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
 									"WHERE resource_id='"+resource_id+"'")
 	results = q.fetch(1000)
+	user = gcu()
 	p=False
 	for i in results:
 		if i.permission=='owner' or i.permission=='ownerDeleted':
-			if i.user==users.get_current_user().email().lower():
+			if i.user==user:
 				p=i.title
 	return p
 
@@ -141,7 +149,7 @@ class ScriptList(webapp.RequestHandler):
 		if k == 0:
 			newUser = models.Users(name=users.get_current_user().email())
 			newUser.put()
-		activity.activity("scriptlistpage", users.get_current_user().email().lower(), None, mobile, None, None, None, None, None,None,None,None,None, None)
+		activity.activity("scriptlistpage", gcu(), None, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class TitlePage(webapp.RequestHandler):
 	def get(self):
@@ -296,13 +304,12 @@ class SaveTitlePage (webapp.RequestHandler):
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("titlepagesave", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
+			activity.activity("titlepagesave", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class List (webapp.RequestHandler):
 	def post(self):
 		mobile = mobileTest.mobileTest(self.request.user_agent)
-		user = users.get_current_user().email().lower()
-		
+		user = gcu()
 		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 						"WHERE user='"+user+"'")
 		unread = q.fetch(1000)
@@ -343,7 +350,7 @@ class List (webapp.RequestHandler):
 				p=q.fetch(500)
 				sharingArr=[]
 				for j in p:
-					if j.user.lower()!=users.get_current_user().email().lower():
+					if j.user.lower()!=user:
 						sharingArr.append(j.user)
 				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr, new_notes, i.folder])
 			elif i.permission=="ownerDeleted":
@@ -352,7 +359,7 @@ class List (webapp.RequestHandler):
 				p=q.fetch(500)
 				sharingArr=[]
 				for j in p:
-					if j.user.lower()!=users.get_current_user().email().lower():
+					if j.user.lower()!=user:
 						sharingArr.append(j.user)
 				ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission, sharingArr,  i.folder])
 			elif i.permission=="collab":
@@ -366,7 +373,7 @@ class List (webapp.RequestHandler):
 						uo=True
 				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes,  i.folder, str(uo)])
 		
-		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
+		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
 		f = q.fetch(1)
 		if len(f)==0:
 			folders=[]
@@ -377,7 +384,7 @@ class List (webapp.RequestHandler):
 		j = simplejson.dumps(pl)
 		self.response.headers['Content-Type']='text/plain'
 		self.response.out.write(j)
-		activity.activity("list", users.get_current_user().email().lower(), None, mobile, len(owned), None, None, None, None,None,None,None,None, None)
+
 
 class Delete (webapp.RequestHandler):
 	def post(self):
@@ -385,10 +392,11 @@ class Delete (webapp.RequestHandler):
 		q = db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"'")
 		results = q.fetch(1000)
+		user = gcu()
 		p=False
 		for i in results:
 			if i.permission=='owner':
-				if i.user==users.get_current_user().email().lower():
+				if i.user==user:
 					p=True
 		if p==True:
 			for i in results:
@@ -404,7 +412,7 @@ class Delete (webapp.RequestHandler):
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('0')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
-		activity.activity("delete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
+
 		
 class Undelete(webapp.RequestHandler):
 	def post(self):
@@ -424,7 +432,7 @@ class Undelete(webapp.RequestHandler):
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("undelete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
+			activity.activity("undelete", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 		else:
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('0')
@@ -442,7 +450,7 @@ class HardDelete(webapp.RequestHandler):
 				i.permission = 'hardDelete'
 				i.put()
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("harddelete", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
+			activity.activity("harddelete", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class Rename (webapp.RequestHandler):
 	def post(self):
@@ -454,16 +462,17 @@ class Rename (webapp.RequestHandler):
 		q = db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"'")
 		results = q.fetch(1000)
+		user = gcu()
 		p=False
 		for i in results:
 			if i.permission=='owner':
-				if i.user==users.get_current_user().email().lower():
+				if i.user==user:
 					p=True
 		if p==True:
 			for i in results:
 				i.title=rename
 				i.put()
-			activity.activity("rename", users.get_current_user().email().lower(), resource_id, 0, None, None, None, None, None,rename,None,None,None, None)
+			activity.activity("rename", gcu(), resource_id, 0, None, None, None, None, None,rename,None,None,None, None)
 		
 
 class Export (webapp.RequestHandler):
@@ -475,7 +484,7 @@ class Export (webapp.RequestHandler):
 			return
 		export_format = self.request.get('export_format')
 		title_page = self.request.get('title_page')
-		user=users.get_current_user().email().lower()
+		user=gcu()
 		if resource_id:
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"'")
@@ -511,7 +520,7 @@ class Export (webapp.RequestHandler):
 				self.response.headers['Content-Disposition'] = 'attachment; ' +filename
 				self.response.out.write(newfile.getvalue())
 				mobile = mobileTest.mobileTest(self.request.user_agent)
-				activity.activity("export", users.get_current_user().email().lower(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,export_format,None,fromPage, None)
+				activity.activity("export", gcu(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,export_format,None,fromPage, None)
 	
 class EmailScript (webapp.RequestHandler):
 	def post(self):
@@ -566,7 +575,8 @@ class EmailScript (webapp.RequestHandler):
 				self.response.headers['Content-Type'] = 'text/plain'
 				self.response.out.write('not sent')
 				return
-		ownerTest = db.get(db.Key.from_path('UsersScripts', 'owner'+users.get_current_user().email().lower()+resource_id))
+		user = gcu()
+		ownerTest = db.get(db.Key.from_path('UsersScripts', 'owner'+user+resource_id))
 		if ownerTest!=None:
 			J = simplejson.loads(results[0].export)
 			t=str(datetime.datetime.today())
@@ -579,7 +589,7 @@ class EmailScript (webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
-		activity.activity("email", users.get_current_user().email().lower(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,'pdf',len(recipients),fromPage, None)
+		activity.activity("email", gcu(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,'pdf',len(recipients),fromPage, None)
 		
 
 class NewScript (webapp.RequestHandler):
@@ -588,7 +598,7 @@ class NewScript (webapp.RequestHandler):
 		filename = self.request.get('filename')
 		filename = filename.replace('%20', ' ')
 		fromPage = self.request.get('fromPage')
-		user=users.get_current_user().email()
+		user=gcu()
 		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 		resource_id=''
 		for x in random.sample(alphabet,20):
@@ -619,8 +629,8 @@ class NewScript (webapp.RequestHandler):
 									 ignore="[]")
 		s.put()
 
-		u = models.UsersScripts(key_name="owner"+user.lower()+resource_id,
-						user=user.lower(),
+		u = models.UsersScripts(key_name="owner"+user+resource_id,
+						user=user,
 						title=filename,
 						resource_id=resource_id,
 						last_updated = datetime.datetime.today(),
@@ -629,7 +639,7 @@ class NewScript (webapp.RequestHandler):
 		u.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(resource_id)
-		activity.activity("newscript", users.get_current_user().email().lower(), resource_id, 0, None, None, None, None, None,filename,None,None,fromPage, None)
+		activity.activity("newscript", gcu(), resource_id, 0, None, None, None, None, None,filename,None,None,fromPage, None)
 
 class Duplicate (webapp.RequestHandler):
 	def post(self):
@@ -644,7 +654,7 @@ class Duplicate (webapp.RequestHandler):
 			results = q.fetch(1)
 			data=results[0].data
 			version=results[0].version
-			user=users.get_current_user().email()
+			user=gcu()
 			alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 			new_resource_id=''
 			for x in random.sample(alphabet,20):
@@ -674,8 +684,8 @@ class Duplicate (webapp.RequestHandler):
 													from_version=version)
 
 			d.put()
-			u = models.UsersScripts(key_name="owner"+user.lower()+new_resource_id,
-							user=user.lower(),
+			u = models.UsersScripts(key_name="owner"+user+new_resource_id,
+							user=user,
 							title='Copy of '+title,
 							resource_id=new_resource_id,
 							last_updated = datetime.datetime.today(),
@@ -691,7 +701,7 @@ class Duplicate (webapp.RequestHandler):
 			s.put()
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
-			activity.activity("duplicate", users.get_current_user().email().lower(), resource_id, 0, len(data), None, None, None, None,new_resource_id,None,None,None, None)
+			activity.activity("duplicate", gcu(), resource_id, 0, len(data), None, None, None, None,new_resource_id,None,None,None, None)
 			
 		
 class ConvertProcess (webapp.RequestHandler):
@@ -704,7 +714,7 @@ class ConvertProcess (webapp.RequestHandler):
 		if capture:
 			filename = capture.replace('%20', ' ')
 			filename = filename.replace('C:\\fakepath\\', '')
-		user=users.get_current_user().email()
+		user=gcu()
 		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 		resource_id=''
 		for x in random.sample(alphabet,20):
@@ -751,8 +761,8 @@ class ConvertProcess (webapp.RequestHandler):
 									 autosave=0)
 		s.put()
 
-		u = models.UsersScripts(key_name="owner"+user.lower()+resource_id,
-						user=user.lower(),
+		u = models.UsersScripts(key_name="owner"+user+resource_id,
+						user=user,
 						title=filename,
 						resource_id=resource_id,
 						last_updated = datetime.datetime.today(),
@@ -770,7 +780,7 @@ class ConvertProcess (webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
-		activity.activity("convert", users.get_current_user().email().lower(), resource_id, 0, len(contents), None, None, None, None,filename,ff,None,None, None)
+		activity.activity("convert", gcu(), resource_id, 0, len(contents), None, None, None, None,filename,ff,None,None, None)
 
 class Share (webapp.RequestHandler):
 	def post(self):
@@ -849,7 +859,7 @@ class Share (webapp.RequestHandler):
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(",".join(output))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("share", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
+			activity.activity("share", gcu(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
 			for i in output:
 				s = models.ShareNotify(user = i,
 								resource_id = resource_id,
@@ -882,7 +892,7 @@ class RemoveAccess (webapp.RequestHandler):
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(remove_person.lower())
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("removeaccess", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
+			activity.activity("removeaccess", gcu(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
 			q=db.GqlQuery("SELECT * FROM ShareNotify "+
 						"WHERE resource_id='"+resource_id+"' "+
 						"AND user='"+person.lower()+"'")
@@ -892,7 +902,7 @@ class RemoveAccess (webapp.RequestHandler):
 
 class NewFolder (webapp.RequestHandler):
 	def post(self):
-		user=users.get_current_user().email().lower()
+		user=gcu()
 		folder_name= self.request.get('folder_name')
 		folder_id=self.request.get('folder_id')
 		q=db.GqlQuery("SELECT * FROM Folders "+
@@ -907,7 +917,7 @@ class NewFolder (webapp.RequestHandler):
 			J.append([folder_name, folder_id])
 			r[0].data=simplejson.dumps(J)
 			r[0].put()
-		activity.activity("newfolder", users.get_current_user().email().lower(), None, 0, None, None, None, folder_id, None,folder_name,None,None,None, None)
+		activity.activity("newfolder", gcu(), None, 0, None, None, None, folder_id, None,folder_name,None,None,None, None)
 
 class ChangeFolder (webapp.RequestHandler):
 	def post(self):
@@ -922,21 +932,22 @@ class ChangeFolder (webapp.RequestHandler):
 				r[0].folder = self.request.get("folder_id")
 				r[0].put()
 		self.response.out.write("1")
-		activity.activity("changefolder", users.get_current_user().email().lower(), None, 0, None, None, None, self.request.get("folder_id"), len(resource_id),None,None,None,None, None)
+		activity.activity("changefolder", gcu(), None, 0, None, None, None, self.request.get("folder_id"), len(resource_id),None,None,None,None, None)
 			
 		
 class DeleteFolder (webapp.RequestHandler):
 	def post(self):
 		folder_id=self.request.get("folder_id")
+		user = gcu()
 		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-						"WHERE user='"+users.get_current_user().email().lower()+"' "+
+						"WHERE user='"+user+"' "+
 						"AND permission='owner'")
 		r=q.fetch(500)
 		for i in r:
 			if i.folder == folder_id:
 				i.folder="?none?"
 				i.put()
-		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
+		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
 		r=q.fetch(1)
 		folders = simplejson.loads(r[0].data)
 		arr=[]
@@ -946,12 +957,13 @@ class DeleteFolder (webapp.RequestHandler):
 		r[0].data = simplejson.dumps(arr)
 		r[0].put()
 		self.response.out.write("1")
-		activity.activity("deletefolder", users.get_current_user().email().lower(), None, 0, None, None, None, folder_id, None,None,None,None,None, None)
+		activity.activity("deletefolder", gcu(), None, 0, None, None, None, folder_id, None,None,None,None,None, None)
 
 class RenameFolder (webapp.RequestHandler):
 	def post(self):
 		folder_id=self.request.get("folder_id")
-		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+users.get_current_user().email().lower()+"'")
+		user = gcu()
+		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
 		r=q.fetch(1)
 		folders = simplejson.loads(r[0].data)
 		arr=[]
@@ -975,17 +987,17 @@ class SettingsPage (webapp.RequestHandler):
 			template_values['user'] = users.get_current_user().email()
 			try:
 				domain = user.email().lower().split('@')[1].split('.')[0]
-				if domain=='gmail' or domain=='googlemail':
-					template_values['domain'] = 'Google'
-					token = get_contacts_google_token(self.request)
-					if token==False or token==None:
+				if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+					template_values['domain'] = 'Yahoo'
+					at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
+					if at==None or at==False:
 						template_values['syncContactsText']='OFF'
 					else:
 						template_values['syncContactsText']='ON'
-				elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-					template_values['domain'] = 'Yahoo'
-					at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
-					if at==None or at==False:
+				else:
+					template_values['domain'] = 'Google'
+					token = get_contacts_google_token(self.request)
+					if token==False or token==None:
 						template_values['syncContactsText']='OFF'
 					else:
 						template_values['syncContactsText']='ON'
@@ -994,11 +1006,11 @@ class SettingsPage (webapp.RequestHandler):
 				template_values['syncContactsText']='not supported for your account'
 			
 			try:
-				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
 			except:
 				us = None
 			if us==None:
-				us = models.UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+				us = models.UsersSettings(key_name='settings'+gcu(),
 									autosave=True,
 									owned_notify = 'every',
 									shared_notify = 'every')
@@ -1058,11 +1070,11 @@ class ChangeUserSetting(webapp.RequestHandler):
 			k = self.request.get('k')
 			v = self.request.get('v')
 			try:
-				us = db.get(db.Key.from_path('UsersSettings', 'settings'+users.get_current_user().email().lower()))
+				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
 			except:
 				us = None
 			if us==None:
-				us = models.UsersSettings(key_name='settings'+users.get_current_user().email().lower(),
+				us = models.UsersSettings(key_name='settings'+gcu(),
 									autosave=True,
 									owned_notify = 'every',
 									shared_notify = 'every')
@@ -1100,17 +1112,10 @@ class SyncContactsPage (webapp.RequestHandler):
 				self.response.headers['Content-Type'] = 'text/html'
 				self.response.out.write(template.render(path, template_values))
 				return
-			if domain=='gmail' or domain=='googlemail':
-				template_values['domain'] = 'Google'
-				google_token = get_contacts_google_token(self.request)
-				if google_token == None:
-					template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(self.request.url, ['http://www.google.com/m8/feeds/'])
-					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
-				else:
-					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+			
+			if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
 				template_values['domain'] = 'Yahoo'
-				token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+				token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
 				if token!=None and token!=False:
 					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 				else:
@@ -1137,7 +1142,15 @@ class SyncContactsPage (webapp.RequestHandler):
 											t = access_token.to_string())
 						y.put()
 						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-			
+			else:
+				template_values['domain'] = 'Google'
+				google_token = get_contacts_google_token(self.request)
+				if google_token == None:
+					template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(self.request.url, ['http://www.google.com/m8/feeds/'])
+					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
+				else:
+					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
+					
 			template_values['GA'] = config.GA
 			template_values['MODE'] = config.MODE
 			self.response.headers['Content-Type'] = 'text/html'
@@ -1145,19 +1158,19 @@ class SyncContactsPage (webapp.RequestHandler):
 			
 class RemoveSyncContacts (webapp.RequestHandler):
 	def get(self):
-		domain = users.get_current_user().email().lower().split('@')[1].split('.')[0]
-		if domain=='gmail' or domain=='googlemail':
+		domain = gcu().split('@')[1].split('.')[0]
+		if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+			token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
+			if token!=None and token!=False:
+				memcache.delete('contacts'+gcu())
+				token.delete()
+		else:
 			token = get_contacts_google_token(self.request)
 			if token!=False and token!=None:
 				client = gdata.client.GDClient()
 				client.revoke_token(token)
-				gdata.gauth.ae_delete('contacts' + users.get_current_user().email().lower())
-				memcache.delete('contacts'+users.get_current_user().email().lower())
-		elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-			token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
-			if token!=None and token!=False:
-				memcache.delete('contacts'+users.get_current_user().email().lower())
-				token.delete()
+				gdata.gauth.ae_delete('contacts' + gcu())
+				memcache.delete('contacts'+gcu())
 		self.redirect('/synccontactspage')
 
 class SyncContacts (webapp.RequestHandler):
@@ -1168,37 +1181,8 @@ class SyncContacts (webapp.RequestHandler):
 		d = memcache.get('contacts'+user.email().lower())
 		if d == None:
 			domain = user.email().lower().split('@')[1].split('.')[0]
-			if domain=='gmail' or domain=='googlemail':
-				token = get_contacts_google_token(self.request)
-				if token!=False and token!=None:
-					client = gdata.contacts.client.ContactsClient()
-					feed = client.GetContacts(auth_token=token)
-					contactlist = []
-					for entry in feed.entry:
-						for email in entry.email:
-							if str(entry.title.text)=='None':
-								contactlist.append("<"+str(email.address)+">")
-							else:
-								contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-					i=0
-					while i==0:
-						try:
-							feed = client.GetNext(feed, auth_token=token)
-							for entry in feed.entry:
-								for email in entry.email:
-									if str(entry.title.text)=='None':
-										contactlist.append("<"+str(email.address)+">")
-									else:
-										contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-						except:
-							i=1
-					output = simplejson.dumps(contactlist)
-					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
-				else:
-					# if no token
-					output = "[]"
-			elif domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+users.get_current_user().email().lower()))
+			if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
+				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
 				if at!=None and at!=False:
 					import yahoo.application
 					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
@@ -1227,8 +1211,34 @@ class SyncContacts (webapp.RequestHandler):
 					#if no yahoo token
 					output = '[]'
 			else:
-				# if can't figure out the domain name
-				output = '[]'
+				token = get_contacts_google_token(self.request)
+				if token!=False and token!=None:
+					client = gdata.contacts.client.ContactsClient()
+					feed = client.GetContacts(auth_token=token)
+					contactlist = []
+					for entry in feed.entry:
+						for email in entry.email:
+							if str(entry.title.text)=='None':
+								contactlist.append("<"+str(email.address)+">")
+							else:
+								contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+					i=0
+					while i==0:
+						try:
+							feed = client.GetNext(feed, auth_token=token)
+							for entry in feed.entry:
+								for email in entry.email:
+									if str(entry.title.text)=='None':
+										contactlist.append("<"+str(email.address)+">")
+									else:
+										contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
+						except:
+							i=1
+					output = simplejson.dumps(contactlist)
+					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
+				else:
+					# if no token
+					output = "[]"
 		else:
 			#if memecache is good
 			output=d

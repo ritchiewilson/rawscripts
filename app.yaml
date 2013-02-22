@@ -16,7 +16,7 @@
 
 
 application: ritchietestproj
-version: 3
+version: 2
 runtime: python
 api_version: 1
 
@@ -156,4 +156,3 @@ skip_files:
 - ^(.*/)?.*\.py[co]
 - ^(.*/)?.*/RCS/.*
 - ^(.*/)?\..*
-- ^(.*/)?.*/closure-library/.*

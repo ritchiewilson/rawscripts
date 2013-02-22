@@ -967,7 +967,8 @@ function emailScript(){
 	if(subject=="")subject="Script";
 	var body_message = goog.dom.getElement('email_message').innerHTML;
     var title_page = goog.dom.getElement("emailTitle").selectedIndex;
-	goog.net.XhrIo.send('emailscript',
+    var resource_id = goog.dom.getElement('edit_title_href').href.split('=')[1];
+	goog.net.XhrIo.send('/emailscript',
 		emailComplete,
 		'POST',
 		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+encodeURIComponent(subject)+'&body_message='+encodeURIComponent(body_message)+'&fromPage=scriptlist&title_page='+title_page
@@ -980,6 +981,7 @@ function emailScript(){
  * If email sent, good. If not, alert
  */
 function emailComplete(e){
+    console.log(e)
 	goog.dom.getElement('emailS').disabled = false;
 	goog.dom.getElement('emailS').value = 'Send';
 	if (e.target.getResponseText()=='sent'){

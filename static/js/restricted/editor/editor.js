@@ -1178,10 +1178,11 @@ function emailScript(){
 	var subject = goog.dom.getElement('subject').value;
 	if(subject=="")subject="Script";
 	var body_message = goog.dom.getElement('message').innerHTML;
+	var title_page = goog.dom.getElement('emailTitle').selectedIndex;
 	goog.net.XhrIo.send('/emailscript', 
 		emailComplete,
 		'POST',
-		"resource_id="+resource_id+"&recipients="+recipients+"&subject="+subject+"&body_message="+encodeURIComponent(body_message)+"&fromPage=editor"
+		"resource_id="+resource_id+"&recipients="+recipients+"&subject="+subject+"&body_message="+encodeURIComponent(body_message)+"&fromPage=editor&title_page="+title_page
 	);
 	goog.dom.getElement('emailS').disabled = true;
 	goog.dom.getElement('emailS').value = 'Sending...';

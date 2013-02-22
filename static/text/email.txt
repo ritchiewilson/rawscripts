@@ -41,7 +41,7 @@ FILLERTEXT</div>
 <hr>
 <p>
 <span style="font-size:15px;font-weight:bold;color:#CC6600;font-family:arial;line-height:110%;">This Script Sent From <a href="http://www.rawscripts.com">RawScripts.com</a> (beta)</span><br>
-RawScripts.com is free, online screenplay editing software. <br>Access your scripts anywhere and backup everything to Google Docs. <a href="http://www.rawscripts.com">Check it out.</a>
+RawScripts.com is free, online screenplay editing software. <br>Access your screenplays from anywhere. <a href="http://www.rawscripts.com">Check it out.</a>
 
 </p>
 

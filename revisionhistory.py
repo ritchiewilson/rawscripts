@@ -36,6 +36,13 @@ import mobileTest
 import config
 import models
 
+# Get Current User String
+def gcu():
+	user = users.get_current_user().email().lower()
+	if user == 'mwap.cw@gmail.com':
+		user = 'mwap.cw@googlemail.com'
+	return user
+
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
 									"WHERE resource_id='"+resource_id+"'")
@@ -43,7 +50,7 @@ def permission (resource_id):
 	p=False
 	for i in results:
 		if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=="hardDelete":
-			if i.user==users.get_current_user().email().lower():
+			if i.user==gcu():
 				p=i.title
 	return p
 
@@ -71,7 +78,7 @@ class RevisionTag(webapp.RequestHandler):
 			r[0].put()
 			self.response.out.write('tagged')
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("tagscript", users.get_current_user().email().lower(), resource_id, mobile, len(tag), None, None, None, None,None,None,None,None, None)
+			activity.activity("tagscript", gcu(), resource_id, mobile, len(tag), None, None, None, None,None,None,None,None, None)
 
 class DuplicateOldRevision(webapp.RequestHandler):
 	def post(self):
@@ -86,7 +93,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 										"AND version="+version)
 			results = q.fetch(2)
 			data=results[0].data
-			user=users.get_current_user().email().lower()
+			user=gcu()
 			alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 			new_resource_id=''
 			for x in random.sample(alphabet,20):
@@ -133,7 +140,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("duplicateoldversion", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None,None, None,new_resource_id,None,None,None, None)
+			activity.activity("duplicateoldversion", gcu(), resource_id, mobile, len(data), None, None,None, None,new_resource_id,None,None,None, None)
 			
 
 class RevisionHistory(webapp.RequestHandler):
@@ -143,7 +150,7 @@ class RevisionHistory(webapp.RequestHandler):
 			return
 		p = permission(resource_id)
 		if not p==False:
-			q = db.GqlQuery("SELECT * FROM ScriptData "+
+			q = db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
 									 "WHERE resource_id='"+resource_id+"' "+
 									 "ORDER BY version DESC")
 			r = q.fetch(1000)
@@ -190,7 +197,7 @@ class RevisionHistory(webapp.RequestHandler):
 			template_values['GA'] = config.GA
 			self.response.out.write(template.render(path, template_values))
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("revisionhistory", users.get_current_user().email().lower(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)
+			activity.activity("revisionhistory", gcu(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)
 
 class RevisionList(webapp.RequestHandler):
 	def post(self):
@@ -203,7 +210,7 @@ class RevisionList(webapp.RequestHandler):
 			ids=[]
 			new_script=resource_id
 			while not begining:
-				q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
+				q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM DuplicateScripts "+
 											"WHERE new_script='"+new_script+"'")
 				r=q.fetch(1)
 				if len(r)==0:
@@ -215,7 +222,7 @@ class RevisionList(webapp.RequestHandler):
 			out=[]
 			version=str(ids[0][1]+1)
 			while i<len(ids):
-				q=db.GqlQuery("SELECT * FROM ScriptData "+
+				q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
 											"WHERE resource_id='"+ids[i][0]+"' "+
 											"AND version<"+version+" "+
 											"ORDER BY version DESC")
@@ -234,7 +241,7 @@ class RevisionList(webapp.RequestHandler):
 			self.response.headers['Content-Type']= 'text/plain'
 			self.response.out.write(j)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("revisionlist", users.get_current_user().email().lower(), resource_id, mobile, len(out), None, None, None, None,None,None,None,None, None)
+			activity.activity("revisionlist", gcu(), resource_id, mobile, len(out), None, None, None, None,None,None,None,None, None)
 
 class GetVersion(webapp.RequestHandler):
 	def post(self):
@@ -262,7 +269,7 @@ class GetVersion(webapp.RequestHandler):
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write(contents)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("getversion", users.get_current_user().email().lower(), resource_id, mobile, len(r[0].data), None, None, None, None,None,None,None,None, None)
+			activity.activity("getversion", gcu(), resource_id, mobile, len(r[0].data), None, None, None, None,None,None,None,None, None)
 			
 class CompareVersions(webapp.RequestHandler):
 	def post(self):
@@ -305,7 +312,7 @@ class CompareVersions(webapp.RequestHandler):
 			self.response.headers['Content-Type']='text/html'
 			self.response.out.write(content)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("compareversions", users.get_current_user().email().lower(), v_o_id, mobile, None, None, None, None, None,None,None,None,None, None)
+			activity.activity("compareversions", gcu(), v_o_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 import difflib, string
 
