@@ -1,0 +1,3 @@
+queue:
+- name: exportdb
+  rate: 1/s
