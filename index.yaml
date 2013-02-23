@@ -51,3 +51,25 @@ indexes:
   - name: user
   - name: updated
     direction: desc
+
+- kind: UsersScripts
+  properties:
+  - name: permission
+  - name: resource_id
+  - name: user
+
+- kind: UsersScripts
+  properties:
+  - name: resource_id
+  - name: user
+
+- kind: ShareNotify
+  properties:
+  - name: resource_id
+  - name: user
+
+- kind: ShareNotify
+  properties:
+  - name: opened
+  - name: user
+

@@ -345,7 +345,7 @@ class List (webapp.RequestHandler):
 					new_notes=new_notes+1		
 			#now put these bits in the right array
 			if i.permission=='owner':
-				q=db.GqlQuery("SELECT * FROM UsersScripts "+
+				q=db.GqlQuery("SELECT user FROM UsersScripts "+
 								"WHERE resource_id='"+i.resource_id+"'")
 				p=q.fetch(500)
 				sharingArr=[]
@@ -354,7 +354,7 @@ class List (webapp.RequestHandler):
 						sharingArr.append(j.user)
 				owned.append([i.resource_id, i.title, i.updated, i.permission, sharingArr, new_notes, i.folder])
 			elif i.permission=="ownerDeleted":
-				q=db.GqlQuery("SELECT * FROM UsersScripts "+
+				q=db.GqlQuery("SELECT user FROM UsersScripts "+
 											"WHERE resource_id='"+i.resource_id+"'")
 				p=q.fetch(500)
 				sharingArr=[]
@@ -363,15 +363,17 @@ class List (webapp.RequestHandler):
 						sharingArr.append(j.user)
 				ownedDeleted.append([i.resource_id, i.title, i.updated, i.permission, sharingArr,  i.folder])
 			elif i.permission=="collab":
-				q=db.GqlQuery("SELECT * FROM UsersScripts "+
+				q=db.GqlQuery("SELECT user FROM UsersScripts "+
 											"WHERE resource_id='"+i.resource_id+"' "+
 											"AND permission='owner'")
-				p=q.fetch(1)
+				p=q.get()
+				logging.info(i.resource_id)
+				logging.info(p)
 				uo=False
 				for ra in unopened:
 					if i.resource_id==ra.resource_id:
 						uo=True
-				shared.append([i.resource_id, i.title, i.updated, p[0].user, new_notes,  i.folder, str(uo)])
+				shared.append([i.resource_id, i.title, i.updated, 'shared', new_notes,  i.folder, str(uo)])
 		
 		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
 		f = q.fetch(1)
