@@ -29,37 +29,79 @@ from django.utils import simplejson
 import activity
 import os
 import models
-		
+import datetime
+
+class StatsCache(webapp.RequestHandler):
+	def get(self):
+                end_year = datetime.datetime.now().year
+                end_month = datetime.datetime.now().month
+		year_1 = 2014
+		year_2 = 2014
+		month_1 = 1
+		month_2 = month_1 + 1
+		while year_1 < end_year or month_2 <= end_month:
+                        if year_1 == 2015:
+                                break
+			q = db.GqlQuery("SELECT * from NewUserCounting "+
+					"WHERE month=" + str(month_1) +
+					" AND year=" + str(year_1))
+			cache = q.get()
+			q = db.GqlQuery("SELECT __key__ from Users "+
+					"WHERE firstUse >= DATETIME("+str(year_1)+","+str(month_1)+",1,0,0,0) "+
+					"AND firstUse < DATETIME("+str(year_2)+","+str(month_2)+",1,0,0,0) ")
+			c = q.count(10000)
+			if not cache:
+				cache = models.NewUserCounting(month=month_1, year=year_1, count=c)
+			else:
+				cache.count = c
+			cache.put()
+			month_1 += 1
+			month_2 += 1
+			if month_1 > 12:
+				month_1 = 1
+				year_1 += 1
+			if month_2 > 12:
+				month_2 = 1
+				year_2 += 1
+
+		q = db.GqlQuery("SELECT __key__ FROM Users")
+		c = q.count(100000)
+
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write(c)
+
 class Stats(webapp.RequestHandler):
 	def get(self):
-		
+
 		# Get User
-		q=db.GqlQuery("SELECT * FROM Users")
-		u=q.fetch(10000)	
-		template_values= { 'users': str(len(u)),
-		 					'Users': u}
-		
-		template_values['noScripts']='ns'
-		
+		q=db.GqlQuery("SELECT * FROM NewUserCounting")
+		months=q.fetch(10000)
+		template_values= { 'months': months}
+
+		total = 0
+		for month in months:
+			total += month.count
+		template_values['users']=total
+
 		# count scripts
 		q=db.GqlQuery("SELECT * FROM UsersScripts WHERE permission='owner'")
-		s=q.fetch(10000)
-		template_values['scripts']=str(len(s))
-		
+		#s=q.fetch(10000)
+		template_values['scripts']=q.count(100000)
+
 		path = os.path.join(os.path.dirname(__file__), 'html/stats.html')
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
-		
-		
+
+
 
 def main():
 	application = webapp.WSGIApplication([('/stats', Stats),
+					      ('/statscache', StatsCache),
 											],
 																			 debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-
