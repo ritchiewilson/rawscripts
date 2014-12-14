@@ -40,9 +40,11 @@ handlers:
   static_files: static/images/favicon.ico
   upload: static/images/favicon.ico
 
-- url: /worker.js
-  static_files: static/js/worker.js
-  upload: static/js/worker.js
+# for manually exporting files
+- url: /email.html
+  static_files: html/email.html
+  upload: html/email.html
+  login: admin
 
 - url: /rss.*
   script: blog.py
@@ -53,6 +55,14 @@ handlers:
 
 - url: /blog.*
   script: blog.py
+
+- url: /dbtofile.*
+  login: admin
+  script: scripteditor.py
+
+- url: /writetodb.*
+  login: admin
+  script: scripteditor.py
 
 - url: /title.*
   script: scripteditor.py

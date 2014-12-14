@@ -45,6 +45,7 @@ import gdata.data
 import gdata.contacts.client
 import config
 import models
+import unicodedata
 
 
 def get_contacts_google_token(request):
@@ -81,8 +82,9 @@ def permission (resource_id):
 	p=False
 	for i in results:
 		if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=='collab':
-			if i.user==user:
+			if i.user==user or users.is_current_user_admin():
 				p=i.title
+                break
 	return p
 
 def ownerPermission (resource_id):
@@ -502,14 +504,15 @@ class Export (webapp.RequestHandler):
 											"ORDER BY version DESC")
 				results = q.fetch(1)
 				data=results[0].data
-				
+                                ascii_title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore")
+
 				if export_format =='txt':
-					newfile = export.Text(data, str(title), title_page, resource_id)
-					filename = 'filename=' + str(title) + '.txt'  
+					newfile = export.Text(data, title, title_page, resource_id)
+					filename = 'filename=' + ascii_title + '.txt'
 					self.response.headers['Content-Type'] = 'text/plain'
 				elif export_format=='pdf':
-					newfile = export.Pdf(data, str(title), title_page, resource_id)
-					filename = 'filename=' + str(title) + '.pdf'
+					newfile = export.Pdf(data, title, title_page, resource_id)
+					filename = 'filename=' + ascii_title + '.pdf'
 					self.response.headers['Content-Type'] = 'application/pdf'
 
 				J = simplejson.loads(results[0].export)
@@ -520,9 +523,8 @@ class Export (webapp.RequestHandler):
 
 				self.response.headers['Content-Disposition'] = 'attachment; ' +filename
 				self.response.out.write(newfile.getvalue())
-				mobile = mobileTest.mobileTest(self.request.user_agent)
-				activity.activity("export", gcu(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,export_format,None,fromPage, None)
-	
+
+
 class EmailScript (webapp.RequestHandler):
 	def post(self):
 		fromPage = self.request.get('fromPage')
@@ -552,7 +554,7 @@ class EmailScript (webapp.RequestHandler):
 									"ORDER BY version DESC")
 		results = q.fetch(1)
 		data=results[0].data
-		newfile = export.Pdf(data, str(title), title_page, resource_id)
+		newfile = export.Pdf(data, title, title_page, resource_id)
 		filename=title+'.pdf'
 
 
@@ -585,7 +587,45 @@ class EmailScript (webapp.RequestHandler):
 				J[0].append([recipient, t])
 				results[0].export=simplejson.dumps(J)
 				results[0].put()
-	 
+
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write('sent')
+
+class UserExport(webapp.RequestHandler):
+	def get(self):
+		if not users.is_current_user_admin():
+			self.redirect("/")
+		recipient = self.request.get('emailaddr')
+		resource_id = self.request.get('resource_id')
+		pdf = self.request.get('pdf')
+		logging.info(pdf)
+		subject = "Manual Export of RawScripts Screenplay"
+		body = """
+
+
+	--- This Script written and sent from RawScripts.com.---"""
+		title_page = '0'
+		q = db.Query(models.UsersScripts)
+		q.filter('resource_id =', resource_id)
+		entry = q.get()
+		title = entry.title
+		q = db.Query(models.ScriptData)
+		q.filter('resource_id =', resource_id)
+		q.order('-version')
+		data = q.get()
+		newfile = 0
+		filename = ''
+		if pdf=='on':
+			newfile = export.Pdf(data.data, title, title_page, resource_id)
+			filename=title+'.pdf'
+		else:
+			newfile = export.Text(data.data, title, title_page, resource_id)
+			filename=title+'.txt'
+		mail.send_mail(sender='contact@rawscripts.com',
+					   to=recipient,
+					   subject=subject,
+					   body=body,
+					   attachments=[(filename, newfile.getvalue())])
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
 
@@ -1332,11 +1372,9 @@ class ExportData(webapp.RequestHandler):
 		self.response.headers["content-Type"]="text/plain"
 		self.response.out.write(simplejson.dumps(output))
 
-_INSTANCE = "DBNAME"
+_INSTANCE = "rawscripts-dump:rawscripts-dump"
 class DBToFile(webapp.RequestHandler):
 	def get(self):
-		if not users.is_current_user_admin():
-			self.redirect("/")
 		queue = taskqueue.QueueStatistics.fetch("exportdb")
 		if not queue.tasks == 0:
 			self.response.headers['Content-type']='text/plain'
@@ -1350,13 +1388,13 @@ class DBToFile(webapp.RequestHandler):
 class WriteToDB(webapp.RequestHandler):
 	def post(self):
 		offset = int(self.request.get('offset'))
-		page_size = 10000 # number of records to grab. Could easily fail at high numbers
+		page_size = 100 # number of records to grab. Could easily fail at high numbers
 		q = db.GqlQuery("SELECT * FROM ScriptData").fetch(page_size, offset=offset)
 		conn = rdbms.connect(instance=_INSTANCE, database='rawscripts_dump')
 		cursor = conn.cursor()
 		for r in q:
 			qs = "INSERT INTO scriptData (resource_id, data, version, tim, autosave, export, tag) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-			cursor.execute(qs, (r.resource_id, r.data, str(r.version), str(r.timestamp), str(r.autosave), r.export, r.tag))
+			cursor.execute(qs, (r.resource_id, str(r.data), str(r.version), str(r.timestamp), str(r.autosave), r.export, r.tag))
 		if len(q) == page_size:
 			offset = offset + page_size
 			taskqueue.add(url="/writetodb", queue_name='exportdb',\
@@ -1381,6 +1419,7 @@ def main():
                                             ('/writetodb', WriteToDB),
 											('/rename', Rename),
 											('/emailscript', EmailScript),
+											('/user_export', UserExport),
 											('/convertprocess', ConvertProcess),
 											('/share', Share),
 											('/removeaccess', RemoveAccess),
