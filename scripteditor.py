@@ -105,7 +105,7 @@ def openid_data():
 	q.filter('user_id =', u.user_id())
 	q.filter('federated_identity = ', u.federated_identity())
 	q.filter('federated_provider =', u.federated_provider())
-	
+
 	result = q.get()
 	if result == None:
 		n = models.OpenIDData2()
@@ -133,7 +133,7 @@ class ScriptList(webapp.RequestHandler):
 		template_values['SCRIPTLIST_CSS'] = pro_css if config.MODE=="PRO" else dev_css
 		template_values['SCRIPTLIST_JS'] = pro_js if config.MODE=="PRO" else dev_js
 
-		
+
 		path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile==1:
@@ -169,11 +169,11 @@ class TitlePage(webapp.RequestHandler):
 		if resource_id=="Demo":
 			template_values = { 'sign_out': "/" }
 			template_values['user'] = "test@example.com"
-			
+
 		else:
 			template_values = { 'sign_out': users.create_logout_url('/') }
 			template_values['user'] = users.get_current_user().email()
-		
+
 		if resource_id=="Demo":
 			template_values = {'title' : "Duck Soup",
 			'authorOne' : "Arthur Sheekman",
@@ -195,13 +195,13 @@ class TitlePage(webapp.RequestHandler):
 			'registeredChecked' : "",
 			'other' : "",
 			'otherChecked' : ""}
-			
+
 		else:
 
 			q= db.GqlQuery("SELECT * FROM TitlePageData "+
 										 "WHERE resource_id='"+resource_id+"'")
 			results = q.fetch(5)
-		
+
 			if not len(results)==0:
 				r=results[0]
 				template_values = {'title' : r.title,
@@ -249,7 +249,7 @@ class TitlePage(webapp.RequestHandler):
 													 'registeredChecked' : "",
 													 'other' : "",
 													 'otherChecked' : ""}
-			
+
 
 		template_values['MODE'] = config.MODE
 		template_values['GA'] = config.GA
@@ -279,7 +279,7 @@ class SaveTitlePage (webapp.RequestHandler):
 
 			else:
 				i = models.TitlePageData()
-				
+
 			i.resource_id= resource_id
 			i.title = self.request.get('title')
 			i.authorOne = self.request.get('authorOne')
@@ -315,12 +315,12 @@ class List (webapp.RequestHandler):
 		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 						"WHERE user='"+user+"'")
 		unread = q.fetch(1000)
-		
+
 		q=db.GqlQuery("SELECT * FROM ShareNotify "+
 						"WHERE user='"+user+"' "+
 						"AND opened=False")
 		unopened = q.fetch(500)
-		
+
 		q= db.GqlQuery("SELECT * FROM UsersScripts "+
 									 "WHERE user='"+user+"' "+
 									 "ORDER BY last_updated DESC")
@@ -339,12 +339,12 @@ class List (webapp.RequestHandler):
 				i.updated= str(int(round(d.seconds/60))) + " minutes ago"
 			else:
 				i.updated = "Seconds ago"
-				
+
 			#Count notes
 			new_notes=0
 			for c in unread:
 				if c.resource_id==i.resource_id:
-					new_notes=new_notes+1		
+					new_notes=new_notes+1
 			#now put these bits in the right array
 			if i.permission=='owner':
 				q=db.GqlQuery("SELECT user FROM UsersScripts "+
@@ -369,14 +369,12 @@ class List (webapp.RequestHandler):
 											"WHERE resource_id='"+i.resource_id+"' "+
 											"AND permission='owner'")
 				p=q.get()
-				logging.info(i.resource_id)
-				logging.info(p)
 				uo=False
 				for ra in unopened:
 					if i.resource_id==ra.resource_id:
 						uo=True
 				shared.append([i.resource_id, i.title, i.updated, 'shared', new_notes,  i.folder, str(uo)])
-		
+
 		q=db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
 		f = q.fetch(1)
 		if len(f)==0:
@@ -384,7 +382,7 @@ class List (webapp.RequestHandler):
 		else:
 			folders=simplejson.loads(f[0].data)
 		pl=[owned, ownedDeleted, shared, folders]
-		
+
 		j = simplejson.dumps(pl)
 		self.response.headers['Content-Type']='text/plain'
 		self.response.out.write(j)
@@ -417,7 +415,7 @@ class Delete (webapp.RequestHandler):
 			self.response.out.write('0')
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 
-		
+
 class Undelete(webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
@@ -476,12 +474,11 @@ class Rename (webapp.RequestHandler):
 			for i in results:
 				i.title=rename
 				i.put()
-			activity.activity("rename", gcu(), resource_id, 0, None, None, None, None, None,rename,None,None,None, None)
-		
+
 
 class Export (webapp.RequestHandler):
 	def get(self):
-		
+
 		fromPage = self.request.get('fromPage')
 		resource_id = self.request.get('resource_id')
 		if resource_id=="Demo":
@@ -536,7 +533,7 @@ class EmailScript (webapp.RequestHandler):
 		p=permission(resource_id)
 		if p==False:
 			return
-		else:      
+		else:
 			subject=self.request.get('subject')
 			body_message=self.request.get('body_message')
 			result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
@@ -546,7 +543,7 @@ class EmailScript (webapp.RequestHandler):
 
 
 	--- This Script written and sent from RawScripts.com. Check it out---"""
-		
+
 		# Make Recipient list instead of just one
 		recipients=self.request.get('recipients').split(',')
 		title = p
@@ -558,7 +555,7 @@ class EmailScript (webapp.RequestHandler):
 		newfile = export.Pdf(data, str(title), title_page, resource_id)
 		filename=title+'.pdf'
 
-		
+
 		#Mail the damn thing. Itereating to reduce userside errors
 		j=0
 		while j<3:
@@ -575,7 +572,6 @@ class EmailScript (webapp.RequestHandler):
 			if j==2:
 				subject="Script"
 			if j==4:
-				logging.info('notSent')
 				self.response.headers['Content-Type'] = 'text/plain'
 				self.response.out.write('not sent')
 				return
@@ -592,13 +588,10 @@ class EmailScript (webapp.RequestHandler):
 	 
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
-		mobile = mobileTest.mobileTest(self.request.user_agent)
-		activity.activity("email", gcu(), resource_id, mobile, len(newfile.getvalue()), None, None, None, None,title,'pdf',len(recipients),fromPage, None)
-		
 
 class NewScript (webapp.RequestHandler):
 	def post(self):
-			
+
 		filename = self.request.get('filename')
 		filename = filename.replace('%20', ' ')
 		fromPage = self.request.get('fromPage')
@@ -619,7 +612,7 @@ class NewScript (webapp.RequestHandler):
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 										"WHERE resource_id='"+resource_id+"'")
 			results=q.fetch(2)
-		
+
 		s = models.ScriptData(resource_id=resource_id,
 									 data='[["Fade In:",1],["Int. ",0]]',
 									 version=1,
@@ -675,7 +668,7 @@ class Duplicate (webapp.RequestHandler):
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 											"WHERE resource_id='"+new_resource_id+"'")
 				results=q.fetch(2)
-			
+
 			s = models.ScriptData(resource_id=new_resource_id,
 										 data=data,
 										 version=version+1,
@@ -706,8 +699,8 @@ class Duplicate (webapp.RequestHandler):
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
 			activity.activity("duplicate", gcu(), resource_id, 0, len(data), None, None, None, None,new_resource_id,None,None,None, None)
-			
-		
+
+
 class ConvertProcess (webapp.RequestHandler):
 	def post(self):
 
@@ -755,7 +748,7 @@ class ConvertProcess (webapp.RequestHandler):
 			contents = convert.FinalDraft(data)
 		else:
 			contents = convert.Celtx(data)
-		
+
 
 		s = models.ScriptData(resource_id=resource_id,
 									 data=contents,
@@ -773,14 +766,14 @@ class ConvertProcess (webapp.RequestHandler):
 						permission='owner',
 						folder = "?none?")
 		u.put()
-		
+
 
 		template_values = { 'url': resource_id }
 		template_values['MODE'] = config.MODE
 		template_values['GA'] = config.GA
-		
+
 		taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : resource_id})
-		
+
 		self.response.headers['Content-Type'] = 'text/html'
 		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
@@ -796,13 +789,13 @@ class Share (webapp.RequestHandler):
 			collaborators = self.request.get('collaborators').lower()
 			fromPage = self.request.get('fromPage')
 			collabList = collaborators.split(',')
-			
+
 			#uniquify the list
 			keys={}
 			for e in collabList:
 				keys[e]=1
 			uCollabList=keys.keys()
-			
+
 			#don't duplicate sharing
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 							"WHERE resource_id='"+resource_id+"'")
@@ -835,7 +828,6 @@ class Share (webapp.RequestHandler):
 				html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
 				if self.request.get('addMsg')=='y':
 					divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"+self.request.get('msg')+"<br><b>--"+users.get_current_user().email()+"</b></div>"
-					logging.info(divArea)
 					html = html.replace("TEXTAREA", divArea)
 				else:
 					html = html.replace("TEXTAREA", "")
@@ -843,7 +835,7 @@ class Share (webapp.RequestHandler):
 
 
 		--- This Script written and sent from RawScripts.com. Check it out---"""
-		
+
 				#Mail the damn thing. Itereating to reduce errors
 				j=0
 				while j<3:
@@ -871,7 +863,7 @@ class Share (webapp.RequestHandler):
 								timeopened = datetime.datetime.today(),
 								opened=False)
 				s.put()
-		
+
 class RemoveAccess (webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
@@ -937,8 +929,8 @@ class ChangeFolder (webapp.RequestHandler):
 				r[0].put()
 		self.response.out.write("1")
 		activity.activity("changefolder", gcu(), None, 0, None, None, None, self.request.get("folder_id"), len(resource_id),None,None,None,None, None)
-			
-		
+
+
 class DeleteFolder (webapp.RequestHandler):
 	def post(self):
 		folder_id=self.request.get("folder_id")
@@ -1008,7 +1000,7 @@ class SettingsPage (webapp.RequestHandler):
 			except:
 				template_values['domain'] = ''
 				template_values['syncContactsText']='not supported for your account'
-			
+
 			try:
 				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
 			except:
@@ -1027,7 +1019,7 @@ class SettingsPage (webapp.RequestHandler):
 				template_values['shared_every_selected']='selected'
 				template_values['shared_daily_selected']=''
 				template_values['shared_none_selected']=''
-			
+
 			else:
 				if us.autosave==True:
 					template_values['autosaveEnabled']='checked'
@@ -1100,7 +1092,7 @@ class ChangeUserSetting(webapp.RequestHandler):
 				output = 'shared_notifySaved'
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(output)
-			
+
 class SyncContactsPage (webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -1116,7 +1108,7 @@ class SyncContactsPage (webapp.RequestHandler):
 				self.response.headers['Content-Type'] = 'text/html'
 				self.response.out.write(template.render(path, template_values))
 				return
-			
+
 			if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
 				template_values['domain'] = 'Yahoo'
 				token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
@@ -1124,7 +1116,7 @@ class SyncContactsPage (webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
 				else:
 					import yahoo.application
-					verifier  = self.request.get('oauth_verifier') 
+					verifier  = self.request.get('oauth_verifier')
 					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
 					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
 					APPLICATION_ID    = 't73LcW32'
@@ -1139,7 +1131,6 @@ class SyncContactsPage (webapp.RequestHandler):
 					else:
 						r = memcache.get('request_token'+user.email().lower())
 						request_token = yahoo.oauth.RequestToken.from_string(r)
-						logging.info(request_token)
 						access_token = oauthapp.get_access_token(request_token, verifier)
 						oauthapp.token = access_token
 						y = models.YahooOAuthTokens(key_name='yahoo_oauth_token'+user.email().lower(),
@@ -1154,12 +1145,12 @@ class SyncContactsPage (webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
 				else:
 					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-					
+
 			template_values['GA'] = config.GA
 			template_values['MODE'] = config.MODE
 			self.response.headers['Content-Type'] = 'text/html'
 			self.response.out.write(template.render(path, template_values))
-			
+
 class RemoveSyncContacts (webapp.RequestHandler):
 	def get(self):
 		domain = gcu().split('@')[1].split('.')[0]
@@ -1265,7 +1256,7 @@ class Convert(webapp.RequestHandler):
 		template_values['MODE'] = config.MODE
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
-		
+
 class YahooVerification(webapp.RequestHandler):
 	def get(self):
 		self.response.headers["content-Type"]="text/html"
@@ -1336,7 +1327,7 @@ class ExportData(webapp.RequestHandler):
 			n = [u.nickname, u.email, u.user_id, u.federated_identity, \
                  u.federated_provider, str(u.timestamp)]
 			output['OpenIDData2'].append(n)
-            
+
 
 		self.response.headers["content-Type"]="text/plain"
 		self.response.out.write(simplejson.dumps(output))
@@ -1375,7 +1366,6 @@ class WriteToDB(webapp.RequestHandler):
 		conn.close()
 		self.response.headers['Content-type']='text/plain'
 		self.response.out.write("1")
-		logging.info("++++++++++============+++++++++++++")
 		return
 
 def main():
@@ -1410,10 +1400,9 @@ def main():
 											('/convert', Convert),
 											('/hUoVeIFNIgngfTnTdlGQRg--.html', YahooVerification),],
 											debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-
