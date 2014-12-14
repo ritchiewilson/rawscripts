@@ -85,22 +85,20 @@ class Editor (webapp.RequestHandler):
 		template_values = {}
 		template_values['EOV'] = "editor"
 		resource_id=self.request.get('resource_id')
+		logging.info(user_string)
+		logging.info(resource_id)
 		format='editor'
 		mobile = mobileTest.mobileTest(self.request.user_agent)
 		if mobile == 1:
 			self.redirect('/scriptlist')
-			activity.activity("editormobile", None, resource_id, 1, None, None, None, None, None,None,format,None,None, None)
 			return;
 		if user and resource_id!="Demo":
 			template_values['sign_out'] = users.create_logout_url('/')
 			template_values['user'] = users.get_current_user().email()
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"' "+
-										"AND user='"+user_string+"'")
-			r=q.fetch(1)
-			#here's where admin could be added.
-			if len(r)!=0:
-				if r[0].permission=='collab':
+			r = db.get(db.Key.from_path('UsersScripts', 'owner'+gcu()+resource_id))
+			if not r:
+				r = db.get(db.Key.from_path('UsersScripts', 'collab'+gcu()+resource_id))
+				if r:
 					format='viewer'
 					path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
 					template_values['EOV'] = "viewer"
@@ -113,7 +111,8 @@ class Editor (webapp.RequestHandler):
 						unopened[0].opened=True
 						unopened[0].timeopened = datetime.datetime.today()
 						unopened[0].put()
-			else:
+			if not r:
+				logging.info("being redirected")
 				self.redirect("/")
 				return
 		else:
@@ -123,7 +122,7 @@ class Editor (webapp.RequestHandler):
 				template_values['user'] = "test@example.com"
 			else:
 				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
-				 					'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
+									'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
 				path = os.path.join(os.path.dirname(__file__), 'html/login.html')
 
 		if user:
@@ -170,8 +169,8 @@ class ScriptContent (webapp.RequestHandler):
 			q = db.GqlQuery("SELECT * FROM ScriptData "+
 											"WHERE resource_id='"+resource_id+"' "+
 											"ORDER BY version DESC")
-			results = q.fetch(2)
 			results = q.get()
+
 			q = db.GqlQuery("SELECT * FROM SpellingData "+
 											"WHERE resource_id='"+resource_id+"'")
 			spellresults = q.fetch(2)
@@ -210,9 +209,9 @@ class ScriptContent (webapp.RequestHandler):
 				msgsArr=[]
 				for j in msgs:
 					msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':j[3]})
-				
-				dic = { 'row':i.row, 
-						'col':i.col, 
+
+				dic = { 'row':i.row,
+						'col':i.col,
 						'msgs':msgsArr,
 						'thread_id':i.thread_id}
 				notes.append(dic)
@@ -248,7 +247,7 @@ class ScriptContent (webapp.RequestHandler):
 
 			ja={}
 			ja['title'] = title
-			ja['lines'] = simplejson.loads(results[0].data)
+			ja['lines'] = simplejson.loads(results.data)
 			ja['spelling'] = sp
 			ja['notes'] = notes
 			ja['sharedwith'] = sharedwith
@@ -259,12 +258,6 @@ class ScriptContent (webapp.RequestHandler):
 
 			self.response.headers["Content-Type"]='text/plain'
 			self.response.out.write(content)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			if user:
-				user=gcu()
-			else:
-				user="unknown"
-			activity.activity("scriptcontent", user, resource_id, mobile, len(results[0].data), None, None, None, None,title,None,None,None, None)
 
 
 class Save (webapp.RequestHandler):
