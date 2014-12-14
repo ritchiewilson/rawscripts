@@ -7,6 +7,34 @@
 	 <title>RawScripts.com - Free Online Screenplay Software</title>
 	<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
 	<link rel="shortcut icon" href="/favicon.ico">
+<style>
+#displaybox {
+z-index: 10;
+filter: alpha(opacity=50); /*older IE*/
+filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50); /* IE */
+-moz-opacity: .50; /*older Mozilla*/
+-khtml-opacity: 0.5;   /*older Safari*/
+opacity: 0.5;   /*supported by current Mozilla, Safari, and Opera*/
+background-color:#000000;
+position:fixed; top:0px; left:0px; width:100%; height:100%; color:#FFFFFF; vertical-align:middle;
+}
+
+#displaybox2 {
+z-index: 20;
+position:fixed; top:0px; left:0px; width:100%; height:100%;
+}
+
+#system_problems {
+opacity:1;
+border:blue 1px solid;
+width:400px;
+margin: auto;
+margin-top:100px;
+background-color:white;
+color: #333;
+padding: 10px;
+}
+</style>
 </head>
 <body>
 	{% include "analytics.html" %}
@@ -44,21 +72,26 @@
 				<a href="/editor?resource_id=Demo" target="_blank"><span class="h2_span">Click To Try The Online Application.</span></a>
 			</div>
 		</div>	
-		<div class="third">
-			<h3>No New Usernames and Passwords</h3>
-			<p>We try to make it simple. If you have a Google or Yahoo account, just click the button, and sign in. No new names, no registering, just start writing.</p>
-		</div>
-		<div class="third">
-			<h3>All in the Browser</h3>
-			<p>Nothing to download, nothing to install. Just login and start typing in seconds. And because everything is online, you have your scripts, your notes, and a complete draft history from any computer. Your home desktop, your travel laptop, even your smartphone.</p>
-		</div>
-		<div class="third last">
-			<h3>Simple Import/Export</h3>
-			<p>Have scripts started in different software? Easily upload them with formats preserved. You can import all your old scripts in seconds.</p><p>Done with RawScripts? We don't want to keep your files hostage. We make it very easy to get your scripts out and back into Final Draft, Celtx, or any other screenwriting software.</p>
-		</div>
 		<div id="footer">
-			<p>&copy; Copyright 2010 - RawScripts.com | <a href="/tos" onclick="window.open(this.href, 'popupwindow', 'width=500,height=500,scrollbars,resizable'); return false;">Terms of Use</a></p>
+			RawScripts.com | <a href="/tos" onclick="window.open(this.href, 'popupwindow', 'width=500,height=500,scrollbars,resizable'); return false;">Terms of Use</a></p>
 		</div>
 	</div>
+
+<!-- <div id="displaybox"></div>
+ !-- <div id="displaybox2">
+ !--   <div id="system_problems">
+ !--     <div>
+ !--       <h2>RawScripts is currently offline</h2>
+ !--       <p>Sorry for the inconvenience, but Rawscripts is currently down
+ !--       due to technical issues with our hosting provider. The problem
+ !--       is being work on, and the site will be up again as soon as
+ !--       possible.</p>
+ !--       <p><b>Update - </b>The main problem has been resolved. There is
+ !--       some last work to do and the system needs to restart, but
+ !--       Rawscripts should be up again soon. Thanks for your
+ !--       patience.</p>
+ !--     </div>
+ !--   </div>
+ !-- </div> -->
 </body>
 </html>
