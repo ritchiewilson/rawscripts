@@ -1,6 +1,11 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
+class NewUserCounting(db.Model):
+	month = db.IntegerProperty()
+	year = db.IntegerProperty()
+	count = db.IntegerProperty(default=0)
+
 class SpellingData (db.Model):
 	resource_id = db.StringProperty()
 	wrong = db.TextProperty()
