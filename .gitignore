@@ -40,3 +40,8 @@ scripts/compiler/
 /docs/build/
 
 *~
+
+# tools for building closure js with my js
+scripts/COPYING
+scripts/README
+scripts/compiler.jar
