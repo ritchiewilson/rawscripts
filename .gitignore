@@ -38,3 +38,5 @@ scripts/compiler/
 
 # documentation
 /docs/build/
+
+*~
