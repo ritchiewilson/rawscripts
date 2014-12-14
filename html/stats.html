@@ -1,100 +1,55 @@
 <!DOCTYPE html> 
 <head>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<title>stats</title>
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	<script>
-	google.load("visualization", "1", {packages:["corechart"]});
-		google.setOnLoadCallback(drawChart);
-		function drawChart() {
-			var newUsers = [
-				{% for user in Users %}
-				{{ user.firstUse.date|date:'Ymd' }},
-				{% endfor %}
-			];
-			newUsers.sort(function(a,b){return a - b})
-			var d = {};
-			for(var i=0;i<newUsers.length;i++){
-				if(d[newUsers[i]]==undefined)d[newUsers[i]]=1;
-				else d[newUsers[i]]=d[newUsers[i]]+1;
-			}
-			var usersData = new google.visualization.DataTable();
-			usersData.addColumn('string', 'Date');
-			usersData.addColumn('number', 'New Users');
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>stats</title>
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script>
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(drawChart);
+
+    function dateSort(a,b){
+    console.log(a)
+console.log(b)
+    if (a.year > b.year){return 1}
+    if (a.year == b.year){return a.month - b.month}
+    return -1;
+    }
+
+    function drawChart() {
+    var newUsers = [
+    {% for month in months %}
+    {"count": {{ month.count }},
+    "month": {{month.month }},
+    "year" : {{ month.year }} },
+    {% endfor %}
+    ];
+    newUsers.sort(dateSort);
+    
+    var usersData = new google.visualization.DataTable();
+    usersData.addColumn('string', 'Date');
+    usersData.addColumn('number', 'New Users');
+    
+    var growthData = new google.visualization.DataTable();
+    growthData.addColumn('string', 'Date');
+    growthData.addColumn('number', 'total');
+    var total=0;
 			
+    var i = 0
+    while(i < newUsers.length){
+              nu = newUsers[i];
+              i++;
+              usersData.addRow([nu.month+"/"+nu.year, nu.count])
+              total = total + nu.count;
+              
+	      growthData.addRow([nu.month+'/'+nu.year, total])
+	      }
 			
-			
-			var noScripts = [
-				{% for ns in noScripts %}
-				{{ ns.firstUse.date|date:'Ymd' }},
-				{% endfor %}
-			];
-			var ns = {};
-			for(var i=0;i<noScripts.length;i++){
-				if(ns[noScripts[i]]==undefined)ns[noScripts[i]]=1;
-				else ns[noScripts[i]]=ns[noScripts[i]]+1;
-			}
-			var noScriptsData = new google.visualization.DataTable();
-			noScriptsData.addColumn('string', 'Date');
-			noScriptsData.addColumn('number', 'New Users With No scripts');
-			
-			var ratioNoScriptsData = new google.visualization.DataTable();
-			ratioNoScriptsData.addColumn('string', 'Date');
-			ratioNoScriptsData.addColumn('number', 'Ratio');
-			
-			document.getElementById('uwns').innerHTML=noScripts.length/newUsers.length;
-			
-			var growthData = new google.visualization.DataTable();
-			growthData.addColumn('string', 'Date');
-			growthData.addColumn('number', 'total');
-			var total=0;
-			
-			var j = new Date();
-			j.setFullYear(2011,0,1);
-			var today = new Date();
-			while(j<=today){
-				var day=String(j.getDate());
-				if(day.length==1)day='0'+day;
-				
-				var month=String(j.getMonth()+1);
-				if(month.length==1)month='0'+month;
-				
-				var year = String(j.getFullYear())
-				
-				var date=parseInt(year+month+day)
-				
-				// put in users data
-				var usersPerday=0;
-				if(d[date]!=undefined)usersPerday=d[date];
-				usersData.addRow([year+'/'+month+'/'+day, usersPerday])
-				
-				// put in no scripts data
-				var noScriptsPerday=0;
-				if(ns[date]!=undefined)noScriptsPerday=ns[date];
-				noScriptsData.addRow([year+'/'+month+'/'+day, noScriptsPerday])
-				
-				// ratio of the two
-				ratioNoScriptsData.addRow([year+'/'+month+'/'+day, noScriptsPerday/usersPerday])
-				
-				// growthData
-				total+=usersPerday;
-				growthData.addRow([year+'/'+month+'/'+day, total])
-				// go to next day
-				j.setDate(j.getDate()+1);
-			}
-			
-			var chart = new google.visualization.LineChart(document.getElementById('usersChart'));
-			chart.draw(usersData, {width: 1500, height: 240, title: 'New users per day'});
-			
-			var chart = new google.visualization.LineChart(document.getElementById('noScriptsChart'));
-			chart.draw(noScriptsData, {width: 1500, height: 240, title: 'User join but dont create a script'});
-			
-			var chart = new google.visualization.LineChart(document.getElementById('ratioChart'));
-			chart.draw(ratioNoScriptsData, {width: 1500, height: 240, title: 'Ratio of above charts'});
-			
-			var chart = new google.visualization.LineChart(document.getElementById('growthChart'));
-			chart.draw(growthData, {width: 1500, height: 500, title: 'Cumulative Growth of Users'});
-		}
+	      var chart = new google.visualization.LineChart(document.getElementById('usersChart'));
+	      chart.draw(usersData, {width: 1000, height: 240, title: 'New users per month'});
+	      
+	      var chart = new google.visualization.LineChart(document.getElementById('growthChart'));
+	      chart.draw(growthData, {width: 1000, height: 500, title: 'Cumulative Growth of Users'});
+	      }
 	</script>
 </head>
 <body id="stats">
@@ -106,9 +61,6 @@
 		document.getElementById('average').innerHTML={{ scripts }}/{{ users }}
 		</script>
 		<div id='usersChart'></div>
-		<div id='noScriptsChart'></div>
-		<p>Overall Ratio of users with no scripts: <span id='uwns'></span></p>
-		<div id='ratioChart'></div>
 		<p>Cumulative growth of users</p>
 		<div id='growthChart'></div>
 	</div>
