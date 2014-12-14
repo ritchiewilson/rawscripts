@@ -75,7 +75,7 @@ class Welcome (webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/scriptlist')
-				
+
 
 class Editor (webapp.RequestHandler):
 	def get(self):
@@ -125,7 +125,7 @@ class Editor (webapp.RequestHandler):
 				template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
 				 					'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
 				path = os.path.join(os.path.dirname(__file__), 'html/login.html')
-				
+
 		if user:
 			user=gcu()
 		else:
@@ -165,13 +165,13 @@ class ScriptContent (webapp.RequestHandler):
 				if i.user==user or users.is_current_user_admin():
 					if i.permission=='owner' or i.permission=="collab" or users.is_current_user_admin():
 						p=True
-		
+
 		if p==True:
 			q = db.GqlQuery("SELECT * FROM ScriptData "+
 											"WHERE resource_id='"+resource_id+"' "+
 											"ORDER BY version DESC")
 			results = q.fetch(2)
-			
+			results = q.get()
 			q = db.GqlQuery("SELECT * FROM SpellingData "+
 											"WHERE resource_id='"+resource_id+"'")
 			spellresults = q.fetch(2)
@@ -206,7 +206,7 @@ class ScriptContent (webapp.RequestHandler):
 								found=True
 						if found==False:
 							unit.append(1)
-				
+
 				msgsArr=[]
 				for j in msgs:
 					msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':j[3]})
@@ -224,7 +224,7 @@ class ScriptContent (webapp.RequestHandler):
 			for i in shareresults:
 				if i.permission=="collab":
 					sharedwith.append(i.user)
-			
+
 			try:
 				c = memcache.get('contacts' + gcu())
 			except:
@@ -233,7 +233,7 @@ class ScriptContent (webapp.RequestHandler):
 				contacts = []
 			else:
 				contacts = simplejson.loads(c)
-		
+
 			try:
 				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
 			except:
@@ -245,7 +245,7 @@ class ScriptContent (webapp.RequestHandler):
 					autosave='true'
 				else:
 					autosave='false'
-			
+
 			ja={}
 			ja['title'] = title
 			ja['lines'] = simplejson.loads(results[0].data)
@@ -256,7 +256,7 @@ class ScriptContent (webapp.RequestHandler):
 			ja['autosave'] = autosave
 
 			content = simplejson.dumps(ja)
-			
+
 			self.response.headers["Content-Type"]='text/plain'
 			self.response.out.write(content)
 			mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -318,7 +318,7 @@ class Save (webapp.RequestHandler):
 
 			u.last_updated=datetime.datetime.today()
 			u.put()
-			
+
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('1')
 		else:
@@ -359,7 +359,7 @@ class Contact(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
 
-		
+
 def main():
 	application = webapp.WSGIApplication([('/editor', Editor),
 					       	('/', Welcome),
@@ -370,10 +370,9 @@ def main():
 				       		('/save', Save),
 				       		('/contact', Contact),],
 			       			 debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-
