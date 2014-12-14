@@ -1174,7 +1174,7 @@ function tabs(v){
 		}
 	}
 	var c = document.getElementsByTagName('div');
-	for(i in c){
+	for(var i=0; i<c.length; i++){
 		if(c[i].className=="content_plus_header")c[i].style.display="none";
 		if(c[i].className=="buttons_block")c[i].style.display="none";
 	}
