@@ -22,6 +22,16 @@ indexes:
   - name: version
     direction: desc
 
+- kind: ShareNotify
+  properties:
+  - name: opened
+  - name: user
+
+- kind: ShareNotify
+  properties:
+  - name: resource_id
+  - name: user
+
 - kind: UnreadNotes
   properties:
   - name: user
@@ -36,9 +46,13 @@ indexes:
 - kind: UsersScripts
   properties:
   - name: permission
+  - name: resource_id
   - name: user
-  - name: updated
-    direction: desc
+
+- kind: UsersScripts
+  properties:
+  - name: resource_id
+  - name: user
 
 - kind: UsersScripts
   properties:
@@ -46,30 +60,12 @@ indexes:
   - name: last_updated
     direction: desc
 
-- kind: UsersScripts
+- kind: ScriptData
   properties:
-  - name: user
-  - name: updated
+  - name: resource_id
+  - name: version
     direction: desc
-
-- kind: UsersScripts
-  properties:
-  - name: permission
-  - name: resource_id
-  - name: user
-
-- kind: UsersScripts
-  properties:
-  - name: resource_id
-  - name: user
-
-- kind: ShareNotify
-  properties:
-  - name: resource_id
-  - name: user
-
-- kind: ShareNotify
-  properties:
-  - name: opened
-  - name: user
-
+  - name: autosave
+  - name: export
+  - name: tag
+  - name: timestamp
