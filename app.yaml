@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 3
+version: 4
 runtime: python
 api_version: 1
 
@@ -151,6 +151,10 @@ handlers:
 
 - url: /tos
   script: nologin.py
+
+- url: /.*folder.*
+  login: required
+  script: folders.py
 
 - url: /.*
   login: required
