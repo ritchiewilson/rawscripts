@@ -65,7 +65,7 @@ handlers:
   script: scripteditor.py
 
 - url: /title.*
-  script: scripteditor.py
+  script: titlepage.py
 
 - url: /sitemap.xml
   static_files: static/text/sitemap.xml

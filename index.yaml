@@ -22,6 +22,16 @@ indexes:
   - name: version
     direction: desc
 
+- kind: ScriptData
+  properties:
+  - name: resource_id
+  - name: version
+    direction: desc
+  - name: autosave
+  - name: export
+  - name: tag
+  - name: timestamp
+
 - kind: ShareNotify
   properties:
   - name: opened
@@ -59,13 +69,3 @@ indexes:
   - name: user
   - name: last_updated
     direction: desc
-
-- kind: ScriptData
-  properties:
-  - name: resource_id
-  - name: version
-    direction: desc
-  - name: autosave
-  - name: export
-  - name: tag
-  - name: timestamp
