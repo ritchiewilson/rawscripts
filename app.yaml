@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 5
+version: 6
 runtime: python
 api_version: 1
 
@@ -155,6 +155,14 @@ handlers:
 - url: /.*folder.*
   login: required
   script: folders.py
+
+- url: /scriptlist.*
+  login: required
+  script: scriptlist.py
+
+- url: /list.*
+  login: required
+  script: scriptlist.py
 
 - url: /.*
   login: required
