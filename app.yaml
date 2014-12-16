@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 4
+version: 5
 runtime: python
 api_version: 1
 
@@ -58,11 +58,11 @@ handlers:
 
 - url: /dbtofile.*
   login: admin
-  script: scripteditor.py
+  script: db_export.py
 
 - url: /writetodb.*
   login: admin
-  script: scripteditor.py
+  script: db_export.py
 
 - url: /title.*
   script: titlepage.py
