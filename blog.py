@@ -32,7 +32,6 @@ import datetime
 import logging
 from django.utils import simplejson
 from django.utils import feedgenerator
-import activity
 import config
 import models
 
@@ -59,7 +58,7 @@ class Blog(webapp.RequestHandler):
 					"""
 				else:
 					r=[r]
-		else:	
+		else:
 			q = db.GqlQuery("SELECT * FROM BlogDB "+
 							"order by timestamp desc")
 			r = q.fetch(20)
@@ -72,7 +71,7 @@ class Blog(webapp.RequestHandler):
 		template_values['GA'] = config.GA
 		path = os.path.join(os.path.dirname(__file__), 'html/blog.html')
 		self.response.out.write(template.render(path, template_values))
-							
+
 class BlogPostGUI(webapp.RequestHandler):
 	def get(self):
 		path = os.path.join(os.path.dirname(__file__), 'html/blogpostgui.html')
@@ -107,7 +106,7 @@ class RSS(webapp.RequestHandler):
 			feed.add_item(title=i.title, description=i.data, pubdate = i.timestamp, link = link)
 		self.response.headers['Content-Type'] = 'text/xml'
 		self.response.out.write(feed.writeString('utf-8'))
-		
+
 
 def main():
 	application = webapp.WSGIApplication([('/blogpostgui', BlogPostGUI),
@@ -115,10 +114,9 @@ def main():
 											('/blog+.*', Blog),
 											('/rss', RSS)],
 											 debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-

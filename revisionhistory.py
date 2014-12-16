@@ -31,7 +31,6 @@ import random
 import datetime
 import logging
 from django.utils import simplejson
-import activity
 import mobileTest
 import config
 import models
@@ -77,8 +76,6 @@ class RevisionTag(webapp.RequestHandler):
 			r[0].tag=tag
 			r[0].put()
 			self.response.out.write('tagged')
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("tagscript", gcu(), resource_id, mobile, len(tag), None, None, None, None,None,None,None,None, None)
 
 class DuplicateOldRevision(webapp.RequestHandler):
 	def post(self):
@@ -110,7 +107,7 @@ class DuplicateOldRevision(webapp.RequestHandler):
 				q=db.GqlQuery("SELECT * FROM UsersScripts "+
 											"WHERE resource_id='"+new_resource_id+"'")
 				results=q.fetch(2)
-			
+
 			s = models.ScriptData(resource_id=new_resource_id,
 										 data=data,
 										 tag="",
@@ -139,9 +136,6 @@ class DuplicateOldRevision(webapp.RequestHandler):
 			s.put()
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("duplicateoldversion", gcu(), resource_id, mobile, len(data), None, None,None, None,new_resource_id,None,None,None, None)
-			
 
 class RevisionHistory(webapp.RequestHandler):
 	def get(self):
@@ -196,8 +190,6 @@ class RevisionHistory(webapp.RequestHandler):
 			template_values['MODE'] = config.MODE
 			template_values['GA'] = config.GA
 			self.response.out.write(template.render(path, template_values))
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("revisionhistory", gcu(), resource_id, mobile, len(r), None, None, None, None,None,None,None,None, None)
 
 class RevisionList(webapp.RequestHandler):
 	def post(self):
@@ -240,8 +232,6 @@ class RevisionList(webapp.RequestHandler):
 			j=simplejson.dumps(out)
 			self.response.headers['Content-Type']= 'text/plain'
 			self.response.out.write(j)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("revisionlist", gcu(), resource_id, mobile, len(out), None, None, None, None,None,None,None,None, None)
 
 class GetVersion(webapp.RequestHandler):
 	def post(self):
@@ -268,9 +258,7 @@ class GetVersion(webapp.RequestHandler):
 				contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write(contents)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("getversion", gcu(), resource_id, mobile, len(r[0].data), None, None, None, None,None,None,None,None, None)
-			
+
 class CompareVersions(webapp.RequestHandler):
 	def post(self):
 		import difflib
@@ -311,8 +299,6 @@ class CompareVersions(webapp.RequestHandler):
 			content=content.replace("</p></ins>", "</p>")
 			self.response.headers['Content-Type']='text/html'
 			self.response.out.write(content)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("compareversions", gcu(), v_o_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 import difflib, string
 
@@ -336,7 +322,7 @@ def textDiff(a, b):
 			out.append('<ins>'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>") + "</ins>")
 		elif e[0] == "equal":
 			out.append(''.join(b[e[3]:e[4]]))
-		else: 
+		else:
 			raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
 	return ''.join(out)
 
@@ -346,13 +332,13 @@ def html2list(x, b=0):
 	out = []
 	for c in x:
 		if mode == 'tag':
-			if c == '>': 
+			if c == '>':
 				if b: cur += ']'
 				else: cur += c
 				out.append(cur); cur = ''; mode = 'char'
 			else: cur += c
 		elif mode == 'char':
-			if c == '<': 
+			if c == '<':
 				out.append(cur)
 				if b: cur = '['
 				else: cur = c
@@ -371,10 +357,9 @@ def main():
 																				('/revisiontag' , RevisionTag),
 																				('/revisioncompare', CompareVersions)],
 																			 debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-

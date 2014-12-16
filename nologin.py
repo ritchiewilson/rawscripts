@@ -34,7 +34,6 @@ import datetime
 import random
 import zipfile
 import export
-import activity
 import logging
 from django.utils import simplejson
 import mobileTest
@@ -141,7 +140,6 @@ class Editor (webapp.RequestHandler):
 		template_values['GA'] = config.GA
 		self.response.headers['Content-Type'] = 'text/html'
 		self.response.out.write(template.render(path, template_values))
-		activity.activity("editor", user, resource_id, mobile, None, None, None, None, None,None,format,None,None, None)
 
 class ScriptContent (webapp.RequestHandler):
 	def post(self):

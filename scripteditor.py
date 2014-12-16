@@ -37,7 +37,6 @@ import export
 import convert
 import logging
 from django.utils import simplejson
-import activity
 import mobileTest
 import chardet
 import gdata.gauth
@@ -153,7 +152,6 @@ class ScriptList(webapp.RequestHandler):
 		if k == 0:
 			newUser = models.Users(name=users.get_current_user().email())
 			newUser.put()
-		activity.activity("scriptlistpage", gcu(), None, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class TitlePage(webapp.RequestHandler):
 	def get(self):
@@ -264,7 +262,6 @@ class TitlePage(webapp.RequestHandler):
 			user = user.email().lower()
 		else:
 			user = "test@example.com"
-		activity.activity("titlepage", user, resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class SaveTitlePage (webapp.RequestHandler):
 	def post(self):
@@ -307,8 +304,6 @@ class SaveTitlePage (webapp.RequestHandler):
 
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("titlepagesave", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class List (webapp.RequestHandler):
 	def post(self):
@@ -435,8 +430,6 @@ class Undelete(webapp.RequestHandler):
 					i.put()
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('1')
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("undelete", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 		else:
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('0')
@@ -453,8 +446,6 @@ class HardDelete(webapp.RequestHandler):
 			for i in r:
 				i.permission = 'hardDelete'
 				i.put()
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("harddelete", gcu(), resource_id, mobile, None, None, None, None, None,None,None,None,None, None)
 
 class Rename (webapp.RequestHandler):
 	def post(self):
@@ -676,7 +667,6 @@ class NewScript (webapp.RequestHandler):
 		u.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(resource_id)
-		activity.activity("newscript", gcu(), resource_id, 0, None, None, None, None, None,filename,None,None,fromPage, None)
 
 class Duplicate (webapp.RequestHandler):
 	def post(self):
@@ -738,8 +728,6 @@ class Duplicate (webapp.RequestHandler):
 			s.put()
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write('/editor?resource_id='+new_resource_id)
-			activity.activity("duplicate", gcu(), resource_id, 0, len(data), None, None, None, None,new_resource_id,None,None,None, None)
-
 
 class ConvertProcess (webapp.RequestHandler):
 	def post(self):
@@ -817,7 +805,6 @@ class ConvertProcess (webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
-		activity.activity("convert", gcu(), resource_id, 0, len(contents), None, None, None, None,filename,ff,None,None, None)
 
 class Share (webapp.RequestHandler):
 	def post(self):
@@ -894,8 +881,6 @@ class Share (webapp.RequestHandler):
 							return
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(",".join(output))
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("share", gcu(), resource_id, mobile, None, None, None, None, None,p,None,len(output),fromPage, None)
 			for i in output:
 				s = models.ShareNotify(user = i,
 								resource_id = resource_id,
@@ -927,8 +912,6 @@ class RemoveAccess (webapp.RequestHandler):
 			remove_person = self.request.get('removePerson')
 			self.response.headers['Content-Type'] = 'text/plain'
 			self.response.out.write(remove_person.lower())
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("removeaccess", gcu(), resource_id, mobile, None, None, None, None, None,p,None,None,fromPage, None)
 			q=db.GqlQuery("SELECT * FROM ShareNotify "+
 						"WHERE resource_id='"+resource_id+"' "+
 						"AND user='"+person.lower()+"'")
@@ -953,7 +936,6 @@ class NewFolder (webapp.RequestHandler):
 			J.append([folder_name, folder_id])
 			r[0].data=simplejson.dumps(J)
 			r[0].put()
-		activity.activity("newfolder", gcu(), None, 0, None, None, None, folder_id, None,folder_name,None,None,None, None)
 
 class ChangeFolder (webapp.RequestHandler):
 	def post(self):
@@ -968,8 +950,6 @@ class ChangeFolder (webapp.RequestHandler):
 				r[0].folder = self.request.get("folder_id")
 				r[0].put()
 		self.response.out.write("1")
-		activity.activity("changefolder", gcu(), None, 0, None, None, None, self.request.get("folder_id"), len(resource_id),None,None,None,None, None)
-
 
 class DeleteFolder (webapp.RequestHandler):
 	def post(self):
@@ -993,7 +973,6 @@ class DeleteFolder (webapp.RequestHandler):
 		r[0].data = simplejson.dumps(arr)
 		r[0].put()
 		self.response.out.write("1")
-		activity.activity("deletefolder", gcu(), None, 0, None, None, None, folder_id, None,None,None,None,None, None)
 
 class RenameFolder (webapp.RequestHandler):
 	def post(self):

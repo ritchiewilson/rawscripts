@@ -33,7 +33,6 @@ import random
 import datetime
 import logging
 from django.utils import simplejson
-import activity
 import mobileTest
 import config
 import models
@@ -110,15 +109,13 @@ class NewThread(webapp.RequestHandler):
 									msg_id=d)
 					nn.put()
 					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
-					
+
 			self.response.headers["Content-Type"]="text/plain"
 			if fromPage=='mobileviewnotes':
 				self.response.out.write('sent')
 			else:
 				self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("newthread", users.get_current_user().email().lower(), resource_id, mobile, len(data), None, None, thread_id, None,None,p,None,fromPage, None)
-							
+
 class SubmitMessage(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
@@ -157,7 +154,7 @@ class SubmitMessage(webapp.RequestHandler):
 			r.data=simplejson.dumps(J)
 			r.put()
 			output = simplejson.dumps([content, d, user, thread_id])
-			
+
 			q=db.GqlQuery("SELECT * FROM UsersScripts "+
 							"WHERE resource_id='"+resource_id+"'")
 			r=q.fetch(500)
@@ -170,14 +167,12 @@ class SubmitMessage(webapp.RequestHandler):
 									msg_id=d)
 					n.put()
 					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
-						
+
 			self.response.headers["Content-Type"]="text/plain"
 			if fromPage=='mobileviewnotes':
 				self.response.out.write('sent')
 			else:
 				self.response.out.write(output)
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("notesresponse", users.get_current_user().email().lower(), resource_id, mobile, len(content), None, None, thread_id, None,None,p,None,fromPage, None)
 
 class Position (webapp.RequestHandler):
 	def post(self):
@@ -214,15 +209,13 @@ class DeleteThread (webapp.RequestHandler):
 						"AND thread_id='"+thread_id+"'")
 			r=q.fetch(1)
 			r[0].delete()
-			
+
 			q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 							"WHERE resource_id='"+resource_id+"' "+
 							"AND thread_id='"+thread_id+"'")
 			un=q.fetch(1000)
 			for i in un:
 				i.delete()
-			mobile = mobileTest.mobileTest(self.request.user_agent)
-			activity.activity("deletethread", users.get_current_user().email().lower(), resource_id, mobile, None, None, None, thread_id, None,None,None,None,fromPage, None)
 
 class DeleteMessage(webapp.RequestHandler):
 	def post(self):
@@ -286,7 +279,7 @@ class MarkAsRead(webapp.RequestHandler):
 			un.delete()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('ok')
-		
+
 class ViewNotes(webapp.RequestHandler):
 	def get(self):
 		resource_id=self.request.get('resource_id')
@@ -301,7 +294,7 @@ class ViewNotes(webapp.RequestHandler):
 			export=[]
 			for i in r:
 				export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
-				
+
 			template_values={'j':simplejson.dumps(export),
 							"user":gcu(),
 							"sign_out": users.create_logout_url("/"),
@@ -310,8 +303,7 @@ class ViewNotes(webapp.RequestHandler):
 							}
 			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
 			self.response.out.write(template.render(path, template_values))
-			
-			activity.activity("viewnotes", users.get_current_user().email().lower(), resource_id, 1, None, None, None, None, None,None,title,None,None, None)
+
 
 class Notification(webapp.RequestHandler):
 	def post(self):
@@ -338,7 +330,7 @@ class Notification(webapp.RequestHandler):
 				send=True
 			else:
 				send=False
-		
+
 		q = db.GqlQuery("SELECT * FROM Users")
 		uTest = q.fetch(1000)
 		#check if user exists in db (ue)
@@ -347,7 +339,7 @@ class Notification(webapp.RequestHandler):
 		for i in uTest:
 			if i.name.lower()==to_user.lower():
 				ue=True
-		
+
 		if send==True and ue==True:
 			q = db.GqlQuery("SELECT * FROM Notes "+
 							"WHERE resource_id='"+resource_id+"' "+
@@ -357,7 +349,7 @@ class Notification(webapp.RequestHandler):
 			for i in J:
 				if i[2]==msg_id:
 					data=i[0]
-			
+
 			if not data==None:
 				subject = from_user + ' Left A Note On The Script "' + r.title + '"'
 				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
@@ -370,12 +362,12 @@ class Notification(webapp.RequestHandler):
 					html = html.replace("USER", from_user)
 					html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
 					html = html.replace("NOTETEXT", data)
-				
+
 				body = body_message + """
 
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
-			
+
 				mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
 								to=to_user,
 								subject=subject,
@@ -391,7 +383,7 @@ class SummaryEmailInit(webapp.RequestHandler):
 		for i in r:
 			if i.owned_notify=="daily" or i.shared_notify=="daily":
 				taskqueue.add(url="/notessendsummaryemail", params= {'user' : i.key().name().replace('settings','')})
-				
+
 class SendSummaryEmail(webapp.RequestHandler):
 	def post(self):
 		user = self.request.get('user')
@@ -450,19 +442,19 @@ class SendSummaryEmail(webapp.RequestHandler):
 							body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
 					body+='</div>'
 			if body!="":
-				
+
 				#now create the email and send it.
 				subject = 'Daily Notes Summary'
 				body_message="http://www.rawscripts.com/"
 				result = urlfetch.fetch("http://www.rawscripts.com/text/dailysummary.txt")
 				htmlbody = result.content
 				html = htmlbody.replace("BODYHTML", body)
-			
+
 				body = body_message + """
 
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
-		
+
 				mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
 								to=user,
 								subject=subject,
@@ -482,10 +474,9 @@ def main():
 										('/notessendsummaryemail', SendSummaryEmail),
 										('/notesnewthread', NewThread)],
 										debug=True)
-	
+
 	run_wsgi_app(application)
 
 
 if __name__ == '__main__':
 	main()
-

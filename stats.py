@@ -26,7 +26,6 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import logging
 from django.utils import simplejson
-import activity
 import os
 import models
 import datetime
