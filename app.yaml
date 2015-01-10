@@ -100,10 +100,10 @@ handlers:
   static_dir: static/closure-library
 
 - url: /editor.*
-  script: nologin.py
+  script: editor.py
 
 - url: /scriptcontent.*
-  script: nologin.py
+  script: editor.py
 
 - url: /contactemail.*
   script: nologin.py
@@ -113,7 +113,7 @@ handlers:
 
 - url: /save.*
   login: required
-  script: nologin.py
+  script: editor.py
 
 - url: /spelldb.*
   login: admin
