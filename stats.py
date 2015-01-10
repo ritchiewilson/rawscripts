@@ -92,10 +92,27 @@ class Stats(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+class StatsEmail(webapp.RequestHandler):
+    def get(self):
+        query = db.GqlQuery("SELECT name FROM Users")
+        names = query.fetch(None)
+        domains = {}
+        for name in names:
+            if "@" not in name.name:
+                continue
+            domain = name.name.split("@", 1)[-1]
+            if not domain in domains:
+                domains[domain] = 0
+            domains[domain] += 1
+        output = "\n".join([d + ", " + str(c) for d, c in domains.items()])
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write(output)
+
 
 def main():
     application = webapp.WSGIApplication([('/stats', Stats),
                                           ('/statscache', StatsCache),
+                                          ('/statsemail', StatsEmail),
                                             ],
                                          debug=True)
 
