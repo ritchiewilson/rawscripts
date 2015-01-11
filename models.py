@@ -123,3 +123,18 @@ class OpenIDData2(db.Model):
     federated_identity = db.StringProperty()
     federated_provider = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
+
+class ResourceVersion(db.Model):
+    resource_id = db.StringProperty()
+    version = db.IntegerProperty()
+    timestamp = db.DateTimeProperty(auto_now_add=True)
+    autosave = db.BooleanProperty()
+
+class Op(db.Model):
+    resource_version = db.ReferenceProperty(ResourceVersion,
+                                            collection_name="ops")
+    action = db.StringProperty()
+    offset = db.IntegerProperty()
+    amount = db.IntegerProperty()
+    text = db.TextProperty()
+    application_index = db.IntegerProperty()
