@@ -32,42 +32,39 @@ import datetime
 
 class StatsCache(webapp.RequestHandler):
     def get(self):
-        end_year = datetime.datetime.now().year
-        end_month = datetime.datetime.now().month
-        year_1 = 2014
-        year_2 = 2014
-        month_1 = 1
-        month_2 = month_1 + 1
-        while year_1 < end_year or month_2 <= end_month:
-            if year_1 == 2015:
-                break
-            q = db.GqlQuery("SELECT * from NewUserCounting "+
-                            "WHERE month=" + str(month_1) +
-                            " AND year=" + str(year_1))
-            cache = q.get()
-            q = db.GqlQuery("SELECT __key__ from Users "+
-                            "WHERE firstUse >= DATETIME("+str(year_1)+","+str(month_1)+",1,0,0,0) "+
-                            "AND firstUse < DATETIME("+str(year_2)+","+str(month_2)+",1,0,0,0) ")
-            c = q.count(10000)
-            if not cache:
-                cache = models.NewUserCounting(month=month_1, year=year_1, count=c)
-            else:
-                cache.count = c
-            cache.put()
-            month_1 += 1
-            month_2 += 1
-            if month_1 > 12:
-                month_1 = 1
-                year_1 += 1
-            if month_2 > 12:
-                month_2 = 1
-                year_2 += 1
+        for year in [2014, 2015]:
+            for month in range(1,13):
+                self.count_month(year, month)
 
         q = db.GqlQuery("SELECT __key__ FROM Users")
         c = q.count(100000)
 
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write(c)
+
+    def count_month(self, year, month):
+        end_year = datetime.datetime.now().year
+        end_month = datetime.datetime.now().month
+        if year >= end_year and month > end_month:
+            return
+
+        q = db.GqlQuery("SELECT * from NewUserCounting "+
+                        "WHERE month=" + str(month) +
+                        " AND year=" + str(year))
+        cache = q.get()
+        month_2 = month + 1 if month < 12 else 1
+        year_2 = year + 1 if month_2 == 1 else year
+
+        q = db.GqlQuery("SELECT __key__ from Users "+
+                        "WHERE firstUse >= DATETIME("+str(year)+","+str(month)+",1,0,0,0) "+
+                        "AND firstUse < DATETIME("+str(year_2)+","+str(month_2)+",1,0,0,0) ")
+        c = q.count(10000)
+        if not cache:
+            cache = models.NewUserCounting(month=month, year=year, count=c)
+        else:
+            cache.count = c
+        cache.put()
+
 
 class Stats(webapp.RequestHandler):
     def get(self):
