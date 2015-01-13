@@ -67,7 +67,8 @@ class MigrateDelete(webapp.RequestHandler):
                            models.ResourceVersion, models.VersionTag]
         for table in tables_to_clear:
             entries = table.all()
-            db.delete(entries)
+            for entry in entries:
+                entry.delete()
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("deleted everything")
 
