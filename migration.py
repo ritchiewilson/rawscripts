@@ -63,12 +63,14 @@ class Migrate(webapp.RequestHandler):
 
 class MigrateDelete(webapp.RequestHandler):
     def post(self):
-        tables_to_clear = [models.MigrationCheck, models.Op,
-                           models.ResourceVersion, models.VersionTag]
+        tables_to_clear = ["MigrationCheck", "Op",
+                           "ResourceVersion", "VersionTag"]
         for table in tables_to_clear:
-            entries = table.all()
-            for entry in entries:
-                entry.delete()
+            query = db.GqlQuery("SELECT __key__ FROM "+ table)
+            entries = query.fetch(1000)
+            if len(entries) == 0:
+                continue
+            db.delete(entries)
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("deleted everything")
 
