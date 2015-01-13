@@ -67,6 +67,11 @@ indexes:
   properties:
   - name: permission
   - name: resource_id
+
+- kind: UsersScripts
+  properties:
+  - name: permission
+  - name: resource_id
   - name: user
 
 - kind: UsersScripts

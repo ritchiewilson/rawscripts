@@ -34,12 +34,24 @@ class Migrate(webapp.RequestHandler):
                          'message': result.text}
                 errors.append(error)
 
+        query = models.VersionErrors.all()
+        results = query.fetch(None)
+        num_version_errors = len(results)
+        version_errors = []
+        for result in results:
+            error = {'resource_id': result.resource_id,
+                     'message': result.version}
+            version_errors.append(error)
+
+
         template_values = {
             'diffing': diffing,
             'checking': checking,
             'correct': correct,
             'failed': len(errors),
-            'errors': errors
+            'errors': errors,
+            'num_version_errors': num_version_errors,
+            'version_errors': version_errors
         }
 
         self.response.headers['Content-Type'] = 'text/html'
@@ -48,9 +60,11 @@ class Migrate(webapp.RequestHandler):
 
     def post(self):
         user = "rawilson52@gmail.com"
-        user = "tefst@example.com"
+        # user = "tefst@example.com"
         query = db.GqlQuery("SELECT * FROM UsersScripts "+
                             "WHERE permission='owner'")
+        query = db.GqlQuery("SELECT * FROM UsersScripts "+
+                            "WHERE user='"+user+"'")
         results = query.fetch(100)
         for script in results:
             if not script.permission == "owner":
@@ -64,7 +78,7 @@ class Migrate(webapp.RequestHandler):
 class MigrateDelete(webapp.RequestHandler):
     def post(self):
         tables_to_clear = ["MigrationCheck", "Op",
-                           "ResourceVersion", "VersionTag"]
+                           "ResourceVersion", "VersionTag", "VersionErrors"]
         for table in tables_to_clear:
             query = db.GqlQuery("SELECT __key__ FROM "+ table)
             entries = query.fetch(10000)
@@ -76,7 +90,7 @@ class MigrateDelete(webapp.RequestHandler):
 
 class MigrateScript(webapp.RequestHandler):
     def post(self):
-        VERSIONS_PER_REQUEST = 3
+        VERSIONS_PER_REQUEST = 5
         resource_id = self.request.get('resource_id')
         start_version = int(self.request.get('start_version'))
         if start_version == 0:
@@ -240,6 +254,31 @@ class MigrateCheck(webapp.RequestHandler):
                 string = string[:op.offset] + op.text + string[op.offset + op.amount:]
         return string
 
+class MigrateVersionErrors(webapp.RequestHandler):
+    def post(self):
+        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
+                            "WHERE permission='owner'")
+        results = query.fetch(10000)
+        for script in results:
+            params = {'resource_id': script.resource_id}
+            taskqueue.add(url="/migrate-version-errors-task", params=params)
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write("all queued up")
+
+class MigrateVersionErrorTask(webapp.RequestHandler):
+    def post(self):
+        resource_id = self.request.get('resource_id')
+        query = db.GqlQuery("SELECT version FROM ScriptData "+
+                            "WHERE resource_id='" + resource_id +"'")
+        results = query.fetch(None)
+        versions = sorted(results, key=lambda result: result.version)
+        for version1, version2 in zip(versions, versions[1:]):
+            if version1.version + 1 == version2.version:
+                continue
+            error = models.VersionErrors(resource_id=resource_id,
+                                         version=version1.version)
+            error.put()
+        return
 
 
 def main():
@@ -247,6 +286,8 @@ def main():
                                           ('/migrate-check', MigrateCheck),
                                           ('/migrate', Migrate),
                                           ('/migrate-delete', MigrateDelete),
+                                          ('/migrate-version-errors', MigrateVersionErrors),
+                                          ('/migrate-version-errors-task', MigrateVersionErrorTask),
                                             ],
                                          debug=True)
 

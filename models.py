@@ -152,3 +152,7 @@ class MigrationCheck(db.Model):
     checking = db.BooleanProperty()
     correct = db.BooleanProperty()
     text =  db.StringProperty()
+
+class VersionErrors(db.Model):
+    resource_id = db.StringProperty()
+    version =  db.IntegerProperty()

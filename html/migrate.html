@@ -11,11 +11,15 @@
     $("#delete").click(function(){
       $.post("/migrate-delete", function(data, status){alert(data)});
     });
+    $("#errors").click(function(){
+      $.post("/migrate-version-errors", function(data, status){alert(data)});
+    });
     })
   </script>
 </head>
 <body>
   <button id="start">Start Migration</button>
+  <button id="errors">version errors</button>
   <div>
 	<p>Diffing: {{ diffing }}</p>
 	<p>Checking: {{ checking }}</p>
@@ -24,6 +28,10 @@
     <p>Error Messages</p>
     {% for error in errors %}
     <p>{{ error.resource_id }} {{ error.message}}</p>
+    {% endfor %}
+    <p>Version Errors: {{ num_version_errors }}</p>
+    {% for error in version_errors %}
+    <p>{{ error.resource_id }} Version: {{ error.message}}</p>
     {% endfor %}
   </div>
   <button id="delete">DELETE</button>
