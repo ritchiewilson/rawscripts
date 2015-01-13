@@ -12,14 +12,15 @@ from django.utils import simplejson
 import models
 import difflib
 import logging
+from datetime import datetime
 
 class MigrateUser(webapp.RequestHandler):
     def get(self):
         user = "rawilson52@gmail.com"
-        # user = "tefst@example.com"
+        user = "tefst@example.com"
         query = db.GqlQuery("SELECT * FROM UsersScripts "+
-                            "WHERE user='"+user+"'")
-        results = query.fetch(None)
+                            "WHERE permission='owner'")
+        results = query.fetch(1000)
         for script in results:
             if not script.permission == "owner":
                 continue
@@ -31,7 +32,7 @@ class MigrateUser(webapp.RequestHandler):
 
 class MigrateScript(webapp.RequestHandler):
     def post(self):
-        VERSIONS_PER_REQUEST = 3
+        VERSIONS_PER_REQUEST = 2
         resource_id = self.request.get('resource_id')
         start_version = int(self.request.get('start_version'))
         query = models.ScriptData.all()
@@ -43,14 +44,16 @@ class MigrateScript(webapp.RequestHandler):
             return
         if start_version == 0:
             first = results[0]
-            self.save_version(1, first.timestamp, bool(first.autosave), "", first.data)
+            rv = self.save_version(1, first.timestamp, bool(first.autosave), "", first.data)
+            self.save_tags(first, rv)
         for snapshot1, snapshot2 in zip(results, results[1:]):
             version = snapshot2.version
             timestamp = snapshot2.timestamp
             autosave = bool(snapshot2.autosave)
             string0 = snapshot1.data
             string1 = snapshot2.data
-            self.save_version(version, timestamp, autosave, string0, string1)
+            rv = self.save_version(version, timestamp, autosave, string0, string1)
+            self.save_tags(snapshot2, rv)
 
         params = {'resource_id': resource_id,
                   'start_version': start_version + VERSIONS_PER_REQUEST - 1}
@@ -84,12 +87,37 @@ class MigrateScript(webapp.RequestHandler):
                 op.text = string1[j1:j2]
             op.put()
             application_index += 1
+        return rv
+
+        # save all the email, export, and user defined tags
+    def save_tags(self, snapshot, resource_version):
+        if snapshot.tag != '':
+            tag = models.VersionTag(resource_version=resource_version,
+                                    _type='user',
+                                    value=snapshot.tag,
+                                    timestamp=resource_version.timestamp)
+            tag.put()
+        emails, exports = simplejson.loads(snapshot.export)
+
+        def save_tag(entry, _type):
+            value = entry[0]
+            timestamp = datetime.strptime(entry[1], "%Y-%m-%d %H:%M:%S.%f")
+            tag = models.VersionTag(resource_version=resource_version,
+                                    _type=_type,
+                                    value=value,
+                                    timestamp=timestamp)
+            tag.put()
+        for email in emails:
+            save_tag(email, 'email')
+        for export in exports:
+            save_tag(export, 'export')
+
 
 
 class MigrateCheck(webapp.RequestHandler):
     def get(self):
         user = "rawilson52@gmail.com"
-        # user = "tefst@example.com"
+        user = "tefst@example.com"
         query = db.GqlQuery("SELECT * FROM UsersScripts "+
                             "WHERE user='"+user+"'")
         results = query.fetch(None)

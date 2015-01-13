@@ -138,3 +138,10 @@ class Op(db.Model):
     amount = db.IntegerProperty()
     text = db.TextProperty()
     application_index = db.IntegerProperty()
+
+class VersionTag(db.Model):
+    resource_version = db.ReferenceProperty(ResourceVersion,
+                                            collection_name="tags")
+    _type = db.StringProperty()
+    value = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now_add=True)
