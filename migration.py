@@ -67,7 +67,7 @@ class MigrateDelete(webapp.RequestHandler):
                            "ResourceVersion", "VersionTag"]
         for table in tables_to_clear:
             query = db.GqlQuery("SELECT __key__ FROM "+ table)
-            entries = query.fetch(1000)
+            entries = query.fetch(10000)
             if len(entries) == 0:
                 continue
             db.delete(entries)
@@ -162,7 +162,8 @@ class MigrateScript(webapp.RequestHandler):
 
         def save_tag(entry, _type):
             value = entry[0]
-            timestamp = datetime.strptime(entry[1], "%Y-%m-%d %H:%M:%S.%f")
+            t = entry[1].split(".")[0]
+            timestamp = datetime.strptime(t, "%Y-%m-%d %H:%M:%S")
             tag = models.VersionTag(resource_version=resource_version,
                                     _type=_type,
                                     value=value,
