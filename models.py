@@ -133,7 +133,7 @@ class ResourceVersion(db.Model):
 class Op(db.Model):
     resource_version = db.ReferenceProperty(ResourceVersion,
                                             collection_name="ops")
-    action = db.StringProperty()
+    action = db.IntegerProperty() # 0: insert, 1: delete, 3: replace
     offset = db.IntegerProperty()
     amount = db.IntegerProperty()
     text = db.TextProperty()
@@ -145,3 +145,10 @@ class VersionTag(db.Model):
     _type = db.StringProperty()
     value = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
+
+class MigrationCheck(db.Model):
+    resource_id = db.StringProperty()
+    diffing = db.BooleanProperty()
+    checking = db.BooleanProperty()
+    correct = db.BooleanProperty()
+    text =  db.StringProperty()

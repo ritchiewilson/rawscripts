@@ -1,0 +1,31 @@
+<!DOCTYPE html> 
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Migrate</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script>
+    $(document).ready(function(){
+    $("#start").click(function(){
+      $.post("/migrate", function(data, status){alert(data)});
+    });
+    $("#delete").click(function(){
+      $.post("/migrate-delete", function(data, status){alert(data)});
+    });
+    })
+  </script>
+</head>
+<body>
+  <button id="start">Start Migration</button>
+  <div>
+	<p>Diffing: {{ diffing }}</p>
+	<p>Checking: {{ checking }}</p>
+	<p>Correct: {{ correct }}</p>
+	<p>Failed: {{ failed }}</p>
+    <p>Error Messages</p>
+    {% for error in errors %}
+    <p>{{ error.resource_id }} {{ error.message}}</p>
+    {% endfor %}
+  </div>
+  <button id="delete">DELETE</button>
+</body>
+</html>
