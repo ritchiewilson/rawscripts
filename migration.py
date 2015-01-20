@@ -263,7 +263,11 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
     def post(self):
         resource_id = self.request.get('resource_id')
         if resource_id == 'init':
-            self.queue_all_tasks()
+            self.queue_all_batches()
+            return
+
+        if resource_id == 'batch':
+            self.queue_all_batch_tasks()
             return
 
         query = db.GqlQuery("SELECT version, tag, export FROM ScriptData "+
@@ -289,12 +293,26 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
             version1 = version2
         return
 
-    def queue_all_tasks(self):
-        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
+    def queue_all_batches(self):
+        query = db.GqlQuery("SELECT __key__ FROM UsersScripts "+
                             "WHERE permission='owner'")
-        for script in query.run():
+        num_of_batches = int(query.count(100000) / 1000) + 1
+        for batch in xrange(num_of_batches):
+            offset = batch * 1000
+            logging.info('AAAAAAAAAAAAAAAAAAA')
+            logging.info(offset)
+            params = {'resource_id': 'batch',
+                      'offset': offset}
+            taskqueue.add(url="/migrate-version-errors-task", params=params)
+
+    def queue_all_batch_tasks(self):
+        offset = int(self.request.get('offset'))
+        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
+                            "WHERE permission='owner' ORDER BY resource_id")
+        for script in query.run(offset=offset, limit=1000):
             params = {'resource_id': script.resource_id}
             taskqueue.add(url="/migrate-version-errors-task", params=params)
+
 
 def main():
     application = webapp.WSGIApplication([('/migrate-script', MigrateScript),
