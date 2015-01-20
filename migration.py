@@ -299,8 +299,6 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
         num_of_batches = int(query.count(100000) / 1000) + 1
         for batch in xrange(num_of_batches):
             offset = batch * 1000
-            logging.info('AAAAAAAAAAAAAAAAAAA')
-            logging.info(offset)
             params = {'resource_id': 'batch',
                       'offset': offset}
             taskqueue.add(url="/migrate-version-errors-task", params=params)

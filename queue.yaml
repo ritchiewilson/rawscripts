@@ -1,3 +1,6 @@
 queue:
 - name: exportdb
   rate: 1/s
+
+- name: default
+  rate: 20/s
