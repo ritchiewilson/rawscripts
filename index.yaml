@@ -24,7 +24,21 @@ indexes:
 - kind: ScriptData
   properties:
   - name: resource_id
+  - name: export
+  - name: tag
   - name: version
+
+- kind: ScriptData
+  properties:
+  - name: resource_id
+  - name: version
+
+- kind: ScriptData
+  properties:
+  - name: resource_id
+  - name: version
+  - name: export
+  - name: tag
 
 - kind: ScriptData
   properties:

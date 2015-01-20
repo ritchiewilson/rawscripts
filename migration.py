@@ -17,12 +17,11 @@ from datetime import datetime
 class Migrate(webapp.RequestHandler):
     def get(self):
         query = models.MigrationCheck.all()
-        results = query.fetch(None)
         diffing = 0
         checking = 0
         correct = 0
         errors = []
-        for result in results:
+        for result in query.run():
             if result.diffing is True:
                 diffing += 1
             elif result.checking is True:
@@ -35,13 +34,13 @@ class Migrate(webapp.RequestHandler):
                 errors.append(error)
 
         query = models.VersionErrors.all()
-        results = query.fetch(None)
-        num_version_errors = len(results)
+        num_version_errors = 0
         version_errors = []
-        for result in results:
+        for result in query.run():
             error = {'resource_id': result.resource_id,
                      'message': result.version}
             version_errors.append(error)
+            num_version_errors += 1
 
 
         template_values = {
@@ -61,14 +60,13 @@ class Migrate(webapp.RequestHandler):
     def post(self):
         user = "rawilson52@gmail.com"
         # user = "tefst@example.com"
-        query = db.GqlQuery("SELECT * FROM UsersScripts "+
+        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
                             "WHERE permission='owner'")
-        query = db.GqlQuery("SELECT * FROM UsersScripts "+
-                            "WHERE user='"+user+"'")
-        results = query.fetch(100)
-        for script in results:
-            if not script.permission == "owner":
-                continue
+        # query = db.GqlQuery("SELECT * FROM UsersScripts "+
+                            # "WHERE user='"+user+"'")
+        for script in query.run():
+            # if not script.permission == "owner":
+            # continue
             params = {'resource_id': script.resource_id,
                       'start_version': 0}
             taskqueue.add(url="/migrate-script", params=params)
@@ -256,30 +254,47 @@ class MigrateCheck(webapp.RequestHandler):
 
 class MigrateVersionErrors(webapp.RequestHandler):
     def post(self):
-        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
-                            "WHERE permission='owner'")
-        results = query.fetch(10000)
-        for script in results:
-            params = {'resource_id': script.resource_id}
-            taskqueue.add(url="/migrate-version-errors-task", params=params)
+        params = {'resource_id': 'init'}
+        taskqueue.add(url="/migrate-version-errors-task", params=params)
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("all queued up")
 
 class MigrateVersionErrorTask(webapp.RequestHandler):
     def post(self):
         resource_id = self.request.get('resource_id')
-        query = db.GqlQuery("SELECT version FROM ScriptData "+
-                            "WHERE resource_id='" + resource_id +"'")
-        results = query.fetch(None)
-        versions = sorted(results, key=lambda result: result.version)
-        for version1, version2 in zip(versions, versions[1:]):
-            if version1.version + 1 == version2.version:
+        if resource_id == 'init':
+            self.queue_all_tasks()
+            return
+
+        query = db.GqlQuery("SELECT version, tag, export FROM ScriptData "+
+                            "WHERE resource_id='" + resource_id +"' ORDER BY version")
+        version1 = None
+        for version2 in query.run():
+            if version1 is None:
+                version1 = version2
                 continue
+            if version1.version + 1 == version2.version:
+                version1 = version2
+                continue
+
+            def check_version(version):
+                return version.tag != '' or version.export != "[[],[]]"
+            first = check_version(version1)
+            second = check_version(version2)
             error = models.VersionErrors(resource_id=resource_id,
                                          version=version1.version)
+            error.one_tagged = (first or second)
+            error.both_tagged = (first and second)
             error.put()
+            version1 = version2
         return
 
+    def queue_all_tasks(self):
+        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
+                            "WHERE permission='owner'")
+        for script in query.run():
+            params = {'resource_id': script.resource_id}
+            taskqueue.add(url="/migrate-version-errors-task", params=params)
 
 def main():
     application = webapp.WSGIApplication([('/migrate-script', MigrateScript),

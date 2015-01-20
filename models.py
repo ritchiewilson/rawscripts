@@ -156,3 +156,5 @@ class MigrationCheck(db.Model):
 class VersionErrors(db.Model):
     resource_id = db.StringProperty()
     version =  db.IntegerProperty()
+    one_tagged = db.BooleanProperty()
+    both_tagged = db.BooleanProperty()
