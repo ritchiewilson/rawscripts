@@ -254,7 +254,7 @@ class MigrateCheck(webapp.RequestHandler):
 
 class MigrateVersionErrors(webapp.RequestHandler):
     def post(self):
-        params = {'resource_id': 'init'}
+        params = {'resource_id': 'delete'}
         taskqueue.add(url="/migrate-version-errors-task", params=params)
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("all queued up")
@@ -268,6 +268,10 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
 
         if resource_id == 'batch':
             self.queue_all_batch_tasks()
+            return
+
+        if resource_id == 'delete':
+            self.delete_duplicate_versions()
             return
 
         query = db.GqlQuery("SELECT version, tag, export FROM ScriptData "+
@@ -310,6 +314,23 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
         for script in query.run(offset=offset, limit=1000):
             params = {'resource_id': script.resource_id}
             taskqueue.add(url="/migrate-version-errors-task", params=params)
+
+    def delete_duplicate_versions(self):
+        def version_has_no_tag(version):
+            return version.tag == '' and version.export == '[[],[]]'
+        query = models.VersionErrors.all()
+        for error in query.run():
+            version_query = models.ScriptData.all()
+            version_query.filter('resource_id =', error.resource_id)
+            version_query.filter('version =', error.version)
+            results = version_query.fetch(3)
+            if len(results) != 2:
+                continue
+            version1, version2 = results
+            if version_has_no_tag(version1):
+                db.delete(version1)
+            elif version_has_no_tag(version2):
+                db.delete(version2)
 
 
 def main():
