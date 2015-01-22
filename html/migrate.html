@@ -11,15 +11,19 @@
     $("#delete").click(function(){
       $.post("/migrate-delete", function(data, status){alert(data)});
     });
-    $("#errors").click(function(){
+    $("#detect-version-errors").click(function(){
       $.post("/migrate-version-errors", function(data, status){alert(data)});
+    });
+    $("#fix-version-errors").click(function(){
+      $.post("/migrate-version-errors-task", function(data, status){alert(data)});
     });
     })
   </script>
 </head>
 <body>
   <button id="start">Start Migration</button>
-  <button id="errors">version errors</button>
+  <button id="detect-version-errors">Detect Version Errors</button>
+  <button id="fix-version-errors">Fix Version Errors</button>
   <div>
 	<p>Diffing: {{ diffing }}</p>
 	<p>Checking: {{ checking }}</p>

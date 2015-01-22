@@ -42,7 +42,6 @@ class Migrate(webapp.RequestHandler):
             version_errors.append(error)
             num_version_errors += 1
 
-
         template_values = {
             'diffing': diffing,
             'checking': checking,
@@ -58,18 +57,9 @@ class Migrate(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
     def post(self):
-        user = "rawilson52@gmail.com"
-        # user = "tefst@example.com"
-        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
-                            "WHERE permission='owner'")
-        # query = db.GqlQuery("SELECT * FROM UsersScripts "+
-                            # "WHERE user='"+user+"'")
-        for script in query.run():
-            # if not script.permission == "owner":
-            # continue
-            params = {'resource_id': script.resource_id,
-                      'start_version': 0}
-            taskqueue.add(url="/migrate-script", params=params)
+        params = {'stage': 'init',
+                  'action': 'migrate-content'}
+        taskqueue.add(url="/migrate-batches", params=params)
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("all queued up")
 
@@ -88,9 +78,19 @@ class MigrateDelete(webapp.RequestHandler):
 
 class MigrateScript(webapp.RequestHandler):
     def post(self):
+        action = self.request.get('action')
+        if action == 'migrate-content':
+            self.migrate_content()
+        if action == 'check-migration':
+            self.check_migration()
+        if action == 'detect-version-errors':
+            self.detect_version_errors()
+
+    def migrate_content(self):
         VERSIONS_PER_REQUEST = 5
         resource_id = self.request.get('resource_id')
-        start_version = int(self.request.get('start_version'))
+        latest_version = models.ResourceVersion.get_last_version_number(resource_id)
+        start_version = max(0, (latest_version - 1))
         if start_version == 0:
             mc = models.MigrationCheck(key_name=resource_id,
                                        resource_id=resource_id,
@@ -106,14 +106,8 @@ class MigrateScript(webapp.RequestHandler):
 
         # no more work, so start checking everything
         if len(results) == 0:
-            mc = models.MigrationCheck.get_by_key_name(resource_id)
-            mc.diffing = False
-            mc.checking = True
-            mc.put()
-            params = {'resource_id': resource_id}
-            taskqueue.add(url="/migrate-check", params=params)
+            self.queue_content_check(resource_id)
             return
-
         # first save is an anoying edge case
         if start_version == 0:
             first = results[0]
@@ -128,10 +122,21 @@ class MigrateScript(webapp.RequestHandler):
             rv = self.save_version(version, timestamp, autosave, string0, string1)
             self.save_tags(snapshot2, rv)
 
+        if len(results) <= 2:
+            self.queue_content_check(resource_id)
+            return
         params = {'resource_id': resource_id,
-                  'start_version': start_version + VERSIONS_PER_REQUEST - 1}
+                  'action': 'migrate-content'}
         taskqueue.add(url="/migrate-script", params=params)
 
+    def queue_content_check(self, resource_id):
+        mc = models.MigrationCheck.get_by_key_name(resource_id)
+        mc.diffing = False
+        mc.checking = True
+        mc.put()
+        params = {'resource_id': resource_id, 'action': 'check-migration'}
+        taskqueue.add(url="/migrate-script", params=params)
+        return
 
     def save_version(self, version, timestamp, autosave, string0, string1):
         resource_id = self.request.get('resource_id')
@@ -164,13 +169,12 @@ class MigrateScript(webapp.RequestHandler):
 
     # save all the email, export, and user defined tags
     def save_tags(self, snapshot, resource_version):
-        if snapshot.tag != '':
+        if snapshot.tag is not None and snapshot.tag != '':
             tag = models.VersionTag(resource_version=resource_version,
                                     _type='user',
                                     value=snapshot.tag,
                                     timestamp=resource_version.timestamp)
             tag.put()
-        emails, exports = simplejson.loads(snapshot.export)
 
         def save_tag(entry, _type):
             value = entry[0]
@@ -181,15 +185,13 @@ class MigrateScript(webapp.RequestHandler):
                                     value=value,
                                     timestamp=timestamp)
             tag.put()
+        emails, exports = simplejson.loads(snapshot.export)
         for email in emails:
             save_tag(email, 'email')
         for export in exports:
             save_tag(export, 'export')
 
-
-
-class MigrateCheck(webapp.RequestHandler):
-    def post(self):
+    def check_migration(self):
         resource_id = self.request.get('resource_id')
         status = self.verify_screenplay(resource_id)
         mc = models.MigrationCheck.get_by_key_name(resource_id)
@@ -200,26 +202,6 @@ class MigrateCheck(webapp.RequestHandler):
             mc.correct = False
             mc.text = status
         mc.put()
-
-
-    def get(self):
-        user = "rawilson52@gmail.com"
-        user = "tefst@example.com"
-        query = db.GqlQuery("SELECT * FROM UsersScripts "+
-                            "WHERE user='"+user+"'")
-        results = query.fetch(None)
-        output = ""
-        for script in results:
-            if not script.permission == "owner":
-                continue
-            output += script.title + ", " + script.resource_id + ": "
-            verified = self.verify_screenplay(script.resource_id)
-            if verified == True:
-                output += "True\n"
-            else:
-                output += "FAILED AT VERSION: " + str(verified) + "\n"
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write(output)
 
     def verify_screenplay(self, resource_id):
         query = db.GqlQuery("SELECT * FROM ScriptData "+
@@ -252,28 +234,8 @@ class MigrateCheck(webapp.RequestHandler):
                 string = string[:op.offset] + op.text + string[op.offset + op.amount:]
         return string
 
-class MigrateVersionErrors(webapp.RequestHandler):
-    def post(self):
-        params = {'resource_id': 'delete'}
-        taskqueue.add(url="/migrate-version-errors-task", params=params)
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write("all queued up")
-
-class MigrateVersionErrorTask(webapp.RequestHandler):
-    def post(self):
+    def detect_version_errors(self):
         resource_id = self.request.get('resource_id')
-        if resource_id == 'init':
-            self.queue_all_batches()
-            return
-
-        if resource_id == 'batch':
-            self.queue_all_batch_tasks()
-            return
-
-        if resource_id == 'delete':
-            self.delete_duplicate_versions()
-            return
-
         query = db.GqlQuery("SELECT version, tag, export FROM ScriptData "+
                             "WHERE resource_id='" + resource_id +"' ORDER BY version")
         version1 = None
@@ -290,30 +252,60 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
             first = check_version(version1)
             second = check_version(version2)
             error = models.VersionErrors(resource_id=resource_id,
-                                         version=version1.version)
+                                         version=version1.version,
+                                         next_version=version2.version)
             error.one_tagged = (first or second)
             error.both_tagged = (first and second)
             error.put()
             version1 = version2
         return
 
-    def queue_all_batches(self):
-        query = db.GqlQuery("SELECT __key__ FROM UsersScripts "+
-                            "WHERE permission='owner'")
-        num_of_batches = int(query.count(100000) / 1000) + 1
-        for batch in xrange(num_of_batches):
-            offset = batch * 1000
-            params = {'resource_id': 'batch',
-                      'offset': offset}
-            taskqueue.add(url="/migrate-version-errors-task", params=params)
+class MigrateVersionErrors(webapp.RequestHandler):
+    def post(self):
+        params = {'stage': 'init', 'action': 'detect-version-errors'}
+        taskqueue.add(url="/migrate-batches", params=params)
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write("all queued up")
 
-    def queue_all_batch_tasks(self):
-        offset = int(self.request.get('offset'))
-        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
-                            "WHERE permission='owner' ORDER BY resource_id")
-        for script in query.run(offset=offset, limit=1000):
-            params = {'resource_id': script.resource_id}
-            taskqueue.add(url="/migrate-version-errors-task", params=params)
+class MigrateVersionErrorTask(webapp.RequestHandler):
+    def post(self):
+        resource_id = self.request.get('resource_id')
+        if resource_id is None or resource_id == '':
+            self.set_up_tasks()
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write("all queued up")
+        else:
+            self.infill()
+
+    def set_up_tasks(self):
+        query = models.VersionErrors.all()
+        for error in query.run():
+            params = {'resource_id': error.resource_id,
+                      'version': error.version}
+            taskqueue.add(url='/migrate-version-errors-task', params=params)
+
+    def infill(self):
+        resource_id = self.request.get('resource_id')
+        version = int(self.request.get('version'))
+        query = models.ScriptData.all()
+        query.filter('resource_id =', resource_id)
+        query.filter('version =', version)
+        original = query.get()
+        while True:
+            version += 1
+            query = models.ScriptData.all()
+            query.filter('resource_id =', resource_id)
+            query.filter('version =', version)
+            version_check = query.get()
+            if version_check is not None:
+                return
+            new_version = models.ScriptData(resource_id=resource_id,
+                                            data=original.data, version=version,
+                                            timestamp=original.timestamp,
+                                            autosave=1, export='[[],[]]',
+                                            tag='')
+            new_version.put()
+
 
     def delete_duplicate_versions(self):
         def version_has_no_tag(version):
@@ -329,13 +321,43 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
             version1, version2 = results
             if version_has_no_tag(version1):
                 db.delete(version1)
+                continue
             elif version_has_no_tag(version2):
                 db.delete(version2)
+
+class MigrateBatches(webapp.RequestHandler):
+    def post(self):
+        stage = self.request.get('stage')
+        action = self.request.get('action')
+        if stage == 'init':
+            self.queue_all_batches(action)
+        if stage == 'batch':
+            self.queue_all_batch_tasks(action)
+
+    def queue_all_batches(self, action):
+        query = db.GqlQuery("SELECT __key__ FROM UsersScripts "+
+                            "WHERE permission='owner'")
+        num_of_batches = int(query.count(100000) / 1000) + 1
+        for batch in xrange(num_of_batches):
+            offset = batch * 1000
+            params = {'stage': 'batch',
+                      'offset': offset,
+                      'action': action}
+            taskqueue.add(url="/migrate-batches", params=params)
+
+    def queue_all_batch_tasks(self, action):
+        offset = int(self.request.get('offset'))
+        query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
+                            "WHERE permission='owner' ORDER BY resource_id")
+        for script in query.run(offset=offset, limit=1000):
+            params = {'resource_id': script.resource_id,
+                      'action': action}
+            taskqueue.add(url='/migrate-script', params=params)
 
 
 def main():
     application = webapp.WSGIApplication([('/migrate-script', MigrateScript),
-                                          ('/migrate-check', MigrateCheck),
+                                          ('/migrate-batches', MigrateBatches),
                                           ('/migrate', Migrate),
                                           ('/migrate-delete', MigrateDelete),
                                           ('/migrate-version-errors', MigrateVersionErrors),

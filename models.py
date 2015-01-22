@@ -130,6 +130,17 @@ class ResourceVersion(db.Model):
     timestamp = db.DateTimeProperty(auto_now_add=True)
     autosave = db.BooleanProperty()
 
+    @staticmethod
+    def get_last_version_number(resource_id):
+        query = ResourceVersion.all()
+        query.filter('resource_id =', resource_id)
+        query.order('-version')
+        latest = query.get(projection=('version',))
+        if latest is None:
+            return 0
+        return latest.version
+
+
 class Op(db.Model):
     resource_version = db.ReferenceProperty(ResourceVersion,
                                             collection_name="ops")
@@ -156,5 +167,6 @@ class MigrationCheck(db.Model):
 class VersionErrors(db.Model):
     resource_id = db.StringProperty()
     version =  db.IntegerProperty()
+    next_version = db.IntegerProperty()
     one_tagged = db.BooleanProperty()
     both_tagged = db.BooleanProperty()

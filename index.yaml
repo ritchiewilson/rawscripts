@@ -21,6 +21,12 @@ indexes:
   - name: resource_id
   - name: version
 
+- kind: ResourceVersion
+  properties:
+  - name: resource_id
+  - name: version
+    direction: desc
+
 - kind: ScriptData
   properties:
   - name: resource_id
