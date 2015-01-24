@@ -41,79 +41,79 @@ import models
 
 
 class JunkParse(webapp.RequestHandler):
-	def get(self):
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE permission='hardDelete'")
-		r=q.fetch(100)
-		for i in r:
-			taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
-		self.response.out.write('1')
-			
-		
+    def get(self):
+        q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                        "WHERE permission='hardDelete'")
+        r = q.fetch(100)
+        for i in r:
+            taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
+        self.response.out.write('1')
+
+
 class AutomatedDelete (webapp.RequestHandler):
-	def post(self):
-		resource_id=self.request.get('resource_id')
+    def post(self):
+        resource_id=self.request.get('resource_id')
 
-		q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
-									"WHERE from_script='"+resource_id+"'")
-		f=q.fetch(1000)
-		logging.info(len(f))
-		#if nothing comes from this script
-		if len(f)==0:
-			q=db.GqlQuery("SELECT * FROM ScriptData "+
-										"WHERE resource_id='"+resource_id+"'")
-			r=q.fetch(50)
+        q = db.GqlQuery("SELECT * FROM DuplicateScripts "+
+                        "WHERE from_script='"+resource_id+"'")
+        f = q.fetch(1)
+        #if nothing comes from this script
+        if len(f) != 0:
+            return
 
-			if not len(r)==0:
-				for i in r:
-					i.delete()
-				taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
-			else:
-				q=db.GqlQuery("SELECT * FROM DuplicateScripts "+
-											"WHERE new_script='"+resource_id+"'")
-				r=q.fetch(50)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM TitlePageData "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(50)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM UsersScripts "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(50)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM SpellingData "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(50)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM Notes "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(1000)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM NotesNotify "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(1000)
-				for i in r:
-					i.delete()
-				q=db.GqlQuery("SELECT * FROM ShareNotify "+
-											"WHERE resource_id='"+resource_id+"'")
-				r=q.fetch(1000)
-				for i in r:
-					i.delete()
-		
+        q = db.GqlQuery("SELECT * FROM ScriptData "+
+                        "WHERE resource_id='"+resource_id+"'")
+        r = q.fetch(50)
+
+        if not len(r)==0:
+            for i in r:
+                i.delete()
+            params = {'resource_id': resource_id}
+            taskqueue.add(url='/automateddelete', params=params)
+        else:
+            q = db.GqlQuery("SELECT * FROM DuplicateScripts "+
+                            "WHERE new_script='"+resource_id+"'")
+            r = q.fetch(50)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM TitlePageData "+
+                            "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(50)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM UsersScripts "+
+                            "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(50)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM SpellingData "+
+                            "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(50)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM Notes "+
+                            "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(1000)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM NotesNotify "+
+                                        "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(1000)
+            for i in r:
+                i.delete()
+            q = db.GqlQuery("SELECT * FROM ShareNotify "+
+                            "WHERE resource_id='"+resource_id+"'")
+            r = q.fetch(1000)
+            for i in r:
+                i.delete()
+
 def main():
-	application = webapp.WSGIApplication([('/junkparse', JunkParse),
-																				('/automateddelete', AutomatedDelete),],
-																			 debug=True)
-	
-	run_wsgi_app(application)
+    application = webapp.WSGIApplication([('/junkparse', JunkParse),
+                                          ('/automateddelete', AutomatedDelete),],
+                                         debug=True)
+
+    run_wsgi_app(application)
 
 
 if __name__ == '__main__':
-	main()
-
-
+    main()
