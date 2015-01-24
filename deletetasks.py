@@ -44,15 +44,22 @@ class JunkParse(webapp.RequestHandler):
     def get(self):
         q = db.GqlQuery("SELECT * FROM UsersScripts "+
                         "WHERE permission='hardDelete'")
-        r = q.fetch(100)
-        for i in r:
+        for i in q.run(limit=5000, projection=('resource_id',)):
             taskqueue.add(url='/automateddelete', params={'resource_id':i.resource_id})
-        self.response.out.write('1')
+            self.response.out.write(i.resource_id)
+            self.response.out.write("\n")
 
 
 class AutomatedDelete (webapp.RequestHandler):
     def post(self):
         resource_id=self.request.get('resource_id')
+        query = models.UsersScripts.all()
+        query.filter('resource_id =', resource_id)
+        rows = query.fetch(2)
+        if len(rows) != 1:
+            return
+        if rows[0].permission != 'hardDelete':
+            return
 
         q = db.GqlQuery("SELECT * FROM DuplicateScripts "+
                         "WHERE from_script='"+resource_id+"'")
