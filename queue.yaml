@@ -3,4 +3,4 @@ queue:
   rate: 1/s
 
 - name: default
-  rate: 20/s
+  rate: 1/s
