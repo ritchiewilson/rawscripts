@@ -68,51 +68,44 @@ class AutomatedDelete (webapp.RequestHandler):
         if len(f) != 0:
             return
 
-        q = db.GqlQuery("SELECT * FROM ScriptData "+
+        q = db.GqlQuery("SELECT __key__ FROM ScriptData "+
                         "WHERE resource_id='"+resource_id+"'")
-        r = q.fetch(50)
+        r = q.fetch(500)
 
         if not len(r)==0:
-            for i in r:
-                i.delete()
+            db.delete(r)
             params = {'resource_id': resource_id}
             taskqueue.add(url='/automateddelete', params=params)
+            return
         else:
-            q = db.GqlQuery("SELECT * FROM DuplicateScripts "+
+            q = db.GqlQuery("SELECT __key__ FROM DuplicateScripts "+
                             "WHERE new_script='"+resource_id+"'")
             r = q.fetch(50)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM TitlePageData "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM TitlePageData "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(50)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM UsersScripts "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM UsersScripts "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(50)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM SpellingData "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM SpellingData "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(50)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM Notes "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM Notes "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(1000)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM NotesNotify "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM NotesNotify "+
                                         "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(1000)
-            for i in r:
-                i.delete()
-            q = db.GqlQuery("SELECT * FROM ShareNotify "+
+            db.delete(r)
+            q = db.GqlQuery("SELECT __key__ FROM ShareNotify "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(1000)
-            for i in r:
-                i.delete()
+            db.delete(r)
 
 def main():
     application = webapp.WSGIApplication([('/junkparse', JunkParse),
