@@ -52,14 +52,12 @@ class JunkParse(webapp.RequestHandler):
 
 class AutomatedDelete (webapp.RequestHandler):
     def post(self):
-        resource_id=self.request.get('resource_id')
+        resource_id = self.request.get('resource_id')
         query = models.UsersScripts.all()
         query.filter('resource_id =', resource_id)
-        rows = query.fetch(2)
-        if len(rows) != 1:
-            return
-        if rows[0].permission != 'hardDelete':
-            return
+        for row in query.run():
+            if row.permission != 'hardDelete':
+                return
 
         q = db.GqlQuery("SELECT * FROM DuplicateScripts "+
                         "WHERE from_script='"+resource_id+"'")
