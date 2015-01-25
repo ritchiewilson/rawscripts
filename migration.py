@@ -59,7 +59,8 @@ class Migrate(webapp.RequestHandler):
     def post(self):
         params = {'stage': 'init',
                   'action': 'migrate-content'}
-        taskqueue.add(url="/migrate-batches", params=params)
+        taskqueue.add(url="/migrate-batches", params=params,
+                      queue_name='migrate')
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("all queued up")
 
@@ -87,7 +88,7 @@ class MigrateScript(webapp.RequestHandler):
             self.detect_version_errors()
 
     def migrate_content(self):
-        VERSIONS_PER_REQUEST = 5
+        VERSIONS_PER_REQUEST = 2
         resource_id = self.request.get('resource_id')
         latest_version = models.ResourceVersion.get_last_version_number(resource_id)
         start_version = max(0, (latest_version - 1))
@@ -127,7 +128,7 @@ class MigrateScript(webapp.RequestHandler):
             return
         params = {'resource_id': resource_id,
                   'action': 'migrate-content'}
-        taskqueue.add(url="/migrate-script", params=params)
+        taskqueue.add(url="/migrate-script", params=params, queue_name='migrate')
 
     def queue_content_check(self, resource_id):
         mc = models.MigrationCheck.get_by_key_name(resource_id)
@@ -135,7 +136,7 @@ class MigrateScript(webapp.RequestHandler):
         mc.checking = True
         mc.put()
         params = {'resource_id': resource_id, 'action': 'check-migration'}
-        taskqueue.add(url="/migrate-script", params=params)
+        taskqueue.add(url="/migrate-script", params=params, queue_name='migrate')
         return
 
     def save_version(self, version, timestamp, autosave, string0, string1):
@@ -263,7 +264,8 @@ class MigrateScript(webapp.RequestHandler):
 class MigrateVersionErrors(webapp.RequestHandler):
     def post(self):
         params = {'stage': 'init', 'action': 'detect-version-errors'}
-        taskqueue.add(url="/migrate-batches", params=params)
+        taskqueue.add(url="/migrate-batches", params=params,
+                      queue_name='migrate')
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write("all queued up")
 
@@ -282,7 +284,8 @@ class MigrateVersionErrorTask(webapp.RequestHandler):
         for error in query.run():
             params = {'resource_id': error.resource_id,
                       'version': error.version}
-            taskqueue.add(url='/migrate-version-errors-task', params=params)
+            taskqueue.add(url='/migrate-version-errors-task', params=params,
+                          queue_name='migrate')
 
     def infill(self):
         resource_id = self.request.get('resource_id')
@@ -335,6 +338,19 @@ class MigrateBatches(webapp.RequestHandler):
             self.queue_all_batch_tasks(action)
 
     def queue_all_batches(self, action):
+        if action == 'migrate-content':
+            query = models.MigrationCheck.all()
+            for row in query.run():
+                mc = models.MigrationCheck(key_name=row.resource_id,
+                                           resource_id=row.resource_id,
+                                           diffing=True,
+                                           checking=False,
+                                           correct=False)
+                mc.put()
+                params = {'resource_id': row.resource_id,
+                          'action': 'migrate-content'}
+                taskqueue.add(url='/migrate-script', params=params,
+                              queue_name='migrate')
         query = db.GqlQuery("SELECT __key__ FROM UsersScripts "+
                             "WHERE permission='owner'")
         num_of_batches = int(query.count(100000) / 1000) + 1
@@ -343,16 +359,18 @@ class MigrateBatches(webapp.RequestHandler):
             params = {'stage': 'batch',
                       'offset': offset,
                       'action': action}
-            taskqueue.add(url="/migrate-batches", params=params)
+            taskqueue.add(url="/migrate-batches", params=params,
+                          queue_name='migrate')
 
     def queue_all_batch_tasks(self, action):
         offset = int(self.request.get('offset'))
         query = db.GqlQuery("SELECT resource_id FROM UsersScripts "+
                             "WHERE permission='owner' ORDER BY resource_id")
-        for script in query.run(offset=offset, limit=1000):
+        for script in query.run(offset=offset, limit=20):
             params = {'resource_id': script.resource_id,
                       'action': action}
-            taskqueue.add(url='/migrate-script', params=params)
+            taskqueue.add(url='/migrate-script', params=params,
+                          queue_name='migrate')
 
 
 def main():
