@@ -601,127 +601,6 @@ class RemoveAccess (webapp.RequestHandler):
 			if len(r)!=0:
 				r[0].delete()
 
-class SettingsPage (webapp.RequestHandler):
-	def get(self):
-		user = users.get_current_user()
-		if not user:
-			self.redirect('/')
-			return
-		else:
-			path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
-			template_values = { 'sign_out': users.create_logout_url('/') }
-			template_values['user'] = users.get_current_user().email()
-			try:
-				domain = user.email().lower().split('@')[1].split('.')[0]
-				if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-					template_values['domain'] = 'Yahoo'
-					at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
-					if at==None or at==False:
-						template_values['syncContactsText']='OFF'
-					else:
-						template_values['syncContactsText']='ON'
-				else:
-					template_values['domain'] = 'Google'
-					token = get_contacts_google_token(self.request)
-					if token==False or token==None:
-						template_values['syncContactsText']='OFF'
-					else:
-						template_values['syncContactsText']='ON'
-			except:
-				template_values['domain'] = ''
-				template_values['syncContactsText']='not supported for your account'
-
-			try:
-				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
-			except:
-				us = None
-			if us==None:
-				us = models.UsersSettings(key_name='settings'+gcu(),
-									autosave=True,
-									owned_notify = 'every',
-									shared_notify = 'every')
-				us.put()
-				template_values['autosaveEnabled']='checked'
-				template_values['autosaveDisabled']=''
-				template_values['owned_every_selected']='selected'
-				template_values['owned_daily_selected']=''
-				template_values['owned_none_selected']=''
-				template_values['shared_every_selected']='selected'
-				template_values['shared_daily_selected']=''
-				template_values['shared_none_selected']=''
-
-			else:
-				if us.autosave==True:
-					template_values['autosaveEnabled']='checked'
-					template_values['autosaveDisabled']=''
-				else:
-					template_values['autosaveEnabled']=''
-					template_values['autosaveDisabled']='checked'
-				if us.owned_notify=='every':
-					template_values['owned_every_selected']='selected'
-					template_values['owned_daily_selected']=''
-					template_values['owned_none_selected']=''
-				elif us.owned_notify=='daily':
-					template_values['owned_every_selected']=''
-					template_values['owned_daily_selected']='selected'
-					template_values['owned_none_selected']=''
-				else:
-					template_values['owned_every_selected']=''
-					template_values['owned_daily_selected']=''
-					template_values['owned_none_selected']='selected'
-				if us.shared_notify=='every':
-					template_values['shared_every_selected']='selected'
-					template_values['shared_daily_selected']=''
-					template_values['shared_none_selected']=''
-				elif us.shared_notify=='daily':
-					template_values['shared_every_selected']=''
-					template_values['shared_daily_selected']='selected'
-					template_values['shared_none_selected']=''
-				else:
-					template_values['shared_every_selected']=''
-					template_values['shared_daily_selected']=''
-					template_values['shared_none_selected']='selected'
-			template_values['GA'] = config.GA
-			template_values['MODE'] = config.MODE
-			self.response.headers['Content-Type'] = 'text/html'
-			self.response.out.write(template.render(path, template_values))
-
-
-class ChangeUserSetting(webapp.RequestHandler):
-	def post(self):
-		user = users.get_current_user()
-		if not user:
-			return
-		else:
-			k = self.request.get('k')
-			v = self.request.get('v')
-			try:
-				us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
-			except:
-				us = None
-			if us==None:
-				us = models.UsersSettings(key_name='settings'+gcu(),
-									autosave=True,
-									owned_notify = 'every',
-									shared_notify = 'every')
-			if k=='autosave':
-				if v=='Enable':
-					value=True
-				else:
-					value=False
-				us.autosave=value
-				us.put()
-				output = "sent"
-			elif k=='owned_notify':
-				us.owned_notify=v
-				us.put()
-				output = 'owned_notifySaved'
-			elif k=='shared_notify':
-				us.shared_notify = v
-				us.put()
-				output = 'shared_notifySaved'
-			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.out.write(output)
 
 class SyncContactsPage (webapp.RequestHandler):
 	def get(self):
@@ -906,11 +785,9 @@ def main():
 											('/convertprocess', ConvertProcess),
 											('/share', Share),
 											('/removeaccess', RemoveAccess),
-											('/settings', SettingsPage),
 											('/synccontactspage', SyncContactsPage),
 											('/removesynccontacts', RemoveSyncContacts),
 											('/synccontacts', SyncContacts),
-											('/changeusersetting', ChangeUserSetting),
 											('/uploadhelp', UploadHelp),
 											('/convert', Convert),
 											('/hUoVeIFNIgngfTnTdlGQRg--.html', YahooVerification),],

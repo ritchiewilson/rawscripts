@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 1
+version: 3
 runtime: python
 api_version: 1
 
@@ -168,6 +168,14 @@ handlers:
   login: required
   script: scriptlist.py
 
+- url: /settings.*
+  login: required
+  script: user_settings.py
+
+- url: /changeusersetting.*
+  login: required
+  script: user_settings.py
+
 - url: /.*
   login: required
   script: scripteditor.py
@@ -180,5 +188,6 @@ skip_files:
 - ^(.*/)?#.*#
 - ^(.*/)?.*~
 - ^(.*/)?.*\.py[co]
+- ^(.*/)?.*rawscripts\.db
 - ^(.*/)?.*/RCS/.*
 - ^(.*/)?\..*
