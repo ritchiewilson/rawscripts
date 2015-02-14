@@ -88,7 +88,7 @@ class MigrateScript(webapp.RequestHandler):
             self.detect_version_errors()
 
     def migrate_content(self):
-        VERSIONS_PER_REQUEST = 2
+        VERSIONS_PER_REQUEST = 3
         resource_id = self.request.get('resource_id')
         latest_version = models.ResourceVersion.get_last_version_number(resource_id)
         start_version = max(0, (latest_version - 1))
