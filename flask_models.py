@@ -355,3 +355,11 @@ class DuplicateScript(db.Model):
         is_dup = DuplicateScript.query. \
                      filter_by(new_script=resource_id).first()
         return is_dup is not None
+
+class Folder(db.Model):
+    __tablename__ = "folders"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String)
+    data = db.Column(db.String)
+    __key__ = db.Column(db.String)
