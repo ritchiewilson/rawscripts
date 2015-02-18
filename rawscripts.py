@@ -27,55 +27,11 @@ from flask_models import *
 # db.create_all()
 
 import flask_editor
+import flask_scriptlist
 
 @app.route('/')
 def welcome():
     return render_template('welcome.html')
-
-@app.route('/scriptlist')
-def scriptlist():
-    return render_template('scriptlist.html', user="rawilson52@gmail.com")
-
-@app.route('/list', methods=['POST'])
-def list():
-    user = 'rawilson52@gmail.com'
-    screenplays = UsersScripts.query.filter_by(user=user). \
-                      order_by(UsersScripts.last_updated.desc()).all()
-    owned = []
-    shared = []
-    ownedDeleted = []
-    folders = []
-    for screenplay in screenplays:
-        data = [screenplay.resource_id, screenplay.title, "seconds ago"]
-        permission = screenplay.permission
-        if permission == 'collab':
-            permission = 'shared'
-        data.append(permission)
-        if screenplay.permission != 'collab':
-            sharing_with = []
-            data.append(sharing_with)
-        new_notes = 0
-        if permission != 'ownerDeleted':
-            data.append(new_notes)
-
-        data.append(screenplay.folder)
-
-        if screenplay.permission == 'collab':
-            # unopened
-            data.append("False")
-
-        if screenplay.permission == 'owner':
-            owned.append(data)
-        elif screenplay.permission == 'collab':
-            shared.append(data)
-        elif screenplay.permission == 'ownedDeleted':
-            ownedDeleted.append(data)
-
-    folders = [["Junk", "210283631"], ["Things to Shoot", "202865768"],
-               ["Founding Fathers", "6128964918"],
-               ["Fairy Tale", "1658192938"], ["Shot", "3891614880"]]
-    output = [owned, ownedDeleted, shared, folders]
-    return json.dumps(output)
 
 @app.route('/synccontacts', methods=['POST'])
 def synccontacts():
@@ -96,18 +52,6 @@ def images_redirect(img_file):
 @app.route('/js/min/<js_file>')
 def js_redirect(js_file):
     return send_from_directory('static/js/min', js_file)
-
-
-def apply_ops(string, ops):
-    for op in ops:
-        tag = ["insert", "delete", "replace"][op.action]
-        if tag == "delete":
-            string = string[:op.offset] + string[op.offset + op.amount:]
-        if tag == "insert":
-            string = string[:op.offset] + op.text + string[op.offset:]
-        if tag == "replace":
-            string = string[:op.offset] + op.text + string[op.offset + op.amount:]
-    return string
 
 @app.route('/test_rebuilding')
 def test_rebuilding():
