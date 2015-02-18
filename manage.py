@@ -1,11 +1,14 @@
 import datetime
 
 from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
 
 from rawscripts import app, db
 from flask_models import *
 
+migrate = Migrate(app, db)
 manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 def get_resource_ids():
     # resource_ids = UsersScripts.get_all_resource_ids()

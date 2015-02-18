@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rawscripts.db'
 db = SQLAlchemy(app)
 
 from flask_models import *
-db.create_all()
+# db.create_all()
 
 import flask_editor
 

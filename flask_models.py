@@ -41,7 +41,8 @@ class ScriptData(db.Model):
     export = db.Column(db.String)
     tag = db.Column(db.String)
 
-    __table_args__= (db.Index('ix_script_data_resource_id', "resource_id"),
+    __table_args__= (db.Index('ix_script_data_resource_id_version',
+                              "resource_id", db.asc('version')),
                      db.Index('ix_script_data_timestamp', 'timestamp'))
 
     @staticmethod
