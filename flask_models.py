@@ -312,6 +312,24 @@ class UsersScripts(db.Model):
         rows = [row.resource_id for row in rows]
         return rows
 
+    @staticmethod
+    def get_users_permission(resource_id, user):
+        # this check is just for the EOV in the editor window
+        if resource_id == 'Demo':
+            return 'owner'
+        row = UsersScripts.query.filter_by(resource_id=resource_id,
+                                           user=user).first()
+        if row is None:
+            return None
+        return row.permission
+
+    @staticmethod
+    def get_all_collaborators(resource_id):
+        collabs = UsersScripts.query.with_entities(UsersScripts.user). \
+                  filter_by(resource_id=resource_id, permission='collab').all()
+        collabs = [c.user for c in collabs]
+        return collabs
+
 
 class MigrationCheck(db.Model):
     __tablename__ = "migration_check"
