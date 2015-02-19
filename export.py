@@ -40,6 +40,22 @@ folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
 import config
 import models
 
+def wrap_text(text, max_chars):
+    words = text.split(' ')
+    phrase_array = []
+    last_phrase = ''
+    for i, word in enumerate(words):
+        measure = len(last_phrase + " " + word)
+        if measure < max_chars:
+            last_phrase += word + " "
+        else:
+            phrase_array.append(last_phrase[0:-1])
+            last_phrase = word +' '
+        if i + 1 == len(words):
+            phrase_array.append(last_phrase[0:-1])
+            break
+    return phrase_array
+
 def Text(data, title, title_page, resource_id):
     widths=[[62,15,1],[62,15,1],[40,35,0],[35,25,1],[35,30,0],[62,61,1]]
     txt = simplejson.loads(data)
@@ -313,21 +329,8 @@ def Pdf(data, title, title_page, resource_id):
         if line_format in [0, 2, 5]:
             text = text.upper()
 
-        wa = i[0].split(' ')
-        phraseArray = []
-        lastPhrase = ''
-        l = widths[line_format]
-
-        for i, w in enumerate(wa):
-            measure = len(lastPhrase + " " + w)
-            if measure < l:
-                lastPhrase += w + " "
-            else:
-                phraseArray.append(lastPhrase[0:-1])
-                lastPhrase = w +' '
-            if i + 1 == len(wa):
-                phraseArray.append(lastPhrase[0:-1])
-                break
+        max_chars = widths[line_format]
+        phraseArray = wrap_text(text, max_chars)
 
         if line_format == 2 and phraseArray[-1] == lc:
             phraseArray[-1] += " (CONT'D)"
