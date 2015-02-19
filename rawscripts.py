@@ -28,6 +28,7 @@ from flask_models import *
 
 import flask_editor
 import flask_scriptlist
+import flask_screenplay_export
 
 @app.route('/')
 def welcome():
