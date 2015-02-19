@@ -309,38 +309,33 @@ def Pdf(data, title, title_page, resource_id):
     linesNLB = []
     for i in lines:
         text, line_format = i[0], int(i[1])
+
+        if line_format in [0, 2, 5]:
+            text = text.upper()
+
         wa = i[0].split(' ')
         phraseArray = []
         lastPhrase = ''
-        l = widths[int(line_format)]
-        measure = 0
-        itr = 0
+        l = widths[line_format]
 
-        # test if should be uppercase
-        uc = line_format in [0, 2, 5]
-        for w in wa:
-            itr += 1
+        for i, w in enumerate(wa):
             measure = len(lastPhrase + " " + w)
             if measure < l:
                 lastPhrase += w + " "
             else:
-                if uc:
-                    lastPhrase = lastPhrase.upper()
-                    if line_format == 2 and lastPhrase == lc + ' ':
-                        lastPhrase += "(CONT'D) "
                 phraseArray.append(lastPhrase[0:-1])
                 lastPhrase = w +' '
-            if itr == len(wa):
-                if uc:
-                    lastPhrase = lastPhrase.upper()
-                    if line_format == 2 and lastPhrase == lc + ' ':
-                        lastPhrase += "(CONT'D) "
+            if i + 1 == len(wa):
                 phraseArray.append(lastPhrase[0:-1])
                 break
-        itr = 0
-        while itr < b_space[line_format]:
+
+        if line_format == 2 and phraseArray[-1] == lc:
+            phraseArray[-1] += " (CONT'D)"
+
+        # add blank lines
+        for i in range(b_space[line_format]):
             phraseArray.append('')
-            itr += 1
+
         if line_format == 4 and j != 0 and lines[j-1][1] == 3:
             linesNLB[j-1].pop()
         linesNLB.append(phraseArray)
