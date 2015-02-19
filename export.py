@@ -299,58 +299,56 @@ def Pdf(data, title, title_page, resource_id):
     # Calc wrapping text
     # end up with an array linesNLB
     # just like the var in js
-    widths=[62,62,40,36,30,62]
-    b_space=[1,1,0,1,0,1]
-    printX=[100,100,232,166,199,503]
+    widths = [62, 62, 40, 36, 30, 62]
+    b_space = [1, 1, 0, 1, 0, 1]
+    printX = [100, 100, 232, 166, 199, 503]
     lines = simplejson.loads(data)
 
-    j=0 ## dumb iterator. used to handle mutiple parentheticals in one dialog
-    lc='' # keep track of recenct character to speak for CONT'D
-    linesNLB=[]
+    j = 0 ## dumb iterator. used to handle mutiple parentheticals in one dialog
+    lc = '' # keep track of recenct character to speak for CONT'D
+    linesNLB = []
     for i in lines:
-        wa=i[0].split(' ')
-        phraseArray=[]
-        lastPhrase=''
-        l=widths[int(i[1])]
-        measure=0
-        itr=0
+        text, line_format = i[0], int(i[1])
+        wa = i[0].split(' ')
+        phraseArray = []
+        lastPhrase = ''
+        l = widths[int(line_format)]
+        measure = 0
+        itr = 0
 
         # test if should be uppercase
-        if i[1]==0 or i[1]==2 or i[1]==5:
-            uc=True
-        else:
-            uc=False
+        uc = line_format in [0, 2, 5]
         for w in wa:
-            itr+=1
-            measure=len(lastPhrase+" "+w)
-            if measure<l:
-                lastPhrase+=w+" "
+            itr += 1
+            measure = len(lastPhrase + " " + w)
+            if measure < l:
+                lastPhrase += w + " "
             else:
                 if uc:
-                    lastPhrase=lastPhrase.upper()
-                    if i[1]==2 and lastPhrase==lc+' ':
-                        lastPhrase+="(CONT'D) "
+                    lastPhrase = lastPhrase.upper()
+                    if line_format == 2 and lastPhrase == lc + ' ':
+                        lastPhrase += "(CONT'D) "
                 phraseArray.append(lastPhrase[0:-1])
-                lastPhrase=w+' '
-            if itr==len(wa):
+                lastPhrase = w +' '
+            if itr == len(wa):
                 if uc:
-                    lastPhrase=lastPhrase.upper()
-                    if i[1]==2 and lastPhrase==lc+' ':
-                        lastPhrase+="(CONT'D) "
+                    lastPhrase = lastPhrase.upper()
+                    if line_format == 2 and lastPhrase == lc + ' ':
+                        lastPhrase += "(CONT'D) "
                 phraseArray.append(lastPhrase[0:-1])
                 break
-        itr=0
-        while itr<b_space[int(i[1])]:
+        itr = 0
+        while itr < b_space[line_format]:
             phraseArray.append('')
-            itr+=1
-        if i[1]==4 and j!=0 and lines[j-1][1]==3:
+            itr += 1
+        if line_format == 4 and j != 0 and lines[j-1][1] == 3:
             linesNLB[j-1].pop()
         linesNLB.append(phraseArray)
-        j+=1
-        if i[1]==2:
-            lc=i[0].upper()
-        elif i[1]==0:
-            lc=''
+        j += 1
+        if line_format == 2:
+            lc = i[0].upper()
+        elif line_format == 0:
+            lc = ''
 
     #pagination, as done in
     # editor.js
