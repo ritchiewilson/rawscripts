@@ -341,7 +341,7 @@ def Pdf(data, title, title_page, resource_id):
         linesNLB.append(phraseArray)
         j += 1
         if line_format == 2:
-            lc = i[0].upper()
+            lc = text.upper()
         elif line_format == 0:
             lc = ''
 
