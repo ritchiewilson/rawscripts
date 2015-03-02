@@ -56,6 +56,38 @@ def wrap_text(text, max_chars):
             break
     return phrase_array
 
+def get_titlepage(resource_id, title):
+    q = db.GqlQuery("SELECT * FROM TitlePageData "+
+                    "WHERE resource_id='"+resource_id+"'")
+    results = q.fetch(2)
+    if len(results) > 0:
+        return results[0]
+
+    p = models.TitlePageData()
+    p.resource_id = resource_id
+    p.title = title
+    p.authorOne = users.get_current_user().nickname()
+    p.authorTwo = ""
+    p.authorTwoChecked = ""
+    p.authorThree = ""
+    p.authorThreeChecked= ""
+    p.based_on = ""
+    p.based_onChecked = ""
+    p.address = ""
+    p.addressChecked = ""
+    p.phone = ""
+    p.phoneChecked = ""
+    p.cell = ""
+    p.cellChecked = ""
+    p.email = users.get_current_user().email()
+    p.emailChecked = "checked"
+    p.registered= ""
+    p.registeredChecked = ""
+    p.other = ""
+    p.otherChecked = ""
+    p.put()
+    return p
+
 def Text(data, title, title_page, resource_id):
     widths=[[62,15,1],[62,15,1],[40,35,0],[36,25,1],[35,30,0],[62,61,1]]
     txt = simplejson.loads(data)
@@ -63,35 +95,7 @@ def Text(data, title, title_page, resource_id):
     s = StringIO.StringIO()
 
     if str(title_page)==str(1):
-        q=db.GqlQuery("SELECT * FROM TitlePageData "+
-                             "WHERE resource_id='"+resource_id+"'")
-        results=q.fetch(2)
-        if len(results)==0:
-            p=models.TitlePageData()
-            p.title = title
-            p.authorOne = users.get_current_user().nickname()
-            p.authorTwo = ""
-            p.authorTwoChecked = ""
-            p.authorThree = ""
-            p.authorThreeChecked= ""
-            p.based_on = ""
-            p.based_onChecked = ""
-            p.address = ""
-            p.addressChecked = ""
-            p.phone = ""
-            p.phoneChecked = ""
-            p.cell = ""
-            p.cellChecked = ""
-            p.email = users.get_current_user().email()
-            p.emailChecked = "checked"
-            p.registered= ""
-            p.registeredChecked = ""
-            p.other = ""
-            p.otherChecked = ""
-            p.put()
-            r=p
-        else:
-            r=results[0]
+        r = get_titlepage(resource_id, title)
 
         s.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         count=25
@@ -206,35 +210,7 @@ def Pdf(data, title, title_page, resource_id):
     lh=12
 
     if str(title_page)==str(1):
-        q=db.GqlQuery("SELECT * FROM TitlePageData "+
-                             "WHERE resource_id='"+resource_id+"'")
-        results=q.fetch(2)
-        if len(results)==0:
-            p=models.TitlePageData()
-            p.title = title
-            p.authorOne = users.get_current_user().nickname()
-            p.authorTwo = ""
-            p.authorTwoChecked = ""
-            p.authorThree = ""
-            p.authorThreeChecked= ""
-            p.based_on = ""
-            p.based_onChecked = ""
-            p.address = ""
-            p.addressChecked = ""
-            p.phone = ""
-            p.phoneChecked = ""
-            p.cell = ""
-            p.cellChecked = ""
-            p.email = users.get_current_user().email()
-            p.emailChecked = "checked"
-            p.registered= ""
-            p.registeredChecked = ""
-            p.other = ""
-            p.otherChecked = ""
-            p.put()
-            r=p
-        else:
-            r=results[0]
+        r = get_titlepage(resource_id, title)
 
         ty = 600 #title y
         tx = defaultPageSize[0]/2.0 #title x (center)
