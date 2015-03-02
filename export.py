@@ -172,52 +172,52 @@ def Text(data, title, title_page, resource_id):
     s.write('\n\n\n')
     parenTest=False
     for i in txt:
-            #lingering parentheses problem
-            if parenTest==True:
-                    if not int(i[1])==4:
-                            s.write('\n')
-                    parenTest=False
+        #lingering parentheses problem
+        if parenTest==True:
+            if not int(i[1])==4:
+                    s.write('\n')
+            parenTest=False
 
-            words = deque(i[0].split(' '))
-            if not int(i[1])==5:
-                    spaces=widths[int(i[1])][1]
-            else:
-                    diff=0
-                    for j in words:
-                            diff+=len(j)+1
-                    spaces=77-diff
-            k=0
-            while k<spaces:
+        words = deque(i[0].split(' '))
+        if not int(i[1])==5:
+            spaces=widths[int(i[1])][1]
+        else:
+            diff=0
+            for j in words:
+                    diff+=len(j)+1
+            spaces=77-diff
+        k=0
+        while k<spaces:
+            s.write(' ')
+            k+=1
+
+        linewidth=0
+
+        for j in words:
+            if linewidth+len(j)>widths[int(i[1])][0]:
+                linewidth=0
+                s.write('\n')
+                k=0
+                while k<widths[int(i[1])][1]:
                     s.write(' ')
                     k+=1
-
-            linewidth=0
-
-            for j in words:
-                    if linewidth+len(j)>widths[int(i[1])][0]:
-                            linewidth=0
-                            s.write('\n')
-                            k=0
-                            while k<widths[int(i[1])][1]:
-                                    s.write(' ')
-                                    k+=1
-                    if int(i[1])==0:
-                            v=j.upper()
-                    elif int(i[1])==2:
-                            v=j.upper()
-                    elif int(i[1])==5:
-                            v=j.upper()
-                    else:
-                            v=j
-                    s.write(v)
-                    s.write(' ')
-                    linewidth+=len(j)+1
+            if int(i[1])==0:
+                v=j.upper()
+            elif int(i[1])==2:
+                v=j.upper()
+            elif int(i[1])==5:
+                v=j.upper()
+            else:
+                v=j
+            s.write(v)
+            s.write(' ')
+            linewidth+=len(j)+1
+        s.write('\n')
+        #save paren for next time around to be sure
+        if int(i[1])==3:
+            parenTest=True
+        elif widths[int(i[1])][2]==1:
             s.write('\n')
-            #save paren for next time around to be sure
-            if int(i[1])==3:
-                    parenTest=True
-            elif widths[int(i[1])][2]==1:
-                    s.write('\n')
 
     return s
 
