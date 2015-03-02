@@ -97,81 +97,52 @@ def Text(data, title, title_page, resource_id):
     if str(title_page)==str(1):
         r = get_titlepage(resource_id, title)
 
-        s.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        count=25
-        space=0
-        while space<(80-len(r.title))/2:
-            space+=1
-            s.write(" ")
-        s.write(r.title+"\n\n\n")
-        count+=3
+        def center_text(s, text):
+            spaces = (80 - len(text)) / 2
+            s.write(' ' * spaces)
+            s.write(text)
+            s.write('\n')
+            return s
+
+        s.write("\n" * 25)
+        s = center_text(s, r.title)
+        s.write("\n\n")
 
         s.write("                                   Written by\n\n\n")
-        space=0
-        while space<(80-len(r.authorOne))/2:
-            space+=1
-            s.write(" ")
-        s.write(r.authorOne+"\n")
+        s = center_text(s, r.authorOne)
         if r.authorTwoChecked=="checked":
-            space=0
-            while space<(80-len(r.authorTwo))/2:
-                space+=1
-                s.write(" ")
-            s.write(r.authorTwo)
-        s.write("\n")
+            s = center_text(s, r.authorTwo)
         if r.authorThreeChecked=="checked":
-            space=0
-            while space<(80-len(r.authorThree))/2:
-                space+=1
-                s.write(" ")
-            s.write(r.authorThree)
-        s.write("\n")
-        count+=3
+            s = center_text(s, r.authorThree)
         if r.based_onChecked=="checked":
-            lines=r.based_on.split("LINEBREAK")
+            lines = r.based_on.split("LINEBREAK")
             for line in lines:
-                space=0
-                while space<(80-len(line))/2:
-                    space+=1
-                    s.write(" ")
-                s.write(line+"\n")
-                count+=1
-        while count<=35:
-            count+=1
-            s.write("\n")
+                s = center_text(s, line)
+
+        line_breaks = s.getvalue().count('\n')
+        s.write('\n' * (39 - line_breaks))
+
         if r.addressChecked=="checked":
-            lines=r.address.split("LINEBREAK")
+            lines = r.address.split("LINEBREAK")
             for line in lines:
-                s.write(line+"\n")
-                count+=1
+                s.write(line + "\n")
         s.write("\n\n")
-        count+=2
-        if r.phoneChecked=="checked":
-            s.write(r.phone+"\n")
-            count+=1
-        if r.cellChecked=="checked":
-            s.write(r.cell+"\n")
-            count+=1
+        if r.phoneChecked == "checked":
+            s.write(r.phone + "\n")
+        if r.cellChecked == "checked":
+            s.write(r.cell + "\n")
         s.write("\n")
-        count+=1
-        if r.emailChecked=="checked":
-            s.write(r.email+"\n")
-            count+=1
+        if r.emailChecked == "checked":
+            s.write(r.email + "\n")
         s.write("\n")
-        count+=1
-        if r.registeredChecked=="checked":
-            s.write(r.registered+"\n")
-            count+=1
+        if r.registeredChecked == "checked":
+            s.write(r.registered + "\n")
         s.write("\n\n")
-        count+=2
-        if r.otherChecked=="checked":
-            s.write(r.other+"\n")
-            count+=1
+        if r.otherChecked == "checked":
+            s.write(r.other + "\n")
 
-        while count<=60:
-            count+=1
-            s.write("\n")
-
+        line_breaks = s.getvalue().count('\n')
+        s.write('\n' * (64 - line_breaks))
 
     s.write('\n\n\n')
     parenTest=False
