@@ -57,7 +57,7 @@ def wrap_text(text, max_chars):
     return phrase_array
 
 def Text(data, title, title_page, resource_id):
-    widths=[[62,15,1],[62,15,1],[40,35,0],[35,25,1],[35,30,0],[62,61,1]]
+    widths=[[62,15,1],[62,15,1],[40,35,0],[36,25,1],[35,30,0],[62,61,1]]
     txt = simplejson.loads(data)
 
     s = StringIO.StringIO()
@@ -172,53 +172,31 @@ def Text(data, title, title_page, resource_id):
     s.write('\n\n\n')
     parenTest=False
     for i in txt:
+        text, line_format = i[0], int(i[1])
         #lingering parentheses problem
-        if parenTest==True:
-            if not int(i[1])==4:
+        if parenTest == True:
+            if not line_format == 4:
                     s.write('\n')
             parenTest=False
 
-        words = deque(i[0].split(' '))
-        if not int(i[1])==5:
-            spaces=widths[int(i[1])][1]
-        else:
-            diff=0
-            for j in words:
-                    diff+=len(j)+1
-            spaces=77-diff
-        k=0
-        while k<spaces:
-            s.write(' ')
-            k+=1
+        if line_format in [0, 2, 5]:
+            text = text.upper()
 
-        linewidth=0
-
-        for j in words:
-            if linewidth+len(j)>widths[int(i[1])][0]:
-                linewidth=0
-                s.write('\n')
-                k=0
-                while k<widths[int(i[1])][1]:
-                    s.write(' ')
-                    k+=1
-            if int(i[1])==0:
-                v=j.upper()
-            elif int(i[1])==2:
-                v=j.upper()
-            elif int(i[1])==5:
-                v=j.upper()
-            else:
-                v=j
-            s.write(v)
-            s.write(' ')
-            linewidth+=len(j)+1
-        s.write('\n')
-        #save paren for next time around to be sure
-        if int(i[1])==3:
-            parenTest=True
-        elif widths[int(i[1])][2]==1:
+        max_chars = widths[line_format][0]
+        phraseArray = wrap_text(text, max_chars)
+        for phrase in phraseArray:
+            spaces = widths[line_format][1]
+            if line_format == 5:
+                spaces = 76 - len(phrase)
+            s.write(' ' * spaces)
+            s.write(phrase)
             s.write('\n')
 
+        #save paren for next time around to be sure
+        if line_format == 3:
+            parenTest = True
+        elif widths[line_format][2] == 1:
+            s.write('\n')
     return s
 
 def Pdf(data, title, title_page, resource_id):
