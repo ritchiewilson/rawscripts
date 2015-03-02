@@ -55,44 +55,44 @@ function save(){
         alert("Sorry, but you'll have to login to use these functions!");
         return;
     }
-    var i =[];
-    var c = document.getElementsByTagName('input');
-    for(x in c){
-        if(c[x].type=='text')i.push(c[x].value)
-        else if(c[x].type=='checkbox'){
-            if(c[x].checked==true)i.push('checked');
-            else{i.push('')}
-        }
-    }
-    c = document.getElementsByTagName('textarea');
-    for(x in c){
-        if(c[x].value!=undefined){
-            var data = c[x].value;
+    var inputs = [
+        ['title', 'title_input'],
+        ['authorOne', 'authorOne_input'],
+        ['authorTwo', 'authorTwo_input'],
+        ['authorTwoChecked', 'authorTwo_checkbox'],
+        ['authorThree', 'authorThree_input'],
+        ['authorThreeChecked', 'authorThree_checkbox'],
+        ['based_on', 'based_on_input'],
+        ['based_onChecked', 'based_on_checkbox'],
+        ['address', 'address_input'],
+        ['addressChecked', 'address_checkbox'],
+        ['phone', 'phone_input'],
+        ['phoneChecked', 'phone_checkbox'],
+        ['cell', 'cell_input'],
+        ['cellChecked', 'cell_checkbox'],
+        ['email', 'email_input'],
+        ['emailChecked', 'email_checkbox'],
+        ['registered', 'registered_input'],
+        ['registeredChecked', 'registered_checkbox'],
+        ['other', 'other_input'],
+        ['otherChecked', 'other_checkbox']
+    ];
+    var postData = '';
+    for (i in inputs){
+        var elem = document.getElementById(inputs[i][1]);
+        var value = '';
+        if (elem.type == 'checkbox')
+            value = (elem.checked ? 'checked' : '');
+        else if (elem.value != undefined){
+            value = elem.value;
             var re = new RegExp( "\\n", "g" );
-            data=data.replace(re,'LINEBREAK');
-            i.push(data);
+            value = value.replace(re,'LINEBREAK');
         }
+        if (postData != '')
+            postData += '&';
+        postData += inputs[i][0] + '=' + encodeURIComponent(value);
     }
-	var postData = 'title='+encodeURIComponent(i[0]);
-	postData+='&authorOne='+encodeURIComponent(i[1]);
-	postData+='&authorTwo='+encodeURIComponent(i[2]);
-	postData+='&authorTwoChecked='+encodeURIComponent(i[3]);
-	postData+='&authorThree='+encodeURIComponent(i[4]);
-	postData+='&authorThreeChecked='+encodeURIComponent(i[5]);
-	postData+='&based_onChecked='+encodeURIComponent(i[6]);
-	postData+='&addressChecked='+encodeURIComponent(i[7]);
-	postData+='&phone='+encodeURIComponent(i[8]);
-	postData+='&phoneChecked='+encodeURIComponent(i[9]);
-	postData+='&cell='+encodeURIComponent(i[10]);
-	postData+='&cellChecked='+encodeURIComponent(i[11]);
-	postData+='&email='+encodeURIComponent(i[12]);
-	postData+='&emailChecked='+encodeURIComponent(i[13]);
-	postData+='&registered='+encodeURIComponent(i[14]);
-	postData+='&registeredChecked='+encodeURIComponent(i[15]);
-	postData+='&other='+encodeURIComponent(i[16]);
-	postData+='&otherChecked='+encodeURIComponent(i[17]);
-	postData+='&based_on='+encodeURIComponent(i[18]);
-	postData+='&address='+encodeURIComponent(i[19]);
+
 	postData+='&resource_id='+resource_id;
 	goog.net.XhrIo.send('/titlepagesave',
 		function(e){
@@ -144,3 +144,4 @@ function update(){
         }
     }
 }
+
