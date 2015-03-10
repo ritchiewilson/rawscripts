@@ -5,22 +5,20 @@ import json
 import time
 import sys
 from datetime import datetime
-from sqlalchemy import create_engine, desc
-from sql_models import Base, User, OpenIDData2, ScriptData, UsersScripts, \
-    DuplicateScript, Folder
-engine = create_engine('sqlite:///rawscripts.db', echo=False)
-from sqlalchemy.orm import sessionmaker
-Session = sessionmaker(bind=engine)
 
-# Base.metadata.create_all(engine)
+from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
+
+from rawscripts import app, db
+from flask_models import *
+
+manager = Manager(app)
+
+
 URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
-
-if len(sys.argv) != 3:
-    raise Exception('Need to give password and IV to fetch files.')
-
-PASSWORD = sys.argv[1]
-IV = sys.argv[2]
+PASSWORD = None
+IV = None
 
 def fetch(params):
     r = requests.get(URL, params=params)
@@ -122,13 +120,12 @@ def fetch_all_duplicate_scripts():
     print "Fetching DuplicateScripts"
     params = {'table': 'DuplicateScripts'}
     data = fetch(params)
-    session = Session()
     for line in data.split('\n'):
         if line == '':
             continue
         __key__, from_script, new_script, from_version = line.split(',')
         from_version = int(from_version)
-        exists = session.query(DuplicateScript). \
+        exists = db.session.query(DuplicateScript). \
                      filter_by(new_script=new_script).first()
         if exists:
             continue
@@ -136,25 +133,23 @@ def fetch_all_duplicate_scripts():
                               new_script=new_script,
                               from_version=from_version,
                               __key__=__key__)
-        session.add(dup)
-    session.commit()
-    session.close()
+        db.session.add(dup)
+    db.session.commit()
+
 
 def fetch_all_folders():
     print "Fetching folders"
     params = {'table': 'Folders'}
     data = fetch(params)
     lines = json.loads(data)
-    session = Session()
     for  __key__, user, data in lines:
-        obj = session.query(Folder). \
+        obj = db.session.query(Folder). \
                      filter_by(user=user).first()
         if not obj:
             obj = Folder(user=user, data=data, __key__=__key__)
-            session.add(obj)
+            db.session.add(obj)
         obj.data = data
-    session.commit()
-    session.close()
+    db.session.commit()
 
 def fetch_all_script_data():
     fetch_by_timestamps('ScriptData', ScriptData, 'timestamp',
@@ -162,13 +157,13 @@ def fetch_all_script_data():
 
 def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_REQUEST=40):
     global START_TIME
-    session = Session()
+    session = db.session
     all_found = False
     while not all_found:
         if START_TIME is None:
             start = "2000-01-01T01:00:00.000000"
             timestamp = getattr(model, timestamp_field)
-            last_user = session.query(model).order_by(desc(timestamp)).first()
+            last_user = session.query(model).order_by(db.desc(timestamp)).first()
             if last_user is not None:
                 start = getattr(last_user, timestamp_field).isoformat()
             START_TIME = start
@@ -188,13 +183,24 @@ def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_R
     print "Completed fetching", table
 
 
-fetch_all_users()
-START_TIME = None
-fetch_all_openid2()
-START_TIME = None
-fetch_all_users_scripts()
-START_TIME = None
-fetch_all_duplicate_scripts()
-START_TIME = None
-fetch_all_script_data()
-fetch_all_folders()
+@manager.command
+def fetch_all(password, iv):
+    global PASSWORD
+    global IV
+    global START_TIME
+    PASSWORD = password
+    IV = iv
+    fetch_all_users()
+    START_TIME = None
+    fetch_all_openid2()
+    START_TIME = None
+    fetch_all_users_scripts()
+    START_TIME = None
+    fetch_all_duplicate_scripts()
+    START_TIME = None
+    fetch_all_script_data()
+    START_TIME = None
+    fetch_all_folders()
+
+if __name__ == "__main__":
+    manager.run()
