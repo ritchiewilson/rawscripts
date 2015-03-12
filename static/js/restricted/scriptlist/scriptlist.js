@@ -518,7 +518,7 @@ function selectAll(obj, which){
 
 /**
  * Opens a script in a new Tab
- * @ params {string} v Resource ID of
+ * @param {string} v Resource ID of
  * Script to be opened.
  */
 function script(v){
@@ -593,7 +593,7 @@ window.addEventListener("message", recieveMessage, false);
 /**
  * Takes that message from iframe and shows correct
  * GUI, either "Loading" bar, or "Complete" message
- * @ params {event object} e Contains data from cross
+ * @param {event object} e Contains data from cross
  * iframe message event
  */
 function recieveMessage(e){
@@ -798,7 +798,7 @@ function exportScripts(){
  * Moves Script to trash. First greys the scripts
  * to be deleted, and when the server confirms the 
  * scripts are in the trash, it moves them.
- * @ params { string object } v resource_id of script
+ * @param { string object } v resource_id of script
  */
 function deleteScript(v){
 	var scriptDiv = goog.dom.getElement(v);
@@ -839,7 +839,7 @@ function deleteScript(v){
 }
 /**
  * Remove Script from trash
- * @ param {string} v resource_id of script to revive
+ * @param {string} v resource_id of script to revive
  */
 function undelete(v){
     var scriptDiv = goog.dom.getElement(v);
@@ -878,7 +878,7 @@ function haveToUndelete(){
 
 /**
  * Permananetly delete a script
- * @ param {string} v resource_id of script
+ * @param {string} v resource_id of script
  */
 function hardDelete(v){
     var scriptDiv = goog.dom.getElement(v);
@@ -899,7 +899,7 @@ function hardDelete(v){
  * is called on user input (click). This goes through
  * what is selected and sendes the resource_id to 
  * the expected function.
- * @ param {string} v delete, undelete, or hardDelete
+ * @param {string} v delete, undelete, or hardDelete
  */
 function batchProcess(v){
     var con = true;
@@ -928,7 +928,7 @@ function batchProcess(v){
 
 /**
  * Opens email prompt GUI on click
- * @ params { string } v resource_id of script
+ * @param { string } v resource_id of script
  */
 function emailPrompt(v){
 	var resource_id=v;
@@ -996,7 +996,7 @@ function emailComplete(e){
 /**
  * Opens the share prompt, and populate the
  * table with info on who already has access
- * @ param { string } v Resource_id of script
+ * @param { string } v Resource_id of script
  */
 function sharePrompt(v){
 	goog.dom.getElement('shareS').disabled = false;
@@ -1091,7 +1091,7 @@ function shareScript(){
 
 /**
  * Removes view access from a user
- * @ param {string} email of user
+ * @param {string} email of user
  * to remove
  */
 function removeAccess(v){
@@ -1120,7 +1120,7 @@ function removeShareUser(d){
 /**
  * Changes GUI for email notification
  * when sharing script with other people
- * @ param {this object} e The checkbox 
+ * @param {this object} e The checkbox 
  * in the prompt
  */
 function emailNotifyShare(e){
@@ -1137,7 +1137,7 @@ function emailNotifyShare(e){
 /**
  * Changes GUI for email notification msg
  * when sharing script with other people
- * @ param {this object} e The checkbox 
+ * @param {this object} e The checkbox 
  * in the prompt
  */
 function emailNotifyMsg(e){
@@ -1164,7 +1164,7 @@ function emailNotifyMsg(e){
 /**
  * the logic for clicking on a folder (defualt or user defined)
  * and then opening up the list of relevant files
- * @ param { string } v folder id
+ * @param { string } v folder id
  */
 function tabs(v){
 	var c = document.getElementsByTagName('input');
@@ -1263,7 +1263,7 @@ function newFolder(){
  * Prompts the user for a new name for the
  * folder. It then finds the relevant folder_id
  * and posts the change.
- * @ param { string } v folder id
+ * @param { string } v folder id
  */
 function renameFolder(v){
 	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
@@ -1308,7 +1308,7 @@ function deleteFolder(){
  * 2) "?none?", meaning remove from folders, or
  * 3) the 10-digit id of the user defined 
  * folder the files should be moved to.
- * @ param {string} folder if to move checked
+ * @param {string} folder if to move checked
  * script to
  */
 function moveToFolder(v){
@@ -1339,7 +1339,7 @@ function moveToFolder(v){
 
 /**
  * Open context menu on user defined folders
- * @ param {goog.events.BrowserEvent} e The div
+ * @param {goog.events.BrowserEvent} e The div
  * object that is right clicked on.
  */
 function contextmenu(e){
@@ -1364,7 +1364,7 @@ function contextmenu(e){
 
 /**
  * Event from folder context menu
- * @ param {goog.events.Event} e option clicked
+ * @param {goog.events.Event} e option clicked
  */
 function folderContextMenuAction(e){
 	if(e.target.content_=='Rename Folder'){
