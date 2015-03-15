@@ -20,7 +20,6 @@ from flask import render_template, request, jsonify, redirect, url_for
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData
-import config
 
 
 @app.route('/editor')
@@ -31,7 +30,7 @@ def editor():
     if permission is None:
         return redirect(url_for('welcome'))
     EOV = 'editor' if permission == 'owner' else 'viewer'
-    return render_template('editor.html', user=user, mode=config.MODE,
+    return render_template('editor.html', user=user, mode="PRO",
                            resource_id=resource_id, EOV=EOV)
 
 @app.route('/scriptcontent', methods=['POST'])

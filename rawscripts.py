@@ -18,7 +18,6 @@ from flask import Flask, render_template, send_from_directory
 from flask.ext.sqlalchemy import SQLAlchemy
 import json
 import os
-import config
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ['APP_SETTINGS'])

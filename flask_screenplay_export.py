@@ -22,7 +22,6 @@ from flask import request, make_response
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData
-import config
 
 
 @app.route('/export', methods=['GET'])

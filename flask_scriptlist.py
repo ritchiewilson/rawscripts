@@ -20,7 +20,6 @@ from flask import render_template, request, jsonify, redirect, url_for
 
 from rawscripts import db, app
 from flask_models import UsersScripts, Folder
-import config
 
 
 @app.route('/scriptlist')
