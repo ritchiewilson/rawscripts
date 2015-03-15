@@ -25,6 +25,8 @@
  */
 window['removeAccess'] = removeAccess;
 window['haveToUndelete'] = haveToUndelete;
+window['verifyEmailRemindLater'] = verifyEmailRemindLater;
+window['verifyEmailSubmit'] = verifyEmailSubmit;
 window['sharePrompt'] = sharePrompt;
 window['init'] = init;
 window['hideEmailPrompt'] = hideEmailPrompt;
@@ -131,8 +133,50 @@ function init(){
 		);
 	}
 	catch(e){};
+
+    verifyEmailPrompt();
 }
 
+function verifyEmailPrompt(){
+    var popup = goog.dom.getElement('verifyemailpopup');
+    if (popup == null)
+        return
+	popup.style.visibility = 'visible';
+    var elem = goog.dom.getElement('user');
+	goog.dom.getElement('verify-email-input').value = goog.dom.getTextContent(elem);
+	goog.dom.getElement('verify-email-input').focus();
+	goog.dom.getElement('verify-email-input').select();
+}
+
+function verifyEmailRemindLater(){
+    alert("Please verify your email address by March 31st.\n\nIf you do not, you may have trouble accessing your work!");
+    goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
+}
+
+function verifyEmailSubmit(){
+    var email = goog.dom.getElement('verify-email-input').value;
+	if (email == ''){
+        return;
+    }
+    var submit_button = goog.dom.getElement('verify-email-submit');
+	submit_button.disabled = true;
+	submit_button.value = "Sending...";
+	goog.dom.getElement('verifyEmailSpinner').style.visibility="visible";
+	goog.net.XhrIo.send('/verify-email',
+                        verifyEmailSubmissionResponse,
+                        'POST',
+			            'email='+encodeURIComponent(email)
+    );
+}
+
+function verifyEmailSubmissionResponse(response){
+    var status = response.target.getResponseText();
+    if (status != 'sent'){
+        alert("There was some problem in verifying your account. Please try again later.");
+        goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
+        return;
+    }
+}
 
 /**
  * Calls the server for all screenplay information

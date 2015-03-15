@@ -175,6 +175,10 @@ handlers:
   login: required
   script: scriptlist.py
 
+- url: /verify-email.*
+  login: required
+  script: scriptlist.py
+
 - url: /settings.*
   login: required
   script: user_settings.py

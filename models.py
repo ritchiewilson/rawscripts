@@ -32,6 +32,9 @@ class LastUpdatedEtag (db.Model):
 class Users (db.Model):
     name = db.StringProperty()
     firstUse = db.DateTimeProperty(auto_now_add=True)
+    verification_token = db.StringProperty()
+    verified_email = db.StringProperty()
+    verified = db.BooleanProperty()
 
 class Notes (db.Model):
     resource_id = db.StringProperty()

@@ -13,7 +13,8 @@ manager.add_command('db', MigrateCommand)
 def get_resource_ids():
     # resource_ids = UsersScripts.get_all_resource_ids()
     current = datetime.utcnow()
-    days_ago = current.replace(day=13)
+    days_ago = current.replace(day=1)
+    days_ago = current.replace(month=2)
     stuff = UsersScripts.query.filter(UsersScripts.last_updated > days_ago). \
             order_by('resource_id').all()
     resource_ids = [s.resource_id for s in stuff]
@@ -105,6 +106,23 @@ def migrate_to_ops():
     for resource_id in resource_ids:
         migrate_screenplay(resource_id)
     print "Done"
+
+@manager.command
+def get_all_email_addresses():
+    num_good = 0
+    tot = 0
+    all_emails = set([])
+    from validate_email import validate_email
+    for user in User.query.all():
+        if not validate_email(user.name) or "http" in user.name:
+            print "failed name: '" + user.name + "'"
+        else:
+            num_good += 1
+        if user.name != user.name.lower():
+            print "Bad case", user.name
+        tot +=1
+    print "Number good-ish:", num_good
+    print "out of", tot
 
 if __name__ == "__main__":
     manager.run()

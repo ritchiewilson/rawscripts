@@ -221,5 +221,34 @@
 			</div>
 		</div>
 	</div>
+    {% if not email_verified %}
+    <div id="verifyemailpopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block" style="width:400px; top:10%">
+		<div class="popup">
+		  <div class="alert">
+            Please Verify Your Email Address
+          </div>
+          <div id="verify-email-body-text">
+            <p>
+              Rawscripts will soon be changing the way you login, so that
+              you will need a username and password. Read more.
+            </p>
+            <p>
+              To ensure a smooth transition, please verify your email
+              address. You will be sent a confirmation link.
+            </p>
+          </div>
+		  <input class="text_input" type='text' name='verify-email-input' id='verify-email-input'/>
+		  <br />
+          <div style="margin-left:150px;margin-top:20px;">
+			<input type='button' onClick='verifyEmailRemindLater()' value="Remind Me Later" id="verify-email-remind-later" />
+			<input style="margin-left:20px; margin-right:10px;;" type='button' onClick='verifyEmailSubmit()' value='Verify' id="verify-email-submit" />
+			<img src="images/createScriptIcon.gif" id="verifyEmailSpinner" style="visibility:hidden" alt="Sending confirmation">
+          </div>
+		</div>
+	  </div>
+	</div>
+	{% endif %}
 </body>
 </html>

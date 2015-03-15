@@ -268,3 +268,20 @@ a{
 #email_message{
 	width:400px; height:110px; overflow:auto;
 }
+
+.alert {
+    padding: 15px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+    border-color: #faebcc;
+    font-size: 12pt;
+    text-align: center;
+}
+
+#verify-email-body-text {
+    padding: 10px;
+    font-size: 12pt;
+}

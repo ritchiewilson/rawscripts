@@ -20,14 +20,17 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '1.2')
 import StringIO, os, cgi, re
+import string
+import random
+import logging
 import wsgiref.handlers
 from google.appengine.api import users
+from google.appengine.api import mail
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import datetime
-import convert
 from django.utils import simplejson
 import mobileTest
 import config
@@ -54,6 +57,16 @@ def openid_data():
         n.federated_provider = u.federated_provider()
         n.put()
 
+def get_user_row():
+    user = users.get_current_user().email()
+    query = models.Users.all()
+    query.filter('name =', user)
+    user_row = query.get()
+    if not user_row:
+        user_row = models.Users(name=users.get_current_user().email())
+        user_row.put()
+    return user_row
+
 class ScriptList(webapp.RequestHandler):
     """Requests the list of the user's Screenplays in the RawScripts folder."""
 
@@ -71,6 +84,8 @@ class ScriptList(webapp.RequestHandler):
         template_values['SCRIPTLIST_CSS'] = pro_css if config.MODE=="PRO" else dev_css
         template_values['SCRIPTLIST_JS'] = pro_js if config.MODE=="PRO" else dev_js
 
+        user_row = get_user_row()
+        template_values['email_verified'] = (user_row.verified == True)
 
         path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
         mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -79,16 +94,6 @@ class ScriptList(webapp.RequestHandler):
 
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
-
-        q= db.GqlQuery("SELECT * FROM Users "+
-                       "WHERE name='"+users.get_current_user().email()+"'")
-        results = q.fetch(1)
-        k=0
-        for p in results:
-            k=1
-        if k == 0:
-            newUser = models.Users(name=users.get_current_user().email())
-            newUser.put()
 
 class List (webapp.RequestHandler):
     def post(self):
@@ -169,9 +174,62 @@ class List (webapp.RequestHandler):
         self.response.headers['Content-Type']='text/plain'
         self.response.out.write(j)
 
+class VerifyEmail (webapp.RequestHandler):
+    def post(self):
+        status = None
+        user_row = get_user_row()
+        if user_row.verified:
+            status = 'verified'
+        else:
+            user_row = self.add_verification_token(user_row)
+            mail_status = self.email_verification(user_row)
+            status = mail_status
+        self.response.headers['Content-Type']='text/plain'
+        self.response.out.write(status)
+
+    def add_verification_token(self, user_row):
+        if user_row.verification_token is not None:
+            return user_row
+        chars = string.uppercase + string.lowercase + string.digits
+        token = ''.join([random.choice(chars) for x in range(40)])
+        user_row.verification_token = token
+        user_row.verified_email = self.request.get('email')
+        user_row.verified = False
+        user_row.put()
+        return user_row
+
+    def email_verification(self, user_row):
+        subject = "Rawscripts Email Verification"
+        link = "http://www.rawscripts.com/verify-email?token=" + user_row.verification_token
+        paragraphs = [ "Thanks for verifying your email with Rawscripts. Step one is done. Now to finish, just follow this link back to Rawscripts:",
+                       link,
+                       "You may need to copy and paste the above link into your browser.",
+                       "Thanks, from Rawscripts"]
+        body = "\n\n".join(paragraphs)
+        html = ""
+        for paragraph in paragraphs:
+            html += "<p>"
+            if paragraph == link:
+                html += '<a href="' + link + '">' + link + "</a>"
+            else:
+                html += paragraph
+            html += "</p>"
+
+        logging.info(html)
+        mail.send_mail(sender='Rawscripts <noreply@rawscripts.com>',
+                       to=user_row.verified_email,
+                       subject=subject,
+                       body = body,
+                       html = html)
+        return "sent"
+
+    def get(self):
+        token = self.request.get(token)
+
 def main():
     application = webapp.WSGIApplication([('/scriptlist', ScriptList),
-                                          ('/list', List)],
+                                          ('/list', List),
+                                          ('/verify-email', VerifyEmail)],
                                          debug=True)
     run_wsgi_app(application)
 
