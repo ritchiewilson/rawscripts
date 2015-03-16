@@ -126,17 +126,22 @@ def get_all_email_addresses():
     print "Number good-ish:", num_good
     print "out of", tot
 
-def compile_js_for_page(page):
+def concatenate(filenames, outfile_name):
+    if os.path.exists(outfile_name):
+        os.remove(outfile_name)
+    with open(outfile_name, 'w') as outfile:
+        for fname in filenames:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
+
+def compile_js(page):
     all_pages = ['editor', 'scriptlist', 'titlepage']
     if page not in all_pages:
         return
     my_files = "static/js/restricted/{0}/*.js".format(page)
     temp_file = "static/js/restricted/{0}-temp.js".format(page)
-    with open(temp_file, 'w') as outfile:
-        for fname in glob.glob(my_files):
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
+    concatenate(glob.glob(my_files), temp_file)
     import closure
     import subprocess
     jar = closure.get_jar_filename()
@@ -147,15 +152,31 @@ def compile_js_for_page(page):
         subprocess.call(["python", calcdeps, "-i", temp_file, "-p", closure_library, "-o", "compiled", "-c", jar, "-f", "--compilation_level=ADVANCED_OPTIMIZATIONS"], stdout=f)
     os.remove(temp_file)
 
+def compile_css(page):
+    if page not in ['editor', 'scriptlist']:
+        return
+    closure_css = ['menu', 'menuitem', 'menuseparator', 'common', 'toolbar',
+                   'button', 'custombutton', 'autocomplete']
+    if page == "editor":
+        closure_css += ['dialog', 'tab', 'tabbar', 'colormenubutton',
+                        'palette', 'colorpalette', 'editor/bubble',
+                        'editor/dialog', 'editortoolbar']
+    path = "static/closure-library/closure/goog/css/{0}.css"
+    fnames = [path.format(f) for f in closure_css]
+    fnames.append("static/css/{0}.css".format(page))
+    if not os.path.exists('static/css/min'):
+        os.mkdir('static/css/min')
+    concatenate(fnames, "static/css/min/{0}-all.css".format(page))
 
 @manager.command
-def compile_js(page):
+def compile_assets(asset_type, page):
     all_pages = ['editor', 'scriptlist', 'titlepage']
     if page not in all_pages and not page == 'all':
         return
     pages = all_pages if page == 'all' else [page]
+    compile_func = compile_js if asset_type == 'js' else compile_css
     for p in pages:
-        compile_js_for_page(p)
+        compile_func(p)
 
 if __name__ == "__main__":
     manager.run()
