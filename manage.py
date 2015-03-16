@@ -147,8 +147,6 @@ def compile_js(page):
     jar = closure.get_jar_filename()
     min_path = "static/js/min/{0}-compiled.js".format(page)
     closure_library = "static/closure-library/"
-    if not os.path.exists(closure_library):
-        closure_library = os.environ['CLOSURE_LIBRARY_ROOT']
     calcdeps = closure_library + "/closure/bin/calcdeps.py"
     with open(min_path, 'w') as f:
         subprocess.call(["python", calcdeps, "-i", temp_file, "-p", closure_library, "-o", "compiled", "-c", jar, "-f", "--compilation_level=ADVANCED_OPTIMIZATIONS"], stdout=f)
@@ -163,6 +161,7 @@ def compile_css(page):
         closure_css += ['dialog', 'tab', 'tabbar', 'colormenubutton',
                         'palette', 'colorpalette', 'editor/bubble',
                         'editor/dialog', 'editortoolbar']
+    closure_library = "static/closure-library/"
     path = closure_library + "/closure/goog/css/{0}.css"
     fnames = [path.format(f) for f in closure_css]
     fnames.append("static/css/{0}.css".format(page))
