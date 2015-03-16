@@ -146,8 +146,10 @@ def compile_js(page):
     import subprocess
     jar = closure.get_jar_filename()
     min_path = "static/js/min/{0}-compiled.js".format(page)
-    calcdeps = "static/closure-library/closure/bin/calcdeps.py"
     closure_library = "static/closure-library/"
+    if not os.path.exists(closure_library):
+        closure_library = os.environ['CLOSURE_LIBRARY_ROOT']
+    calcdeps = closure_library + "/closure/bin/calcdeps.py"
     with open(min_path, 'w') as f:
         subprocess.call(["python", calcdeps, "-i", temp_file, "-p", closure_library, "-o", "compiled", "-c", jar, "-f", "--compilation_level=ADVANCED_OPTIMIZATIONS"], stdout=f)
     os.remove(temp_file)
@@ -161,7 +163,7 @@ def compile_css(page):
         closure_css += ['dialog', 'tab', 'tabbar', 'colormenubutton',
                         'palette', 'colorpalette', 'editor/bubble',
                         'editor/dialog', 'editortoolbar']
-    path = "static/closure-library/closure/goog/css/{0}.css"
+    path = closure_library + "/closure/goog/css/{0}.css"
     fnames = [path.format(f) for f in closure_css]
     fnames.append("static/css/{0}.css".format(page))
     if not os.path.exists('static/css/min'):
@@ -170,11 +172,6 @@ def compile_css(page):
 
 @manager.command
 def compile_assets(asset_type, page):
-    print "COMPILEING"
-    print os.path.dirname(os.path.realpath(__file__))
-    print os.getcwd()
-    print "keep on COMPILEING"
-
     all_pages = ['editor', 'scriptlist', 'titlepage']
     if page not in all_pages and not page == 'all':
         return
