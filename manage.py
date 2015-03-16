@@ -1,4 +1,6 @@
 import datetime
+import glob
+import os
 
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
@@ -123,6 +125,37 @@ def get_all_email_addresses():
         tot +=1
     print "Number good-ish:", num_good
     print "out of", tot
+
+def compile_js_for_page(page):
+    all_pages = ['editor', 'scriptlist', 'titlepage']
+    if page not in all_pages:
+        return
+    my_files = "static/js/restricted/{0}/*.js".format(page)
+    temp_file = "static/js/restricted/{0}-temp.js".format(page)
+    with open(temp_file, 'w') as outfile:
+        for fname in glob.glob(my_files):
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
+    import closure
+    import subprocess
+    jar = closure.get_jar_filename()
+    min_path = "static/js/min/{0}-compiled.js".format(page)
+    calcdeps = "static/closure-library/closure/bin/calcdeps.py"
+    closure_library = "static/closure-library/"
+    with open(min_path, 'w') as f:
+        subprocess.call(["python", calcdeps, "-i", temp_file, "-p", closure_library, "-o", "compiled", "-c", jar, "-f", "--compilation_level=ADVANCED_OPTIMIZATIONS"], stdout=f)
+    os.remove(temp_file)
+
+
+@manager.command
+def compile_js(page):
+    all_pages = ['editor', 'scriptlist', 'titlepage']
+    if page not in all_pages and not page == 'all':
+        return
+    pages = all_pages if page == 'all' else [page]
+    for p in pages:
+        compile_js_for_page(p)
 
 if __name__ == "__main__":
     manager.run()
