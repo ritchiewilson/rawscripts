@@ -170,6 +170,11 @@ def compile_css(page):
 
 @manager.command
 def compile_assets(asset_type, page):
+    print "COMPILEING"
+    print os.path.dirname(os.path.realpath(__file__))
+    print os.getcwd()
+    print "keep on COMPILEING"
+
     all_pages = ['editor', 'scriptlist', 'titlepage']
     if page not in all_pages and not page == 'all':
         return
