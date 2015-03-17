@@ -22,6 +22,7 @@ from flask import request, make_response
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData
+from export import Text, Pdf
 
 
 @app.route('/export', methods=['GET'])
@@ -40,75 +41,21 @@ def export_screenplay():
     latest_version = ScriptData.get_latest_version(resource_id)
     if not latest_version:
         return
-    title = unicodedata.normalize("NFKD", screenplay.title). \
-                encode("ascii", "ignore")
     output = None
     content_type = None
+    data = json.loads(latest_version.data)
     if export_format == 'txt':
-        output = generate_txt_file(latest_version.data, title)
+        output = Text(data, None)
         content_type = 'text/plain'
     elif export_format == 'pdf':
-        output = generate_pdf_file(latest_version.data, title)
+        output = Pdf(data, None)
         content_type = 'application/pdf'
     if output is None:
         return
+    ascii_title = unicodedata.normalize("NFKD", screenplay.title). \
+                      encode("ascii", "ignore")
     response = make_response(output.getvalue())
     response.headers['Content-Type'] = content_type
     response.headers['Content-Disposition'] = \
-        'attachment; filename={}.{}'.format(title, export_format)
+        'attachment; filename={}.{}'.format(ascii_title, export_format)
     return response
-
-def generate_txt_file(data, title):
-    # Max char length, margin, blank spaces after
-    widths = [
-        [62, 15, 1], # Slugline
-        [62, 15, 1], # Action
-        [40, 35, 0], # Character
-        [35, 25, 1], # Dialog
-        [35, 30, 0], # Paren
-        [62, 61, 1]  # Transition
-    ]
-
-    txt = json.loads(data)
-    s = StringIO.StringIO()
-
-    # TODO: build title page
-
-    s.write('\n\n\n')
-    parenTest = False
-    for i in txt:
-        text, line_format = i[0], int(i[1])
-        # lingering parentheses problem
-        if parenTest == True and line_format != 4:
-            s.write('\n')
-        parenTest = False
-
-        words = i[0].split(' ')
-        spaces = widths[line_format][1]
-        if line_format == 5:
-            diff = 0
-            for j in words:
-                diff += len(j) + 1
-            spaces = 77 - diff
-        s.write(' ' * spaces)
-
-        linewidth = 0
-
-        for j in words:
-            if linewidth + len(j) > widths[line_format][0]:
-                linewidth=0
-                s.write('\n')
-                s.write(' ' * spaces)
-            if line_format in [0, 2, 5]:
-                s.write(j.upper())
-            else:
-                s.write(j)
-            s.write(' ')
-            linewidth += len(j) + 1
-        s.write('\n')
-        #save paren for next time around to be sure
-        if line_format == 3:
-            parenTest = True
-        elif widths[line_format][2]==1:
-            s.write('\n')
-    return s
