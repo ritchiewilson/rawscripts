@@ -89,6 +89,40 @@ class TitlePageData (db.Model):
     other = db.StringProperty()
     otherChecked = db.StringProperty()
 
+    @staticmethod
+    def get_or_create(resource_id, title):
+        q = TitlePageData.all()
+        q.filter('resource_id =', resource_id)
+        data = q.get()
+        if data:
+            return data
+
+        p = TitlePageData()
+        p.resource_id = resource_id
+        p.title = title
+        p.authorOne = users.get_current_user().nickname()
+        p.authorTwo = ""
+        p.authorTwoChecked = ""
+        p.authorThree = ""
+        p.authorThreeChecked= ""
+        p.based_on = ""
+        p.based_onChecked = ""
+        p.address = ""
+        p.addressChecked = ""
+        p.phone = ""
+        p.phoneChecked = ""
+        p.cell = ""
+        p.cellChecked = ""
+        p.email = users.get_current_user().email()
+        p.emailChecked = "checked"
+        p.registered= ""
+        p.registeredChecked = ""
+        p.other = ""
+        p.otherChecked = ""
+        p.put()
+        return p
+
+
 class UsersScripts (db.Model):
     user = db.StringProperty()
     resource_id = db.StringProperty()

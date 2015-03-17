@@ -14,20 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from google.appengine.dist import use_library
-use_library('django', '1.2')
-from django.utils import simplejson
 import StringIO
-from collections import deque
-import sys
-import string
-import time
-import logging
-from google.appengine.ext import db
-from google.appengine.api import users
 import sys
 sys.path.insert(0, 'reportlab.zip')
 from reportlab.pdfgen import canvas
@@ -37,8 +25,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.rl_config import defaultPageSize
 import reportlab
 folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
-import config
-import models
 
 def wrap_text(text, max_chars):
     words = text.split(' ')
@@ -56,46 +42,14 @@ def wrap_text(text, max_chars):
             break
     return phrase_array
 
-def get_titlepage(resource_id, title):
-    q = db.GqlQuery("SELECT * FROM TitlePageData "+
-                    "WHERE resource_id='"+resource_id+"'")
-    results = q.fetch(2)
-    if len(results) > 0:
-        return results[0]
-
-    p = models.TitlePageData()
-    p.resource_id = resource_id
-    p.title = title
-    p.authorOne = users.get_current_user().nickname()
-    p.authorTwo = ""
-    p.authorTwoChecked = ""
-    p.authorThree = ""
-    p.authorThreeChecked= ""
-    p.based_on = ""
-    p.based_onChecked = ""
-    p.address = ""
-    p.addressChecked = ""
-    p.phone = ""
-    p.phoneChecked = ""
-    p.cell = ""
-    p.cellChecked = ""
-    p.email = users.get_current_user().email()
-    p.emailChecked = "checked"
-    p.registered= ""
-    p.registeredChecked = ""
-    p.other = ""
-    p.otherChecked = ""
-    p.put()
-    return p
-
-def Text(data, title, title_page, resource_id):
+def Text(data, title_page_obj):
     widths=[[62,15,1],[62,15,1],[40,35,0],[36,25,1],[35,30,0],[62,61,1]]
-    txt = simplejson.loads(data)
+    txt = data
 
     s = StringIO.StringIO()
 
-    if str(title_page)==str(1):
-        r = get_titlepage(resource_id, title)
+    if title_page_obj is not None:
+        r = title_page_obj
 
         def center_text(s, text):
             spaces = (80 - len(text)) / 2
@@ -174,14 +128,14 @@ def Text(data, title, title_page, resource_id):
             s.write('\n')
     return s
 
-def Pdf(data, title, title_page, resource_id):
+def Pdf(data, title_page_obj):
     buffer = StringIO.StringIO()
     c = canvas.Canvas(buffer)
     c.setFont('Courier',11)
     lh=12
 
-    if str(title_page)==str(1):
-        r = get_titlepage(resource_id, title)
+    if title_page_obj is not None:
+        r = title_page_obj
 
         ty = 600 #title y
         tx = defaultPageSize[0]/2.0 #title x (center)
@@ -243,7 +197,7 @@ def Pdf(data, title, title_page, resource_id):
     widths = [62, 62, 40, 36, 30, 62]
     b_space = [1, 1, 0, 1, 0, 1]
     printX = [100, 100, 232, 166, 199, 503]
-    lines = simplejson.loads(data)
+    lines = data
 
     j = 0 ## dumb iterator. used to handle mutiple parentheticals in one dialog
     lc = '' # keep track of recenct character to speak for CONT'D

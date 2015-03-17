@@ -144,19 +144,22 @@ class Export (webapp.RequestHandler):
 		p = permission(resource_id)
 		if p == False:
 			return
-                title = p
+		title = p
 		q = db.GqlQuery("SELECT * FROM ScriptData "+
-                                "WHERE resource_id='"+resource_id+"' "+
-                                "ORDER BY version DESC")
+				"WHERE resource_id='"+resource_id+"' "+
+				"ORDER BY version DESC")
 		results = q.fetch(1)
-		data=results[0].data
+		data = simplejson.loads(results[0].data)
+		title_page_obj = None
+		if str(title_page) == '1':
+			title_page_obj = models.TitlePageData.get_or_create(resource_id, title)
 		ascii_title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore")
 		if export_format =='txt':
-			newfile = export.Text(data, title, title_page, resource_id)
+			newfile = export.Text(data, title_page_obj)
 			filename = 'filename=' + ascii_title + '.txt'
 			self.response.headers['Content-Type'] = 'text/plain'
 		elif export_format == 'pdf':
-			newfile = export.Pdf(data, title, title_page, resource_id)
+			newfile = export.Pdf(data, title_page_obj)
 			filename = 'filename=' + ascii_title + '.pdf'
 			self.response.headers['Content-Type'] = 'application/pdf'
 
