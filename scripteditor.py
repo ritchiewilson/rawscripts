@@ -136,49 +136,37 @@ class Rename (webapp.RequestHandler):
 
 class Export (webapp.RequestHandler):
 	def get(self):
-
-		fromPage = self.request.get('fromPage')
 		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
+		if not resource_id or resource_id == "Demo":
 			return
 		export_format = self.request.get('export_format')
 		title_page = self.request.get('title_page')
-		user=gcu()
-		if resource_id:
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
-			results = q.fetch(500)
-			p=False
-			for i in results:
-				if i.user==user:
-					if i.permission=='owner' or i.permission=="collab":
-						p=True
-						title=i.title
-			if p==True:
-				q=db.GqlQuery("SELECT * FROM ScriptData "+
-											"WHERE resource_id='"+resource_id+"' "+
-											"ORDER BY version DESC")
-				results = q.fetch(1)
-				data=results[0].data
-                                ascii_title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore")
+		p = permission(resource_id)
+		if p == False:
+			return
+                title = p
+		q = db.GqlQuery("SELECT * FROM ScriptData "+
+                                "WHERE resource_id='"+resource_id+"' "+
+                                "ORDER BY version DESC")
+		results = q.fetch(1)
+		data=results[0].data
+		ascii_title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore")
+		if export_format =='txt':
+			newfile = export.Text(data, title, title_page, resource_id)
+			filename = 'filename=' + ascii_title + '.txt'
+			self.response.headers['Content-Type'] = 'text/plain'
+		elif export_format == 'pdf':
+			newfile = export.Pdf(data, title, title_page, resource_id)
+			filename = 'filename=' + ascii_title + '.pdf'
+			self.response.headers['Content-Type'] = 'application/pdf'
 
-				if export_format =='txt':
-					newfile = export.Text(data, title, title_page, resource_id)
-					filename = 'filename=' + ascii_title + '.txt'
-					self.response.headers['Content-Type'] = 'text/plain'
-				elif export_format=='pdf':
-					newfile = export.Pdf(data, title, title_page, resource_id)
-					filename = 'filename=' + ascii_title + '.pdf'
-					self.response.headers['Content-Type'] = 'application/pdf'
-
-				J = simplejson.loads(results[0].export)
-				arr=[export_format, str(datetime.datetime.today())]
-				J[1].append(arr)
-				results[0].export=simplejson.dumps(J)
-				results[0].put()
-
-				self.response.headers['Content-Disposition'] = 'attachment; ' +filename
-				self.response.out.write(newfile.getvalue())
+		J = simplejson.loads(results[0].export)
+		arr=[export_format, str(datetime.datetime.today())]
+		J[1].append(arr)
+		results[0].export=simplejson.dumps(J)
+		results[0].put()
+		self.response.headers['Content-Disposition'] = 'attachment; ' +filename
+		self.response.out.write(newfile.getvalue())
 
 
 class EmailScript (webapp.RequestHandler):
