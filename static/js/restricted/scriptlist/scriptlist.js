@@ -143,13 +143,16 @@ function verifyEmailPrompt(){
         return
 	popup.style.visibility = 'visible';
     var elem = goog.dom.getElement('user');
-	goog.dom.getElement('verify-email-input').value = goog.dom.getTextContent(elem);
+    var email = goog.dom.getTextContent(elem);
+    var reg = /^[a-zA-Z0-9\.]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$/;
+    if (! reg.test(email))
+        email = '';
+	goog.dom.getElement('verify-email-input').value = email;
 	goog.dom.getElement('verify-email-input').focus();
-	goog.dom.getElement('verify-email-input').select();
 }
 
 function verifyEmailRemindLater(){
-    alert("Please verify your email address by March 31st.\n\nIf you do not, you may have trouble accessing your work!");
+    alert("Please verify your email address by April 15th.\n\nIf you do not, you may have trouble accessing your work!");
     goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
 }
 
@@ -171,11 +174,28 @@ function verifyEmailSubmit(){
 
 function verifyEmailSubmissionResponse(response){
     var status = response.target.getResponseText();
-    if (status != 'sent'){
-        alert("There was some problem in verifying your account. Please try again later.");
-        goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
+    if (status == 'invalid-email-address'){
+        alert("Please enter a valid email address.")
+        var submit_button = goog.dom.getElement('verify-email-submit');
+	    submit_button.disabled = false;
+	    submit_button.value = "Verify";
+	    goog.dom.getElement('verifyEmailSpinner').style.visibility="hidden";
         return;
     }
+    var msg = '';
+    if (status == 'verified'){
+        msg += "Your email address has already been verified.\n\n";
+        msg += "If you continue to see message, you can report the problem to ";
+        msg += "contact@rawscripts.com";
+    }
+    else if (status == 'sent'){
+        msg = "Thanks!\n\n Please check your email for the confirmation link!"
+    }
+    else {
+        msg = "There was some problem in verifying your account. Please try again later.";
+    }
+    alert(msg);
+    goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
 }
 
 /**

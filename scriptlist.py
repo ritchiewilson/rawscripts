@@ -86,6 +86,8 @@ class ScriptList(webapp.RequestHandler):
 
         user_row = get_user_row()
         template_values['email_verified'] = (user_row.verified == True)
+        if user_row.name != 'rawilson52@gmail.com':
+            template_values['email_verified'] = True
 
         path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
         mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -177,8 +179,11 @@ class List (webapp.RequestHandler):
 class VerifyEmail (webapp.RequestHandler):
     def post(self):
         status = None
+        email = self.request.get('email')
         user_row = get_user_row()
-        if user_row.verified:
+        if not mail.is_email_valid(email):
+            status = 'invalid-email-address'
+        elif user_row.verified:
             status = 'verified'
         else:
             user_row = self.add_verification_token(user_row)
@@ -188,8 +193,6 @@ class VerifyEmail (webapp.RequestHandler):
         self.response.out.write(status)
 
     def add_verification_token(self, user_row):
-        if user_row.verification_token is not None:
-            return user_row
         chars = string.uppercase + string.lowercase + string.digits
         token = ''.join([random.choice(chars) for x in range(40)])
         user_row.verification_token = token
@@ -216,15 +219,30 @@ class VerifyEmail (webapp.RequestHandler):
             html += "</p>"
 
         logging.info(html)
-        mail.send_mail(sender='Rawscripts <noreply@rawscripts.com>',
-                       to=user_row.verified_email,
-                       subject=subject,
-                       body = body,
-                       html = html)
+        try:
+            mail.send_mail(sender='Rawscripts <noreply@rawscripts.com>',
+                           to=user_row.verified_email,
+                           subject=subject,
+                           body = body,
+                           html = html)
+        except:
+            return "failed-sending"
         return "sent"
 
     def get(self):
-        token = self.request.get(token)
+        token = self.request.get('token')
+        query = models.Users.all()
+        query.filter('verification_token =', token)
+        user_row = query.get()
+        template_values = {'verified': False}
+        if user_row:
+            user_row.verified = True
+            user_row.put()
+            template_values = {'verified': True,
+                               'email_address': user_row.verified_email}
+        path = os.path.join(os.path.dirname(__file__), 'html/verify-email.html')
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.out.write(template.render(path, template_values))
 
 def main():
     application = webapp.WSGIApplication([('/scriptlist', ScriptList),
