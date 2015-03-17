@@ -86,8 +86,6 @@ class ScriptList(webapp.RequestHandler):
 
         user_row = get_user_row()
         template_values['email_verified'] = (user_row.verified == True)
-        if user_row.name != 'rawilson52@gmail.com':
-            template_values['email_verified'] = True
 
         path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
         mobile = mobileTest.mobileTest(self.request.user_agent)
@@ -218,7 +216,9 @@ class VerifyEmail (webapp.RequestHandler):
                 html += paragraph
             html += "</p>"
 
-        logging.info(html)
+        if config.MODE == "DEV":
+            logging.info(body)
+
         try:
             mail.send_mail(sender='Rawscripts <noreply@rawscripts.com>',
                            to=user_row.verified_email,
@@ -234,12 +234,23 @@ class VerifyEmail (webapp.RequestHandler):
         query = models.Users.all()
         query.filter('verification_token =', token)
         user_row = query.get()
-        template_values = {'verified': False}
-        if user_row:
+        current_user = users.get_current_user()
+        verified = False
+        # Only actually verify if 1) the user is logged in on this page and
+        # their openid status matches our row, or 2) even if they're not logged
+        # in but they're verifying the email address we expect
+        if not user_row:
+            verified = False
+        elif current_user and current_user.email().lower() == user_row.name.lower():
+            verified = True
+        elif user_row.name.lower() == user_row.verified_email.lower():
+            verified = True
+
+        template_values = {'verified': verified}
+        if verified:
             user_row.verified = True
             user_row.put()
-            template_values = {'verified': True,
-                               'email_address': user_row.verified_email}
+            template_values['email_address'] = user_row.verified_email
         path = os.path.join(os.path.dirname(__file__), 'html/verify-email.html')
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
