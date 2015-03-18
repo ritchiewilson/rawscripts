@@ -200,8 +200,11 @@ class EmailScript (webapp.RequestHandler):
 									"WHERE resource_id='"+resource_id+"' "+
 									"ORDER BY version DESC")
 		results = q.fetch(1)
-		data=results[0].data
-		newfile = export.Pdf(data, title, title_page, resource_id)
+		data = simplejson.loads(results[0].data)
+		title_page_obj = None
+		if str(title_page) == '1':
+			title_page_obj = models.TitlePageData.get_or_create(resource_id, title)
+		newfile = export.Pdf(data, title_page_obj)
 		filename=title+'.pdf'
 
 
@@ -260,13 +263,14 @@ class UserExport(webapp.RequestHandler):
 		q.filter('resource_id =', resource_id)
 		q.order('-version')
 		data = q.get()
+		data = simplejson.loads(data.data)
 		newfile = 0
 		filename = ''
 		if pdf=='on':
-			newfile = export.Pdf(data.data, title, title_page, resource_id)
+			newfile = export.Pdf(data, None)
 			filename=title+'.pdf'
 		else:
-			newfile = export.Text(data.data, title, title_page, resource_id)
+			newfile = export.Text(data, None)
 			filename=title+'.txt'
 		mail.send_mail(sender='contact@rawscripts.com',
 					   to=recipient,
