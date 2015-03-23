@@ -142,21 +142,17 @@ class Export (webapp.RequestHandler):
 
 class EmailScript (webapp.RequestHandler):
 	def post(self):
-		fromPage = self.request.get('fromPage')
 		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
+		p = permission(resource_id)
+		if p == False:
 			return
 		title_page = self.request.get('title_page')
-		p=permission(resource_id)
-		if p==False:
-			return
-		else:
-			subject=self.request.get('subject')
-			body_message=self.request.get('body_message')
-			result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
-			htmlbody = result.content
-			html = htmlbody.replace("FILLERTEXT", body_message)
-			body = body_message + """
+		subject = self.request.get('subject')
+		body_message = self.request.get('body_message')
+		result = urlfetch.fetch("http://www.rawscripts.com/text/email.txt")
+		htmlbody = result.content
+		html = htmlbody.replace("FILLERTEXT", body_message)
+		body = body_message + """
 
 
 	--- This Script written and sent from RawScripts.com. Check it out---"""
@@ -164,47 +160,35 @@ class EmailScript (webapp.RequestHandler):
 		# Make Recipient list instead of just one
 		recipients=self.request.get('recipients').split(',')
 		title = p
-		q=db.GqlQuery("SELECT * FROM ScriptData "+
-									"WHERE resource_id='"+resource_id+"' "+
-									"ORDER BY version DESC")
-		results = q.fetch(1)
-		data = simplejson.loads(results[0].data)
+		latest = models.ScriptData.get_latest_version(resource_id)
+		if not latest:
+			return
+		data = simplejson.loads(latest.data)
 		title_page_obj = None
 		if str(title_page) == '1':
 			title_page_obj = models.TitlePageData.get_or_create(resource_id, title)
 		newfile = export.Pdf(data, title_page_obj)
-		filename=title+'.pdf'
+		filename = title + '.pdf'
 
+		try:
+			mail.send_mail(sender=users.get_current_user().email(),
+				       to=recipients,
+				       subject=subject,
+				       body=body,
+				       html=html,
+				       attachments=[(filename, newfile.getvalue())])
+		except:
+			self.response.headers['Content-Type'] = 'text/plain'
+			self.response.out.write('not sent')
+			return
 
-		#Mail the damn thing. Itereating to reduce userside errors
-		j=0
-		while j<3:
-			try:
-				mail.send_mail(sender=users.get_current_user().email(),
-								to=recipients,
-								subject=subject,
-								body = body,
-								html = html,
-								attachments=[(filename, newfile.getvalue())])
-				j=5
-			except:
-				j=j+1
-			if j==2:
-				subject="Script"
-			if j==4:
-				self.response.headers['Content-Type'] = 'text/plain'
-				self.response.out.write('not sent')
-				return
-		user = gcu()
-		ownerTest = db.get(db.Key.from_path('UsersScripts', 'owner'+user+resource_id))
-		if ownerTest!=None:
-			J = simplejson.loads(results[0].export)
-			t=str(datetime.datetime.today())
-
+		if ownerPermission(resource_id) != False:
+			J = simplejson.loads(latest.export)
+			t = str(datetime.datetime.today())
 			for recipient in recipients:
 				J[0].append([recipient, t])
-				results[0].export=simplejson.dumps(J)
-				results[0].put()
+			latest.export = simplejson.dumps(J)
+			latest.put()
 
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
