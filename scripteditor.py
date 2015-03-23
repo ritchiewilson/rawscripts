@@ -232,53 +232,39 @@ class UserExport(webapp.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('sent')
 
+
 class NewScript (webapp.RequestHandler):
 	def post(self):
 
 		filename = self.request.get('filename')
 		filename = filename.replace('%20', ' ')
-		fromPage = self.request.get('fromPage')
-		user=gcu()
-		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-		resource_id=''
-		for x in random.sample(alphabet,20):
-			resource_id+=x
-
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+resource_id+"'")
-		results=q.fetch(2)
-
-		while len(results)>0:
-			resource_id=''
-			for x in random.sample(alphabet,20):
-				resource_id+=x
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
-			results=q.fetch(2)
+		resource_id = models.ScriptData.create_unique_resource_id()
 
 		s = models.ScriptData(resource_id=resource_id,
-									 data='[["Fade In:",1],["Int. ",0]]',
-									 version=1,
-									 export='[[],[]]',
-									 tag='',
-									 autosave=0)
+				      data='[["Fade In:",1],["Int. ",0]]',
+				      version=1,
+				      export='[[],[]]',
+				      tag='',
+				      autosave=0)
 		s.put()
 
 		s = models.SpellingData(resource_id=resource_id,
-									 wrong='[]',
-									 ignore="[]")
+					wrong='[]',
+					ignore='[]')
 		s.put()
 
+		user = gcu()
 		u = models.UsersScripts(key_name="owner"+user+resource_id,
-						user=user,
-						title=filename,
-						resource_id=resource_id,
-						last_updated = datetime.datetime.today(),
-						permission='owner',
-						folder = "?none?")
+					user=user,
+					title=filename,
+					resource_id=resource_id,
+					last_updated = datetime.datetime.today(),
+					permission='owner',
+					folder = "?none?")
 		u.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(resource_id)
+
 
 class Duplicate (webapp.RequestHandler):
 	def post(self):

@@ -1,3 +1,5 @@
+import string
+import random
 from google.appengine.ext import db
 from google.appengine.api import users
 
@@ -73,6 +75,17 @@ class ScriptData (db.Model):
         q.order('-version')
         latest = q.get()
         return latest
+
+    @staticmethod
+    def create_unique_resource_id():
+        chars = string.uppercase + string.lowercase + string.digits
+        resource_id = None
+        while resource_id is None:
+            _id = ''.join(random.sample(chars, 20))
+            if UsersScripts.get_by_resource_id(_id) is not None:
+                resource_id = _id
+        return resource_id
+
 
 class TitlePageData (db.Model):
     resource_id = db.StringProperty()
