@@ -32,6 +32,14 @@ class ShareNotify (db.Model):
     timeopened = db.DateTimeProperty()
     opened = db.BooleanProperty()
 
+    @staticmethod
+    def get_by_resource_id_and_user(resource_id, user):
+        q = ShareNotify.all()
+        q.filter('resource_id =', resource_id)
+        q.filter('user =', user)
+        return q.fetch(1000)
+
+
 class LastUpdatedEtag (db.Model):
     name = db.StringProperty()
     etag = db.StringProperty()
@@ -64,6 +72,14 @@ class UnreadNotes (db.Model):
     user = db.StringProperty()
     msg_id = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
+
+    @staticmethod
+    def get_by_resource_id_and_user(resource_id, user):
+        q = UnreadNotes.all()
+        q.filter('resource_id =', resource_id)
+        q.filter('user =', user)
+        return q.fetch(1000)
+
 
 class ScriptData (db.Model):
     resource_id = db.StringProperty()
@@ -164,6 +180,13 @@ class UsersScripts (db.Model):
             if UsersScripts.get_by_resource_id(_id) is not None:
                 resource_id = _id
         return resource_id
+
+    @staticmethod
+    def get_by_resource_id_and_user(resource_id, user):
+        q = UsersScripts.all()
+        q.filter('resource_id =', resource_id)
+        q.filter('user =', user)
+        return q.get()
 
 
 class DuplicateScripts (db.Model):

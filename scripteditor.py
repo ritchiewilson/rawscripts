@@ -462,28 +462,21 @@ class RemoveAccess (webapp.RequestHandler):
 		p = ownerPermission(resource_id)
 		if p == False:
 			return
-		fromPage = self.request.get('fromPage')
-		person = self.request.get('removePerson')
-		q = db.GqlQuery("SELECT * FROM UsersScripts "+
-				"WHERE resource_id='"+resource_id+"' "+
-				"AND user='"+person.lower()+"'")
-		r = q.fetch(1)
-		r[0].delete()
-		q = db.GqlQuery("SELECT * FROM UnreadNotes "+
-				"WHERE resource_id='"+resource_id+"' "+
-				"AND user='"+person.lower()+"'")
-		r = q.fetch(500)
-		for i in r:
-			i.delete()
-		remove_person = self.request.get('removePerson')
+		person = self.request.get('removePerson').lower()
+		row = models.UsersScripts.get_by_resource_id_and_user(resource_id, person)
+		if not row or row.permission != 'collab':
+			return
+		row.delete()
+
+		notes = models.UnreadNotes.get_by_resource_id_and_user(resource_id, person)
+		for note in notes:
+			note.delete()
+
+		notifications = models.ShareNotify.get_by_resource_id_and_user(resource_id, person)
+		for n in notifications:
+			n.delete()
 		self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write(remove_person.lower())
-		q = db.GqlQuery("SELECT * FROM ShareNotify "+
-				"WHERE resource_id='"+resource_id+"' "+
-				"AND user='"+person.lower()+"'")
-		r = q.fetch(1)
-		if len(r)!=0:
-			r[0].delete()
+		self.response.out.write(person)
 
 
 class SyncContactsPage (webapp.RequestHandler):
