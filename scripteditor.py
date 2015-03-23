@@ -114,11 +114,10 @@ class Export (webapp.RequestHandler):
 		if p == False:
 			return
 		title = p
-		q = db.GqlQuery("SELECT * FROM ScriptData "+
-				"WHERE resource_id='"+resource_id+"' "+
-				"ORDER BY version DESC")
-		results = q.fetch(1)
-		data = simplejson.loads(results[0].data)
+		latest = models.ScriptData.get_latest_version(resource_id)
+		if not latest:
+			return
+		data = simplejson.loads(latest.data)
 		title_page_obj = None
 		if str(title_page) == '1':
 			title_page_obj = models.TitlePageData.get_or_create(resource_id, title)
@@ -132,11 +131,11 @@ class Export (webapp.RequestHandler):
 			filename = 'filename=' + ascii_title + '.pdf'
 			self.response.headers['Content-Type'] = 'application/pdf'
 
-		J = simplejson.loads(results[0].export)
-		arr=[export_format, str(datetime.datetime.today())]
+		J = simplejson.loads(latest.export)
+		arr = [export_format, str(datetime.datetime.today())]
 		J[1].append(arr)
-		results[0].export=simplejson.dumps(J)
-		results[0].put()
+		latest.export = simplejson.dumps(J)
+		latest.put()
 		self.response.headers['Content-Disposition'] = 'attachment; ' +filename
 		self.response.out.write(newfile.getvalue())
 

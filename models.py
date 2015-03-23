@@ -66,6 +66,14 @@ class ScriptData (db.Model):
     export = db.StringProperty()
     tag = db.StringProperty()
 
+    @staticmethod
+    def get_latest_version(resource_id):
+        q = ScriptData.all()
+        q.filter('resource_id =', resource_id)
+        q.order('-version')
+        latest = q.get()
+        return latest
+
 class TitlePageData (db.Model):
     resource_id = db.StringProperty()
     title = db.StringProperty()
