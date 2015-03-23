@@ -53,29 +53,23 @@ from utils import get_contacts_yahoo_token, get_contacts_google_token
 class Delete (webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
-		q = db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
-		results = q.fetch(1000)
-		user = gcu()
-		p=False
-		for i in results:
-			if i.permission=='owner':
-				if i.user==user:
-					p=True
-		if p==True:
-			for i in results:
-				if i.permission=='owner':
-					i.permission='ownerDeleted'
-					i.put()
-				if i.permission=='collab':
-					i.permission='collabDeletedByOwner'
-					i.put()
-			self.response.headers['Content-Type']='text/plain'
-			self.response.out.write('1')
-		else:
+		p = ownerPermission(resource_id)
+		if p == False:
 			self.response.headers['Content-Type']='text/plain'
 			self.response.out.write('0')
-		mobile = mobileTest.mobileTest(self.request.user_agent)
+			return
+
+		q = db.Query(models.UsersScripts)
+		q.filter('resource_id =', resource_id)
+		screenplays = q.fetch(1000)
+		for screenplay in screenplays:
+			if screenplay.permission == 'owner':
+				screenplay.permission = 'ownerDeleted'
+			elif screenplay.permission == 'collab':
+				screenplay.permission = 'collabDeletedByOwner'
+			screenplay.put()
+		self.response.headers['Content-Type']='text/plain'
+		self.response.out.write('1')
 
 
 class Undelete(webapp.RequestHandler):
