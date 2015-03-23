@@ -398,7 +398,7 @@ class Share (webapp.RequestHandler):
 						title=p,
 						folder="?none?")
 			u.put()
-			s = models.ShareNotify(user = i,
+			s = models.ShareNotify(user=collaborator,
 					       resource_id = resource_id,
 					       timeshared = datetime.datetime.today(),
 					       timeopened = datetime.datetime.today(),
