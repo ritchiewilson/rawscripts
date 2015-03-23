@@ -455,35 +455,35 @@ class Share (webapp.RequestHandler):
 								opened=False)
 				s.put()
 
+
 class RemoveAccess (webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
-		if resource_id=="Demo":
+		p = ownerPermission(resource_id)
+		if p == False:
 			return
-		p=ownerPermission(resource_id)
-		if p!=False:
-			fromPage=self.request.get('fromPage')
-			person = self.request.get('removePerson')
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"' "+
-										"AND user='"+person.lower()+"'")
-			r=q.fetch(1)
+		fromPage = self.request.get('fromPage')
+		person = self.request.get('removePerson')
+		q = db.GqlQuery("SELECT * FROM UsersScripts "+
+				"WHERE resource_id='"+resource_id+"' "+
+				"AND user='"+person.lower()+"'")
+		r = q.fetch(1)
+		r[0].delete()
+		q = db.GqlQuery("SELECT * FROM UnreadNotes "+
+				"WHERE resource_id='"+resource_id+"' "+
+				"AND user='"+person.lower()+"'")
+		r = q.fetch(500)
+		for i in r:
+			i.delete()
+		remove_person = self.request.get('removePerson')
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write(remove_person.lower())
+		q = db.GqlQuery("SELECT * FROM ShareNotify "+
+				"WHERE resource_id='"+resource_id+"' "+
+				"AND user='"+person.lower()+"'")
+		r = q.fetch(1)
+		if len(r)!=0:
 			r[0].delete()
-			q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND user='"+person.lower()+"'")
-			r=q.fetch(500)
-			for i in r:
-				i.delete()
-			remove_person = self.request.get('removePerson')
-			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.out.write(remove_person.lower())
-			q=db.GqlQuery("SELECT * FROM ShareNotify "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND user='"+person.lower()+"'")
-			r=q.fetch(1)
-			if len(r)!=0:
-				r[0].delete()
 
 
 class SyncContactsPage (webapp.RequestHandler):
