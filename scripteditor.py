@@ -424,22 +424,11 @@ class Share (webapp.RequestHandler):
 
 	--- This Script written and sent from RawScripts.com. Check it out---"""
 
-			#Mail the damn thing. Itereating to reduce errors
-			j=0
-			while j<3:
-				try:
-					mail.send_mail(sender=users.get_current_user().email(),
-												 to=new_collaborators,
-												 subject=subject,
-												 body = body,
-												 html = html)
-					j=5
-				except:
-					j=j+1
-					if j==3:
-						self.response.headers['Content-Type'] = 'text/plain'
-						self.response.out.write('not sent')
-						return
+			mail.send_mail(sender=users.get_current_user().email(),
+				       to=new_collaborators,
+				       subject=subject,
+				       body = body,
+				       html = html)
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(",".join(new_collaborators))
 
