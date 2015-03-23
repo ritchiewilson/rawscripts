@@ -377,40 +377,28 @@ class Share (webapp.RequestHandler):
 		resource_id = self.request.get('resource_id')
 		p = ownerPermission(resource_id)
 		if p == False:
-                        return
+			return
 		collaborators = self.request.get('collaborators').lower()
-		fromPage = self.request.get('fromPage')
 		collabList = collaborators.split(',')
 
 		#uniquify the list
-		keys={}
-		for e in collabList:
-			keys[e]=1
-		uCollabList=keys.keys()
+		uCollabList = set([c for c in collabList if c != ''])
 
 		#don't duplicate sharing
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-						"WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(500)
-		output=[]
-		for i in uCollabList:
-			found=False
-			for j in r:
-				if j.user==i.lower():
-					found=True
-				if i=="":
-					found=True
-			if found==False:
-				output.append(i.lower())
-				u = models.UsersScripts(key_name="collab"+i.lower()+resource_id,
-								resource_id=resource_id,
-								permission="collab",
-								user = i.lower(),
-								last_updated = datetime.datetime.today(),
-								title = p,
-								folder = "?none?")
-				u.put()
-		if output!=[] and self.request.get('sendEmail')=='y':
+		rows = models.UsersScripts.get_by_resource_id(resource_id)
+		existing_collaborators = set([row.user.lower() for row in rows])
+		new_collaborators = list(uCollabList - existing_collaborators)
+
+		for collaborator in new_collaborators:
+			u = models.UsersScripts(key_name="collab"+collaborator+resource_id,
+						resource_id=resource_id,
+						permission="collab",
+						user=collaborator,
+						last_updated=datetime.datetime.today(),
+						title=p,
+						folder="?none?")
+			u.put()
+		if new_collaborators!=[] and self.request.get('sendEmail')=='y':
 			subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
 			body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
 			result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
@@ -433,7 +421,7 @@ class Share (webapp.RequestHandler):
 			while j<3:
 				try:
 					mail.send_mail(sender=users.get_current_user().email(),
-												 to=output,
+												 to=new_collaborators,
 												 subject=subject,
 												 body = body,
 												 html = html)
@@ -445,8 +433,8 @@ class Share (webapp.RequestHandler):
 						self.response.out.write('not sent')
 						return
 		self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write(",".join(output))
-		for i in output:
+		self.response.out.write(",".join(new_collaborators))
+		for i in new_collaborators:
 			s = models.ShareNotify(user = i,
 							resource_id = resource_id,
 							timeshared = datetime.datetime.today(),
