@@ -321,22 +321,6 @@ class ConvertProcess (webapp.RequestHandler):
 			filename = capture.replace('%20', ' ')
 			filename = filename.replace('C:\\fakepath\\', '')
 		user=gcu()
-		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-		resource_id=''
-		for x in random.sample(alphabet,20):
-			resource_id+=x
-
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+resource_id+"'")
-		results=q.fetch(2)
-
-		while len(results)>0:
-			resource_id=''
-			for x in random.sample(alphabet,10):
-				resource_id+=x
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+resource_id+"'")
-			results=q.fetch(2)
 
 		# Format file
 		data = StringIO.StringIO(self.request.get('script'))
@@ -359,6 +343,7 @@ class ConvertProcess (webapp.RequestHandler):
 			contents = convert.Celtx(data)
 
 
+		resource_id = models.UsersScripts.create_unique_resource_id()
 		s = models.ScriptData(resource_id=resource_id,
 									 data=contents,
 									 version=1,
