@@ -398,6 +398,12 @@ class Share (webapp.RequestHandler):
 						title=p,
 						folder="?none?")
 			u.put()
+			s = models.ShareNotify(user = i,
+					       resource_id = resource_id,
+					       timeshared = datetime.datetime.today(),
+					       timeopened = datetime.datetime.today(),
+					       opened=False)
+			s.put()
 		if new_collaborators!=[] and self.request.get('sendEmail')=='y':
 			subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
 			body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
@@ -434,13 +440,6 @@ class Share (webapp.RequestHandler):
 						return
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(",".join(new_collaborators))
-		for i in new_collaborators:
-			s = models.ShareNotify(user = i,
-							resource_id = resource_id,
-							timeshared = datetime.datetime.today(),
-							timeopened = datetime.datetime.today(),
-							opened=False)
-			s.put()
 
 
 class RemoveAccess (webapp.RequestHandler):
