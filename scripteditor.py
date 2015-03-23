@@ -404,19 +404,21 @@ class Share (webapp.RequestHandler):
 					       timeopened = datetime.datetime.today(),
 					       opened=False)
 			s.put()
-		if new_collaborators!=[] and self.request.get('sendEmail')=='y':
-			subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
-			body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+		if new_collaborators and self.request.get('sendEmail') == 'y':
+			user = users.get_current_user().email()
+			subject = user + " has shared a script with you on RawScripts.com"
+			body_message = "http://www.rawscripts.com/editor?resource_id="+resource_id
 			result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
 			htmlbody = result.content
 			html = htmlbody.replace("SCRIPTTITLE", p)
 			html = html.replace("USER",users.get_current_user().email())
-			html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
-			if self.request.get('addMsg')=='y':
-				divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"+self.request.get('msg')+"<br><b>--"+users.get_current_user().email()+"</b></div>"
-				html = html.replace("TEXTAREA", divArea)
-			else:
-				html = html.replace("TEXTAREA", "")
+			html = html.replace("SCRIPTURL", body_message)
+			divArea = ''
+			if self.request.get('addMsg') == 'y':
+				divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"
+				divArea += self.request.get('msg')
+				divArea += "<br><b>--" + user + "</b></div>"
+			html = html.replace("TEXTAREA", divArea)
 			body = body_message + """
 
 
