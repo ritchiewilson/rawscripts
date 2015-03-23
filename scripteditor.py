@@ -375,85 +375,84 @@ class ConvertProcess (webapp.RequestHandler):
 class Share (webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
 		p = ownerPermission(resource_id)
-		if p!=False:
-			collaborators = self.request.get('collaborators').lower()
-			fromPage = self.request.get('fromPage')
-			collabList = collaborators.split(',')
+		if p == False:
+                        return
+		collaborators = self.request.get('collaborators').lower()
+		fromPage = self.request.get('fromPage')
+		collabList = collaborators.split(',')
 
-			#uniquify the list
-			keys={}
-			for e in collabList:
-				keys[e]=1
-			uCollabList=keys.keys()
+		#uniquify the list
+		keys={}
+		for e in collabList:
+			keys[e]=1
+		uCollabList=keys.keys()
 
-			#don't duplicate sharing
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-							"WHERE resource_id='"+resource_id+"'")
-			r=q.fetch(500)
-			output=[]
-			for i in uCollabList:
-				found=False
-				for j in r:
-					if j.user==i.lower():
-						found=True
-					if i=="":
-						found=True
-				if found==False:
-					output.append(i.lower())
-					u = models.UsersScripts(key_name="collab"+i.lower()+resource_id,
-									resource_id=resource_id,
-									permission="collab",
-									user = i.lower(),
-									last_updated = datetime.datetime.today(),
-									title = p,
-									folder = "?none?")
-					u.put()
-			if output!=[] and self.request.get('sendEmail')=='y':
-				subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
-				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
-				result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
-				htmlbody = result.content
-				html = htmlbody.replace("SCRIPTTITLE", p)
-				html = html.replace("USER",users.get_current_user().email())
-				html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
-				if self.request.get('addMsg')=='y':
-					divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"+self.request.get('msg')+"<br><b>--"+users.get_current_user().email()+"</b></div>"
-					html = html.replace("TEXTAREA", divArea)
-				else:
-					html = html.replace("TEXTAREA", "")
-				body = body_message + """
+		#don't duplicate sharing
+		q=db.GqlQuery("SELECT * FROM UsersScripts "+
+						"WHERE resource_id='"+resource_id+"'")
+		r=q.fetch(500)
+		output=[]
+		for i in uCollabList:
+			found=False
+			for j in r:
+				if j.user==i.lower():
+					found=True
+				if i=="":
+					found=True
+			if found==False:
+				output.append(i.lower())
+				u = models.UsersScripts(key_name="collab"+i.lower()+resource_id,
+								resource_id=resource_id,
+								permission="collab",
+								user = i.lower(),
+								last_updated = datetime.datetime.today(),
+								title = p,
+								folder = "?none?")
+				u.put()
+		if output!=[] and self.request.get('sendEmail')=='y':
+			subject=users.get_current_user().email() + " has shared a script with you on RawScripts.com"
+			body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+			result = urlfetch.fetch("http://www.rawscripts.com/text/notify.txt")
+			htmlbody = result.content
+			html = htmlbody.replace("SCRIPTTITLE", p)
+			html = html.replace("USER",users.get_current_user().email())
+			html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+			if self.request.get('addMsg')=='y':
+				divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"+self.request.get('msg')+"<br><b>--"+users.get_current_user().email()+"</b></div>"
+				html = html.replace("TEXTAREA", divArea)
+			else:
+				html = html.replace("TEXTAREA", "")
+			body = body_message + """
 
 
-		--- This Script written and sent from RawScripts.com. Check it out---"""
+	--- This Script written and sent from RawScripts.com. Check it out---"""
 
-				#Mail the damn thing. Itereating to reduce errors
-				j=0
-				while j<3:
-					try:
-						mail.send_mail(sender=users.get_current_user().email(),
-													 to=output,
-													 subject=subject,
-													 body = body,
-													 html = html)
-						j=5
-					except:
-						j=j+1
-						if j==3:
-							self.response.headers['Content-Type'] = 'text/plain'
-							self.response.out.write('not sent')
-							return
-			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.out.write(",".join(output))
-			for i in output:
-				s = models.ShareNotify(user = i,
-								resource_id = resource_id,
-								timeshared = datetime.datetime.today(),
-								timeopened = datetime.datetime.today(),
-								opened=False)
-				s.put()
+			#Mail the damn thing. Itereating to reduce errors
+			j=0
+			while j<3:
+				try:
+					mail.send_mail(sender=users.get_current_user().email(),
+												 to=output,
+												 subject=subject,
+												 body = body,
+												 html = html)
+					j=5
+				except:
+					j=j+1
+					if j==3:
+						self.response.headers['Content-Type'] = 'text/plain'
+						self.response.out.write('not sent')
+						return
+		self.response.headers['Content-Type'] = 'text/plain'
+		self.response.out.write(",".join(output))
+		for i in output:
+			s = models.ShareNotify(user = i,
+							resource_id = resource_id,
+							timeshared = datetime.datetime.today(),
+							timeopened = datetime.datetime.today(),
+							opened=False)
+			s.put()
 
 
 class RemoveAccess (webapp.RequestHandler):
