@@ -59,9 +59,7 @@ class Delete (webapp.RequestHandler):
 			self.response.out.write('0')
 			return
 
-		q = db.Query(models.UsersScripts)
-		q.filter('resource_id =', resource_id)
-		screenplays = q.fetch(1000)
+		screenplays = models.UsersScripts.get_by_resource_id(resource_id)
 		for screenplay in screenplays:
 			if screenplay.permission == 'owner':
 				screenplay.permission = 'ownerDeleted'

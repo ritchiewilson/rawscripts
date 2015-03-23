@@ -131,6 +131,13 @@ class UsersScripts (db.Model):
     permission = db.StringProperty()
     folder = db.StringProperty()
 
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        q = UsersScripts.all()
+        q.filter('resource_id =', resource_id)
+        screenplays = q.fetch(1000)
+        return screenplays
+
 class DuplicateScripts (db.Model):
     new_script = db.StringProperty()
     from_script = db.StringProperty()
