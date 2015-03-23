@@ -50,46 +50,33 @@ from utils import gcu, permission, ownerPermission
 from utils import get_contacts_yahoo_token, get_contacts_google_token
 
 
-class Delete (webapp.RequestHandler):
+class Deletion(webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
+		response = '0'
 		p = ownerPermission(resource_id)
-		if p == False:
-			self.response.headers['Content-Type']='text/plain'
-			self.response.out.write('0')
-			return
+		if p != False:
+			response = '1'
+			screenplays = models.UsersScripts. \
+				      get_by_resource_id(resource_id)
+			for screenplay in screenplays:
+				self.update_screenplay(screenplay)
+		self.response.headers['Content-Type']='text/plain'
+		self.response.out.write(response)
 
-		screenplays = models.UsersScripts.get_by_resource_id(resource_id)
-		for screenplay in screenplays:
+	def update_screenplay(self, screenplay):
+		if self.request.path == '/delete':
 			if screenplay.permission == 'owner':
 				screenplay.permission = 'ownerDeleted'
 			elif screenplay.permission == 'collab':
 				screenplay.permission = 'collabDeletedByOwner'
-			screenplay.put()
-		self.response.headers['Content-Type']='text/plain'
-		self.response.out.write('1')
+		elif self.request.path == '/undelete':
+			if screenplay.permission == 'ownerDeleted':
+				screenplay.permission = 'owner'
+			elif screenplay.permission == 'collabDeletedByOwner':
+				screenplay.permission='collab'
+		screenplay.put()
 
-
-class Undelete(webapp.RequestHandler):
-	def post(self):
-		resource_id = self.request.get('resource_id')
-		title= ownerPermission(resource_id)
-		if not title==False:
-			q = db.GqlQuery("SELECT * FROM UsersScripts "+
-											"WHERE resource_id='"+resource_id+"'")
-			results = q.fetch(1000)
-			for i in results:
-				if i.permission=='ownerDeleted':
-					i.permission='owner'
-					i.put()
-				elif i.permission=='collabDeletedByOwner':
-					i.permission='collab'
-					i.put()
-			self.response.headers['Content-Type']='text/plain'
-			self.response.out.write('1')
-		else:
-			self.response.headers['Content-Type']='text/plain'
-			self.response.out.write('0')
 
 class HardDelete(webapp.RequestHandler):
 	def post(self):
@@ -743,9 +730,9 @@ class YahooVerification(webapp.RequestHandler):
 
 
 def main():
-	application = webapp.WSGIApplication([('/delete', Delete),
+	application = webapp.WSGIApplication([('/delete', Deletion),
+											('/undelete', Deletion),
 											('/harddelete', HardDelete),
-											('/undelete', Undelete),
 											('/newscript', NewScript),
 											('/duplicate', Duplicate),
 											('/export', Export),
