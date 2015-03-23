@@ -14,6 +14,12 @@ class SpellingData (db.Model):
     ignore = db.TextProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
 
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        q = SpellingData.all()
+        q.filter('resource_id =', resource_id)
+        return q.get()
+
 class ShareDB (db.Model):
     name = db.StringProperty()
     resource_id = db.StringProperty()
@@ -75,16 +81,6 @@ class ScriptData (db.Model):
         q.order('-version')
         latest = q.get()
         return latest
-
-    @staticmethod
-    def create_unique_resource_id():
-        chars = string.uppercase + string.lowercase + string.digits
-        resource_id = None
-        while resource_id is None:
-            _id = ''.join(random.sample(chars, 20))
-            if UsersScripts.get_by_resource_id(_id) is not None:
-                resource_id = _id
-        return resource_id
 
 
 class TitlePageData (db.Model):
@@ -158,6 +154,17 @@ class UsersScripts (db.Model):
         q.filter('resource_id =', resource_id)
         screenplays = q.fetch(1000)
         return screenplays
+
+    @staticmethod
+    def create_unique_resource_id():
+        chars = string.uppercase + string.lowercase + string.digits
+        resource_id = None
+        while resource_id is None:
+            _id = ''.join(random.sample(chars, 20))
+            if UsersScripts.get_by_resource_id(_id) is not None:
+                resource_id = _id
+        return resource_id
+
 
 class DuplicateScripts (db.Model):
     new_script = db.StringProperty()

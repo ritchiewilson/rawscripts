@@ -238,7 +238,7 @@ class NewScript (webapp.RequestHandler):
 
 		filename = self.request.get('filename')
 		filename = filename.replace('%20', ' ')
-		resource_id = models.ScriptData.create_unique_resource_id()
+		resource_id = models.UsersScripts.create_unique_resource_id()
 
 		s = models.ScriptData(resource_id=resource_id,
 				      data='[["Fade In:",1],["Int. ",0]]',
@@ -269,34 +269,13 @@ class NewScript (webapp.RequestHandler):
 class Duplicate (webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
 		title = ownerPermission(resource_id)
 		if title == False:
 			return
-		q=db.GqlQuery("SELECT * FROM ScriptData "+
-			      "WHERE resource_id='"+resource_id+"' "+
-			      "ORDER BY version DESC")
-		results = q.fetch(1)
-		data=results[0].data
-		version=results[0].version
-		user=gcu()
-		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-		new_resource_id=''
-		for x in random.sample(alphabet,20):
-			new_resource_id+=x
-
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-			      "WHERE resource_id='"+new_resource_id+"'")
-		results=q.fetch(2)
-
-		while len(results)>0:
-			new_resource_id=''
-			for x in random.sample(alphabet,20):
-				new_resource_id+=x
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-				      "WHERE resource_id='"+new_resource_id+"'")
-			results=q.fetch(2)
+		new_resource_id = models.UsersScripts.create_unique_resource_id()
+		latest = models.ScriptData.get_latest_version(resource_id)
+		data = latest.data
+		version = latest.version
 
 		s = models.ScriptData(resource_id=new_resource_id,
 				      data=data,
@@ -309,6 +288,8 @@ class Duplicate (webapp.RequestHandler):
 					   from_script = resource_id,
 					   from_version=version)
 		d.put()
+
+		user = gcu()
 		u = models.UsersScripts(key_name="owner"+user+new_resource_id,
 					user=user,
 					title='Copy of '+title,
@@ -317,12 +298,13 @@ class Duplicate (webapp.RequestHandler):
 					permission='owner',
 					folder = "?none?")
 		u.put()
-		q=db.GqlQuery("SELECT * FROM SpellingData "+
-			      "WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(2)
-		s= models.SpellingData(resource_id=new_resource_id,
-				       wrong=r[0].wrong,
-				       ignore=r[0].ignore)
+
+		spelling_data = models.SpellingData.get_by_resource_id(resource_id)
+		wrong = spelling_data.wrong if spelling_data else '[]'
+		ignore = spelling_data.ignore if spelling_data else '[]'
+		s = models.SpellingData(resource_id=new_resource_id,
+					wrong=wrong,
+					ignore=ignore)
 		s.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write('/editor?resource_id='+new_resource_id)
