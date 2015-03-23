@@ -82,14 +82,13 @@ class HardDelete(webapp.RequestHandler):
 	def post(self):
 		resource_id = self.request.get('resource_id')
 		title = ownerPermission(resource_id)
-		if not title==False:
-			q = db.GqlQuery("SELECT * FROM UsersScripts "+
-											"WHERE resource_id='"+resource_id+"'")
-			r = q.fetch(500)
+		if title == False:
+			return
+		screenplays = models.UsersScripts.get_by_resource_id(resource_id)
+		for screenplay in screenplays:
+			screenplay.permission = 'hardDelete'
+			screenplay.put()
 
-			for i in r:
-				i.permission = 'hardDelete'
-				i.put()
 
 class Rename (webapp.RequestHandler):
 	def post(self):
