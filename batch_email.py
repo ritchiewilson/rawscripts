@@ -62,8 +62,11 @@ class BatchEmail(webapp.RequestHandler):
             q.filter('name >', start_from)
 
         last_done = ''
-        for user in q.run(limit=10):
-            self.email_user(user)
+        message_content = self.get_message_content()
+        html = self.get_html_template(message_content)
+        body = self.get_text_template(message_content)
+        for user in q.run(limit=100):
+            self.email_user(user, html, body)
             last_done = user.name
 
         if last_done == '':
@@ -73,7 +76,7 @@ class BatchEmail(webapp.RequestHandler):
         taskqueue.add(url="/batch-email", params=params,
                       queue_name='batch-email')
 
-    def email_user(self, user):
+    def email_user(self, user, html, body):
         if user.name == '':
             return
         if user is None:
@@ -83,16 +86,15 @@ class BatchEmail(webapp.RequestHandler):
         if user.reminder_sent >= self.EMAIL_ROUND:
             return
 
+        token_created = False
         if not user.unsubscribe_token:
+            token_created = True
             chars = string.uppercase + string.lowercase + string.digits
             token = ''.join([random.choice(chars) for x in range(40)])
             user.unsubscribe_token = token
             user.unsubscribed = False
+            user.reminder_sent = self.EMAIL_ROUND
             user.put()
-
-        message_content = self.get_message_content()
-        html = self.get_html_template(message_content)
-        body = self.get_text_template(message_content)
 
         unsubscribe_link = self.DOMAIN + "unsubscribe?token="
         unsubscribe_link += user.unsubscribe_token
@@ -109,8 +111,9 @@ class BatchEmail(webapp.RequestHandler):
                        subject=subject,
                        body=body,
                        html=html)
-        user.reminder_sent = self.EMAIL_ROUND
-        user.put()
+        if not token_created:
+            user.reminder_sent = self.EMAIL_ROUND
+            user.put()
 
     def get_message_content(self):
         content_path ="static/text/verify-body-" + str(self.EMAIL_ROUND) + ".html"
