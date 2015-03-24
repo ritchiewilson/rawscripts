@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 4
+version: 6
 runtime: python
 api_version: 1
 
@@ -48,6 +48,10 @@ handlers:
 
 - url: /rss.*
   script: blog.py
+
+- url: /batch-email.*
+  script: batch_email.py
+  login: admin
 
 - url: /blogpost.*
   script: blog.py
@@ -95,6 +99,7 @@ handlers:
 
 - url: /text
   static_dir: static/text
+  application_readable: true
 
 - url: /closure-library
   static_dir: static/closure-library
