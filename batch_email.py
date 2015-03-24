@@ -86,14 +86,11 @@ class BatchEmail(webapp.RequestHandler):
         if user.reminder_sent >= self.EMAIL_ROUND:
             return
 
-        token_created = False
         if not user.unsubscribe_token:
-            token_created = True
             chars = string.uppercase + string.lowercase + string.digits
             token = ''.join([random.choice(chars) for x in range(40)])
             user.unsubscribe_token = token
             user.unsubscribed = False
-            user.reminder_sent = self.EMAIL_ROUND
             user.put()
 
         unsubscribe_link = self.DOMAIN + "unsubscribe?token="
@@ -111,9 +108,8 @@ class BatchEmail(webapp.RequestHandler):
                        subject=subject,
                        body=body,
                        html=html)
-        if not token_created:
-            user.reminder_sent = self.EMAIL_ROUND
-            user.put()
+        user.reminder_sent = self.EMAIL_ROUND
+        user.put()
 
     def get_message_content(self):
         content_path ="static/text/verify-body-" + str(self.EMAIL_ROUND) + ".html"
