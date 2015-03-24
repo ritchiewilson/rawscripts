@@ -15,38 +15,97 @@ import models
 import difflib
 import logging
 from datetime import datetime
+import random
+import string
+
+class Unsubscribe(webapp.RequestHandler):
+    def get(self):
+        token = self.request.get('token')
+        query = models.Users.all()
+        query.filter('unsubscribe_token =', token)
+        user_row = query.get()
+
+        template_values = {'verified': False}
+        if user_row:
+            user_row.unsubscribed = True
+            user_row.put()
+            template_values['email_address'] = user_row.name
+            template_values['verified'] = True
+
+        path = os.path.join(os.path.dirname(__file__), 'html/unsubscribe.html')
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.out.write(template.render(path, template_values))
+
 
 class BatchEmail(webapp.RequestHandler):
     def get(self):
         if not users.is_current_user_admin():
             return
-        EMAIL_ROUND = 1
-        subject = "Action required for your Rawscripts account"
-        VERIFY_TEXT = "verify your email at Rawscripts.com"
-        DOMAIN = "http://www.rawscripts.com/"
+        self.EMAIL_ROUND = 1
+        self.VERIFY_TEXT = "verify your email at Rawscripts.com"
+        self.DOMAIN = "http://www.rawscripts.com/"
         # DOMAIN = "http://localhost:8080/"
-        READMORE_URL = DOMAIN + "blog/Login-System-Changing-Soon"
+        self.READMORE_URL = self.DOMAIN + "blog/Login-System-Changing-Soon"
 
-        f = open('static/text/verify-base.html')
-        template = f.read()
-        f.close()
-        content_path ="static/text/verify-body-" + str(EMAIL_ROUND) + ".html"
+        user = "rawilson52@gmail.com"
+        self.email_user(user)
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write('sent')
+
+    def email_user(self, username):
+        q = models.Users.all()
+        q.filter('name =', username)
+        user = q.get()
+        if user is None:
+            return
+        if user.verified or user.unsubscribed:
+            return
+        if user.reminder_sent == self.EMAIL_ROUND:
+            return
+
+        if not user.unsubscribe_token:
+            chars = string.uppercase + string.lowercase + string.digits
+            token = ''.join([random.choice(chars) for x in range(40)])
+            user.unsubscribe_token = token
+            user.unsubscribed = False
+            user.put()
+
+        message_content = self.get_message_content()
+        html = self.get_html_template(message_content)
+        body = self.get_text_template(message_content)
+
+        unsubscribe_link = self.DOMAIN + "unsubscribe?token="
+        unsubscribe_link += user.unsubscribe_token
+
+        html_unsub = '<a href="' + unsubscribe_link + '">unsubscribe</a>'
+        html = html.replace('UNSUBSCRIBE', html_unsub)
+
+        text_unsub = "unsubscribe at this link: " + unsubscribe_link
+        body = body.replace("UNSUBSCRIBE", text_unsub)
+
+        subject = "Action required for your Rawscripts account"
+        mail.send_mail(sender="noreply@rawscripts.com",
+                       to=username,
+                       subject=subject,
+                       body=body,
+                       html=html)
+        user.reminder_sent = self.EMAIL_ROUND
+        user.put()
+        logging.info(body)
+        logging.info(html)
+
+    def get_message_content(self):
+        content_path ="static/text/verify-body-" + str(self.EMAIL_ROUND) + ".html"
         f = open(content_path)
         content = f.read()
         f.close()
+        return content
 
-        # Build html message
-        html_readmore = '<a href="' + READMORE_URL + '">Read more.</a>'
-        html_verify = '<a href="' + DOMAIN + '">' + VERIFY_TEXT + "</a>"
-        html_content = content.replace("READMORE", html_readmore)
-        html_content = html_content.replace("VERIFY", html_verify)
-        html = template.replace("BODYTEXT", html_content)
-
-        # Build plain text message
-        text_readmore = "Read more at " + READMORE_URL
+    def get_text_template(self, content):
+        text_readmore = "Read more at " + self.READMORE_URL
         substitutions = [
             ("READMORE", text_readmore),
-            ("VERIFY", VERIFY_TEXT),
+            ("VERIFY", self.VERIFY_TEXT),
             ("\n", ""),
             ("  ", " "),
             ("<p>", "\n"),
@@ -55,24 +114,25 @@ class BatchEmail(webapp.RequestHandler):
             ("<b>", "**"),
             ("</b>", "**"),
         ]
-        text_content = content
         for s in substitutions:
-            while s[0] in text_content:
-                text_content = text_content.replace(s[0], s[1])
+            while s[0] in content:
+                content = content.replace(s[0], s[1])
+        return content
 
-        mail.send_mail(sender="noreply@rawscripts.com",
-                       to="rawilson52@gmail.com",
-                       subject=subject,
-                       body=text_content,
-                       html=html)
-        logging.info(text_content)
-        logging.info(html)
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('sent')
-
+    def get_html_template(self, content):
+        f = open('static/text/verify-base.html')
+        template = f.read()
+        f.close()
+        html_readmore = '<a href="' + self.READMORE_URL + '">Read more.</a>'
+        html_verify = '<a href="' + self.DOMAIN + '">' + self.VERIFY_TEXT + "</a>"
+        content = content.replace("READMORE", html_readmore)
+        content = content.replace("VERIFY", html_verify)
+        html = template.replace("BODYTEXT", content)
+        return html
 
 def main():
     application = webapp.WSGIApplication([('/batch-email', BatchEmail),
+                                          ('/unsubscribe', Unsubscribe),
                                       ],
                                          debug=True)
 

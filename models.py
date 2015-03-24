@@ -51,6 +51,9 @@ class Users (db.Model):
     verification_token = db.StringProperty()
     verified_email = db.StringProperty()
     verified = db.BooleanProperty()
+    unsubscribe_token = db.StringProperty()
+    unsubscribed = db.BooleanProperty()
+    reminder_sent = db.IntegerProperty()
 
 class Notes (db.Model):
     resource_id = db.StringProperty()
