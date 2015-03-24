@@ -226,6 +226,8 @@ class VerifyEmail (webapp.RequestHandler):
                            body = body,
                            html = html)
         except:
+            user_row.failed_to_send_verification = True
+            user_row.put()
             return "failed-sending"
         return "sent"
 

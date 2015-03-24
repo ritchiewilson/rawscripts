@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 9
+version: 1
 runtime: python
 api_version: 1
 
