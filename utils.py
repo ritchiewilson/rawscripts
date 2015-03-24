@@ -18,7 +18,7 @@
 from google.appengine.api import users
 from google.appengine.ext import db
 
-from models import ScriptData
+from models import UsersScripts
 
 def gcu():
     """
@@ -32,7 +32,7 @@ def gcu():
 
 def _permission_helper(resource_id, permissions):
     user = gcu()
-    row = ScriptData.get_by_resource_id_and_user(resource_id, user)
+    row = UsersScripts.get_by_resource_id_and_user(resource_id, user)
     if row.permission in permissions:
         return row.title
     return False
