@@ -4,3 +4,6 @@ queue:
 
 - name: migrate
   rate: 1/s
+
+- name: batch-email
+  rate: 1/s

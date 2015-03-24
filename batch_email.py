@@ -41,26 +41,31 @@ class BatchEmail(webapp.RequestHandler):
     def get(self):
         if not users.is_current_user_admin():
             return
+
+        params = {}
+        taskqueue.add(url="/batch-email", params=params,
+                      queue_name='batch-email')
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write('Started')
+
+    def post(self):
         self.EMAIL_ROUND = 1
         self.VERIFY_TEXT = "verify your email at Rawscripts.com"
         self.DOMAIN = "http://www.rawscripts.com/"
         # DOMAIN = "http://localhost:8080/"
         self.READMORE_URL = self.DOMAIN + "blog/Login-System-Changing-Soon"
 
-        user = "rawilson52@gmail.com"
-        self.email_user(user)
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('sent')
-
-    def email_user(self, username):
         q = models.Users.all()
-        q.filter('name =', username)
-        user = q.get()
+        q.order('name')
+        for user in q.run(limit=10):
+            self.email_user(user)
+
+    def email_user(self, user):
         if user is None:
             return
         if user.verified or user.unsubscribed:
             return
-        if user.reminder_sent == self.EMAIL_ROUND:
+        if user.reminder_sent >= self.EMAIL_ROUND:
             return
 
         if not user.unsubscribe_token:
@@ -85,14 +90,12 @@ class BatchEmail(webapp.RequestHandler):
 
         subject = "Action required for your Rawscripts account"
         mail.send_mail(sender="noreply@rawscripts.com",
-                       to=username,
+                       to=user.name,
                        subject=subject,
                        body=body,
                        html=html)
         user.reminder_sent = self.EMAIL_ROUND
         user.put()
-        logging.info(body)
-        logging.info(html)
 
     def get_message_content(self):
         content_path ="static/text/verify-body-" + str(self.EMAIL_ROUND) + ".html"

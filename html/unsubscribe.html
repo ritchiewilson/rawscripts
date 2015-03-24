@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="google-site-verification" content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" /> 
+	<meta name="description" content="Free, online screenplay software. Windows, Mac, and Linux. Edit from any computer, share from your phone, take control of your scripts." /> 
+	<title>RawScripts.com - Unsubscribe</title>
+	<link rel="stylesheet" type="text/css" href="/css/screen.css" media="screen" />
+	<link rel="shortcut icon" href="/favicon.ico">
+    <script>
+      function close_window(){window.close()};
+    </script>
+</head>
+<body>
+	{% include "analytics.html" %}
+	<div id="content">
+		<div id="logo">
+			<h1><a href="/">RawScripts.com</a></h1>
+		</div>
+		<ul id="menu">
+			<li><a href="/">Home</a></li>
+			<li><a href="/blog">Blog</a></li>
+			<li><a href="/contact">Contact</a></li>
+			<li><a href="http://www.rawscripts.org" target="_blank">Source Code</a></li>
+		</ul>
+		<div class="line"></div>
+		<div id="blog">
+		  <div class="feed">
+            {% if verified %}
+            <span class="headline" style="float:none">Successfully Unsubscribed</span>
+			<div class="data" style="padding-top:25px;">
+              <p>You've unsubscribed: <b>{{ email_address}}</b>.</p>
+              <p>
+                You should no longer receive upgrade notices from Rawscripts.
+              </p>
+              <p>
+                All Done! You can close this window, now.
+              </p>
+            </div>
+            {% else %}
+            <span class="headline" style="float:none">ERROR!</span>
+			<div class="data" style="padding-top:25px;">
+              <p>
+                Sorry, but something looks wrong. Check the link you were
+                emailed and try again.
+              </p>
+              <p>
+                If you keep having problems, let me know
+                at <a href="mailto:contact@rawscripts.com">contact@rawscripts.com</a>.
+              </p>
+            </div>
+            {% endif %}
+		  </div>
+		</div>
+		<div id="footer">
+		</div>
+	</div>
+</body>
+</html>
