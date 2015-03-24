@@ -68,6 +68,9 @@ def commit_script_data(data, session):
     ids = {}
     for resource_id, script_data, version, timestamp, autosave, export, tag in lines:
         version = int(version)
+        if len(timestamp) == 19:
+            # one row in whole database is missing milliseconds...
+            timestamp += ".000000"
         timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
         autosave = bool(int(autosave))
         obj = ScriptData(resource_id=resource_id,
