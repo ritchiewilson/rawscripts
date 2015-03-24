@@ -42,7 +42,7 @@ class BatchEmail(webapp.RequestHandler):
         if not users.is_current_user_admin():
             return
 
-        params = {}
+        params = {'start_from': ''}
         taskqueue.add(url="/batch-email", params=params,
                       queue_name='batch-email')
         self.response.headers['Content-Type'] = 'text/plain'
@@ -57,10 +57,25 @@ class BatchEmail(webapp.RequestHandler):
 
         q = models.Users.all()
         q.order('name')
+        start_from = self.request.get('start_from')
+        if start_from != '':
+            q.filter('name >', start_from)
+
+        last_done = ''
         for user in q.run(limit=10):
             self.email_user(user)
+            last_done = user.name
+
+        if last_done == '':
+            return
+
+        params = {'start_from': last_done}
+        taskqueue.add(url="/batch-email", params=params,
+                      queue_name='batch-email')
 
     def email_user(self, user):
+        if user.name == '':
+            return
         if user is None:
             return
         if user.verified or user.unsubscribed:
