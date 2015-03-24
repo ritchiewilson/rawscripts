@@ -18,6 +18,7 @@
 from google.appengine.api import users
 from google.appengine.ext import db
 
+from models import ScriptData
 
 def gcu():
     """
@@ -29,27 +30,17 @@ def gcu():
     return user
 
 
-def permission (resource_id):
-    q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                    "WHERE resource_id='"+resource_id+"'")
-    results = q.fetch(1000)
+def _permission_helper(resource_id, permissions):
     user = gcu()
-    p = False
-    for i in results:
-        if i.permission == 'owner' or i.permission == 'ownerDeleted' or i.permission == 'collab':
-            if i.user == user or users.is_current_user_admin():
-                p = i.title
-                break
-    return p
+    row = ScriptData.get_by_resource_id_and_user(resource_id, user)
+    if row.permission in permissions:
+        return row.title
+    return False
+
+def permission (resource_id):
+    permissions = ['owner', 'ownerDeleted', 'collab']
+    return _permission_helper(resource_id, permissions)
 
 def ownerPermission (resource_id):
-    q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                    "WHERE resource_id='"+resource_id+"'")
-    results = q.fetch(1000)
-    user = gcu()
-    p = False
-    for i in results:
-        if i.permission == 'owner' or i.permission == 'ownerDeleted':
-            if i.user == user:
-                p = i.title
-    return p
+    permissions = ['owner', 'ownerDeleted']
+    return _permission_helper(resource_id, permissions)
