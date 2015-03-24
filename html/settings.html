@@ -16,9 +16,6 @@
 		}
 	</style>
 	<script type="text/javascript" charset="utf-8">
-		function syncContacts(){
-			window.open('/synccontactspage', 'synccontactspage', 'width=500px,height=500px');
-		}
 		function autosaveRadio(e){
 			document.getElementById('autosaveEnable').checked=false;
 			document.getElementById('autosaveDisable').checked=false;
@@ -78,12 +75,6 @@
 			<div id="owned" class="folderContents" style="display:block">
 				<div id='settingsBox'>
 					<table border="0" cellspacing="10" cellpadding="10" width='100%'>
-						<tr>
-							<td><b>Sync {{ domain }} Contacts:</b></td>
-							<td>Syncing with {{ domain }} Contacts is {{ syncContactsText }}. <a href="javascript:syncContacts()" style="color:blue; text-decoration:underline">Change Sync Settings</a></td>
-							<td width='20%'></td>
-							<td width='15%'></td>
-						</tr>
 						<tr>
 							<td><b>Enable AutoSave:</b></td>
 							<td><input type="radio" name="enable" id="autosaveEnable" onclick='autosaveRadio(this)' {{ autosaveEnabled }}> Enable autosave in editor window.<br>

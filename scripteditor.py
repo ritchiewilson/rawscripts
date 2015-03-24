@@ -39,15 +39,11 @@ import logging
 from django.utils import simplejson
 import mobileTest
 import chardet
-import gdata.gauth
-import gdata.data
-import gdata.contacts.client
 import config
 import models
 import unicodedata
 
 from utils import gcu, permission, ownerPermission
-from utils import get_contacts_yahoo_token, get_contacts_google_token
 
 
 class Deletion(webapp.RequestHandler):
@@ -456,81 +452,6 @@ class RemoveAccess (webapp.RequestHandler):
 		self.response.out.write(person)
 
 
-class SyncContactsPage (webapp.RequestHandler):
-	def get(self):
-		user = users.get_current_user()
-		if not user:
-			self.redirect('/')
-			return
-		else:
-			template_values = {}
-			try:
-				domain = user.email().lower().split('@')[1].split('.')[0]
-			except:
-				path = os.path.join(os.path.dirname(__file__), 'html/synccontactserror.html')
-				self.response.headers['Content-Type'] = 'text/html'
-				self.response.out.write(template.render(path, template_values))
-				return
-
-			if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-				template_values['domain'] = 'Yahoo'
-				token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
-				if token!=None and token!=False:
-					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-				else:
-					import yahoo.application
-					verifier  = self.request.get('oauth_verifier')
-					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
-					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
-					APPLICATION_ID    = 't73LcW32'
-					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
-					oauthapp      = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
-					if verifier=='':
-						request_token = oauthapp.get_request_token(CALLBACK_URL)
-						memcache.set(key='request_token'+user.email().lower(), value=request_token.to_string(), time=3600)
-						redirect_url  = oauthapp.get_authorization_url(request_token)
-						template_values['auth_url'] = redirect_url
-						path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
-					else:
-						r = memcache.get('request_token'+user.email().lower())
-						request_token = yahoo.oauth.RequestToken.from_string(r)
-						access_token = oauthapp.get_access_token(request_token, verifier)
-						oauthapp.token = access_token
-						y = models.YahooOAuthTokens(key_name='yahoo_oauth_token'+user.email().lower(),
-											t = access_token.to_string())
-						y.put()
-						path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-			else:
-				template_values['domain'] = 'Google'
-				google_token = get_contacts_google_token(self.request)
-				if google_token == None:
-					template_values['auth_url'] = gdata.gauth.generate_auth_sub_url(self.request.url, ['http://www.google.com/m8/feeds/'])
-					path = os.path.join(os.path.dirname(__file__), 'html/synccontacts.html')
-				else:
-					path = os.path.join(os.path.dirname(__file__), 'html/removesynccontacts.html')
-
-			template_values['GA'] = config.GA
-			template_values['MODE'] = config.MODE
-			self.response.headers['Content-Type'] = 'text/html'
-			self.response.out.write(template.render(path, template_values))
-
-class RemoveSyncContacts (webapp.RequestHandler):
-	def get(self):
-		domain = gcu().split('@')[1].split('.')[0]
-		if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-			token = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
-			if token!=None and token!=False:
-				memcache.delete('contacts'+gcu())
-				token.delete()
-		else:
-			token = get_contacts_google_token(self.request)
-			if token!=False and token!=None:
-				client = gdata.client.GDClient()
-				client.revoke_token(token)
-				gdata.gauth.ae_delete('contacts' + gcu())
-				memcache.delete('contacts'+gcu())
-		self.redirect('/synccontactspage')
-
 class SyncContacts (webapp.RequestHandler):
 	def post(self):
 		user = users.get_current_user()
@@ -538,68 +459,10 @@ class SyncContacts (webapp.RequestHandler):
 			return
 		d = memcache.get('contacts'+user.email().lower())
 		if d == None:
-			domain = user.email().lower().split('@')[1].split('.')[0]
-			if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-				at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
-				if at!=None and at!=False:
-					import yahoo.application
-					CONSUMER_KEY      = 'dj0yJmk9SzliWElvdVlJQmtRJmQ9WVdrOWREY3pUR05YTXpJbWNHbzlOemd3TnpRMU1UWXkmcz1jb25zdW1lcnNlY3JldCZ4PWZi'
-					CONSUMER_SECRET   = 'fc43654b852a220a29e054cccbf27fb1f0080b89'
-					APPLICATION_ID    = 't73LcW32'
-					CALLBACK_URL      = 'http://www.rawscripts.com/synccontactspage'
-					oauthapp = yahoo.application.OAuthApplication(CONSUMER_KEY, CONSUMER_SECRET, APPLICATION_ID, CALLBACK_URL)
-					oauthapp.token = yahoo.oauth.AccessToken.from_string(at.t)
-					oauthapp.token = oauthapp.refresh_access_token(oauthapp.token)
-					J = oauthapp.getContacts()
-					email_list = []
-					for entry in J['contacts']['contact']:
-						n = None
-						for f in entry['fields']:
-							if f['type']=='name':
-								n = '"'+f['value']['givenName']+" "+f['value']['familyName']+'"'
-						for field in entry['fields']:
-							if field['type']=='email':
-								if n==None:
-									email_list.append('<'+field['value']+'>')
-								else:
-									email_list.append(n+' <'+field['value']+'>')
-					output = simplejson.dumps(email_list)
-					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
-				else:
-					#if no yahoo token
-					output = '[]'
-			else:
-				token = get_contacts_google_token(self.request)
-				if token!=False and token!=None:
-					client = gdata.contacts.client.ContactsClient()
-					feed = client.GetContacts(auth_token=token)
-					contactlist = []
-					for entry in feed.entry:
-						for email in entry.email:
-							if str(entry.title.text)=='None':
-								contactlist.append("<"+str(email.address)+">")
-							else:
-								contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-					i=0
-					while i==0:
-						try:
-							feed = client.GetNext(feed, auth_token=token)
-							for entry in feed.entry:
-								for email in entry.email:
-									if str(entry.title.text)=='None':
-										contactlist.append("<"+str(email.address)+">")
-									else:
-										contactlist.append('"' + str(entry.title.text) + '"  <' + str(email.address)+">")
-						except:
-							i=1
-					output = simplejson.dumps(contactlist)
-					memcache.set(key='contacts'+user.email().lower(), value=output, time=90000)
-				else:
-					# if no token
-					output = "[]"
+			output = '[]'
 		else:
 			#if memecache is good
-			output=d
+			output = d
 		self.response.headers['Content-Type'] = 'text/plain'
 		self.response.out.write(output)
 
@@ -639,8 +502,6 @@ def main():
 											('/convertprocess', ConvertProcess),
 											('/share', Share),
 											('/removeaccess', RemoveAccess),
-											('/synccontactspage', SyncContactsPage),
-											('/removesynccontacts', RemoveSyncContacts),
 											('/synccontacts', SyncContacts),
 											('/uploadhelp', UploadHelp),
 											('/convert', Convert),

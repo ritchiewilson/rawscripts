@@ -26,14 +26,9 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import gdata.gauth
-import gdata.data
-import gdata.contacts.client
 import config
 import models
-
 from utils import gcu, permission, ownerPermission
-from utils import get_contacts_yahoo_token, get_contacts_google_token
 
 
 class SettingsPage (webapp.RequestHandler):
@@ -46,26 +41,6 @@ class SettingsPage (webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
         template_values = { 'sign_out': users.create_logout_url('/') }
         template_values['user'] = users.get_current_user().email()
-        try:
-            domain = user.email().lower().split('@')[1].split('.')[0]
-            if domain=='yahoo' or domain=='ymail' or domain=='rocketmail':
-                template_values['domain'] = 'Yahoo'
-                at = db.get(db.Key.from_path('YahooOAuthTokens', 'yahoo_oauth_token'+gcu()))
-                if at==None or at==False:
-                    template_values['syncContactsText']='OFF'
-                else:
-                    template_values['syncContactsText']='ON'
-            else:
-                template_values['domain'] = 'Google'
-                token = get_contacts_google_token(self.request)
-                if token==False or token==None:
-                    template_values['syncContactsText']='OFF'
-                else:
-                    template_values['syncContactsText']='ON'
-        except:
-            template_values['domain'] = ''
-            template_values['syncContactsText']='not supported for your account'
-
         try:
             us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
         except:

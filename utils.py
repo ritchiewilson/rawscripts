@@ -17,9 +17,6 @@
 
 from google.appengine.api import users
 from google.appengine.ext import db
-import gdata.gauth
-import gdata.data
-import gdata.contacts.client
 
 
 def gcu():
@@ -56,22 +53,3 @@ def ownerPermission (resource_id):
             if i.user == user:
                 p = i.title
     return p
-
-def get_contacts_google_token(request):
-    current_user = users.get_current_user()
-    if current_user is None or current_user.user_id() is None:
-        return False
-    token_string, token_scopes = gdata.gauth.auth_sub_string_from_url(request.url)
-    if token_string is None:
-        return gdata.gauth.ae_load('contacts' + gcu())
-    single_use_token = gdata.gauth.AuthSubToken(token_string, token_scopes)
-    client = gdata.client.GDClient()
-    session_token = client.upgrade_token(single_use_token)
-    gdata.gauth.ae_save(session_token, 'contacts' + gcu())
-    return session_token
-
-def get_contacts_yahoo_token(request):
-    current_user = users.get_current_user()
-    if current_user is None or current_user.user_id() is None:
-        return False
-    return False
