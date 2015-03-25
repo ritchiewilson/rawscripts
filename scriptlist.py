@@ -30,6 +30,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+import urllib
+from google.appengine.api import urlfetch
 import datetime
 from django.utils import simplejson
 import mobileTest
@@ -226,9 +228,28 @@ class VerifyEmail (webapp.RequestHandler):
                            body = body,
                            html = html)
         except:
-            user_row.failed_to_send_verification = True
-            user_row.put()
-            return "failed-sending"
+            try:
+                form_fields = {
+                    'sender': 'Rawscripts <noreply@rawscripts.com>',
+                    "to": user_row.verified_email,
+                    'subject': subject,
+                    'body': body,
+                    'html': html
+                }
+                url = "http://rawscripts-emailer.appspot.com"
+                form_data = urllib.urlencode(form_fields)
+                result = urlfetch.fetch(url=url,
+                                        payload=form_data,
+                                        method=urlfetch.POST,
+                                        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+                if result.content != 'worked':
+                    user_row.failed_to_send_verification = True
+                    user_row.put()
+                    return "failed-sending"
+            except:
+                user_row.failed_to_send_verification = True
+                user_row.put()
+                return "failed-sending"
         return "sent"
 
     def get(self):
