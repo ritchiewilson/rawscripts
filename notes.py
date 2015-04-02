@@ -117,10 +117,7 @@ class SubmitMessage(webapp.RequestHandler):
 		if p == False:
 			return
 
-		q = db.GqlQuery("SELECT * FROM Notes "+
-								 "WHERE resource_id='"+resource_id+"' "+
-								 "AND thread_id='"+thread_id+"'")
-		r=q.get()
+		r = models.Notes.get_by_resource_id_and_thread_id(resource_id, thread_id)
 		J = simplejson.loads(r.data)
 		found = False
 		for i in J:
@@ -155,13 +152,10 @@ class Position (webapp.RequestHandler):
 		positions = self.request.get('positions')
 		J = simplejson.loads(positions)
 		for i in J:
-			q=db.GqlQuery("SELECT * FROM Notes "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+str(i[2])+"'")
-			r=q.fetch(1)
-			r[0].row  = i[0]
-			r[0].col = i[1]
-			r[0].put()
+			r = models.Notes.get_by_resource_id_and_thread_id(resource_id, str(i[2]))
+			r.row  = i[0]
+			r.col = i[1]
+			r.put()
 		self.response.headers["Content-type"]="plain/text"
 		self.response.out.write('1')
 
@@ -176,11 +170,8 @@ class DeleteThread (webapp.RequestHandler):
 			return
 		fromPage=self.request.get('fromPage')
 		thread_id = self.request.get('thread_id')
-		q=db.GqlQuery("SELECT * FROM Notes "+
-					"WHERE resource_id='"+resource_id+"' "+
-					"AND thread_id='"+thread_id+"'")
-		r=q.fetch(1)
-		r[0].delete()
+		r = models.Notes.get_by_resource_id_and_thread_id(resource_id, thread_id)
+		r.delete()
 
 		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 						"WHERE resource_id='"+resource_id+"' "+
@@ -199,10 +190,7 @@ class DeleteMessage(webapp.RequestHandler):
 			self.response.out.write('deleted')
 			return
 
-		q=db.GqlQuery("SELECT * FROM Notes "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+thread_id+"'")
-		r=q.get()
+		r = models.Notes.get_by_resource_id_and_thread_id(resource_id, thread_id)
 		if r==None:
 			self.response.out.write('no thread')
 			return
@@ -309,10 +297,8 @@ class Notification(webapp.RequestHandler):
 		# only send these notifications if user exists (ue)
 		if not ue:
 			return
-		q = db.GqlQuery("SELECT * FROM Notes "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+thread_id+"'")
-		J=simplejson.loads(q.get().data)
+		note = models.Notes.get_by_resource_id_and_thread_id(resource_id, thread_id)
+		J=simplejson.loads(note.data)
 		data=None
 		for i in J:
 			if i[2]==msg_id:
@@ -396,10 +382,8 @@ class SendSummaryEmail(webapp.RequestHandler):
 			body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
 			body +="<p>This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a></p><div style='width:400px'>"
 			for j in i:
-				q=db.GqlQuery("SELECT  FROM Notes "+
-								"WHERE resource_id='"+j[0]+"' "+
-								"AND thread_id='"+j[1]+"'")
-				J = simplejson.loads(q.get().data)
+				note = models.Notes.get_by_resource_id_and_thread_id(j[0], j[1])
+				J = simplejson.loads(note.data)
 				found=False
 				for u in J:
 					if u[2]==j[2]:

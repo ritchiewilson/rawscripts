@@ -64,6 +64,13 @@ class Notes (db.Model):
     row = db.IntegerProperty()
     col = db.IntegerProperty()
 
+    @staticmethod
+    def get_by_resource_id_and_thread_id(resource_id, thread_id):
+        q = Notes.all()
+        q.filter('resource_id =', resource_id)
+        q.filter('thread_id =', thread_id)
+        return q.get()
+
 class NotesNotify (db.Model):
     resource_id = db.StringProperty()
     thread_id = db.StringProperty()
