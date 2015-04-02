@@ -213,44 +213,45 @@ class DeleteMessage(webapp.RequestHandler):
 		if resource_id=="Demo":
 			self.response.out.write('deleted')
 			return
-		else:
-			q=db.GqlQuery("SELECT * FROM Notes "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND thread_id='"+thread_id+"'")
-			r=q.get()
-			if r==None:
-				self.response.out.write('no thread')
-				return
+
+		q=db.GqlQuery("SELECT * FROM Notes "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+thread_id+"'")
+		r=q.get()
+		if r==None:
+			self.response.out.write('no thread')
+			return
+
+		p = ownerPermission(resource_id)
+		J = simplejson.loads(r.data)
+		newJ=[]
+		deleted=False
+		for i in J:
+			if i[2]==msg_id:
+				if p!=False or i[1]==gcu():
+					deleted=True
+				else:
+					newJ.append(i)
 			else:
-				p = ownerPermission(resource_id)
-				J = simplejson.loads(r.data)
-				newJ=[]
-				deleted=False
-				for i in J:
-					if i[2]==msg_id:
-						if p!=False or i[1]==gcu():
-							deleted=True
-						else:
-							newJ.append(i)
-					else:
-						newJ.append(i)
-				if len(newJ)==0:
-					r.delete()
-				else:
-					r.data=simplejson.dumps(newJ)
-					r.put()
-				self.response.headers['Content-Type'] = 'text/plain'
-				if deleted==True:
-					q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-									"WHERE resource_id='"+resource_id+"' "+
-									"AND thread_id='"+thread_id+"'")
-					un=q.fetch(1000)
-					for i in un:
-						if i.msg_id==msg_id:
-							i.delete()
-					self.response.out.write('deleted')
-				else:
-					self.response.out.write('error')
+				newJ.append(i)
+		if len(newJ)==0:
+			r.delete()
+		else:
+			r.data=simplejson.dumps(newJ)
+			r.put()
+		self.response.headers['Content-Type'] = 'text/plain'
+		if not deleted:
+			self.response.out.write('error')
+			return
+		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+thread_id+"'")
+		un=q.fetch(1000)
+		for i in un:
+			if i.msg_id==msg_id:
+				i.delete()
+		self.response.out.write('deleted')
+
 
 class MarkAsRead(webapp.RequestHandler):
 	def post(self):
