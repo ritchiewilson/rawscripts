@@ -35,6 +35,9 @@ from django.utils import feedgenerator
 import config
 import models
 
+from utils import get_template_path
+
+
 class Blog(webapp.RequestHandler):
 	def get(self):
 		uri = self.request.path_info[1:]
@@ -69,12 +72,12 @@ class Blog(webapp.RequestHandler):
 							"error_message" : error_message}
 		template_values['MODE'] = config.MODE
 		template_values['GA'] = config.GA
-		path = os.path.join(os.path.dirname(__file__), 'html/blog.html')
+		path = get_template_path('html/blog.html')
 		self.response.out.write(template.render(path, template_values))
 
 class BlogPostGUI(webapp.RequestHandler):
 	def get(self):
-		path = os.path.join(os.path.dirname(__file__), 'html/blogpostgui.html')
+		path = get_template_path('html/blogpostgui.html')
 		template_values = {}
 		self.response.out.write(template.render(path, template_values))
 

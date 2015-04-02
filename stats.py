@@ -30,6 +30,8 @@ import os
 import models
 import datetime
 
+from utils import get_template_path
+
 class StatsCache(webapp.RequestHandler):
     def get(self):
         for year in [2014, 2015]:
@@ -84,7 +86,7 @@ class Stats(webapp.RequestHandler):
         #s=q.fetch(10000)
         template_values['scripts']=q.count(100000)
 
-        path = os.path.join(os.path.dirname(__file__), 'html/stats.html')
+        path = get_template_path('html/stats.html')
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
 

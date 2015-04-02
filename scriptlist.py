@@ -38,7 +38,7 @@ import mobileTest
 import config
 import models
 
-from utils import gcu, send_mail
+from utils import gcu, send_mail, get_template_path
 
 def openid_data():
     u = users.get_current_user()
@@ -89,10 +89,10 @@ class ScriptList(webapp.RequestHandler):
         user_row = get_user_row()
         template_values['email_verified'] = (user_row.verified == True)
 
-        path = os.path.join(os.path.dirname(__file__), 'html/scriptlist.html')
+        path = get_template_path('html/scriptlist.html')
         mobile = mobileTest.mobileTest(self.request.user_agent)
         if mobile==1:
-            path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileScriptlist.html')
+            path = get_template_path('html/mobile/MobileScriptlist.html')
 
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
@@ -253,7 +253,7 @@ class VerifyEmail (webapp.RequestHandler):
             user_row.verified = True
             user_row.put()
             template_values['email_address'] = user_row.verified_email
-        path = os.path.join(os.path.dirname(__file__), 'html/verify-email.html')
+        path = get_template_path('html/verify-email.html')
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
 

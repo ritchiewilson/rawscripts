@@ -37,7 +37,7 @@ import mobileTest
 import config
 import models
 
-from utils import gcu, permission, ownerPermission
+from utils import gcu, permission, ownerPermission, get_template_path
 
 def new_note_notification(resource_id, from_user, thread_id, msg_id):
 	r = models.UsersScripts.get_by_resource_id(resource_id)
@@ -256,7 +256,7 @@ class ViewNotes(webapp.RequestHandler):
 						"title":title,
 						"f":f
 						}
-		path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
+		path = get_template_path('html/mobile/MobileViewNotes.html')
 		self.response.out.write(template.render(path, template_values))
 
 

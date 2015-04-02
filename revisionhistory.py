@@ -35,6 +35,8 @@ import mobileTest
 import config
 import models
 
+from utils import get_template_path
+
 # Get Current User String
 def gcu():
 	user = users.get_current_user().email().lower()
@@ -186,7 +188,7 @@ class RevisionHistory(webapp.RequestHandler):
 											 'sign_out':sign_out,
 											 'user': user_email,
 											 }
-			path = os.path.join(os.path.dirname(__file__), 'html/revisionhistory.html')
+			path = get_template_path('html/revisionhistory.html')
 			template_values['MODE'] = config.MODE
 			template_values['GA'] = config.GA
 			self.response.out.write(template.render(path, template_values))

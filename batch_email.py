@@ -18,6 +18,8 @@ from datetime import datetime
 import random
 import string
 
+from utils import get_template_path
+
 class Unsubscribe(webapp.RequestHandler):
     def get(self):
         token = self.request.get('token')
@@ -32,7 +34,7 @@ class Unsubscribe(webapp.RequestHandler):
             template_values['email_address'] = user_row.name
             template_values['verified'] = True
 
-        path = os.path.join(os.path.dirname(__file__), 'html/unsubscribe.html')
+        path = get_template_path('html/unsubscribe.html')
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
 

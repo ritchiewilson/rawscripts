@@ -28,7 +28,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import config
 import models
-from utils import gcu, permission, ownerPermission
+from utils import gcu, permission, ownerPermission, get_template_path
 
 
 class SettingsPage (webapp.RequestHandler):
@@ -38,7 +38,7 @@ class SettingsPage (webapp.RequestHandler):
             self.redirect('/')
             return
 
-        path = os.path.join(os.path.dirname(__file__), 'html/settings.html')
+        path = get_template_path('html/settings.html')
         template_values = { 'sign_out': users.create_logout_url('/') }
         template_values['user'] = users.get_current_user().email()
         try:

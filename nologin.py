@@ -31,6 +31,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 import mobileTest
 import config
 
+from utils import get_template_path
 
 class Welcome (webapp.RequestHandler):
     def get(self):
@@ -40,10 +41,10 @@ class Welcome (webapp.RequestHandler):
                             'aol_sign_in' : users.create_login_url('/scriptlist', None, "aol.com")}
         template_values['MODE'] = config.MODE
         template_values['GA'] = config.GA
-        path = os.path.join(os.path.dirname(__file__), 'html', 'welcome.html')
+        path = get_template_path('html/welcome.html')
         mobile = mobileTest.mobileTest(self.request.user_agent)
         if mobile == 1:
-            path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileWelcome.html')
+            path = get_template_path('html/mobile/MobileWelcome.html')
         if referer == 'http://www.rawscripts.com/scriptlist' or referer == 'http://www.rawscripts.com/' or  referer == 'http://www.rawscripts.com/about' or  referer == 'http://www.rawscripts.com/blog' or  referer == 'http://www.rawscripts.com/contact':
             self.response.headers['Content-Type'] = 'text/html'
             self.response.out.write(template.render(path, template_values))
@@ -76,7 +77,7 @@ class ContactEmail (webapp.RequestHandler):
 
 class TOS(webapp.RequestHandler):
     def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'html/tos.html')
+        path = get_template_path('html/tos.html')
         template_values={'MODE' : config.MODE}
         template_values['GA'] = config.GA
         self.response.headers['Content-Type'] = 'text/html'
@@ -84,7 +85,7 @@ class TOS(webapp.RequestHandler):
 
 class Contact(webapp.RequestHandler):
     def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'html/contact.html')
+        path = get_template_path('html/contact.html')
         template_values={'MODE' : config.MODE}
         template_values['GA'] = config.GA
         self.response.headers['Content-Type'] = 'text/html'

@@ -43,7 +43,7 @@ import config
 import models
 import unicodedata
 
-from utils import gcu, permission, ownerPermission
+from utils import gcu, permission, ownerPermission, get_template_path
 
 
 class Deletion(webapp.RequestHandler):
@@ -365,7 +365,7 @@ class ConvertProcess (webapp.RequestHandler):
 		taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : resource_id})
 
 		self.response.headers['Content-Type'] = 'text/html'
-		path = os.path.join(os.path.dirname(__file__), 'html/UploadComplete.html')
+		path = get_template_path('html/UploadComplete.html')
 		self.response.out.write(template.render(path, template_values))
 
 class Share (webapp.RequestHandler):
@@ -469,7 +469,7 @@ class SyncContacts (webapp.RequestHandler):
 
 class UploadHelp(webapp.RequestHandler):
 	def get(self):
-		path = os.path.join(os.path.dirname(__file__), 'html/uploadhelp.html')
+		path = get_template_path('html/uploadhelp.html')
 		template_values={'GA' : config.GA}
 		template_values['MODE'] = config.MODE
 		self.response.headers['Content-Type'] = 'text/html'
@@ -477,7 +477,7 @@ class UploadHelp(webapp.RequestHandler):
 
 class Convert(webapp.RequestHandler):
 	def get(self):
-		path = os.path.join(os.path.dirname(__file__), 'html/convert.html')
+		path = get_template_path('html/convert.html')
 		template_values={'GA' : config.GA}
 		template_values['MODE'] = config.MODE
 		self.response.headers['Content-Type'] = 'text/html'

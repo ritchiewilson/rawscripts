@@ -35,6 +35,9 @@ from google.appengine.api import memcache
 import config
 import models
 
+from utils import get_template_path
+
+
 # Get Current User String
 def gcu():
     c_user = users.get_current_user()
@@ -50,7 +53,7 @@ class Editor (webapp.RequestHandler):
     def get(self):
         user = users.get_current_user()
         user_string = gcu()
-        path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+        path = get_template_path('html/editor.html')
         template_values = {'EOV': "editor"}
         resource_id = self.request.get('resource_id')
         format = 'editor'
@@ -66,7 +69,7 @@ class Editor (webapp.RequestHandler):
                 r = db.get(db.Key.from_path('UsersScripts', 'collab'+gcu()+resource_id))
                 if r:
                     format='viewer'
-                    path = os.path.join(os.path.dirname(__file__), 'html/editor.html')
+                    path = get_template_path('html/editor.html')
                     template_values['EOV'] = "viewer"
                     q = db.GqlQuery("SELECT * FROM ShareNotify "+
                                     "WHERE user='"+user_string+"' "+
@@ -87,7 +90,7 @@ class Editor (webapp.RequestHandler):
             else:
                 template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
                                     'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
-                path = os.path.join(os.path.dirname(__file__), 'html/login.html')
+                path = get_template_path('html/login.html')
 
 
         dev_js = ['base', 'calc', 'canvas-manipulate', 'ccp', 'dom-manipulate',

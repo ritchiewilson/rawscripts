@@ -14,6 +14,8 @@ import difflib
 import logging
 from datetime import datetime
 
+from utils import get_template_path
+
 class Migrate(webapp.RequestHandler):
     def get(self):
         query = models.MigrationCheck.all()
@@ -53,7 +55,7 @@ class Migrate(webapp.RequestHandler):
         }
 
         self.response.headers['Content-Type'] = 'text/html'
-        path = os.path.join(os.path.dirname(__file__), 'html/migrate.html')
+        path = get_template_path('html/migrate.html')
         self.response.out.write(template.render(path, template_values))
 
     def post(self):
