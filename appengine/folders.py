@@ -26,7 +26,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-import models
+from models import Folders
 
 from utils import gcu, ownerPermission
 
@@ -36,18 +36,13 @@ class NewFolder (webapp.RequestHandler):
         user = gcu()
         folder_name = self.request.get('folder_name')
         folder_id = self.request.get('folder_id')
-        q=db.GqlQuery("SELECT * FROM Folders "+
-                      "WHERE user='"+user+"'")
-        r = q.fetch(1)
-        if len(r) == 0:
-            f = models.Folders(user=user,
-                               data=simplejson.dumps([[folder_name, folder_id]]))
-            f.put()
-        else:
-            J = simplejson.loads(r[0].data)
-            J.append([folder_name, folder_id])
-            r[0].data = simplejson.dumps(J)
-            r[0].put()
+        folder = Folders.get_by_user(user)
+        if folder is None:
+            folder = Folders(user=user, data='[]')
+        J = simplejson.loads(folder.data)
+        J.append([folder_name, folder_id])
+        folder.data = simplejson.dumps(J)
+        folder.put()
 
 class ChangeFolder (webapp.RequestHandler):
     def post(self):

@@ -223,6 +223,11 @@ class Folders (db.Model):
     data = db.StringProperty()
     user = db.StringProperty()
 
+    @staticmethod
+    def get_by_user(user):
+        q = Folders.all().filter('user =', user)
+        return q.get()
+
 class UsersSettings(db.Model):
     autosave = db.BooleanProperty()
     owned_notify = db.StringProperty()
