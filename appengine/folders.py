@@ -26,7 +26,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-from models import Folders
+from models import Folders, UsersScripts
 
 from utils import gcu, ownerPermission
 
@@ -62,23 +62,18 @@ class DeleteFolder (webapp.RequestHandler):
     def post(self):
         folder_id = self.request.get("folder_id")
         user = gcu()
-        q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                        "WHERE user='"+user+"' "+
-                        "AND permission='owner'")
-        r = q.fetch(500)
-        for i in r:
-            if i.folder == folder_id:
-                i.folder = "?none?"
-                i.put()
-        q = db.GqlQuery("SELECT * FROM Folders WHERE user='"+user+"'")
-        r = q.fetch(1)
-        folders = simplejson.loads(r[0].data)
-        arr = []
-        for i in folders:
-            if i[1] != folder_id:
-                arr.append(i)
-        r[0].data = simplejson.dumps(arr)
-        r[0].put()
+        # First move screenplays out of folder
+        q = UsersScripts.all()
+        q.filter('user =', user).filter('folder =', folder_id)
+        q.filter('permission =', 'owner')
+        for screenplay in q.run():
+            screenplay.folder = "?none?"
+            screenplay.put()
+        row = Folders.get_by_user(user)
+        folders = simplejson.loads(row.data)
+        arr = [f for f in folders if f[1] != folder_id]
+        row.data = simplejson.dumps(arr)
+        row.put()
         self.response.out.write("1")
 
 class RenameFolder (webapp.RequestHandler):
