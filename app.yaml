@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 5
+version: 6
 runtime: python
 api_version: 1
 
@@ -63,16 +63,8 @@ handlers:
 - url: /blog.*
   script: blog.py
 
-- url: /dbtofile.*
-  login: admin
-  script: db_export.py
-
-- url: /writetodb.*
-  login: admin
-  script: db_export.py
-
 - url: /title.*
-  script: titlepage.py
+  script: appengine/titlepage.py
 
 - url: /sitemap.xml
   static_files: static/text/sitemap.xml

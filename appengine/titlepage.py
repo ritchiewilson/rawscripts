@@ -132,7 +132,7 @@ class TitlePage(webapp.RequestHandler):
 
         template_values['MODE'] = config.MODE
         template_values['GA'] = config.GA
-        path = os.path.join(os.path.dirname(__file__), 'html/titlepage.html')
+        path = 'html/titlepage.html'
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
 
