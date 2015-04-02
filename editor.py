@@ -234,51 +234,37 @@ class Save (webapp.RequestHandler):
         resource_id = self.request.get('resource_id')
         if resource_id == None:
             return
+        self.response.headers['Content-Type'] = 'text/plain'
         if resource_id == 'Demo':
             self.response.out.write('demo')
             return
-        data = self.request.get('data')
-        autosave = 0 if self.request.get('autosave') == "0" else 1
-        q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                        "WHERE resource_id='"+resource_id+"' "+
-                        "AND permission='owner'")
-        u = q.get()
-        if u == None:
-            self.response.headers["Content-Type"] = "text/plain"
-            self.response.out.write('script not found')
-            return
-
-        v = 0 # latest version number. I think it also enforces permissions...
-        if u.user == gcu():
-            v = memcache.get('version'+resource_id)
-            if v == None:
-                q = db.GqlQuery("SELECT * FROM ScriptData "+
-                                "WHERE resource_id='"+resource_id+"' "+
-                                "ORDER BY version DESC")
-                most_recent = q.get()
-                v = most_recent.version
-            v += 1
-            memcache.set('version'+resource_id, v)
-
-        if v == 0:
-            self.response.headers['Content-Type'] = 'text/plain'
+        current_user = gcu()
+        q = models.UsersScripts.all()
+        q.filter('resource_id', resource_id)
+        q.filter('user =', current_user)
+        q.filter('permission =', 'owner')
+        screenplay = q.get()
+        if screenplay == None:
             self.response.out.write('0')
             return
 
+        most_recent = models.ScriptData.get_latest_version(resource_id)
+        v = most_recent.version
+        v += 1
+
+        data = self.request.get('data')
+        autosave = 0 if self.request.get('autosave') == "0" else 1
         a = models.ScriptData(resource_id=resource_id,
-                        title='title',
-                        data=data,
-                        version=v,
-                        export='[[],[]]',
-                        tag='',
-                        autosave=autosave)
+                              title='title',
+                              data=data,
+                              version=v,
+                              export='[[],[]]',
+                              tag='',
+                              autosave=autosave)
         a.put()
+        screenplay.last_updated=datetime.datetime.today()
+        screenplay.put()
 
-
-        u.last_updated=datetime.datetime.today()
-        u.put()
-
-        self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write('1')
 
 
