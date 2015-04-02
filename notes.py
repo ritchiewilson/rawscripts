@@ -324,7 +324,6 @@ class Notification(webapp.RequestHandler):
 		# only send these notifications if user exists (ue)
 		if not ue:
 			return
-		if ue==True:
 		q = db.GqlQuery("SELECT * FROM Notes "+
 						"WHERE resource_id='"+resource_id+"' "+
 						"AND thread_id='"+thread_id+"'")
@@ -404,29 +403,26 @@ class SendSummaryEmail(webapp.RequestHandler):
 							"WHERE resource_id='"+i[0][0]+"' "+
 							"AND user='"+user.lower()+"'")
 			us = q.get()
-			notify=False
-			if us.permission=="collab":
-				if settings.shared_notify=='daily':
-					notify=True
-			elif us.permission=='owner':
-				if settings.owned_notify=='daily':
-					notify=True
-			if notify==True:
-				body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
-				body +="<p>This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a></p><div style='width:400px'>"
-				for j in i:
-					q=db.GqlQuery("SELECT  FROM Notes "+
-									"WHERE resource_id='"+j[0]+"' "+
-									"AND thread_id='"+j[1]+"'")
-					J = simplejson.loads(q.get().data)
-					found=False
-					for u in J:
-						if u[2]==j[2]:
-							found=u
-					if found!=False:
-						body+='<div class="text">"'+found[0]+'"</div>'
-						body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
-				body+='</div>'
+			if us.permission == "collab" and settings.shared_notify != 'daily':
+				continue
+			if us.permission=='owner' and settings.owned_notify != 'daily':
+				continue
+
+			body +="<h2>Notes Left On the Script "+q.get().title+"</h1>"
+			body +="<p>This script and all its notes can be found <a href='http://www.rawscripts.com/editor?resource_id="+i[0][0]+"'>here</a></p><div style='width:400px'>"
+			for j in i:
+				q=db.GqlQuery("SELECT  FROM Notes "+
+								"WHERE resource_id='"+j[0]+"' "+
+								"AND thread_id='"+j[1]+"'")
+				J = simplejson.loads(q.get().data)
+				found=False
+				for u in J:
+					if u[2]==j[2]:
+						found=u
+				if found!=False:
+					body+='<div class="text">"'+found[0]+'"</div>'
+					body+="<div align='right' class='signature'><b>--"+found[1]+"</b></div>"
+			body+='</div>'
 		if body == "":
 			return
 		#now create the email and send it.
