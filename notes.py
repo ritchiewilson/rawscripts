@@ -321,42 +321,44 @@ class Notification(webapp.RequestHandler):
 		for i in uTest:
 			if i.name.lower()==to_user.lower():
 				ue=True
-
+		# only send these notifications if user exists (ue)
+		if not ue:
+			return
 		if ue==True:
-			q = db.GqlQuery("SELECT * FROM Notes "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND thread_id='"+thread_id+"'")
-			J=simplejson.loads(q.get().data)
-			data=None
-			for i in J:
-				if i[2]==msg_id:
-					data=i[0]
+		q = db.GqlQuery("SELECT * FROM Notes "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+thread_id+"'")
+		J=simplejson.loads(q.get().data)
+		data=None
+		for i in J:
+			if i[2]==msg_id:
+				data=i[0]
+		if data is None:
+			return
+		subject = from_user + ' Left A Note On The Script "' + r.title + '"'
+		body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
+		result = urlfetch.fetch("http://www.rawscripts.com/text/notes.txt")
+		htmlbody = result.content
+		i = 0
+		while i<2:
+			i+=1
+			html = htmlbody.replace("SCRIPTTITLE", r.title)
+			html = html.replace("USER", from_user)
+			html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
+			html = html.replace("NOTETEXT", data)
 
-			if not data==None:
-				subject = from_user + ' Left A Note On The Script "' + r.title + '"'
-				body_message="http://www.rawscripts.com/editor?resource_id="+resource_id
-				result = urlfetch.fetch("http://www.rawscripts.com/text/notes.txt")
-				htmlbody = result.content
-				i = 0
-				while i<2:
-					i+=1
-					html = htmlbody.replace("SCRIPTTITLE", r.title)
-					html = html.replace("USER", from_user)
-					html = html.replace("SCRIPTURL", "http://www.rawscripts.com/editor?resource_id="+resource_id)
-					html = html.replace("NOTETEXT", data)
-
-				body = body_message + """
+		body = body_message + """
 
 
 		--- This Script written and sent from RawScripts.com. Check it out ---"""
 
-				mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
-								to=to_user,
-								subject=subject,
-								body = body,
-								html = html)
-				self.response.out.write('1')
-				logging.info(html)
+		mail.send_mail(sender='RawScripts <noreply@rawscripts.com>',
+						to=to_user,
+						subject=subject,
+						body = body,
+						html = html)
+		self.response.out.write('1')
+
 
 class SummaryEmailInit(webapp.RequestHandler):
 	def get(self):
