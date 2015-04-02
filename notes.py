@@ -37,12 +37,7 @@ import mobileTest
 import config
 import models
 
-# Get Current User String
-def gcu():
-	user = users.get_current_user().email().lower()
-	if user == 'mwap.cw@gmail.com':
-		user = 'mwap.cw@googlemail.com'
-	return user
+from utils import gcu, ownerPermission
 
 def permission (resource_id):
 	q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -54,18 +49,6 @@ def permission (resource_id):
 		if i.permission=='owner' or i.permission=="collab":
 			if i.user==user:
 				p=i.permission
-	return p
-
-def ownerPermission (resource_id):
-	q = db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+resource_id+"'")
-	results = q.fetch(1000)
-	p=False
-	user = gcu()
-	for i in results:
-		if i.permission=='owner':
-			if i.user==user:
-				p=i.title
 	return p
 
 
