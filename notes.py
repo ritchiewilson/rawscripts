@@ -66,38 +66,39 @@ class NewThread(webapp.RequestHandler):
 		content = self.request.get('content')
 		d = str(datetime.datetime.today())
 		if resource_id=="Demo":
-			logging.info('hey')
 			self.response.headers["Content-Type"]="text/plain"
 			self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
 			return
 		p = permission(resource_id)
-		if not p==False:
-			arr = [[content, user, d]]
-			data = simplejson.dumps(arr)
-			n=models.Notes(resource_id=resource_id,
-							thread_id=thread_id,
-							data=data,
-							row=int(row),
-							col=int(col))
-			n.put()
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-							"WHERE resource_id='"+resource_id+"'")
-			r=q.fetch(500)
-			for i in r:
-				if not i.user==gcu():
-					nn = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
-									resource_id=resource_id,
-									user=i.user,
-									thread_id=thread_id,
-									msg_id=d)
-					nn.put()
-					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+		if p == False:
+			return
 
-			self.response.headers["Content-Type"]="text/plain"
-			if fromPage=='mobileviewnotes':
-				self.response.out.write('sent')
-			else:
-				self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
+		arr = [[content, user, d]]
+		data = simplejson.dumps(arr)
+		n=models.Notes(resource_id=resource_id,
+						thread_id=thread_id,
+						data=data,
+						row=int(row),
+						col=int(col))
+		n.put()
+		q=db.GqlQuery("SELECT * FROM UsersScripts "+
+						"WHERE resource_id='"+resource_id+"'")
+		r=q.fetch(500)
+		for i in r:
+			if not i.user==gcu():
+				nn = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
+								resource_id=resource_id,
+								user=i.user,
+								thread_id=thread_id,
+								msg_id=d)
+				nn.put()
+				taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+
+		self.response.headers["Content-Type"]="text/plain"
+		if fromPage=='mobileviewnotes':
+			self.response.out.write('sent')
+		else:
+			self.response.out.write(simplejson.dumps([row, col,thread_id, d, user]))
 
 class SubmitMessage(webapp.RequestHandler):
 	def post(self):
