@@ -165,19 +165,20 @@ class Position (webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p = ownerPermission(resource_id)
-		if not p==False:
-			positions = self.request.get('positions')
-			J = simplejson.loads(positions)
-			for i in J:
-				q=db.GqlQuery("SELECT * FROM Notes "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND thread_id='"+str(i[2])+"'")
-				r=q.fetch(1)
-				r[0].row  = i[0]
-				r[0].col = i[1]
-				r[0].put()
-			self.response.headers["Content-type"]="plain/text"
-			self.response.out.write('1')
+		if p == False:
+			return
+		positions = self.request.get('positions')
+		J = simplejson.loads(positions)
+		for i in J:
+			q=db.GqlQuery("SELECT * FROM Notes "+
+						"WHERE resource_id='"+resource_id+"' "+
+						"AND thread_id='"+str(i[2])+"'")
+			r=q.fetch(1)
+			r[0].row  = i[0]
+			r[0].col = i[1]
+			r[0].put()
+		self.response.headers["Content-type"]="plain/text"
+		self.response.out.write('1')
 
 
 class DeleteThread (webapp.RequestHandler):
