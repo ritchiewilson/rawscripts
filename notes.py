@@ -39,6 +39,25 @@ import models
 
 from utils import gcu, permission, ownerPermission
 
+def new_note_notification(resource_id, from_user, thread_id, msg_id):
+	r = models.UsersScripts.get_by_resource_id(resource_id)
+	for i in r:
+		if i.user.lower() == from_user.lower():
+			continue
+		nn = models.UnreadNotes(key_name=i.user+resource_id+thread_id+msg_id,
+					resource_id=resource_id,
+					user=i.user,
+					thread_id=thread_id,
+					msg_id=msg_id)
+		nn.put()
+		params = {
+			'resource_id': resource_id,
+			'to_user': i.user,
+			'from_user': from_user,
+			'msg_id': msg_id,
+			'thread_id': thread_id
+		}
+		taskqueue.add(url="/notesnotification", params=params)
 
 class NewThread(webapp.RequestHandler):
 	def post(self):
@@ -69,18 +88,7 @@ class NewThread(webapp.RequestHandler):
 						row=int(row),
 						col=int(col))
 		n.put()
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-						"WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(500)
-		for i in r:
-			if not i.user==gcu():
-				nn = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
-								resource_id=resource_id,
-								user=i.user,
-								thread_id=thread_id,
-								msg_id=d)
-				nn.put()
-				taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+		new_note_notification(resource_id, user, thread_id, d)
 
 		self.response.headers["Content-Type"]="text/plain"
 		if fromPage=='mobileviewnotes':
@@ -128,18 +136,7 @@ class SubmitMessage(webapp.RequestHandler):
 		r.put()
 		output = simplejson.dumps([content, d, user, thread_id])
 
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-						"WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(500)
-		for i in r:
-			if not i.user==user.lower():
-				n = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
-								resource_id=resource_id,
-								thread_id=thread_id,
-								user=i.user,
-								msg_id=d)
-				n.put()
-				taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+		new_note_notification(resource_id, user, thread_id, d)
 
 		self.response.headers["Content-Type"]="text/plain"
 		if fromPage=='mobileviewnotes':
