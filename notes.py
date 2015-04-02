@@ -275,23 +275,24 @@ class ViewNotes(webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		title = permission(resource_id)
-		if not title==False:
-			f = ownerPermission(resource_id)
-			q = db.GqlQuery("SELECT * FROM Notes "+
-							"WHERE resource_id='"+resource_id+"'")
-			r=q.fetch(500)
-			export=[]
-			for i in r:
-				export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
+		if title == False:
+			return
+		f = ownerPermission(resource_id)
+		q = db.GqlQuery("SELECT * FROM Notes "+
+						"WHERE resource_id='"+resource_id+"'")
+		r=q.fetch(500)
+		export=[]
+		for i in r:
+			export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
 
-			template_values={'j':simplejson.dumps(export),
-							"user":gcu(),
-							"sign_out": users.create_logout_url("/"),
-							"title":title,
-							"f":f
-							}
-			path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
-			self.response.out.write(template.render(path, template_values))
+		template_values={'j':simplejson.dumps(export),
+						"user":gcu(),
+						"sign_out": users.create_logout_url("/"),
+						"title":title,
+						"f":f
+						}
+		path = os.path.join(os.path.dirname(__file__), 'html/mobile/MobileViewNotes.html')
+		self.response.out.write(template.render(path, template_values))
 
 
 class Notification(webapp.RequestHandler):
