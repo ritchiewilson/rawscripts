@@ -37,19 +37,7 @@ import mobileTest
 import config
 import models
 
-from utils import gcu, ownerPermission
-
-def permission (resource_id):
-	q = db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+resource_id+"'")
-	results = q.fetch(1000)
-	user = gcu()
-	p=False
-	for i in results:
-		if i.permission=='owner' or i.permission=="collab":
-			if i.user==user:
-				p=i.permission
-	return p
+from utils import gcu, permission, ownerPermission
 
 
 class NewThread(webapp.RequestHandler):
