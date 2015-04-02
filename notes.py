@@ -187,21 +187,23 @@ class DeleteThread (webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p = ownerPermission(resource_id)
-		if not p==False:
-			fromPage=self.request.get('fromPage')
-			thread_id = self.request.get('thread_id')
-			q=db.GqlQuery("SELECT * FROM Notes "+
+		if p == False:
+			return
+		fromPage=self.request.get('fromPage')
+		thread_id = self.request.get('thread_id')
+		q=db.GqlQuery("SELECT * FROM Notes "+
+					"WHERE resource_id='"+resource_id+"' "+
+					"AND thread_id='"+thread_id+"'")
+		r=q.fetch(1)
+		r[0].delete()
+
+		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
 						"WHERE resource_id='"+resource_id+"' "+
 						"AND thread_id='"+thread_id+"'")
-			r=q.fetch(1)
-			r[0].delete()
+		un=q.fetch(1000)
+		for i in un:
+			i.delete()
 
-			q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-							"WHERE resource_id='"+resource_id+"' "+
-							"AND thread_id='"+thread_id+"'")
-			un=q.fetch(1000)
-			for i in un:
-				i.delete()
 
 class DeleteMessage(webapp.RequestHandler):
 	def post(self):
