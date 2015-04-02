@@ -173,10 +173,7 @@ class DeleteThread (webapp.RequestHandler):
 		r = models.Notes.get_by_resource_id_and_thread_id(resource_id, thread_id)
 		r.delete()
 
-		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+thread_id+"'")
-		un=q.fetch(1000)
+		un = models.UnreadNotes.get_by_resource_id(resource_id, thread_id=thread_id)
 		for i in un:
 			i.delete()
 
@@ -216,10 +213,7 @@ class DeleteMessage(webapp.RequestHandler):
 		if not deleted:
 			self.response.out.write('error')
 			return
-		q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-						"WHERE resource_id='"+resource_id+"' "+
-						"AND thread_id='"+thread_id+"'")
-		un=q.fetch(1000)
+		un = models.UnreadNotes.get_by_resource_id(resource_id, thread_id=thread_id)
 		for i in un:
 			if i.msg_id==msg_id:
 				i.delete()
@@ -251,9 +245,7 @@ class ViewNotes(webapp.RequestHandler):
 		if title == False:
 			return
 		f = ownerPermission(resource_id)
-		q = db.GqlQuery("SELECT * FROM Notes "+
-						"WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(500)
+		r = models.Notes.get_by_resource_id(resource_id)
 		export=[]
 		for i in r:
 			export.append([i.row, i.col, simplejson.loads(i.data), i.thread_id])
@@ -340,9 +332,9 @@ class SendSummaryEmail(webapp.RequestHandler):
 	def post(self):
 		user = self.request.get('user')
 		now = datetime.datetime.now()
-		q = db.GqlQuery("SELECT * From UnreadNotes "+
-						"WHERE user='"+user+"' "+
-						"ORDER BY resource_id DESC")
+		q = models.UnreadNotes.all()
+		q.filter('user =', user)
+		q.order('-resource_id')
 		notes = q.fetch(1000)
 		recent = []
 		for i in notes:

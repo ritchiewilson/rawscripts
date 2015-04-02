@@ -71,6 +71,13 @@ class Notes (db.Model):
         q.filter('thread_id =', thread_id)
         return q.get()
 
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        q = Notes.all()
+        q.filter('resource_id =', resource_id)
+        return q.fetch(1000)
+
+
 class NotesNotify (db.Model):
     resource_id = db.StringProperty()
     thread_id = db.StringProperty()
@@ -85,11 +92,18 @@ class UnreadNotes (db.Model):
     timestamp = db.DateTimeProperty(auto_now_add=True)
 
     @staticmethod
-    def get_by_resource_id_and_user(resource_id, user):
+    def get_by_resource_id(resource_id, user=None, thread_id=None):
         q = UnreadNotes.all()
         q.filter('resource_id =', resource_id)
-        q.filter('user =', user)
+        if user is not None:
+            q.filter('user =', user)
+        if thread_id is not None:
+            q.filter('thread_id =', thread_id)
         return q.fetch(1000)
+
+    @staticmethod
+    def get_by_resource_id_and_user(resource_id, user):
+        return UnreadNotes.get_by_resource_id(resource_id, user=user)
 
 
 class ScriptData (db.Model):
