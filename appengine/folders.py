@@ -48,14 +48,14 @@ class ChangeFolder (webapp.RequestHandler):
     def post(self):
         resource_id = self.request.get("resource_id").split(',')
         for i in resource_id:
-            p = ownerPermission(i)
-            if not p == False:
-                q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                                "WHERE resource_id='"+i+"' "+
-                                "and permission='owner'")
-                r = q.fetch(1)
-                r[0].folder = self.request.get("folder_id")
-                r[0].put()
+            if ownerPermission(i) == False:
+                continue
+            q = UsersScripts.all()
+            q.filter('resource_id =', i)
+            q.filter('permission =', 'owner')
+            screenplay = q.get()
+            screenplay.folder = self.request.get("folder_id")
+            screenplay.put()
         self.response.out.write("1")
 
 class DeleteFolder (webapp.RequestHandler):
