@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
+import os
 
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -75,3 +76,6 @@ def send_mail(sender=None, to=None, subject=None, body=None, html=None):
                             method=urlfetch.POST,
                             headers={'Content-Type': 'application/x-www-form-urlencoded'})
     return result.content == 'worked'
+
+def get_template_path(path):
+    return os.path.join(os.path.dirname(__file__), path)

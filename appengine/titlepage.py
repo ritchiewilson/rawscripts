@@ -28,7 +28,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 import config
 import models
 
-from utils import ownerPermission
+from utils import ownerPermission, get_template_path
 
 class TitlePage(webapp.RequestHandler):
     def get(self):
@@ -132,7 +132,7 @@ class TitlePage(webapp.RequestHandler):
 
         template_values['MODE'] = config.MODE
         template_values['GA'] = config.GA
-        path = 'html/titlepage.html'
+        path = get_template_path('html/titlepage.html')
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(path, template_values))
 
