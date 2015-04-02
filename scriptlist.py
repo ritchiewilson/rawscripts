@@ -38,7 +38,7 @@ import mobileTest
 import config
 import models
 
-from utils import gcu
+from utils import gcu, send_mail
 
 def openid_data():
     u = users.get_current_user()
@@ -221,35 +221,14 @@ class VerifyEmail (webapp.RequestHandler):
         if config.MODE == "DEV":
             logging.info(body)
 
-        try:
-            mail.send_mail(sender='Rawscripts <noreply@rawscripts.com>',
-                           to=user_row.verified_email,
-                           subject=subject,
-                           body = body,
-                           html = html)
-        except:
-            try:
-                form_fields = {
-                    'sender': 'Rawscripts <noreply@rawscripts.com>',
-                    "to": user_row.verified_email,
-                    'subject': subject,
-                    'body': body,
-                    'html': html
-                }
-                url = "http://rawscripts-emailer.appspot.com"
-                form_data = urllib.urlencode(form_fields)
-                result = urlfetch.fetch(url=url,
-                                        payload=form_data,
-                                        method=urlfetch.POST,
-                                        headers={'Content-Type': 'application/x-www-form-urlencoded'})
-                if result.content != 'worked':
-                    user_row.failed_to_send_verification = True
-                    user_row.put()
-                    return "failed-sending"
-            except:
-                user_row.failed_to_send_verification = True
-                user_row.put()
-                return "failed-sending"
+        sender = 'Rawscripts <noreply@rawscripts.com>'
+
+        was_sent = send_mail(sender=sender, to=user_row.verified_email,
+                             subject=subject, body=body, html=html)
+        if not was_sent:
+            user_row.failed_to_send_verification = True
+            user_row.put()
+            return "failed-sending"
         return "sent"
 
     def get(self):

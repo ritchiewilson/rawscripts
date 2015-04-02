@@ -14,9 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import db
+from google.appengine.api import mail
+from google.appengine.api import urlfetch
+import logging
 
 from models import UsersScripts
 
@@ -44,3 +48,30 @@ def permission (resource_id):
 def ownerPermission (resource_id):
     permissions = ['owner', 'ownerDeleted']
     return _permission_helper(resource_id, permissions)
+
+def send_mail(sender=None, to=None, subject=None, body=None, html=None):
+    if None in [sender, to, subject, body]:
+        raise Exception("Error when sending mail")
+    try:
+        mail.send_mail(sender=sender,
+                       to=to,
+                       subject=subject,
+                       body = body,
+                       html = html)
+        return True
+    except:
+        pass
+    form_fields = {
+        'sender': sender,
+        "to": to,
+        'subject': subject,
+        'body': body,
+        'html': html
+    }
+    url = "http://rawscripts-emailer.appspot.com"
+    form_data = urllib.urlencode(form_fields)
+    result = urlfetch.fetch(url=url,
+                            payload=form_data,
+                            method=urlfetch.POST,
+                            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    return result.content == 'worked'
