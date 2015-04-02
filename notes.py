@@ -307,19 +307,11 @@ class Notification(webapp.RequestHandler):
 						"AND resource_id='"+resource_id+"'")
 		r = q.get()
 		s = db.get(db.Key.from_path('UsersSettings', 'settings'+to_user))
-		send = False
-		if s == None:
-			send = True
-		elif r.permission=='owner':
-			if s.owned_notify == 'every':
-				send=True
-			else:
-				send=False
-		else:
-			if s.shared_notify=='every':
-				send=True
-			else:
-				send=False
+		if s is not None:
+			if r.permission == 'owner' and s.owned_notify != 'every':
+				return
+			if r.permission == 'collab' and s.shared_notify != 'every':
+				return
 
 		q = db.GqlQuery("SELECT * FROM Users")
 		uTest = q.fetch(1000)
@@ -330,7 +322,7 @@ class Notification(webapp.RequestHandler):
 			if i.name.lower()==to_user.lower():
 				ue=True
 
-		if send==True and ue==True:
+		if ue==True:
 			q = db.GqlQuery("SELECT * FROM Notes "+
 							"WHERE resource_id='"+resource_id+"' "+
 							"AND thread_id='"+thread_id+"'")
