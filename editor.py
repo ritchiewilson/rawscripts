@@ -249,16 +249,13 @@ class Save (webapp.RequestHandler):
             return
 
         last_version_number = None
-        last_version_data = None
         cache_key = 'last_saved_version#' + resource_id
         cache_hit = memcache.get(cache_key)
         if cache_hit:
-            version, last_version_data = cache_hit.split('#', 1)
-            last_version_number = int(version)
+            last_version_number = int(cache_hit)
         else:
             most_recent = models.ScriptData.get_latest_version(resource_id)
             last_version_number = most_recent.version
-            last_version_data = most_recent.data
 
         new_version_number = last_version_number + 1
         data = self.request.get('data')
@@ -271,8 +268,7 @@ class Save (webapp.RequestHandler):
                               tag='',
                               autosave=autosave)
         a.put()
-        value = str(new_version_number) + '#' + data
-        memcache.set(cache_key, value)
+        memcache.set(cache_key, new_version_number)
 
         screenplay.last_updated=datetime.datetime.today()
         screenplay.put()
