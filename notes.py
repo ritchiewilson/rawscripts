@@ -275,10 +275,7 @@ class Notification(webapp.RequestHandler):
 		from_user = self.request.get('from_user')
 		thread_id = self.request.get('thread_id')
 		msg_id = self.request.get('msg_id')
-		q = db.GqlQuery("SELECT * FROM UsersScripts "+
-						"WHERE user='"+to_user+"' "+
-						"AND resource_id='"+resource_id+"'")
-		r = q.get()
+		r = models.UsersScripts.get_by_resource_id_and_user(resource_id, to_user)
 		s = db.get(db.Key.from_path('UsersSettings', 'settings'+to_user))
 		if s is not None:
 			if r.permission == 'owner' and s.owned_notify != 'every':
@@ -370,10 +367,7 @@ class SendSummaryEmail(webapp.RequestHandler):
 		if len(out)==0:
 			return
 		for i in out:
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-							"WHERE resource_id='"+i[0][0]+"' "+
-							"AND user='"+user.lower()+"'")
-			us = q.get()
+			us = models.UsersScripts.get_by_resource_id_and_user(i[0][0], user.lower())
 			if us.permission == "collab" and settings.shared_notify != 'daily':
 				continue
 			if us.permission=='owner' and settings.owned_notify != 'daily':
