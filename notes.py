@@ -118,45 +118,46 @@ class SubmitMessage(webapp.RequestHandler):
 			self.response.out.write(output)
 			return
 		p = permission(resource_id)
-		if not p==False:
+		if p == False:
+			return
 
-			q = db.GqlQuery("SELECT * FROM Notes "+
-									 "WHERE resource_id='"+resource_id+"' "+
-									 "AND thread_id='"+thread_id+"'")
-			r=q.get()
-			J = simplejson.loads(r.data)
-			found = False
-			for i in J:
-				if i[2]==msg_id:
-					if i[1] == user:
-						i[0]=content
-						user = i[1]
-						d = i[2]
-					found=True
-			if found==False:
-				J.append([content,user,d])
-			r.data=simplejson.dumps(J)
-			r.put()
-			output = simplejson.dumps([content, d, user, thread_id])
+		q = db.GqlQuery("SELECT * FROM Notes "+
+								 "WHERE resource_id='"+resource_id+"' "+
+								 "AND thread_id='"+thread_id+"'")
+		r=q.get()
+		J = simplejson.loads(r.data)
+		found = False
+		for i in J:
+			if i[2]==msg_id:
+				if i[1] == user:
+					i[0]=content
+					user = i[1]
+					d = i[2]
+				found=True
+		if found==False:
+			J.append([content,user,d])
+		r.data=simplejson.dumps(J)
+		r.put()
+		output = simplejson.dumps([content, d, user, thread_id])
 
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-							"WHERE resource_id='"+resource_id+"'")
-			r=q.fetch(500)
-			for i in r:
-				if not i.user==user.lower():
-					n = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
-									resource_id=resource_id,
-									thread_id=thread_id,
-									user=i.user,
-									msg_id=d)
-					n.put()
-					taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
+		q=db.GqlQuery("SELECT * FROM UsersScripts "+
+						"WHERE resource_id='"+resource_id+"'")
+		r=q.fetch(500)
+		for i in r:
+			if not i.user==user.lower():
+				n = models.UnreadNotes(key_name=i.user+resource_id+thread_id+d,
+								resource_id=resource_id,
+								thread_id=thread_id,
+								user=i.user,
+								msg_id=d)
+				n.put()
+				taskqueue.add(url="/notesnotification", params= {'resource_id' : resource_id, 'to_user' : i.user, 'from_user' : user, 'msg_id' : d, 'thread_id' : thread_id})
 
-			self.response.headers["Content-Type"]="text/plain"
-			if fromPage=='mobileviewnotes':
-				self.response.out.write('sent')
-			else:
-				self.response.out.write(output)
+		self.response.headers["Content-Type"]="text/plain"
+		if fromPage=='mobileviewnotes':
+			self.response.out.write('sent')
+		else:
+			self.response.out.write(output)
 
 class Position (webapp.RequestHandler):
 	def post(self):
