@@ -436,12 +436,7 @@ function drawText(ctx, pageStartX){
  * right right API, and use setTimeout() as a fallback. Nice shim.
  */
 var requestAnimFrame = (function(){
-	return  window['requestAnimationFrame']       || 
-		window['webkitRequestAnimationFrame'] || 
-		window['mozRequestAnimationFrame']    || 
-		window['oRequestAnimationFrame']      || 
-		window['msRequestAnimationFrame']     || 
-		function(/* function */ callback, /* DOMElement */ element){
+	return function(/* function */ callback, /* DOMElement */ element){
 			window.setTimeout(callback, 1000 / 60);
 		};
 })();
@@ -474,4 +469,5 @@ function paint(){
 	
 	var d = new Date();
 	//console.log(TIME - d.getMilliseconds());
-}
+    timeOfLastPaint = new Date().getTime();
+};

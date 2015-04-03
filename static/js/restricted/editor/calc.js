@@ -328,7 +328,9 @@ function measureTextHeight() {
  * update stuff
  */
 function calculate(){
+    var repaintNeeded = false;
 	if(updateMouseDrag!=false){
+        repaintNeeded = true;
 		if(updateMouseDrag.clientY<100){
 			scroll(-20);
 			var c=goog.dom.getElement('ccp');
@@ -346,15 +348,24 @@ function calculate(){
 		}
 	}
 	if(resizeElements==true){
+        repaintNeeded = true;
 		setElementSizes('r');
 		resizeElements=false;
 	}
 	if(fontWidth==0){
+        repaintNeeded = true;
 		var ctx = goog.dom.getElement('canvasText').getContext('2d');
 		ctx.font = font;
 		fontWidth = ctx.measureText('A').width;
 		var textheight = measureTextHeight();
 		lineheight = Math.round(textheight * 1.4);
 	}
-	
+
+    repaintNeeded = repaintNeeded || forceRepaint;
+    if (!repaintNeeded) {
+        var current = new Date().getTime();
+        repaintNeeded = repaintNeeded || (current - timeOfLastPaint > 250);
+    }
+    forceRepaint = false;
+    return repaintNeeded;
 }

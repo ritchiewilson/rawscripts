@@ -430,14 +430,15 @@ function parseInitialJSON(e){
 	fillInfoBar();
 	
 	(function animloop(){
-		  calculate();
-	      paint();
-	      requestAnimFrame(animloop);
-	    })();
+        var needsRepaint = calculate();
+        if (needsRepaint)
+	        paint();
+	    requestAnimFrame(animloop);
+	})();
     //setInterval('paint()', 25);
 
 	// stuff is running, gracefully fade to standard GUI
 	var n = new goog.fx.dom.FadeOutAndHide(goog.dom.getElement('loading'), 500);
 	goog.events.listen(n, goog.fx.Animation.EventType.END, function(e){goog.dom.removeNode(goog.dom.getElement('loading'))})
 	n.play()
-}
+};

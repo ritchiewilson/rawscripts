@@ -21,6 +21,7 @@
  * Simple thing for cut
  */
 function cut(){
+    forceRepaint = true;
 	if(EOV=='viewer')return;
 	if(!typeToScript)return;
 	if(pos.row!=anch.row || pos.col!=anch.col)backspace();
@@ -40,6 +41,7 @@ function copy(){
  * to canvas. Called just after the browser paste
  */
 function paste(){
+    forceRepaint = true;
 	if(EOV=='viewer')return;
 	if(!typeToScript)return;
 	if(!justPasted){

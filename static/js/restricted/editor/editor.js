@@ -32,6 +32,7 @@ var mouseY=0;
 var mouseDownBool=false;
 var scrollBarBool=false;
 var scrollBarPos={x:0, y:0, w:0, h:0};
+var scrollBarHover = false;
 var commandDownBool=false;
 var characters =[];
 var scenes=[];
@@ -54,6 +55,8 @@ var formats = ['Slugline', 'Action', 'Character', 'Dialog', 'Parenthetical', 'Tr
 var resource_id='random123456789';
 var autosaveBool = true;
 var updateMouseDrag=false;
+var forceRepaint = true;
+var timeOfLastPaint = 0;
    // Use the same wrapping procedure over and over
    // just define an array to pass into it
     //wrapVars[0]=character length before wrap
@@ -1373,4 +1376,4 @@ function replaceAndFind(){
 
 function sortNumbers(a,b){
     return a - b;
-}
+};

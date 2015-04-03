@@ -23,6 +23,7 @@
  * @param {goog.events.BrowserEvent} e key event
  */
 function keyEvent(e){
+    forceRepaint = true;
 	if(e.platformModifierKey){
 		// if ctrl or comman is pressed, the shortcut
 		// handler should take care of it
@@ -70,6 +71,7 @@ function keyEvent(e){
  * When a shortcut is pressed, do it
  */
 function shortcutTriggered(e){
+    forceRepaint = true;
 	if(e.identifier=="save")save(0);
 	else if(e.identifier=="undo")undo();
 	else if(e.identifier=="redo")redo();
@@ -93,6 +95,7 @@ function shortcutTriggered(e){
  * @param {goog.event.KeyEvent} e Button pressed
  */
 function handlekeypress(e) {
+    forceRepaint = true;
 	//console.log(e.keyCode)
 	
 	// don't do anything if this isn't 
@@ -934,4 +937,4 @@ function pageUp(){
  */
 function pageDown(){
 	scroll(lineheight*72)
-}
+};

@@ -28,6 +28,7 @@
  * associated data
  */
 function mouseDown(e){
+    forceRepaint = true;
 	// only do stuff if canvas is active
 	// i.e. popups and dom sutff isn't being
 	// interacted with
@@ -78,6 +79,7 @@ function mouseDown(e){
  * associated data
  */
 function mouseUp(e){
+    forceRepaint = true;
 	updateMouseDrag=false; // no longer draggin
 	// if there is a character or scene 
 	// suggestion box, remove it
@@ -120,6 +122,7 @@ function mouseUp(e){
  * @param {goog.events.BrowserEvent} e MouseMove event
  */
 function mouseMove(e){
+    forceRepaint = forceRepaint || scrollBarBool || mouseDownBool;
 	// if mouse is down on the fake scroll
 	// bar, handle that.
 	if(scrollBarBool)scrollBarDrag(e);
@@ -135,8 +138,14 @@ function mouseMove(e){
 	var cp={x:e.clientX, y:e.clientY-headerHeight-8}; //canvas posititon of 
 	if(e.clientX<editorWidth && e.clientX>scrollBarPos.x && cp.y>scrollBarPos.y && cp.y<scrollBarPos.y+scrollBarPos.h){
 		goog.dom.getElement('canvasText').style.cursor = "default";
+        if (!scrollBarHover)
+            forceRepaint = true;
+        scrollBarHover = true;
 	}
 	else{
+        if (scrollBarHover)
+            forceRepaint = true;
+        scrollBarHover = false;
 		//check if the mouse if over a note on the script
 		var found=false;
 		for(i in notesPosition){
@@ -166,6 +175,7 @@ function mouseMove(e){
  * @param { goog.events.BrowserEvent} e Scroll event
  */
 function handleMouseWheel(e){
+    forceRepaint = true;
 	scroll(e.deltaY*2)
 }
 /**
