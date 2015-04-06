@@ -62,53 +62,54 @@ class RevisionHistory(webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p = permission(resource_id)
-		if not p==False:
-			q = db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
-									 "WHERE resource_id='"+resource_id+"' "+
-									 "ORDER BY version DESC")
-			r = q.fetch(1000)
-			for i in r:
-				i.updated=i.timestamp.strftime("%b %d")
-				J=simplejson.loads(i.export)
-				"""
-				if len(J[0])==0 and len(J[1])==0:
-					i.e=""
-				if len(J[0])>0 and len(J[1])==0:
-					i.e="Emailed"
-				if len(J[0])>0 and len(J[1])>0:
-					i.e="Emailed/Exported"
-				if len(J[0])==0 and len(J[1])>0:
-					i.e="Exported"
-				"""
-				if len(J[0])>0:
-					i.e="Emailed"
-				else:
-					i.e=""
-				if i.tag=="":
-					i.t=""
-				else:
-					i.t="Tag"
-				if i.autosave==0:
-					i.s='manualsave'
-				else:
-					i.s='autosave'
-			user = users.get_current_user()
-			if user:
-				sign_out=users.create_logout_url('/')
-				user_email = users.get_current_user().email()
+		if p == False:
+			return
+		q = db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
+								 "WHERE resource_id='"+resource_id+"' "+
+								 "ORDER BY version DESC")
+		r = q.fetch(1000)
+		for i in r:
+			i.updated=i.timestamp.strftime("%b %d")
+			J=simplejson.loads(i.export)
+			"""
+			if len(J[0])==0 and len(J[1])==0:
+				i.e=""
+			if len(J[0])>0 and len(J[1])==0:
+				i.e="Emailed"
+			if len(J[0])>0 and len(J[1])>0:
+				i.e="Emailed/Exported"
+			if len(J[0])==0 and len(J[1])>0:
+				i.e="Exported"
+			"""
+			if len(J[0])>0:
+				i.e="Emailed"
 			else:
-				sign_out="/"
-				user_email = "test@example.com"
-			template_values={'r':r,
-											 'title':p,
-											 'resource_id':resource_id,
-											 'sign_out':sign_out,
-											 'user': user_email,
-											 }
-			path = get_template_path('html/revisionhistory.html')
-			template_values['MODE'] = config.MODE
-			template_values['GA'] = config.GA
-			self.response.out.write(template.render(path, template_values))
+				i.e=""
+			if i.tag=="":
+				i.t=""
+			else:
+				i.t="Tag"
+			if i.autosave==0:
+				i.s='manualsave'
+			else:
+				i.s='autosave'
+		user = users.get_current_user()
+		if user:
+			sign_out=users.create_logout_url('/')
+			user_email = users.get_current_user().email()
+		else:
+			sign_out="/"
+			user_email = "test@example.com"
+		template_values={'r':r,
+										 'title':p,
+										 'resource_id':resource_id,
+										 'sign_out':sign_out,
+										 'user': user_email,
+										 }
+		path = get_template_path('html/revisionhistory.html')
+		template_values['MODE'] = config.MODE
+		template_values['GA'] = config.GA
+		self.response.out.write(template.render(path, template_values))
 
 class RevisionList(webapp.RequestHandler):
 	def post(self):
