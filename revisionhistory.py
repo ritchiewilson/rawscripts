@@ -85,43 +85,26 @@ class RevisionHistory(webapp.RequestHandler):
 class RevisionList(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
-		p=permission(resource_id)
+		p = ownerPermission(resource_id)
 		if p == False:
 			return
-		begining=False
-		ids=[]
-		new_script=resource_id
-		while not begining:
-			q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM DuplicateScripts "+
-										"WHERE new_script='"+new_script+"'")
-			r=q.fetch(1)
-			if len(r)==0:
-				begining=True
-			else:
-				new_script=r[0].from_script
-				ids.append([new_script, r[0].from_version])
-		i=0
+		ids = []
+		new_script = resource_id
+		while True:
+			q = models.DuplicateScripts.all()
+			q.filter('new_script =', new_script)
+			r = q.get()
+			if r is None:
+				break
+			new_script = r.from_script
+			ids.append([new_script, r.from_version])
 		out=[]
-		version=str(ids[0][1]+1)
-		while i<len(ids):
-			q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
-										"WHERE resource_id='"+ids[i][0]+"' "+
-										"AND version<"+version+" "+
-										"ORDER BY version DESC")
-			r=q.fetch(1000)
-			for e in r:
-				e.updated=e.timestamp.strftime("%b %d")
-				if e.autosave==0:
-					e.s='manualsave'
-				else:
-					e.s='autosave'
-				out.append([ids[i][0], e.updated, e.version, e.autosave, e.export, e.tag])
-			i+=1
-			if not i==len(ids):
-				version=str(ids[i][1]+1)
-		j=simplejson.dumps(out)
+		for past_resource_id, past_version in ids:
+			data = models.ScriptData.get_historical_metadata(past_resource_id, past_version)
+			for e in data:
+				updated = e.timestamp.strftime("%b %d")
+				out.append([past_resource_id, updated, e.version, e.autosave, e.export, e.tag])
+		j = simplejson.dumps(out)
 		self.response.headers['Content-Type']= 'text/plain'
 		self.response.out.write(j)
 

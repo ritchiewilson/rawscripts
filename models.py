@@ -131,9 +131,11 @@ class ScriptData (db.Model):
         return q.get()
 
     @staticmethod
-    def get_historical_metadata(resource_id):
+    def get_historical_metadata(resource_id, version=None):
         q = ScriptData.all()
         q.filter('resource_id =', resource_id).order('-version')
+        if version is not None:
+            q.filter('version <=', version)
         proj = ('autosave', 'export', 'tag', 'timestamp', 'version')
         return q.fetch(1000, projection=proj)
 
