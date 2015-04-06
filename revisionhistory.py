@@ -35,25 +35,7 @@ import mobileTest
 import config
 import models
 
-from utils import get_template_path
-
-# Get Current User String
-def gcu():
-	user = users.get_current_user().email().lower()
-	if user == 'mwap.cw@gmail.com':
-		user = 'mwap.cw@googlemail.com'
-	return user
-
-def permission (resource_id):
-	q = db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+resource_id+"'")
-	results = q.fetch(1000)
-	p=False
-	for i in results:
-		if i.permission=='owner' or i.permission=='ownerDeleted' or i.permission=="hardDelete":
-			if i.user==gcu():
-				p=i.title
-	return p
+from utils import gcu, permission, get_template_path
 
 
 class RevisionTag(webapp.RequestHandler):
