@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
+import os, cgi
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '1.2')
@@ -111,27 +111,21 @@ class RevisionList(webapp.RequestHandler):
 class GetVersion(webapp.RequestHandler):
 	def post(self):
 		resource_id=self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
-		p = permission(resource_id)
+		p = ownerPermission(resource_id)
 		if p == False:
 			return
+		screenplay = None
 		version = self.request.get('version')
 		if version =='latest':
-			q = db.GqlQuery("SELECT * FROM ScriptData "+
-											"WHERE resource_id='"+resource_id+"' "
-											"ORDER BY version DESC")
-			r=q.fetch(2)
+			screenplay = models.ScriptData.get_last_version_number(resource_id)
 		else:
-			q = db.GqlQuery("SELECT * FROM ScriptData "+
-											"WHERE version="+version+" "+
-											"AND resource_id='"+resource_id+"'")
-			r=q.fetch(2)
-		J = simplejson.loads(r[0].data)
+			screenplay = models.ScriptData.get_version(resource_id, int(version))
+		data = simplejson.loads(screenplay.data)
 		v = ['s','a','c','d','p','t']
 		contents=''
-		for i in J:
-			contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
+		for text, line_format in data:
+			text = cgi.escape(text, quote=True)
+			contents+='<p class="'+v[line_format]+'">'+text+"</p>"
 		self.response.headers['Content-Type']='text/plain'
 		self.response.out.write(contents)
 
