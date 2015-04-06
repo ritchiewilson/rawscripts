@@ -269,9 +269,14 @@ class Duplicate (webapp.RequestHandler):
 		if title == False:
 			return
 		new_resource_id = models.UsersScripts.create_unique_resource_id()
-		latest = models.ScriptData.get_latest_version(resource_id)
-		data = latest.data
-		version = latest.version
+		screenplay = None
+		if self.request.path =='/revisionduplicate':
+			v = int(self.request.get('version'))
+			screenplay = models.ScriptData.get_version(resource_id, v)
+		else:
+			screenplay = models.ScriptData.get_latest_version(resource_id)
+		data = screenplay.data
+		version = screenplay.version
 
 		s = models.ScriptData(resource_id=new_resource_id,
 				      data=data,
@@ -495,6 +500,7 @@ def main():
 											('/harddelete', HardDelete),
 											('/newscript', NewScript),
 											('/duplicate', Duplicate),
+											('/revisionduplicate', Duplicate),
 											('/export', Export),
 											('/rename', Rename),
 											('/emailscript', EmailScript),

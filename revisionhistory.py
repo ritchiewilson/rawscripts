@@ -55,66 +55,6 @@ class RevisionTag(webapp.RequestHandler):
 		screenplay.put()
 		self.response.out.write('tagged')
 
-class DuplicateOldRevision(webapp.RequestHandler):
-	def post(self):
-		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
-		p = permission(resource_id)
-		if p == False:
-			return
-		version = self.request.get('version')
-		q=db.GqlQuery("SELECT * FROM ScriptData "+
-									"WHERE resource_id='"+resource_id+"' "+
-									"AND version="+version)
-		results = q.fetch(2)
-		data=results[0].data
-		user=gcu()
-		alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-		new_resource_id=''
-		for x in random.sample(alphabet,20):
-			new_resource_id+=x
-
-		q=db.GqlQuery("SELECT * FROM UsersScripts "+
-									"WHERE resource_id='"+new_resource_id+"'")
-		results=q.fetch(2)
-
-		while len(results)>0:
-			new_resource_id=''
-			for x in random.sample(alphabet,20):
-				new_resource_id+=x
-			q=db.GqlQuery("SELECT * FROM UsersScripts "+
-										"WHERE resource_id='"+new_resource_id+"'")
-			results=q.fetch(2)
-
-		s = models.ScriptData(resource_id=new_resource_id,
-									 data=data,
-									 tag="",
-									 export="[[],[]]",
-									 version=int(version)+1,
-									 autosave=0)
-		s.put()
-		d= models.DuplicateScripts(new_script = new_resource_id,
-												from_script = resource_id,
-												from_version=int(version))
-		d.put()
-		u = models.UsersScripts(key_name="owner"+user+new_resource_id,
-						user=user,
-										 title='Copy of '+p,
-										 resource_id=new_resource_id,
-										 last_updated = datetime.datetime.today(),
-										 permission='owner',
-										folder = "?none?")
-		u.put()
-		q=db.GqlQuery("SELECT * FROM SpellingData "+
-									"WHERE resource_id='"+resource_id+"'")
-		r=q.fetch(2)
-		s= models.SpellingData(resource_id=new_resource_id,
-										wrong=r[0].wrong,
-										ignore=r[0].ignore)
-		s.put()
-		self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write('/editor?resource_id='+new_resource_id)
 
 class RevisionHistory(webapp.RequestHandler):
 	def get(self):
@@ -336,7 +276,6 @@ def main():
 	application = webapp.WSGIApplication([('/revisionhistory', RevisionHistory),
 																				('/revisionget', GetVersion),
 																				('/revisionlist', RevisionList),
-																				('/revisionduplicate', DuplicateOldRevision),
 																				('/revisiontag' , RevisionTag),
 																				('/revisioncompare', CompareVersions)],
 																			 debug=True)

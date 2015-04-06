@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 9
+version: 1
 runtime: python
 api_version: 1
 
@@ -125,6 +125,10 @@ handlers:
 
 - url: /spellcheck.*
   script: spellcheck.py
+
+- url: /revisionduplicate
+  login: required
+  script: scripteditor.py
 
 - url: /revision.*
   login: required
