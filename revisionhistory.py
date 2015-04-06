@@ -226,25 +226,27 @@ class GetVersion(webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p = permission(resource_id)
-		if not p==False:
-			version = self.request.get('version')
-			if version =='latest':
-				q = db.GqlQuery("SELECT * FROM ScriptData "+
-												"WHERE resource_id='"+resource_id+"' "
-												"ORDER BY version DESC")
-				r=q.fetch(2)
-			else:
-				q = db.GqlQuery("SELECT * FROM ScriptData "+
-												"WHERE version="+version+" "+
-												"AND resource_id='"+resource_id+"'")
-				r=q.fetch(2)
-			J = simplejson.loads(r[0].data)
-			v = ['s','a','c','d','p','t']
-			contents=''
-			for i in J:
-				contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
-			self.response.headers['Content-Type']='text/plain'
-			self.response.out.write(contents)
+		if p == False:
+			return
+		version = self.request.get('version')
+		if version =='latest':
+			q = db.GqlQuery("SELECT * FROM ScriptData "+
+											"WHERE resource_id='"+resource_id+"' "
+											"ORDER BY version DESC")
+			r=q.fetch(2)
+		else:
+			q = db.GqlQuery("SELECT * FROM ScriptData "+
+											"WHERE version="+version+" "+
+											"AND resource_id='"+resource_id+"'")
+			r=q.fetch(2)
+		J = simplejson.loads(r[0].data)
+		v = ['s','a','c','d','p','t']
+		contents=''
+		for i in J:
+			contents+='<p class="'+v[int(i[1])]+'">'+i[0]+"</p>"
+		self.response.headers['Content-Type']='text/plain'
+		self.response.out.write(contents)
+
 
 class CompareVersions(webapp.RequestHandler):
 	def post(self):
