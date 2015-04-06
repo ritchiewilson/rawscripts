@@ -183,41 +183,42 @@ class RevisionList(webapp.RequestHandler):
 		if resource_id=="Demo":
 			return
 		p=permission(resource_id)
-		if not p==False:
-			begining=False
-			ids=[]
-			new_script=resource_id
-			while not begining:
-				q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM DuplicateScripts "+
-											"WHERE new_script='"+new_script+"'")
-				r=q.fetch(1)
-				if len(r)==0:
-					begining=True
+		if p == False:
+			return
+		begining=False
+		ids=[]
+		new_script=resource_id
+		while not begining:
+			q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM DuplicateScripts "+
+										"WHERE new_script='"+new_script+"'")
+			r=q.fetch(1)
+			if len(r)==0:
+				begining=True
+			else:
+				new_script=r[0].from_script
+				ids.append([new_script, r[0].from_version])
+		i=0
+		out=[]
+		version=str(ids[0][1]+1)
+		while i<len(ids):
+			q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
+										"WHERE resource_id='"+ids[i][0]+"' "+
+										"AND version<"+version+" "+
+										"ORDER BY version DESC")
+			r=q.fetch(1000)
+			for e in r:
+				e.updated=e.timestamp.strftime("%b %d")
+				if e.autosave==0:
+					e.s='manualsave'
 				else:
-					new_script=r[0].from_script
-					ids.append([new_script, r[0].from_version])
-			i=0
-			out=[]
-			version=str(ids[0][1]+1)
-			while i<len(ids):
-				q=db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
-											"WHERE resource_id='"+ids[i][0]+"' "+
-											"AND version<"+version+" "+
-											"ORDER BY version DESC")
-				r=q.fetch(1000)
-				for e in r:
-					e.updated=e.timestamp.strftime("%b %d")
-					if e.autosave==0:
-						e.s='manualsave'
-					else:
-						e.s='autosave'
-					out.append([ids[i][0], e.updated, e.version, e.autosave, e.export, e.tag])
-				i+=1
-				if not i==len(ids):
-					version=str(ids[i][1]+1)
-			j=simplejson.dumps(out)
-			self.response.headers['Content-Type']= 'text/plain'
-			self.response.out.write(j)
+					e.s='autosave'
+				out.append([ids[i][0], e.updated, e.version, e.autosave, e.export, e.tag])
+			i+=1
+			if not i==len(ids):
+				version=str(ids[i][1]+1)
+		j=simplejson.dumps(out)
+		self.response.headers['Content-Type']= 'text/plain'
+		self.response.out.write(j)
 
 class GetVersion(webapp.RequestHandler):
 	def post(self):
