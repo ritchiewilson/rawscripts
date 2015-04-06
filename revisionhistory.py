@@ -16,6 +16,7 @@
 
 
 import os, cgi
+import difflib, string
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '1.2')
@@ -132,37 +133,28 @@ class GetVersion(webapp.RequestHandler):
 
 class CompareVersions(webapp.RequestHandler):
 	def post(self):
-		import difflib
-
 		v_o_id=self.request.get('v_o_id')
 		v_t_id=self.request.get('v_t_id')
-		if v_o_id=="Demo" or v_t_id=="Demo":
-			return
-		title=permission(v_o_id)
+		title = permission(v_o_id)
 		p = permission(v_t_id)
 		if title == False or p == False:
 			return
 		version_one = self.request.get('v_o')
 		version_two = self.request.get('v_t')
-		q = db.GqlQuery("SELECT * FROM ScriptData "+
-										"WHERE version="+version_one+" "+
-										"AND resource_id='"+v_o_id+"'")
-		r_one=q.fetch(2)
-		q = db.GqlQuery("SELECT * FROM ScriptData "+
-										"WHERE version="+version_two+" "+
-										"AND resource_id='"+v_t_id+"'")
-		r_two=q.fetch(2)
-
+		r_one = models.ScriptData.get_version(v_o_id, version_one)
+		r_two = models.ScriptData.get_version(v_t_id, version_two)
 		v = ['s','a','c','d','p','t']
 
-		j_one = simplejson.loads(r_one[0].data)
-		s_one=StringIO.StringIO()
-		for i in j_one:
-			s_one.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
-		j_two = simplejson.loads(r_two[0].data)
-		s_two=StringIO.StringIO()
-		for i in j_two:
-			s_two.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
+		def to_html(raw_data):
+			j = simplejson.loads(raw_data)
+			s = StringIO.StringIO()
+			for text, line_format in j:
+				text = cgi.escape(text, quote=True)
+				s.write("<p class='"+v[line_format]+"'>"+text+"</p>\n")
+			return s
+
+		s_one = to_html(r_one.data)
+		s_two = to_html(r_two.data)
 
 		content = textDiff(s_one.getvalue(), s_two.getvalue())
 		content=content.replace("<del><p", "<p")
@@ -171,8 +163,6 @@ class CompareVersions(webapp.RequestHandler):
 		content=content.replace("</p></ins>", "</p>")
 		self.response.headers['Content-Type']='text/html'
 		self.response.out.write(content)
-
-import difflib, string
 
 def isTag(x): return x[0] == "<" and x[-1] == ">"
 
