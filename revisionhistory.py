@@ -258,36 +258,37 @@ class CompareVersions(webapp.RequestHandler):
 			return
 		title=permission(v_o_id)
 		p = permission(v_t_id)
-		if title!=False and p!=False:
-			version_one = self.request.get('v_o')
-			version_two = self.request.get('v_t')
-			q = db.GqlQuery("SELECT * FROM ScriptData "+
-											"WHERE version="+version_one+" "+
-											"AND resource_id='"+v_o_id+"'")
-			r_one=q.fetch(2)
-			q = db.GqlQuery("SELECT * FROM ScriptData "+
-											"WHERE version="+version_two+" "+
-											"AND resource_id='"+v_t_id+"'")
-			r_two=q.fetch(2)
+		if title == False or p == False:
+			return
+		version_one = self.request.get('v_o')
+		version_two = self.request.get('v_t')
+		q = db.GqlQuery("SELECT * FROM ScriptData "+
+										"WHERE version="+version_one+" "+
+										"AND resource_id='"+v_o_id+"'")
+		r_one=q.fetch(2)
+		q = db.GqlQuery("SELECT * FROM ScriptData "+
+										"WHERE version="+version_two+" "+
+										"AND resource_id='"+v_t_id+"'")
+		r_two=q.fetch(2)
 
-			v = ['s','a','c','d','p','t']
+		v = ['s','a','c','d','p','t']
 
-			j_one = simplejson.loads(r_one[0].data)
-			s_one=StringIO.StringIO()
-			for i in j_one:
-				s_one.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
-			j_two = simplejson.loads(r_two[0].data)
-			s_two=StringIO.StringIO()
-			for i in j_two:
-				s_two.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
+		j_one = simplejson.loads(r_one[0].data)
+		s_one=StringIO.StringIO()
+		for i in j_one:
+			s_one.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
+		j_two = simplejson.loads(r_two[0].data)
+		s_two=StringIO.StringIO()
+		for i in j_two:
+			s_two.write("<p class='"+v[int(i[1])]+"'>"+i[0]+"</p>\n")
 
-			content = textDiff(s_one.getvalue(), s_two.getvalue())
-			content=content.replace("<del><p", "<p")
-			content=content.replace("<ins><p", "<p")
-			content=content.replace("</p></del>", "</p>")
-			content=content.replace("</p></ins>", "</p>")
-			self.response.headers['Content-Type']='text/html'
-			self.response.out.write(content)
+		content = textDiff(s_one.getvalue(), s_two.getvalue())
+		content=content.replace("<del><p", "<p")
+		content=content.replace("<ins><p", "<p")
+		content=content.replace("</p></del>", "</p>")
+		content=content.replace("</p></ins>", "</p>")
+		self.response.headers['Content-Type']='text/html'
+		self.response.out.write(content)
 
 import difflib, string
 
