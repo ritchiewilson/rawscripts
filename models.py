@@ -123,6 +123,13 @@ class ScriptData (db.Model):
         latest = q.get()
         return latest
 
+    @staticmethod
+    def get_version(resource_id, version):
+        q = ScriptData.all()
+        q.filter('resource_id =', resource_id)
+        q.filter('version =', int(version))
+        return q.get()
+
 
 class TitlePageData (db.Model):
     resource_id = db.StringProperty()

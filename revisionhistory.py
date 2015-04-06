@@ -22,7 +22,6 @@ use_library('django', '1.2')
 import StringIO
 import wsgiref.handlers
 from google.appengine.api import users
-from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -31,7 +30,6 @@ import random
 import datetime
 import logging
 from django.utils import simplejson
-import mobileTest
 import config
 import models
 
@@ -40,26 +38,21 @@ from utils import gcu, permission, get_template_path
 
 class RevisionTag(webapp.RequestHandler):
 	def post(self):
-		resource_id=self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
+		resource_id = self.request.get('resource_id')
 		p = permission(resource_id)
 		if p == False:
 			return
-		version=self.request.get('version')
+		version = self.request.get('version')
 		tag = self.request.get('tag')
-		if version=="latest":
-			q=db.GqlQuery("SELECT * FROM ScriptData "+
-					"WHERE resource_id='"+resource_id+"' "+
-					"ORDER BY version DESC")
-			r=q.fetch(10)
+		screenplay = None
+		if version == "latest":
+			screenplay = models.ScriptData.get_latest_version(resource_id)
 		else:
-			q=db.GqlQuery("SELECT * FROM ScriptData "+
-										 "WHERE resource_id='"+resource_id+"' "+
-										 "AND version="+version)
-			r=q.fetch(1)
-		r[0].tag=tag
-		r[0].put()
+			screenplay = models.ScriptData.get_version(resource_id, version)
+		if screenplay is None:
+			return
+		screenplay.tag = tag
+		screenplay.put()
 		self.response.out.write('tagged')
 
 class DuplicateOldRevision(webapp.RequestHandler):
