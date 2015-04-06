@@ -182,14 +182,14 @@ hr{
             </tr>
             <tbody id='tb'>
             {% for i in r %}
-                <tr id="{{ resource_id }}" class="{{ i.s }}">
+                <tr id="{{ resource_id }}" class="{{ i.autosave_class }}">
                     <td align="center" class="viewScript"><input value="1{{  i.version  }}" type='radio'></td>
                     <td class="compare" align="center"><input value="2{{  i.version  }}" type='radio'></td>
                     <td align="center">{{  i.version  }}</td>
                     <td align="center">{{  i.updated  }}</td>
-                    <td class="emailedExported">{{  i.e  }}</td>
+                    <td class="emailedExported">{{  i.emailed  }}</td>
                     <td class="data">{{  i.export  }}</td>
-                    <td class="tagCell">{{  i.t  }}</td>
+                    <td class="tagCell">{{  i.tagged  }}</td>
                     <td class="data">{{  i.tag  }}</td>
                     <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:editTag({{  i.version  }})">Edit Tag</a> | </td>
                     <td id="{{  i.version  }}" class="copy" align="center"><a href="javascript:copyThisVersion({{  i.version  }})">Copy to new script</a></td>

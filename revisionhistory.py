@@ -33,7 +33,7 @@ from django.utils import simplejson
 import config
 import models
 
-from utils import gcu, permission, get_template_path
+from utils import gcu, permission, ownerPermission, get_template_path
 
 
 class RevisionTag(webapp.RequestHandler):
@@ -59,47 +59,18 @@ class RevisionTag(webapp.RequestHandler):
 class RevisionHistory(webapp.RequestHandler):
 	def get(self):
 		resource_id = self.request.get('resource_id')
-		if resource_id=="Demo":
-			return
-		p = permission(resource_id)
+		p = ownerPermission(resource_id)
 		if p == False:
 			return
-		q = db.GqlQuery("SELECT autosave, export, tag, timestamp, version FROM ScriptData "+
-								 "WHERE resource_id='"+resource_id+"' "+
-								 "ORDER BY version DESC")
-		r = q.fetch(1000)
+		r = models.ScriptData.get_historical_metadata(resource_id)
 		for i in r:
 			i.updated=i.timestamp.strftime("%b %d")
 			J=simplejson.loads(i.export)
-			"""
-			if len(J[0])==0 and len(J[1])==0:
-				i.e=""
-			if len(J[0])>0 and len(J[1])==0:
-				i.e="Emailed"
-			if len(J[0])>0 and len(J[1])>0:
-				i.e="Emailed/Exported"
-			if len(J[0])==0 and len(J[1])>0:
-				i.e="Exported"
-			"""
-			if len(J[0])>0:
-				i.e="Emailed"
-			else:
-				i.e=""
-			if i.tag=="":
-				i.t=""
-			else:
-				i.t="Tag"
-			if i.autosave==0:
-				i.s='manualsave'
-			else:
-				i.s='autosave'
-		user = users.get_current_user()
-		if user:
-			sign_out=users.create_logout_url('/')
-			user_email = users.get_current_user().email()
-		else:
-			sign_out="/"
-			user_email = "test@example.com"
+			i.emailed = "Emailed" if len(J[0]) > 0 else ''
+			i.tagged = "" if i.tag == '' else 'Tag'
+			i.autosave_class = 'autosave' if i.autosave else 'manualsave'
+		sign_out = users.create_logout_url('/')
+		user_email = gcu()
 		template_values={'r':r,
 										 'title':p,
 										 'resource_id':resource_id,

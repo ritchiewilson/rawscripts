@@ -130,6 +130,13 @@ class ScriptData (db.Model):
         q.filter('version =', int(version))
         return q.get()
 
+    @staticmethod
+    def get_historical_metadata(resource_id):
+        q = ScriptData.all()
+        q.filter('resource_id =', resource_id).order('-version')
+        proj = ('autosave', 'export', 'tag', 'timestamp', 'version')
+        return q.fetch(1000, projection=proj)
+
 
 class TitlePageData (db.Model):
     resource_id = db.StringProperty()
