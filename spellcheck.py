@@ -29,25 +29,12 @@ import config
 import models
 from google.appengine.api import memcache
 
-class SpellDB(webapp.RequestHandler):
-    def get(self):
-        q=db.GqlQuery("SELECT * FROM UsersScripts "+
-                                    "where permission='owner'")
-        results = q.fetch(1000)
-        for i in results:
-            q=db.GqlQuery("SELECT * FROM SpellingData "+
-                                        "WHERE resource_id='"+i.resource_id+"'")
-            r = q.fetch(2)
-            if len(r)==0:
-                s = models.SpellingData(resource_id=i.resource_id,
-                                                 wrong="[]",
-                                                 ignore="[]")
-                s.put()
-                taskqueue.add(url="/spellcheckbigscript", params= {'resource_id' : i.resource_id})
-
 
 class SpellCheckBigScript(webapp.RequestHandler):
     def post(self):
+        # that Google spelling api hasn't worked since 2013. None of this has
+        # been relevant since then. Just return nothing until it gets fixed.
+        return
         resource_id = self.request.get('resource_id')
         screenplay = models.ScriptData.get_latest_version(resource_id)
         j = simplejson.loads(screenplay.data)
@@ -72,6 +59,13 @@ class SpellCheckBigScript(webapp.RequestHandler):
 
 class SpellCheck(webapp.RequestHandler):
     def post(self):
+
+        # that Google spelling api hasn't worked since 2013. None of this has
+        # been relevant since then. Just return nothing until it gets fixed.
+        self.response.headers['Content-type']='text/plain'
+        self.response.out.write('correct')
+        return
+
         resource_id=self.request.get('resource_id')
         data = self.request.get('data')
         output=self.request.get('output')
@@ -103,8 +97,6 @@ class SpellCheck(webapp.RequestHandler):
                                 i=13
                 text=" ".join(arr)
 
-                lang = "en"
-
                 #data_len = int(environ.get('HTTP_CONTENT_LENGTH', 0))
                 #data = environ.get("wsgi.input").read(data_len)
                 data = '<?xml version="1.0" encoding="utf-8" ?>'
@@ -112,7 +104,7 @@ class SpellCheck(webapp.RequestHandler):
                 data=data+'<text>'+text+'</text>'
                 data=data+'</spellrequest>'
                 con = httplib.HTTPSConnection("www.google.com")
-                con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
+                con.request("POST", "/tbproxy/spell?lang=en", data)
                 incorrect_words = []
                 try:
                     response = con.getresponse()
@@ -172,7 +164,6 @@ def main():
     routes = [
         ('/spellcheck', SpellCheck),
         ('/spellcheckbigscript', SpellCheckBigScript),
-        ('/spelldb', SpellDB)
     ]
     application = webapp.WSGIApplication(routes, debug=True)
 

@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 7
+version: 8
 runtime: python27
 threadsafe: no
 api_version: 1
@@ -121,10 +121,6 @@ handlers:
 - url: /save.*
   login: required
   script: editor.py
-
-- url: /spelldb.*
-  login: admin
-  script: spellcheck.py
 
 - url: /spellcheckbigscript.*
   login: admin
