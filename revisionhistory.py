@@ -188,25 +188,27 @@ def textDiff(a, b):
 			raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
 	return ''.join(out)
 
-def html2list(x, b=0):
+def html2list(x):
 	mode = 'char'
 	cur = ''
 	out = []
 	for c in x:
 		if mode == 'tag':
+			cur += c
 			if c == '>':
-				if b: cur += ']'
-				else: cur += c
-				out.append(cur); cur = ''; mode = 'char'
-			else: cur += c
+				out.append(cur)
+				cur = ''
+				mode = 'char'
 		elif mode == 'char':
 			if c == '<':
 				out.append(cur)
-				if b: cur = '['
-				else: cur = c
+				cur = c
 				mode = 'tag'
-			elif c in string.whitespace: out.append(cur+c); cur = ''
-			else: cur += c
+			elif c in string.whitespace:
+				out.append(cur + c)
+				cur = ''
+			else:
+				cur += c
 	out.append(cur)
 	return filter(lambda x: x is not '', out)
 
