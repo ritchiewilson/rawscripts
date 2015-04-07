@@ -28,6 +28,7 @@ import random
 import datetime
 import logging
 from django.utils import simplejson
+from lxml.html.diff import htmldiff
 import config
 import models
 
@@ -147,67 +148,14 @@ class CompareVersions(webapp.RequestHandler):
 			s = StringIO.StringIO()
 			for text, line_format in j:
 				text = cgi.escape(text, quote=True)
-				s.write("<p class='"+v[line_format]+"'>"+text+"</p>\n")
-			return s
+				s.write("<p class='"+v[line_format]+"'>"+text+"</p>")
+			return s.getvalue()
 
 		s_one = to_html(r_one.data)
 		s_two = to_html(r_two.data)
-
-		content = textDiff(s_one.getvalue(), s_two.getvalue())
-		content=content.replace("<del><p", "<p")
-		content=content.replace("<ins><p", "<p")
-		content=content.replace("</p></del>", "</p>")
-		content=content.replace("</p></ins>", "</p>")
+		content = htmldiff(s_one, s_two)
 		self.response.headers['Content-Type']='text/html'
 		self.response.out.write(content)
-
-def isTag(x): return x[0] == "<" and x[-1] == ">"
-
-def textDiff(a, b):
-	"""Takes in strings a and b and returns a human-readable HTML diff."""
-
-	out = []
-	a, b = html2list(a), html2list(b)
-	s = difflib.SequenceMatcher(None, a, b)
-	for e in s.get_opcodes():
-		if e[0] == "replace":
-			# @@ need to do something more complicated here
-			# call textDiff but not for html, but for some html... ugh
-			# gonna cop-out for now
-			out.append('<del>'+''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + '</del><ins>'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>")+"</ins>")
-		elif e[0] == "delete":
-			out.append('<del>'+ ''.join(a[e[1]:e[2]]).replace("</p>","</del></p>").replace("'>","'><del>") + "</del>")
-		elif e[0] == "insert":
-			out.append('<ins>'+''.join(b[e[3]:e[4]]).replace("</p>","</ins></p>").replace("'>","'><ins>") + "</ins>")
-		elif e[0] == "equal":
-			out.append(''.join(b[e[3]:e[4]]))
-		else:
-			raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
-	return ''.join(out)
-
-def html2list(x):
-	mode = 'char'
-	cur = ''
-	out = []
-	for c in x:
-		if mode == 'tag':
-			cur += c
-			if c == '>':
-				out.append(cur)
-				cur = ''
-				mode = 'char'
-		elif mode == 'char':
-			if c == '<':
-				out.append(cur)
-				cur = c
-				mode = 'tag'
-			elif c in string.whitespace:
-				out.append(cur + c)
-				cur = ''
-			else:
-				cur += c
-	out.append(cur)
-	return filter(lambda x: x is not '', out)
 
 
 def main():
