@@ -49,11 +49,8 @@ class SpellDB(webapp.RequestHandler):
 class SpellCheckBigScript(webapp.RequestHandler):
     def post(self):
         resource_id = self.request.get('resource_id')
-        q=db.GqlQuery("SELECT * FROM ScriptData "+
-                             "WHERE resource_id='"+resource_id+"' "+
-                             "ORDER BY version DESC")
-        r = q.fetch(2)
-        j = simplejson.loads(r[0].data)
+        screenplay = models.ScriptData.get_latest_version(resource_id)
+        j = simplejson.loads(screenplay.data)
         w=[]
         for i in j:
             word = i[0].split(" ")
@@ -66,17 +63,11 @@ class SpellCheckBigScript(webapp.RequestHandler):
             keys[e] = 1
         words=keys.keys()
 
-        i=0
-        while i<len(words):
-            j=0
-            arr=[]
-            while j<=200:
-                j+=1
-                arr.append(words.pop())
-                if len(words)==0: break
+        number_of_words = 100
+        while words:
+            arr = words[:number_of_words]
+            words = words[number_of_words:]
             taskqueue.add(url="/spellcheck", params={'resource_id' :resource_id, 'data' : simplejson.dumps(arr)})
-
-
 
 
 class SpellCheck(webapp.RequestHandler):
@@ -178,10 +169,12 @@ class SpellCheck(webapp.RequestHandler):
         self.response.out.write(content)
 
 def main():
-    application = webapp.WSGIApplication([('/spellcheck', SpellCheck),
-                                                                                ('/spellcheckbigscript', SpellCheckBigScript),
-                                                                                ('/spelldb', SpellDB)],
-                                                                             debug=True)
+    routes = [
+        ('/spellcheck', SpellCheck),
+        ('/spellcheckbigscript', SpellCheckBigScript),
+        ('/spelldb', SpellDB)
+    ]
+    application = webapp.WSGIApplication(routes, debug=True)
 
     run_wsgi_app(application)
 
