@@ -455,17 +455,11 @@ class RemoveAccess (webapp.RequestHandler):
 
 class SyncContacts (webapp.RequestHandler):
 	def post(self):
-		user = users.get_current_user()
-		if not user:
-			return
-		d = memcache.get('contacts'+user.email().lower())
-		if d == None:
-			output = '[]'
-		else:
-			#if memecache is good
-			output = d
+		# syncing contacts hasn't worked in a while. just shutting it
+		# off.
 		self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write(output)
+		self.response.out.write('[]')
+		return
 
 
 class UploadHelp(webapp.RequestHandler):
