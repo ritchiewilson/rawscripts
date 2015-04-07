@@ -16,9 +16,6 @@
 
 
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from google.appengine.dist import use_library
-use_library('django', '1.2')
 import re
 from django.utils import simplejson
 import StringIO
@@ -56,7 +53,7 @@ def FinalDraft(data):
 	        e=1
 	    d.append([s,e])
 	return simplejson.dumps(d)
-	
+
 
 def Text(data):
     t = data.read()
@@ -66,7 +63,7 @@ def Text(data):
     for i in lines:
         i=i.rstrip()
         j=0
-        
+
         if not i=="":
             while i[j]==' ':
                 j+=1
@@ -93,7 +90,7 @@ def Text(data):
             i+=1
     while len(m)>4:
         m.pop()
-        
+
     if len(m)==3:
         m.insert(2, (m[1]+m[2])/2)
 
@@ -107,7 +104,7 @@ def Text(data):
         dialog =30
         paren = 30
         chara = 50
-    
+
     for i in lines:
         i=i.rstrip()
         if i=="":
@@ -124,7 +121,7 @@ def Text(data):
                         if i[2]=='T' or i[2]=='t':
                             if i[3]=='.':
                                 test=True
-                                
+
                 if i[0]=='E' or i[0]=='e':
                     if i[1]=='X'or i[1]=='e':
                         if i[2]=='T' or i[2]=='t':
@@ -147,7 +144,7 @@ def Text(data):
                     kind=7
                 else:
                     kind=5
-            
+
             arr.append([i,kind])
 
     while arr[len(arr)-1][1]==7:
@@ -220,6 +217,6 @@ def Celtx(data):
         jl.append(unit)
     for i in jl:
         i[0]=i[0].rstrip()
-    
+
     contents=simplejson.dumps(jl)
     return contents

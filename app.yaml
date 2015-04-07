@@ -16,9 +16,14 @@
 
 
 application: rawscripts-hrd
-version: 2
-runtime: python
+version: 3
+runtime: python27
+threadsafe: no
 api_version: 1
+
+libraries:
+- name: django
+  version: "1.2"
 
 builtins:
 - appstats: on

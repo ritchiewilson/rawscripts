@@ -15,10 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from google.appengine.dist import use_library
-use_library('django', '1.2')
 import httplib
 from xml.dom import minidom
 import StringIO
@@ -63,10 +59,10 @@ class SpellCheckBigScript(webapp.RequestHandler):
 			word = i[0].split(" ")
 			for t in word:
 				w.append(t)
-		
+
 		# make a unique list of words
-		keys = {} 
-		for e in w: 
+		keys = {}
+		for e in w:
 			keys[e] = 1
 		words=keys.keys()
 
@@ -79,22 +75,22 @@ class SpellCheckBigScript(webapp.RequestHandler):
 				arr.append(words.pop())
 				if len(words)==0: break
 			taskqueue.add(url="/spellcheck", params={'resource_id' :resource_id, 'data' : simplejson.dumps(arr)})
-		
 
-		
-																	 
+
+
+
 class SpellCheck(webapp.RequestHandler):
 		def post(self):
 			resource_id=self.request.get('resource_id')
 			data = self.request.get('data')
 			output=self.request.get('output')
 			w = simplejson.loads(data)
-			
-			keys = {} 
-			for e in w: 
+
+			keys = {}
+			for e in w:
 					keys[e] = 1
 			words=keys.keys()
-			
+
 			# use memcache to find stored correct words
 			stored_spelling = memcache.get_multi(words, namespace='spelling')
 			new_words=[]
@@ -177,7 +173,7 @@ class SpellCheck(webapp.RequestHandler):
 				item.wrong=P
 				item.put()
 				content = simplejson.dumps(cr)
-			
+
 			self.response.headers['Content-type']='text/plain'
 			self.response.out.write(content)
 
@@ -186,7 +182,7 @@ def main():
 																				('/spellcheckbigscript', SpellCheckBigScript),
 																				('/spelldb', SpellDB)],
 																			 debug=True)
-	
+
 	run_wsgi_app(application)
 
 
