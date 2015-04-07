@@ -80,102 +80,102 @@ class SpellCheckBigScript(webapp.RequestHandler):
 
 
 class SpellCheck(webapp.RequestHandler):
-		def post(self):
-			resource_id=self.request.get('resource_id')
-			data = self.request.get('data')
-			output=self.request.get('output')
-			w = simplejson.loads(data)
+	def post(self):
+		resource_id=self.request.get('resource_id')
+		data = self.request.get('data')
+		output=self.request.get('output')
+		w = simplejson.loads(data)
 
-			keys = {}
-			for e in w:
-					keys[e] = 1
-			words=keys.keys()
+		keys = {}
+		for e in w:
+				keys[e] = 1
+		words=keys.keys()
 
-			# use memcache to find stored correct words
-			stored_spelling = memcache.get_multi(words, namespace='spelling')
-			new_words=[]
-			for i in words:
-				if not i in stored_spelling:
-					new_words.append(i)
-			words = new_words
+		# use memcache to find stored correct words
+		stored_spelling = memcache.get_multi(words, namespace='spelling')
+		new_words=[]
+		for i in words:
+			if not i in stored_spelling:
+				new_words.append(i)
+		words = new_words
 
-			n=0
-			cr=[]
-			while n<len(words):
-					i=0
-					arr=[]
-					while i<=10:
-							s = words.pop()
-							arr.append(s)
-							i+=1
-							if len(words)==0:
-									i=13
-					text=" ".join(arr)
+		n=0
+		cr=[]
+		while n<len(words):
+				i=0
+				arr=[]
+				while i<=10:
+						s = words.pop()
+						arr.append(s)
+						i+=1
+						if len(words)==0:
+								i=13
+				text=" ".join(arr)
 
-					lang = "en"
+				lang = "en"
 
-					#data_len = int(environ.get('HTTP_CONTENT_LENGTH', 0))
-					#data = environ.get("wsgi.input").read(data_len)
-					data = '<?xml version="1.0" encoding="utf-8" ?>'
-					data=data+'<spellrequest textalreadyclipped="0" ignoredups="1" ignoredigits="0" ignoreallcaps="0">'
-					data=data+'<text>'+text+'</text>'
-					data=data+'</spellrequest>'
-					con = httplib.HTTPSConnection("www.google.com")
-					con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
-					incorrect_words = []
-					try:
-						response = con.getresponse()
-						r=response.read()
-						dom = minidom.parse(StringIO.StringIO(r))
-						con.close()
-						for i in dom.getElementsByTagName('c'):
-							tmp=[]
-							incorrect_word = text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))]
-							incorrect_words.append(incorrect_word)
-							tmp.append(incorrect_word)
-							if not len(i.childNodes)==0:
-								tmp.append(i.firstChild.data.split('\t'))
-							else:
-								tmp.append(["No Suggestions"])
-							if not tmp==[]:
-								cr.append(tmp)
-						# find correct words and add them to memcache
-						for i in arr:
-							found=False
-							for j in incorrect_words:
-								if i==j:
-									found=True
-							if found==False:
-								memcache.set(i, '?correct?', namespace='spelling')
-					except:
-						cr = cr
-			if len(cr)==0:
-				content = 'correct'
-			else:
+				#data_len = int(environ.get('HTTP_CONTENT_LENGTH', 0))
+				#data = environ.get("wsgi.input").read(data_len)
+				data = '<?xml version="1.0" encoding="utf-8" ?>'
+				data=data+'<spellrequest textalreadyclipped="0" ignoredups="1" ignoredigits="0" ignoreallcaps="0">'
+				data=data+'<text>'+text+'</text>'
+				data=data+'</spellrequest>'
+				con = httplib.HTTPSConnection("www.google.com")
+				con.request("POST", "/tbproxy/spell?lang=%s" % lang, data)
+				incorrect_words = []
+				try:
+					response = con.getresponse()
+					r=response.read()
+					dom = minidom.parse(StringIO.StringIO(r))
+					con.close()
+					for i in dom.getElementsByTagName('c'):
+						tmp=[]
+						incorrect_word = text[int(i.getAttribute('o')):int(i.getAttribute('o'))+int(i.getAttribute('l'))]
+						incorrect_words.append(incorrect_word)
+						tmp.append(incorrect_word)
+						if not len(i.childNodes)==0:
+							tmp.append(i.firstChild.data.split('\t'))
+						else:
+							tmp.append(["No Suggestions"])
+						if not tmp==[]:
+							cr.append(tmp)
+					# find correct words and add them to memcache
+					for i in arr:
+						found=False
+						for j in incorrect_words:
+							if i==j:
+								found=True
+						if found==False:
+							memcache.set(i, '?correct?', namespace='spelling')
+				except:
+					cr = cr
+		if len(cr)==0:
+			content = 'correct'
+		else:
+			q = db.GqlQuery("SELECT * FROM SpellingData "+
+											"WHERE resource_id='"+resource_id+"'")
+			r=q.fetch(2)
+			if len(r)==0:
+				s=models.SpellingData(resource_id=resource_id,
+											 wrong="[]",
+											 ignore='[]')
+				s.put()
 				q = db.GqlQuery("SELECT * FROM SpellingData "+
-												"WHERE resource_id='"+resource_id+"'")
+											"WHERE resource_id='"+resource_id+"'")
 				r=q.fetch(2)
-				if len(r)==0:
-					s=models.SpellingData(resource_id=resource_id,
-												 wrong="[]",
-												 ignore='[]')
-					s.put()
-					q = db.GqlQuery("SELECT * FROM SpellingData "+
-												"WHERE resource_id='"+resource_id+"'")
-					r=q.fetch(2)
-					item=r[0]
-				else:
-					item=r[0]
-				J = simplejson.loads(item.wrong)
-				for t in cr:
-					J.append(t)
-				P = simplejson.dumps(J)
-				item.wrong=P
-				item.put()
-				content = simplejson.dumps(cr)
+				item=r[0]
+			else:
+				item=r[0]
+			J = simplejson.loads(item.wrong)
+			for t in cr:
+				J.append(t)
+			P = simplejson.dumps(J)
+			item.wrong=P
+			item.put()
+			content = simplejson.dumps(cr)
 
-			self.response.headers['Content-type']='text/plain'
-			self.response.out.write(content)
+		self.response.headers['Content-type']='text/plain'
+		self.response.out.write(content)
 
 def main():
 	application = webapp.WSGIApplication([('/spellcheck', SpellCheck),
