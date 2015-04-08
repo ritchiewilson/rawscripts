@@ -111,11 +111,12 @@ def commit_users_scripts(data, session):
 def commit_blog(data, session):
     last_time = None
     lines = json.loads(data)
-    for data, title, timestamp in lines:
+    for data, title, timestamp, path in lines:
         if len(timestamp) == 19:
             timestamp += ".000000"
         timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
-        obj = BlogDB(data=data, title=title, timestamp=timestamp)
+        path = path.lower()
+        obj = BlogDB(data=data, title=title, timestamp=timestamp, path=path)
         session.add(obj)
         last_time = timestamp
     session.commit()

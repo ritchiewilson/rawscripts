@@ -373,6 +373,7 @@ class Blog(db.Model):
     data = db.Column(db.Text)
     title = db.Column(db.String)
     timestamp = db.Column(db.DateTime, default=db.func.now())
+    path = db.Column(db.String)
 
     def get_url(self):
         exclude = set(string.punctuation)
