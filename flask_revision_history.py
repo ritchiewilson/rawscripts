@@ -16,10 +16,10 @@
 
 import json
 
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, Response
 
 from rawscripts import db, app
-from flask_models import ScriptData, UsersScripts
+from flask_models import ResourceVersion, UsersScripts, DuplicateScript
 
 
 @app.route('/revisionhistory')
@@ -27,25 +27,41 @@ def revision_history():
     user = 'rawilson52@gmail.com'
     resource_id = request.args.get('resource_id')
     version = request.args.get('version')
-    revisions = ScriptData.get_historical_metadata(resource_id, version)
+    revisions = ResourceVersion.get_historical_metadata(resource_id, version)
     data = []
     for revision in revisions:
         d = {'updated': revision.timestamp.strftime("%b %d")}
         d['version'] = revision.version
         d['autosave_class'] = 'autosave' if revision.autosave else 'manualsave'
-        d['emailed'] = ""
-        d['tagged'] = ''
-        exports = []
-        for tag in revision.tags:
-            if tag._type == 'email':
-                d['emailed'] = 'Emailed'
-                exports.append([tag.value, str(tag.timestamp)])
-            if tag._type == 'tag':
-                d['tagged'] = 'Tag'
-                d['tag'] = tag.value
-        d['export'] = json.dumps([exports, []])
+        exports, tag = revision.get_exports_and_tags()
+        d['export'] = exports
+        d['tag'] = tag
+        d['emailed'] = '' if exports.startswith('[[],') else 'Emailed'
+        d['tagged'] = '' if tag == '' else 'Tag'
         data.append(d)
 
     title = UsersScripts.get_title(resource_id)
     return render_template('revisionhistory.html', user=user, mode="PRO",
                            resource_id=resource_id, r=data, title=title)
+
+@app.route('/revisionlist', methods=['POST'])
+def revision_list():
+    resource_id = request.form['resource_id']
+    past_ids = []
+    new_script = resource_id
+    while True:
+        past_script = DuplicateScript.query. \
+                          filter_by(new_script=new_script).first()
+        if past_script is None:
+            break
+        past_ids.append([past_script.from_script, past_script.from_version])
+        new_script = past_script.from_script
+    out = []
+    for past_id, past_version in past_ids:
+        revisions = ResourceVersion.get_historical_metadata(past_id, past_version)
+        for revision in revisions:
+            updated = revision.timestamp.strftime("%b %d")
+            export, tag = revision.get_exports_and_tags()
+            out.append([past_id, updated, revision.version, revision.autosave, export, tag])
+
+    return Response(json.dumps(out), mimetype='text/plain')

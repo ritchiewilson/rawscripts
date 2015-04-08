@@ -244,14 +244,6 @@ class ScriptData(db.Model):
             opcodes[0] = (f[0], 0, f[2], 0, f[4])
         return opcodes
 
-    @staticmethod
-    def get_historical_metadata(resource_id, version=None):
-        query = ResourceVersion.query.filter_by(resource_id=resource_id). \
-                order_by(db.desc('version')).limit(1000)
-        if version is not None:
-            query = query.filter(ScriptData.version <= version)
-        return query.all()
-
     def __repr__(self):
        return "<ScriptData(resource_id='%s', version='%s')>" % (self.resource_id, str(self.version))
 
@@ -273,6 +265,27 @@ class ResourceVersion(db.Model):
         latest = ResourceVersion.query.filter_by(resource_id=resource_id). \
                      order_by(db.desc('version')).first()
         return latest
+
+    @staticmethod
+    def get_historical_metadata(resource_id, version=None):
+        query = ResourceVersion.query.filter_by(resource_id=resource_id). \
+                order_by(db.desc('version'))
+        if version is not None:
+            query = query.filter(ResourceVersion.version <= version)
+        query = query.limit(1000)
+        return query.all()
+
+    def get_exports_and_tags(self):
+        exports = []
+        saved_tag = ''
+        for tag in self.tags:
+            if tag._type == 'email':
+                exports.append([tag.value, str(tag.timestamp)])
+            if tag._type == 'user':
+                saved_tag = tag.value
+            print 'Tag Type', tag._type
+        return json.dumps([exports, []]), saved_tag
+
 
 class Op(db.Model):
     __tablename__ = "ops"
