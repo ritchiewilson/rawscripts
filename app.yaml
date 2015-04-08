@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 1
+version: 2
 runtime: python27
 threadsafe: no
 api_version: 1
@@ -55,9 +55,6 @@ handlers:
   upload: html/email.html
   login: admin
 
-- url: /rss.*
-  script: blog.py
-
 - url: /batch-email.*
   script: batch_email.py
   login: admin
@@ -65,12 +62,15 @@ handlers:
 - url: /unsubscribe.*
   script: batch_email.py
 
+- url: /rss.*
+  script: appengine/blog.py
+
 - url: /blogpost.*
-  script: blog.py
+  script: appengine/blog.py
   login: admin
 
 - url: /blog.*
-  script: blog.py
+  script: appengine/blog.py
 
 - url: /title.*
   script: appengine/titlepage.py
