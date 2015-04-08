@@ -16,7 +16,7 @@ def get_resource_ids():
     # resource_ids = UsersScripts.get_all_resource_ids()
     current = datetime.utcnow()
     days_ago = current.replace(day=1)
-    days_ago = current.replace(month=2)
+    days_ago = current.replace(month=3)
     stuff = UsersScripts.query.filter(UsersScripts.last_updated > days_ago). \
             order_by('resource_id').all()
     resource_ids = [s.resource_id for s in stuff]
@@ -178,6 +178,51 @@ def compile_assets(asset_type, page):
     compile_func = compile_js if asset_type == 'js' else compile_css
     for p in pages:
         compile_func(p)
+
+@manager.command
+def _delete_duplicate_versions(resource_id, version):
+    saves = ScriptData.query. \
+                filter_by(resource_id=resource_id,version=version).all()
+    if len(saves) != 2:
+        raise Exception('There were not two saves for', resource_id, "version", version)
+    first, second = saves
+    if first.data != second.data:
+        raise Exception("Multiple saves but different data:", resource_id, version)
+    if first.tag != '' or second.tag != '':
+        raise Exception("Multiple saves but they haves tags:", resource_id, version)
+    if first.export != '[[],[]]' or second.export != '[[],[]]':
+        raise Exception("Multiple saves but they have exports:", resource_id, version)
+
+    obj = None
+    if not first.autosave and not second.autosave:
+        obj = first if first.timestamp > second.timestamp else second
+    if not first.autosave:
+        obj = second
+    elif not second.autosave:
+        obj = first
+    elif first.timestamp < second.timestamp:
+        obj = second
+    else:
+        obj = first
+    db.session.delete(obj)
+    db.session.commit()
+    print "Deleted:", resource_id, "version:", version
+
+@manager.command
+def delete_duplicate_versions():
+    resource_id= 'jQf0siJBempEUZyk3Flz'
+    saves = ScriptData.query.filter_by(resource_id=resource_id). \
+                order_by('version').with_entities(ScriptData.version).all()
+    prev_version = None
+    for save in saves:
+        if prev_version is None:
+            prev_version = save.version
+            continue
+        if save.version == prev_version:
+            _delete_duplicate_versions(resource_id, save.version)
+        prev_version = save.version
+    return False
+
 
 if __name__ == "__main__":
     manager.run()
