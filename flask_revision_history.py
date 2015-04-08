@@ -17,9 +17,11 @@
 import json
 
 from flask import render_template, request, jsonify, Response
+from htmltreediff import diff
+from lxml import etree
 
 from rawscripts import db, app
-from flask_models import ResourceVersion, UsersScripts, DuplicateScript
+from flask_models import ResourceVersion, UsersScripts, DuplicateScript, ScriptData
 
 
 @app.route('/revisionhistory')
@@ -65,3 +67,13 @@ def revision_list():
             out.append([past_id, updated, revision.version, revision.autosave, export, tag])
 
     return Response(json.dumps(out), mimetype='text/plain')
+
+@app.route('/revisioncompare', methods=['POST'])
+def compare_versions():
+    resource_id_1 = request.form['v_o_id']
+    resource_id_2 = request.form['v_t_id']
+    version_1 = request.form['v_o']
+    version_2 = request.form['v_t']
+    s_one = ScriptData.get_html_for_version(resource_id_1, version_1)
+    s_two = ScriptData.get_html_for_version(resource_id_2, version_2)
+    return diff(s_one, s_two)

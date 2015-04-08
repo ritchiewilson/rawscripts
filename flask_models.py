@@ -2,6 +2,9 @@ import difflib
 import json
 import string
 from datetime import datetime
+from StringIO import StringIO
+
+from lxml import etree
 
 from rawscripts import app, db
 
@@ -109,6 +112,18 @@ class ScriptData(db.Model):
         for save in saves:
             prev_string = ScriptData.apply_ops(prev_string, save.ops)
         return prev_string
+
+    @staticmethod
+    def get_html_for_version(resource_id, version):
+        v = ['s','a','c','d','p','t']
+        raw_data = ScriptData.get_content_for_version(resource_id, version)
+        j = json.loads(raw_data)
+        s = StringIO()
+        for text, line_format in j:
+            node = etree.Element('p', CLASS=v[line_format])
+            node.text = text
+            s.write(etree.tostring(node))
+        return s.getvalue()
 
     @staticmethod
     def verify_screenplay_at_version(resource_id, version):
@@ -283,7 +298,6 @@ class ResourceVersion(db.Model):
                 exports.append([tag.value, str(tag.timestamp)])
             if tag._type == 'user':
                 saved_tag = tag.value
-            print 'Tag Type', tag._type
         return json.dumps([exports, []]), saved_tag
 
 
