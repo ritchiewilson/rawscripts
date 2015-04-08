@@ -80,7 +80,9 @@ class FetchDB(webapp.RequestHandler):
         if table == "UsersScripts":
             output += self.fetch_by_timestamps('last_updated', models.UsersScripts,
                                                self.users_scripts_to_string, do_json=True)
-
+        if table == "BlogDB":
+            output += self.fetch_by_timestamps('timestamp', models.BlogDB,
+                                               self.blog_to_string, do_json=True)
         diff = 16 - (len(output) % 16)
         output = ('!' * diff) + output
         obj = AES.new(password, AES.MODE_CBC, iv)
@@ -111,6 +113,10 @@ class FetchDB(webapp.RequestHandler):
     def users_scripts_to_string(self, script):
         d = [script.user, script.resource_id, script.title,
              str(script.last_updated), script.permission, script.folder]
+        return d
+
+    def blog_to_string(self, blog):
+        d = [blog.data, blog.title, str(blog.timestamp)]
         return d
 
     def fetch_by_timestamps(self, timestamp_field, model, str_func, do_json=False):

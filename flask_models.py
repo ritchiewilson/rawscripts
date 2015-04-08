@@ -1,5 +1,6 @@
 import difflib
 import json
+import string
 from datetime import datetime
 
 from rawscripts import db
@@ -364,3 +365,21 @@ class Folder(db.Model):
     user = db.Column(db.String)
     data = db.Column(db.String)
     __key__ = db.Column(db.String)
+
+class Blog(db.Model):
+    __tablename__ = "blog"
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Text)
+    title = db.Column(db.String)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
+
+    def get_url(self):
+        exclude = set(string.punctuation)
+        url = "http://www.rawscripts.com/blog/"
+        path = ''.join(ch for ch in self.title if ch not in exclude)
+        path = path.title().replace(" ","-")
+        return url + path
+
+    def get_date_string(self):
+        return self.timestamp.strftime('%b %d, %Y')

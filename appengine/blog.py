@@ -47,6 +47,7 @@ class Blog(webapp.RequestHandler):
         if posts is not None:
             for post in posts:
                 post.link = post.get_url()
+                post.date = post.timestamp.date()
         template_values = { "posts": posts}
         template_values['MODE'] = config.MODE
         template_values['GA'] = config.GA

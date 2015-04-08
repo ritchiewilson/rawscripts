@@ -108,6 +108,19 @@ def commit_users_scripts(data, session):
     session.commit()
     return last_time
 
+def commit_blog(data, session):
+    last_time = None
+    lines = json.loads(data)
+    for data, title, timestamp in lines:
+        if len(timestamp) == 19:
+            timestamp += ".000000"
+        timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+        obj = BlogDB(data=data, title=title, timestamp=timestamp)
+        session.add(obj)
+        last_time = timestamp
+    session.commit()
+    return last_time
+
 def fetch_all_users():
     fetch_by_timestamps('Users', User, 'firstUse', commit_users)
 
@@ -118,6 +131,10 @@ def fetch_all_openid2():
 def fetch_all_users_scripts():
     fetch_by_timestamps('UsersScripts', UsersScripts, 'last_updated',
                         commit_users_scripts, USERS_PER_REQUEST=500)
+
+def fetch_all_blog_posts():
+    fetch_by_timestamps('BlogDB', BlogDB, 'timestamp',
+                        commit_blog)
 
 def fetch_all_duplicate_scripts():
     print "Fetching DuplicateScripts"
@@ -204,6 +221,8 @@ def fetch_all(password, iv):
     fetch_all_script_data()
     START_TIME = None
     fetch_all_folders()
+    START_TIME = None
+    fetch_all_blog_posts()
 
 if __name__ == "__main__":
     manager.run()
