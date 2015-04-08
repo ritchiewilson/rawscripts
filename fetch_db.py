@@ -116,7 +116,7 @@ class FetchDB(webapp.RequestHandler):
         return d
 
     def blog_to_string(self, blog):
-        d = [blog.data, blog.title, str(blog.timestamp), blog.key()]
+        d = [blog.data, blog.title, str(blog.timestamp)]
         return d
 
     def fetch_by_timestamps(self, timestamp_field, model, str_func, do_json=False):

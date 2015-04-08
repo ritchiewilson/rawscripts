@@ -1,5 +1,8 @@
 import os
 
+if 'DATABASE_URL' not in os.environ:
+    os.environ['DATABASE_URL'] = 'dummy'
+
 class Config(object):
     DEBUG = False
     TESTING = False
@@ -21,6 +24,7 @@ class DevelopmentConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///rawscripts.db'
+    SERVER_NAME = 'localhost:5000'
 
 
 class TestingConfig(Config):

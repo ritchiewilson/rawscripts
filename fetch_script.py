@@ -111,12 +111,12 @@ def commit_users_scripts(data, session):
 def commit_blog(data, session):
     last_time = None
     lines = json.loads(data)
-    for data, title, timestamp, path in lines:
+    for data, title, timestamp in lines:
         if len(timestamp) == 19:
             timestamp += ".000000"
         timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
-        path = path.lower()
-        obj = BlogDB(data=data, title=title, timestamp=timestamp, path=path)
+        obj = Blog(data=data, title=title, timestamp=timestamp)
+        obj.path = obj.get_path_from_title()
         session.add(obj)
         last_time = timestamp
     session.commit()
@@ -134,7 +134,7 @@ def fetch_all_users_scripts():
                         commit_users_scripts, USERS_PER_REQUEST=500)
 
 def fetch_all_blog_posts():
-    fetch_by_timestamps('BlogDB', BlogDB, 'timestamp',
+    fetch_by_timestamps('BlogDB', Blog, 'timestamp',
                         commit_blog)
 
 def fetch_all_duplicate_scripts():

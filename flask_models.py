@@ -3,7 +3,7 @@ import json
 import string
 from datetime import datetime
 
-from rawscripts import db
+from rawscripts import app, db
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -376,11 +376,14 @@ class Blog(db.Model):
     path = db.Column(db.String)
 
     def get_url(self):
+        url = "http://" + app.config['SERVER_NAME']
+        return url + "/blog/" + self.path
+
+    def get_path_from_title(self):
         exclude = set(string.punctuation)
-        url = "http://www.rawscripts.com/blog/"
         path = ''.join(ch for ch in self.title if ch not in exclude)
-        path = path.title().replace(" ","-")
-        return url + path
+        path = path.replace(" ","-").lower()
+        return path
 
     def get_date_string(self):
         return self.timestamp.strftime('%b %d, %Y')
