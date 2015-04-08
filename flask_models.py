@@ -244,6 +244,13 @@ class ScriptData(db.Model):
             opcodes[0] = (f[0], 0, f[2], 0, f[4])
         return opcodes
 
+    @staticmethod
+    def get_historical_metadata(resource_id, version=None):
+        query = ResourceVersion.query.filter_by(resource_id=resource_id). \
+                order_by(db.desc('version')).limit(1000)
+        if version is not None:
+            query = query.filter(ScriptData.version <= version)
+        return query.all()
 
     def __repr__(self):
        return "<ScriptData(resource_id='%s', version='%s')>" % (self.resource_id, str(self.version))
@@ -330,6 +337,12 @@ class UsersScripts(db.Model):
                   filter_by(resource_id=resource_id, permission='collab').all()
         collabs = [c.user for c in collabs]
         return collabs
+
+    @staticmethod
+    def get_title(resource_id):
+        row = UsersScripts.query. \
+              filter_by(resource_id=resource_id, permission='owner').first()
+        return row.title
 
 
 class MigrationCheck(db.Model):

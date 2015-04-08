@@ -30,6 +30,7 @@ import flask_editor
 import flask_scriptlist
 import flask_screenplay_export
 import flask_blog
+import flask_revision_history
 
 @app.route('/')
 def welcome():
