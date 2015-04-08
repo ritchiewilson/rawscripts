@@ -23,7 +23,7 @@ from flask_models import Blog
 
 
 @app.route('/blog')
-def full_blog():
+def blog():
     posts = Blog.query.order_by(Blog.timestamp.desc()).all()
     for post in posts:
         post.link = post.get_url()
@@ -39,3 +39,17 @@ def blog_single_post(path):
         post.date = post.get_date_string()
         post = [post]
     return render_template('blog.html', mode="PRO", posts=post)
+
+@app.route('/blogpostgui')
+def blog_post_gui():
+    return render_template('blogpostgui.html')
+
+@app.route('/blogpost', methods=['POST'])
+def new_blog_post():
+    title = request.form['title']
+    data = request.form['data']
+    post = Blog(title=title, data=data)
+    post.path = post.get_path_from_title()
+    db.session.add(post)
+    db.session.commit()
+    return redirect(url_for('blog'))
