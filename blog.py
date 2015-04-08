@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import StringIO
 import string
 import wsgiref.handlers
 from google.appengine.api import users
@@ -23,13 +22,9 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import random
-import datetime
-import logging
-from django.utils import simplejson
 from django.utils import feedgenerator
 import config
-import models
+from models import BlogDB
 
 from utils import get_template_path
 
@@ -46,7 +41,7 @@ class Blog(webapp.RequestHandler):
             if posts is not None:
                 posts = [posts]
         elif len(uri) == 2:
-            q = models.BlogDB.all()
+            q = BlogDB.all()
             q.order('-timestamp')
             posts = q.fetch(20)
         if posts is not None:
@@ -71,7 +66,7 @@ class BlogPost (webapp.RequestHandler):
         exclude = set(string.punctuation)
         key_name = ''.join(ch for ch in title if ch not in exclude)
         key_name = key_name.title().replace(" ","-")
-        b = models.BlogDB(key_name = key_name,
+        b = BlogDB(key_name = key_name,
                     title = title,
                     data = data)
         b.put()
@@ -85,7 +80,6 @@ class RSS(webapp.RequestHandler):
             description = "Regular updates and info for RawScripts.com")
         q = db.GqlQuery("SELECT * FROM BlogDB ORDER BY timestamp desc")
         r = q.fetch(50)
-        exclude = set(string.punctuation)
         for i in r:
             link = i.get_url()
             feed.add_item(title=i.title, description=i.data, pubdate=i.timestamp, link=link)
