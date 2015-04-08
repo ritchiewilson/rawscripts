@@ -36,36 +36,23 @@ from utils import get_template_path
 
 class Blog(webapp.RequestHandler):
     def get(self):
-        uri = self.request.path_info[1:]
-        error_message = ""
-        if "/" in uri:
-            key = uri.split("/")[1].replace("-"," ").title().replace(" ","-")
-            if key=="":
-                q = db.GqlQuery("SELECT * FROM BlogDB "+
-                                "order by timestamp desc")
-                r = q.fetch(20)
-            else:
-                r = db.get(db.Key.from_path('BlogDB', key))
-                if r==None:
-                    r=[]
-                    error_message="""
-                    <div id="pitch">
-                    <h1>Error:</h1>
-                    <p>Sorry, that blog post could not be found.</p>
-                    <p>Go to to <a href="http://www.rawscripts.com/blog">www.rawscripts.com/blog</a> to see if you can find what you're looking for.</p>
-                    </div>
-                    """
-                else:
-                    r=[r]
-        else:
-            q = db.GqlQuery("SELECT * FROM BlogDB "+
-                            "order by timestamp desc")
-            r = q.fetch(20)
-        exclude = set(string.punctuation)
-        for i in r:
-            i.link= "http://www.rawscripts.com/blog/"+''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
-        template_values = { "r": r,
-                            "error_message" : error_message}
+        posts = None
+        uri = self.request.path_info.split('/')
+        if uri[-1] == '':
+            uri = uri[:-1]
+        if len(uri) == 3:
+            key = uri[2].replace("-"," ").title().replace(" ","-")
+            posts = db.get(db.Key.from_path('BlogDB', key))
+            if posts is not None:
+                posts = [posts]
+        elif len(uri) == 2:
+            q = models.BlogDB.all()
+            q.order('-timestamp')
+            posts = q.fetch(20)
+        if posts is not None:
+            for post in posts:
+                post.link = post.get_url()
+        template_values = { "posts": posts}
         template_values['MODE'] = config.MODE
         template_values['GA'] = config.GA
         path = get_template_path('html/blog.html')
@@ -79,7 +66,6 @@ class BlogPostGUI(webapp.RequestHandler):
 
 class BlogPost (webapp.RequestHandler):
     def post(self):
-        user = users.get_current_user()
         title = self.request.get('title')
         data = self.request.get('data')
         exclude = set(string.punctuation)
@@ -101,8 +87,8 @@ class RSS(webapp.RequestHandler):
         r = q.fetch(50)
         exclude = set(string.punctuation)
         for i in r:
-            link = "http://www.rawscripts.com/blog/"+''.join(ch for ch in i.title if ch not in exclude).title().replace(" ","-")
-            feed.add_item(title=i.title, description=i.data, pubdate = i.timestamp, link = link)
+            link = i.get_url()
+            feed.add_item(title=i.title, description=i.data, pubdate=i.timestamp, link=link)
         self.response.headers['Content-Type'] = 'text/xml'
         self.response.out.write(feed.writeString('utf-8'))
 

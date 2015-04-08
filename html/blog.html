@@ -24,11 +24,19 @@
 		<div id="rss" style="float:right">
 			<a href="http://feeds.feedburner.com/Rawscripts"><img src="/images/feed.png" alt="Subscribe RSS from Feedburner"> Subscribe</a>
 		</div>
-		{{  error_message  }}
+		{% if posts == None %}
+          <div id="pitch">
+            <h1>Error:</h1>
+            <p>Sorry, that blog post could not be found.</p>
+            <p>Go
+            to <a href="http://www.rawscripts.com/blog">www.rawscripts.com/blog</a>
+            to see if you can find what you're looking for.</p>
+          </div>
+        {% else %}
 		<div id="blog">
 			<div class="feed">
 				<ul>
-	            {% for i in r %}
+	            {% for i in posts %}
 	                <li>
 	                	<span class="headline"><a href="{{  i.link  }}">{{  i.title  }}</a></span>
 						<p class="date">{{i.timestamp|date:"M d, Y"}}</p>
@@ -38,6 +46,7 @@
 	            </ul>
 			</div>
 		</div>
+        {% endif %}
 		<div id="footer">
 			<p>&copy; Copyright 2010 - RawScripts.com | <a href="/tos" onclick="window.open(this.href, 'popupwindow', 'width=500,height=500,scrollbars,resizable'); return false;">Terms of Use</a></p>
 		</div>

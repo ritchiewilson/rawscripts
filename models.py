@@ -257,6 +257,13 @@ class BlogDB (db.Model):
     title = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
 
+    def get_url(self):
+        exclude = set(string.punctuation)
+        url = "http://www.rawscripts.com/blog/"
+        path = ''.join(ch for ch in self.title if ch not in exclude)
+        path = path.title().replace(" ","-")
+        return url + path
+
 class OpenIDData2(db.Model):
     nickname = db.StringProperty()
     email = db.StringProperty()
