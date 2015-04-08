@@ -16,7 +16,8 @@
 
 import json
 
-from flask import render_template, request, jsonify, redirect, url_for
+from flask import render_template, request, jsonify, redirect, url_for, Response
+from werkzeug.contrib.atom import AtomFeed
 
 from rawscripts import db, app
 from flask_models import Blog
@@ -53,3 +54,15 @@ def new_blog_post():
     db.session.add(post)
     db.session.commit()
     return redirect(url_for('blog'))
+
+@app.route('/rss')
+def blog_feed():
+    feed = AtomFeed('Recent Articles',
+                    feed_url=request.url, url=request.url_root)
+    posts = Blog.query.order_by(Blog.timestamp.desc()).all()
+    for post in posts:
+        feed.add(post.title, unicode(post.data),
+                 content_type='html',
+                 url=post.get_url(),
+                 updated=post.timestamp)
+    return Response(feed.to_string(), mimetype='text/xml')
