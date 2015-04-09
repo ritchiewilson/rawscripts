@@ -23,7 +23,7 @@ class Screenplay:
                                   permission='owner', folder='?none?')
         db.session.add(screenplay)
         script_data = ScriptData(resource_id=resource_id, data=data, version=1,
-                                 export='', tag='', autosave=0)
+                                 export='', tag='', autosave=False)
         db.session.add(script_data)
         db.session.commit()
         return screenplay
