@@ -3,10 +3,37 @@ import json
 import string
 from datetime import datetime
 from StringIO import StringIO
+import unicodedata
 
 from lxml import etree
 
 from rawscripts import app, db
+from export import Text, Pdf
+
+
+class Screenplay:
+    @staticmethod
+    def export_to_file(resource_id, export_format, titlepage=False):
+        screenplay = UsersScripts.query. \
+                         filter_by(resource_id=resource_id).first()
+        latest_version = ScriptData.get_latest_version(resource_id)
+        if not latest_version:
+            return None
+        output = None
+        content_type = None
+        data = json.loads(latest_version.data)
+        if export_format == 'txt':
+            output = Text(data, None)
+            content_type = 'text/plain'
+        elif export_format == 'pdf':
+            output = Pdf(data, None)
+            content_type = 'application/pdf'
+        if output is None:
+            return None
+        ascii_title = unicodedata.normalize("NFKD", screenplay.title). \
+                          encode("ascii", "ignore")
+        return output, ascii_title, content_type
+
 
 class User(db.Model):
     __tablename__ = 'users'

@@ -14,15 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-import unicodedata
-import StringIO
-
 from flask import request, make_response
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData
-from export import Text, Pdf
+from flask_models import UsersScripts, ScriptData, Screenplay
 
 
 @app.route('/export', methods=['GET'])
@@ -36,26 +31,11 @@ def export_screenplay():
     permission = UsersScripts.get_users_permission(resource_id, user)
     if permission not in ['owner', 'collab']:
         return
-    screenplay = UsersScripts.query.filter_by(resource_id=resource_id,
-                                              user=user).first()
-    latest_version = ScriptData.get_latest_version(resource_id)
-    if not latest_version:
-        return
-    output = None
-    content_type = None
-    data = json.loads(latest_version.data)
-    if export_format == 'txt':
-        output = Text(data, None)
-        content_type = 'text/plain'
-    elif export_format == 'pdf':
-        output = Pdf(data, None)
-        content_type = 'application/pdf'
-    if output is None:
-        return
-    ascii_title = unicodedata.normalize("NFKD", screenplay.title). \
-                      encode("ascii", "ignore")
-    response = make_response(output.getvalue())
+
+    export_file = Screenplay.export_to_file(resource_id, export_format)
+    _file, title, content_type = export_file
+    response = make_response(_file.getvalue())
     response.headers['Content-Type'] = content_type
     response.headers['Content-Disposition'] = \
-        'attachment; filename={}.{}'.format(ascii_title, export_format)
+        'attachment; filename={}.{}'.format(title, export_format)
     return response
