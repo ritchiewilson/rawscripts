@@ -4,6 +4,7 @@ import string
 from datetime import datetime
 from StringIO import StringIO
 import unicodedata
+import random
 
 from lxml import etree
 
@@ -12,6 +13,31 @@ from export import Text, Pdf
 
 
 class Screenplay:
+    @staticmethod
+    def create(title, user, data=None):
+        if data is None:
+            data = '[["Fade In:",1],["Int. ",0]]'
+        resource_id = Screenplay.create_unique_resource_id()
+        screenplay = UsersScripts(resource_id=resource_id, user=user,
+                                  title=title, last_updated=datetime.utcnow(),
+                                  permission='owner', folder='?none?')
+        db.session.add(screenplay)
+        script_data = ScriptData(resource_id=resource_id, data=data, version=1,
+                                 export='', tag='', autosave=0)
+        db.session.add(script_data)
+        db.session.commit()
+        return screenplay
+
+    @staticmethod
+    def create_unique_resource_id():
+        chars = string.uppercase + string.lowercase + string.digits
+        resource_id = None
+        while resource_id is None:
+            _id = ''.join(random.sample(chars, 20))
+            if UsersScripts.get_by_resource_id(_id) is None:
+                resource_id = _id
+        return resource_id
+
     @staticmethod
     def export_to_file(resource_id, export_format, titlepage=False):
         screenplay = UsersScripts.query. \
@@ -366,6 +392,10 @@ class UsersScripts(db.Model):
 
     __table_args__= (db.Index('ix_users_scripts_resource_id_updated',
                            'resource_id', db.desc('last_updated')),)
+
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        return UsersScripts.query.filter_by(resource_id=resource_id).first()
 
     @staticmethod
     def get_all_resource_ids():

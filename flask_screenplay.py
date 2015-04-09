@@ -15,12 +15,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from flask import Response ,request
+from flask import Response, request
 from flask_mail import Message
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay
 
+
+@app.route('/newscript', methods=['POST'])
+def new_screenplay():
+    filename = request.form['filename']
+    user = 'rawilson52@gmail.com'
+    screenplay = Screenplay.create(filename, user)
+    return Response(screenplay.resource_id, mimetype='text/plain')
 
 @app.route('/emailscript', methods=['POST'])
 def email_screenplay():
