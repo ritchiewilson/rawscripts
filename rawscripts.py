@@ -16,12 +16,14 @@
 
 from flask import Flask, render_template, send_from_directory
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 import json
 import os
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ['APP_SETTINGS'])
 db = SQLAlchemy(app)
+mail = Mail(app)
 
 from flask_models import *
 # db.create_all()
@@ -31,6 +33,7 @@ import flask_scriptlist
 import flask_screenplay_export
 import flask_blog
 import flask_revision_history
+import flask_screenplay
 
 @app.route('/')
 def welcome():
