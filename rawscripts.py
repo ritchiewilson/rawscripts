@@ -24,7 +24,7 @@ if init_script == 'runserver.py':
     if app_settings == 'flask_config.MigrationConfig':
         raise Exception("Wait, make sure you're using the right environment")
 if init_script in ['manage.py', 'fetch_script.py']:
-    if app_settings != 'flask_config.MigrationConfig':
+    if app_settings[13:-6] not in ['Migration', 'Staging']:
         raise Exception("Wait, make sure you're using the right environment")
 
 from flask import Flask, render_template, send_from_directory
