@@ -14,11 +14,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import os
+import sys
+
+app_settings = os.environ['APP_SETTINGS']
+init_script = sys.argv[0]
+if init_script == 'runserver.py':
+    if app_settings == 'flask_config.MigrationConfig':
+        raise Exception("Wait, make sure you're using the right environment")
+if init_script in ['manage.py', 'fetch_script.py']:
+    if app_settings != 'flask_config.MigrationConfig':
+        raise Exception("Wait, make sure you're using the right environment")
+
 from flask import Flask, render_template, send_from_directory
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
-import json
-import os
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ['APP_SETTINGS'])

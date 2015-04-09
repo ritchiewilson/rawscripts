@@ -39,3 +39,7 @@ scripts/compiler/
 scripts/COPYING
 scripts/README
 scripts/compiler.jar
+
+# development databases
+rawscripts.db
+rawscripts-migration.db

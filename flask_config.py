@@ -25,5 +25,6 @@ class DevelopmentConfig(Config):
     SERVER_NAME = 'localhost:5000'
     TESTING = True
 
-class TestingConfig(Config):
-    TESTING = True
+
+class MigrationConfig(DevelopmentConfig):
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///rawscripts-migration.db'
