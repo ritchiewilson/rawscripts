@@ -74,6 +74,37 @@ def compare_versions():
     resource_id_2 = request.form['v_t_id']
     version_1 = request.form['v_o']
     version_2 = request.form['v_t']
-    s_one = ScriptData.get_html_for_version(resource_id_1, version_1)
-    s_two = ScriptData.get_html_for_version(resource_id_2, version_2)
-    return diff(s_one, s_two)
+    html_1 = ScriptData.get_html_for_version(resource_id_1, version_1)
+    html_2 = ScriptData.get_html_for_version(resource_id_2, version_2)
+    if len(html_1) < 10000 and len(html_2) < 10000:
+        return diff(html_1, html_2)
+    begining_string = ''
+    while '</p>' in html_1:
+        first_tag = html_1.index('</p>') + 4
+        if html_1[:first_tag] == html_2[:first_tag]:
+            begining_string += html_1[:first_tag]
+            html_1 = html_1[first_tag:]
+            html_2 = html_2[first_tag:]
+        else:
+            break
+
+    end_string = ''
+    while '</p>' in html_1:
+        last_tag_start = html_1.rfind('<p CLASS=')
+        length_of_tag = len(html_1) - last_tag_start
+        if html_1[-length_of_tag:] == html_2[-length_of_tag:]:
+            end_string = end_string + html_1[-length_of_tag:]
+            html_1 = html_1[:-length_of_tag]
+            html_2 = html_2[:-length_of_tag]
+        else:
+            break
+
+    return begining_string  + diff(html_1, html_2) + end_string
+
+@app.route('/revisionget', methods=['POST'])
+def get_version_html():
+    resource_id = request.form['resource_id']
+    version = request.form['version']
+    if version == 'latest':
+        version = ScriptData.get_last_version_number(resource_id).version
+    return ScriptData.get_html_for_version(resource_id, version)
