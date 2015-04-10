@@ -134,18 +134,7 @@ class ScriptContent (webapp.RequestHandler):
             self.response.headers["Content-Type"]='text/plain'
             self.response.out.write('not found')
             return
-        q = db.GqlQuery("SELECT * FROM ScriptData "+
-                        "WHERE resource_id='"+resource_id+"' "+
-                        "ORDER BY version DESC")
-        results = q.get()
-
-        q = db.GqlQuery("SELECT * FROM SpellingData "+
-                        "WHERE resource_id='"+resource_id+"'")
-        spellresults = q.fetch(2)
-        sp = []
-        if len(spellresults)!=0:
-            sp.append(simplejson.loads(spellresults[0].wrong))
-            sp.append(simplejson.loads(spellresults[0].ignore))
+        results = models.ScriptData.get_latest_version(resource_id)
 
         q = db.GqlQuery("SELECT * FROM Notes "+
                         "WHERE resource_id='"+resource_id+"'")
@@ -192,34 +181,20 @@ class ScriptContent (webapp.RequestHandler):
             if i.permission=="collab":
                 sharedwith.append(i.user)
 
-        try:
-            c = memcache.get('contacts' + gcu())
-        except:
-            c=None
-        if c==None:
-            contacts = []
-        else:
-            contacts = simplejson.loads(c)
-
+        autosave = 'true'
         try:
             us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
+            autosave = 'true' if us.autosave else 'false'
         except:
-            us = None
-        if us==None:
-            autosave='true'
-        else:
-            if us.autosave==True:
-                autosave='true'
-            else:
-                autosave='false'
+            pass
 
         ja={}
         ja['title'] = title
         ja['lines'] = simplejson.loads(results.data)
-        ja['spelling'] = sp
+        ja['spelling'] = []
         ja['notes'] = notes
         ja['sharedwith'] = sharedwith
-        ja['contacts'] = contacts
+        ja['contacts'] = []
         ja['autosave'] = autosave
 
         content = simplejson.dumps(ja)
