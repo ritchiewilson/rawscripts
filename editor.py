@@ -31,11 +31,11 @@ from google.appengine.api import memcache
 import config
 import models
 
-from utils import get_template_path
+from utils import gcu, permission, get_template_path
 
 
 # Get Current User String
-def gcu():
+def _gcu():
     c_user = users.get_current_user()
     if c_user:
         user = c_user.email().lower()
@@ -48,21 +48,21 @@ def gcu():
 class Editor (webapp.RequestHandler):
     def get(self):
         user = users.get_current_user()
-        user_string = gcu()
+        user_string = _gcu()
         path = get_template_path('html/editor.html')
-        template_values = {'EOV': "editor"}
+        template_values = {'EOV': "editor",
+                           'user': user_string}
         resource_id = self.request.get('resource_id')
         format = 'editor'
         mobile = mobileTest.mobileTest(self.request.user_agent)
         if mobile == 1:
             self.redirect('/scriptlist')
-            return;
+            return
         if user and resource_id != "Demo":
             template_values['sign_out'] = users.create_logout_url('/')
-            template_values['user'] = users.get_current_user().email()
-            r = db.get(db.Key.from_path('UsersScripts', 'owner'+gcu()+resource_id))
+            r = db.get(db.Key.from_path('UsersScripts', 'owner'+_gcu()+resource_id))
             if not r:
-                r = db.get(db.Key.from_path('UsersScripts', 'collab'+gcu()+resource_id))
+                r = db.get(db.Key.from_path('UsersScripts', 'collab'+_gcu()+resource_id))
                 if r:
                     format='viewer'
                     path = get_template_path('html/editor.html')
@@ -82,7 +82,6 @@ class Editor (webapp.RequestHandler):
         else:
             if resource_id == 'Demo':
                 template_values['sign_out'] =  '/'
-                template_values['user'] = "test@example.com"
             else:
                 template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
                                     'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
@@ -110,7 +109,6 @@ class Editor (webapp.RequestHandler):
 
 class ScriptContent (webapp.RequestHandler):
     def post(self):
-        user = gcu()
         resource_id = self.request.get('resource_id')
 
         q = db.GqlQuery("SELECT * FROM UsersScripts "+
@@ -124,11 +122,8 @@ class ScriptContent (webapp.RequestHandler):
             p = True
             title = "Duck Soup"
         else:
-            for i in results:
-                title = i.title
-                if i.user == user or users.is_current_user_admin():
-                    if i.permission == 'owner' or i.permission == "collab" or users.is_current_user_admin():
-                        p = True
+            title = permission(resource_id)
+            p = (title is not False)
 
         if not p:
             self.response.headers["Content-Type"]='text/plain'
@@ -143,7 +138,7 @@ class ScriptContent (webapp.RequestHandler):
         if user:
             q=db.GqlQuery("SELECT * FROM UnreadNotes "+
                         "WHERE resource_id='"+resource_id+"' "+
-                        "AND user='"+gcu()+"'")
+                        "AND user='"+_gcu()+"'")
             un=q.fetch(500)
         else:
             un=None
@@ -183,7 +178,7 @@ class ScriptContent (webapp.RequestHandler):
 
         autosave = 'true'
         try:
-            us = db.get(db.Key.from_path('UsersSettings', 'settings'+gcu()))
+            us = db.get(db.Key.from_path('UsersSettings', 'settings'+_gcu()))
             autosave = 'true' if us.autosave else 'false'
         except:
             pass
@@ -212,7 +207,7 @@ class Save (webapp.RequestHandler):
         if resource_id == 'Demo':
             self.response.out.write('demo')
             return
-        current_user = gcu()
+        current_user = _gcu()
         q = models.UsersScripts.all()
         q.filter('resource_id', resource_id)
         q.filter('user =', current_user)
