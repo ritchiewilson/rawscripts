@@ -110,13 +110,6 @@ class Editor (webapp.RequestHandler):
 class ScriptContent (webapp.RequestHandler):
     def post(self):
         resource_id = self.request.get('resource_id')
-
-        q = db.GqlQuery("SELECT * FROM UsersScripts "+
-                        "WHERE resource_id='"+resource_id+"'")
-        results = q.fetch(500)
-        if len(results)==0:
-            self.response.headers["Content-Type"]='text/plain'
-            self.response.out.write('not found')
         p = False
         if resource_id=='Demo':
             p = True
@@ -129,17 +122,10 @@ class ScriptContent (webapp.RequestHandler):
             self.response.headers["Content-Type"]='text/plain'
             self.response.out.write('not found')
             return
-        results = models.ScriptData.get_latest_version(resource_id)
-
-        q = db.GqlQuery("SELECT * FROM Notes "+
-                        "WHERE resource_id='"+resource_id+"'")
-        noteresults = q.fetch(1000)
+        noteresults = models.Notes.get_by_resource_id(resource_id)
         user = users.get_current_user()
         if user:
-            q=db.GqlQuery("SELECT * FROM UnreadNotes "+
-                        "WHERE resource_id='"+resource_id+"' "+
-                        "AND user='"+_gcu()+"'")
-            un=q.fetch(500)
+            un = models.UnreadNotes.get_by_resource_id(resource_id, user=gcu())
         else:
             un=None
         notes=[]
@@ -168,13 +154,8 @@ class ScriptContent (webapp.RequestHandler):
                     'thread_id':i.thread_id}
             notes.append(dic)
 
-        sharedwith=[]
-        q=db.GqlQuery("SELECT * FROM UsersScripts "+
-                                    "WHERE resource_id='"+resource_id+"'")
-        shareresults=q.fetch(50)
-        for i in shareresults:
-            if i.permission=="collab":
-                sharedwith.append(i.user)
+        shareresults = models.UsersScripts.get_by_resource_id(resource_id)
+        sharedwith = [s.user for s in shareresults if s.permission == 'collab']
 
         autosave = 'true'
         try:
@@ -183,19 +164,17 @@ class ScriptContent (webapp.RequestHandler):
         except:
             pass
 
+        screenplay = models.ScriptData.get_latest_version(resource_id)
         ja={}
         ja['title'] = title
-        ja['lines'] = simplejson.loads(results.data)
+        ja['lines'] = simplejson.loads(screenplay.data)
         ja['spelling'] = []
         ja['notes'] = notes
         ja['sharedwith'] = sharedwith
         ja['contacts'] = []
         ja['autosave'] = autosave
-
-        content = simplejson.dumps(ja)
-
         self.response.headers["Content-Type"]='text/plain'
-        self.response.out.write(content)
+        self.response.out.write(simplejson.dumps(ja))
 
 
 class Save (webapp.RequestHandler):
