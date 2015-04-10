@@ -37,13 +37,10 @@ from utils import gcu, permission, get_template_path
 # Get Current User String
 def _gcu():
     c_user = users.get_current_user()
-    if c_user:
-        user = c_user.email().lower()
-    else:
-        user = 'test@example.com'
-    if user == 'mwap.cw@gmail.com':
-        user = 'mwap.cw@googlemail.com'
-    return user
+    if not users.get_current_user():
+        return 'test@example.com'
+    return gcu()
+
 
 class Editor (webapp.RequestHandler):
     def get(self):
@@ -116,27 +113,13 @@ class ScriptContent (webapp.RequestHandler):
             self.response.out.write('not found')
             return
         noteresults = models.Notes.get_by_resource_id(resource_id)
-        user = users.get_current_user()
-        if user:
-            un = models.UnreadNotes.get_by_resource_id(resource_id, user=gcu())
-        else:
-            un=None
-        notes=[]
+        un = models.UnreadNotes.get_by_resource_id(resource_id, user=_gcu())
+        unread_msg_ids = [u.msg_id for u in un]
+        notes = []
         for i in noteresults:
             msgs = simplejson.loads(i.data)
-            if un==None:
-                for unit in msgs:
-                    unit.append(1)
-            else:
-                for unit in msgs:
-                    found=False
-                    for j in un:
-                        if j.msg_id==unit[2]:
-                            unit.append(0)
-                            found=True
-                    if found==False:
-                        unit.append(1)
-
+            for msg in msgs:
+                msg.append(0 if msg[2] in unread_msg_ids else 1)
             msgsArr=[]
             for j in msgs:
                 msgsArr.append({'text':j[0], 'user':j[1], 'msg_id':j[2], 'readBool':j[3]})
