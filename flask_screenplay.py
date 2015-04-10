@@ -19,7 +19,7 @@ from flask import Response, request
 from flask_mail import Message
 
 from rawscripts import db, app, mail
-from flask_models import Screenplay
+from flask_models import Screenplay, UsersScripts
 
 
 @app.route('/newscript', methods=['POST'])
@@ -55,3 +55,13 @@ def email_screenplay():
     mail.send(msg)
 
     return Response('sent', mimetype='text/plain')
+
+@app.route('/rename', methods=['POST'])
+def rename_screenplay():
+    resource_id = request.form['resource_id']
+    rename = request.form['rename']
+    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
+    for screenplay in screenplays:
+        screenplay.title = rename
+    db.session.commit()
+    return Response(screenplay.resource_id, mimetype='text/plain')
