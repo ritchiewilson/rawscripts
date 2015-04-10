@@ -87,3 +87,12 @@ def undelete_screenplay():
                 'collabDeletedByOwner': 'collab'}
     switch_deletion_permissions(switches)
     return Response('1', mimetype='text/plain')
+
+@app.route('/harddelete', methods=['POST'])
+def hard_delete_screenplay():
+    resource_id = request.form['resource_id']
+    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
+    for screenplay in screenplays:
+        screenplay.permission = 'hardDelete'
+    db.session.commit()
+    return Response('1', mimetype='text/plain')
