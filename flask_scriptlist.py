@@ -57,7 +57,7 @@ def list():
             owned.append(data)
         elif screenplay.permission == 'collab':
             shared.append(data)
-        elif screenplay.permission == 'ownedDeleted':
+        elif screenplay.permission == 'ownerDeleted':
             ownedDeleted.append(data)
 
     folders = []
