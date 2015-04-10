@@ -64,4 +64,26 @@ def rename_screenplay():
     for screenplay in screenplays:
         screenplay.title = rename
     db.session.commit()
-    return Response(screenplay.resource_id, mimetype='text/plain')
+    return Response('done', mimetype='text/plain')
+
+def switch_deletion_permissions(switches):
+    resource_id = request.form['resource_id']
+    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
+    for screenplay in screenplays:
+        if screenplay.permission in switches:
+            screenplay.permission = switches[screenplay.permission]
+    db.session.commit()
+
+@app.route('/delete', methods=['POST'])
+def delete_screenplay():
+    switches = {'owner': 'ownerDeleted',
+                'collab': 'collabDeletedByOwner'}
+    switch_deletion_permissions(switches)
+    return Response('1', mimetype='text/plain')
+
+@app.route('/undelete', methods=['POST'])
+def undelete_screenplay():
+    switches = {'ownerDeleted': 'owner',
+                'collabDeletedByOwner': 'collab'}
+    switch_deletion_permissions(switches)
+    return Response('1', mimetype='text/plain')
