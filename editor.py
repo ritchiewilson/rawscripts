@@ -53,40 +53,33 @@ class Editor (webapp.RequestHandler):
         template_values = {'EOV': "editor",
                            'user': user_string}
         resource_id = self.request.get('resource_id')
-        format = 'editor'
         mobile = mobileTest.mobileTest(self.request.user_agent)
         if mobile == 1:
             self.redirect('/scriptlist')
             return
         if user and resource_id != "Demo":
             template_values['sign_out'] = users.create_logout_url('/')
-            r = db.get(db.Key.from_path('UsersScripts', 'owner'+_gcu()+resource_id))
-            if not r:
-                r = db.get(db.Key.from_path('UsersScripts', 'collab'+_gcu()+resource_id))
-                if r:
-                    format='viewer'
-                    path = get_template_path('html/editor.html')
-                    template_values['EOV'] = "viewer"
-                    q = db.GqlQuery("SELECT * FROM ShareNotify "+
-                                    "WHERE user='"+user_string+"' "+
-                                    "AND resource_id='"+resource_id+"' "+
-                                    "AND opened=False")
-                    unopened = q.fetch(1)
-                    if len(unopened)!=0:
-                        unopened[0].opened=True
-                        unopened[0].timeopened = datetime.datetime.today()
-                        unopened[0].put()
-            if not r:
+            screenplay = models.UsersScripts. \
+                             get_by_resource_id_and_user(resource_id, gcu())
+            if not screenplay:
                 self.redirect("/")
                 return
+            if screenplay.permission != 'owner':
+                template_values['EOV'] = "viewer"
+            unopened = models.ShareNotify. \
+                           get_by_resource_id_and_user(resource_id, gcu())
+            if unopened and not unopened[0].opened:
+                unopened[0].opened = True
+                unopened[0].timeopened = datetime.datetime.today()
+                unopened[0].put()
+        elif resource_id == 'Demo':
+            template_values['sign_out'] =  '/'
         else:
-            if resource_id == 'Demo':
-                template_values['sign_out'] =  '/'
-            else:
-                template_values = { 'google_sign_in': users.create_login_url('/editor?resource_id='+resource_id, None, 'gmail.com'),
-                                    'yahoo_sign_in' : users.create_login_url('/editor?resource_id='+resource_id, None, 'yahoo.com')}
-                path = get_template_path('html/login.html')
-
+            url = '/editor?resource_id=' + resource_id
+            template_values = {
+                'google_sign_in': users.create_login_url(url, None, 'gmail.com'),
+                'yahoo_sign_in': users.create_login_url(url, None, 'yahoo.com')}
+            path = get_template_path('html/login.html')
 
         dev_js = ['base', 'calc', 'canvas-manipulate', 'ccp', 'dom-manipulate',
                   'draw', 'editor', 'findAndReplace', 'init', 'keyboard',
