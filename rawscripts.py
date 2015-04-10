@@ -69,19 +69,3 @@ def images_redirect(img_file):
 @app.route('/js/min/<js_file>')
 def js_redirect(js_file):
     return send_from_directory('static/js/min', js_file)
-
-@app.route('/test_rebuilding')
-def test_rebuilding():
-    return "Done"
-    checks = MigrationCheck.query.all()
-    done = 0
-    for check in checks:
-        resource_id = check.resource_id
-        last = ScriptData.query.filter_by(resource_id=resource_id). \
-                   order_by(ScriptData.version.desc()).first()
-        check.verified_to = last.version
-        done += 1
-        if done % 1000 == 0:
-            print "did", done
-    db.session.commit()
-    return "Done"
