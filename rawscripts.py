@@ -37,11 +37,6 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-@app.route('/')
-def welcome():
-    form = user_manager.login_form()
-    return render_template('flask_welcome.html', form=form, login_form=form)
-
 from flask_models import User
 db_adapter = SQLAlchemyAdapter(db, User)
 user_manager = UserManager(db_adapter, app)
@@ -52,6 +47,11 @@ import flask_screenplay_export
 import flask_blog
 import flask_revision_history
 import flask_screenplay
+
+@app.route('/')
+def welcome():
+    form = user_manager.login_form(next='/scriptlist')
+    return render_template('flask_welcome.html', form=form, login_form=form)
 
 @app.route('/synccontacts', methods=['POST'])
 def synccontacts():

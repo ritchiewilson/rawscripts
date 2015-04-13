@@ -17,7 +17,7 @@
 import json
 
 from flask import render_template, request, jsonify, redirect, url_for
-from flask_user import login_required
+from flask_user import login_required, current_user
 
 from rawscripts import db, app
 from flask_models import UsersScripts, Folder
@@ -26,7 +26,11 @@ from flask_models import UsersScripts, Folder
 @app.route('/scriptlist')
 @login_required
 def scriptlist():
-    return render_template('scriptlist.html', user="rawilson52@gmail.com")
+    sign_out = '/user/sign-out'
+    user = current_user.name
+    email_verified = True
+    return render_template('scriptlist.html', user=user, sign_out=sign_out,
+                           email_verified=email_verified)
 
 @app.route('/list', methods=['POST'])
 def list():

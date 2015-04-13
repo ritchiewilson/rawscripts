@@ -22,7 +22,16 @@
 		</ul>
 		<div class="line"></div>
 		<div id="pitch">
-			<div style="width:490px; float:left; margin-right:60px;">
+          {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          <ul class=flashes>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% endwith %}
+            <div style="width:490px; float:left; margin-right:60px;">
  			  <div id='login'>
                   {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
                   <h1>Sign in</h1>
