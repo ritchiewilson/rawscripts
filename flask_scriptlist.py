@@ -17,12 +17,14 @@
 import json
 
 from flask import render_template, request, jsonify, redirect, url_for
+from flask_user import login_required
 
 from rawscripts import db, app
 from flask_models import UsersScripts, Folder
 
 
 @app.route('/scriptlist')
+@login_required
 def scriptlist():
     return render_template('scriptlist.html', user="rawilson52@gmail.com")
 

@@ -27,17 +27,24 @@ if init_script in ['manage.py', 'fetch_script.py']:
     if app_settings[13:-6] not in ['Migration', 'Staging']:
         raise Exception("Wait, make sure you're using the right environment")
 
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
+from flask_user import UserManager, SQLAlchemyAdapter, current_user
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ['APP_SETTINGS'])
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-from flask_models import *
-# db.create_all()
+@app.route('/')
+def welcome():
+    form = user_manager.login_form()
+    return render_template('flask_welcome.html', form=form, login_form=form)
+
+from flask_models import User
+db_adapter = SQLAlchemyAdapter(db, User)
+user_manager = UserManager(db_adapter, app)
 
 import flask_editor
 import flask_scriptlist
@@ -45,10 +52,6 @@ import flask_screenplay_export
 import flask_blog
 import flask_revision_history
 import flask_screenplay
-
-@app.route('/')
-def welcome():
-    return render_template('welcome.html')
 
 @app.route('/synccontacts', methods=['POST'])
 def synccontacts():

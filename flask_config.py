@@ -7,6 +7,8 @@ class Config(object):
     SECRET_KEY = 'this-really-needs-to-be-changed'
     MAIL_DEFAULT_SENDER = 'test@example.com'
 
+    USER_AFTER_LOGOUT_ENDPOINT = ''
+
 
 class ProductionConfig(Config):
     DEBUG = False

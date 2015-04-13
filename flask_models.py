@@ -7,6 +7,7 @@ import unicodedata
 import random
 
 from lxml import etree
+from flask_user import UserMixin
 
 from rawscripts import app, db
 from export import Text, Pdf
@@ -62,12 +63,22 @@ class Screenplay:
         return output, ascii_title, content_type
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     firstUse = db.Column(db.DateTime)
+
+    username = db.Column(db.String(255), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False, default='')
+    reset_password_token = db.Column(db.String(100), nullable=False, default='')
+    active = db.Column(db.Boolean)
+
+    email = db.Column(db.String(255), nullable=False, unique=True)
+    confirmed_at = db.Column(db.DateTime())
+
+    __table_args__= (db.Index('ix_user_username', 'username'),)
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
