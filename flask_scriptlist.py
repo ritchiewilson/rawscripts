@@ -16,7 +16,7 @@
 
 import json
 
-from flask import render_template, request, jsonify, redirect, url_for
+from flask import render_template, request, jsonify, redirect, url_for, get_flashed_messages
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
@@ -29,6 +29,8 @@ def scriptlist():
     sign_out = '/user/sign-out'
     user = current_user.name
     email_verified = True
+    # TODO: display flashed messages in scriptlist. For now, just clear queue
+    get_flashed_messages()
     return render_template('scriptlist.html', user=user, sign_out=sign_out,
                            email_verified=email_verified)
 
