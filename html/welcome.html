@@ -5,36 +5,8 @@
 	<meta name="google-site-verification" content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" /> 
 	<meta name="description" content="RawScripts is free online screenplay writing software. Write and collaborate on scripts from anywhere and any time. Easily organize Notes to make the best screenplay possible." /> 
 	 <title>RawScripts.com - Free Online Screenplay Software</title>
-	<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="/css/screen.css" media="screen" />
 	<link rel="shortcut icon" href="/favicon.ico">
-<style>
-#displaybox {
-z-index: 10;
-filter: alpha(opacity=50); /*older IE*/
-filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50); /* IE */
--moz-opacity: .50; /*older Mozilla*/
--khtml-opacity: 0.5;   /*older Safari*/
-opacity: 0.5;   /*supported by current Mozilla, Safari, and Opera*/
-background-color:#000000;
-position:fixed; top:0px; left:0px; width:100%; height:100%; color:#FFFFFF; vertical-align:middle;
-}
-
-#displaybox2 {
-z-index: 20;
-position:fixed; top:0px; left:0px; width:100%; height:100%;
-}
-
-#system_problems {
-opacity:1;
-border:blue 1px solid;
-width:400px;
-margin: auto;
-margin-top:100px;
-background-color:white;
-color: #333;
-padding: 10px;
-}
-</style>
 </head>
 <body>
 	{% include "analytics.html" %}
@@ -51,7 +23,11 @@ padding: 10px;
 		<div class="line"></div>
 		<div id="pitch">
 			<div style="width:490px; float:left; margin-right:60px;">
-				<p>RawScripts is online screenwriting software. Scripts are private, secure and accessible from any computer. Nothing to install. You can <a href='/editor?resource_id=Demo' target="_blank">try out the application</a>, or login with your Google or Yahoo account and get working on your screenplay.</p>
+				<p>RawScripts is online screenwriting software. Scripts are
+				private, secure and accessible from any computer. Nothing to
+				install. You can <a href='/editor?resource_id=Demo'
+				target="_blank">try out the application</a>, or login with your
+				Google or Yahoo account and get working on your screenplay.</p>
 				<div id='login'>
 					<table cellspacing='7' width='350px'>
 						<tr><td colspan='2' align="center"><span style="font-size:26pt;color:#333;text-shadow: 1px 1px 1px #c66;">Login</span><td></tr>
@@ -61,14 +37,14 @@ padding: 10px;
 							<td align="center"><span style="color:#333; font-size:12pt">Or with your Yahoo Account</span></td>
 						</tr>
 						<tr>
-							<td align="center"><a href="{{  google_sign_in  }}"><img src="images/google_login.png" alt="icon" alt="Login With Your Google Account"></a></td>
-							<td align="center"><a href="{{  yahoo_sign_in  }}"><img src="images/yahoo_login.png" alt="icon" alt="Login With Your Google Account"></a></td>
+							<td align="center"><a href="{{  google_sign_in  }}"><img src="/images/google_login.png" alt="icon" alt="Login With Your Google Account"></a></td>
+							<td align="center"><a href="{{  yahoo_sign_in  }}"><img src="/images/yahoo_login.png" alt="icon" alt="Login With Your Google Account"></a></td>
 						</tr>
 					</table>
 				</div>
 			</div>
 			<div style="float:left" align="center">
-				<a href="/editor?resource_id=Demo" target="_blank"><img src="images/editor.png" alt="Click To Try The Online Application"></a><br>
+				<a href="/editor?resource_id=Demo" target="_blank"><img src="/images/editor.png" alt="Click To Try The Online Application"></a><br>
 				<a href="/editor?resource_id=Demo" target="_blank"><span class="h2_span">Click To Try The Online Application.</span></a>
 			</div>
 		</div>	
@@ -76,22 +52,5 @@ padding: 10px;
 			RawScripts.com | <a href="/tos" onclick="window.open(this.href, 'popupwindow', 'width=500,height=500,scrollbars,resizable'); return false;">Terms of Use</a></p>
 		</div>
 	</div>
-
-<!-- <div id="displaybox"></div>
- !-- <div id="displaybox2">
- !--   <div id="system_problems">
- !--     <div>
- !--       <h2>RawScripts is currently offline</h2>
- !--       <p>Sorry for the inconvenience, but Rawscripts is currently down
- !--       due to technical issues with our hosting provider. The problem
- !--       is being work on, and the site will be up again as soon as
- !--       possible.</p>
- !--       <p><b>Update - </b>The main problem has been resolved. There is
- !--       some last work to do and the system needs to restart, but
- !--       Rawscripts should be up again soon. Thanks for your
- !--       patience.</p>
- !--     </div>
- !--   </div>
- !-- </div> -->
 </body>
 </html>
