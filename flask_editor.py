@@ -15,34 +15,49 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+from datetime import datetime
 
-from flask import render_template, request, jsonify, redirect, url_for
+from flask import render_template, request, jsonify, redirect, url_for, Response
+from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData
+from flask_models import UsersScripts, ScriptData, Screenplay
 
+def get_current_user_email_with_default():
+    user = 'test@example.com'
+    if current_user.is_authenticated():
+        user = current_user.name
+    return user
 
 @app.route('/editor')
 def editor():
-    user = 'rawilson52@gmail.com'
     resource_id = request.args.get('resource_id')
-    permission = UsersScripts.get_users_permission(resource_id, user)
-    if permission is None:
+    if not current_user.is_authenticated() and resource_id != 'Demo':
         return redirect(url_for('welcome'))
+
+    user_email = get_current_user_email_with_default()
+
+    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    if permission is None and resource_id != 'Demo':
+        return redirect(url_for('scriptlist'))
+
     EOV = 'editor' if permission == 'owner' else 'viewer'
-    return render_template('editor.html', user=user, mode="PRO",
-                           resource_id=resource_id, EOV=EOV)
+    sign_out = '/user/sign-out'
+    return render_template('editor.html', user=user_email, mode="PRO",
+                           resource_id=resource_id, EOV=EOV, sign_out=sign_out)
 
 @app.route('/scriptcontent', methods=['POST'])
 def scriptcontent():
-    user = 'rawilson52@gmail.com'
     resource_id = request.form['resource_id']
     if resource_id == 'Demo':
-        return jsonify(title='Duck Soup', lines=[['Fade In.', 1]], spelling=[],
+        latest_version = ScriptData.get_latest_version('Demo')
+        return jsonify(title='Duck Soup', lines=json.loads(latest_version.data),
+                       spelling=[],
                        notes=[], sharedwith=[], contacts=[], autosave='true')
 
+    user_email = get_current_user_email_with_default()
     screenplay = UsersScripts.query.filter_by(resource_id=resource_id,
-                                              user=user).first()
+                                              user=user_email).first()
     if not screenplay:
         return 'not found'
 
@@ -56,3 +71,33 @@ def scriptcontent():
                    sharedwith=sharedwith,
                    contacts=[],
                    autosave='true')
+
+@app.route('/save', methods=['POST'])
+@login_required
+def save_screenplay():
+    resource_id = request.form['resource_id']
+    if resource_id == 'Demo':
+        return Response('demo', mimetype='text/plain')
+
+    user_email = current_user.name
+    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    if permission != 'owner':
+        return Response('0', mimetype='text/plain')
+
+    latest_version_number = Screenplay.get_latest_version_number(resource_id)
+    new_version_number = latest_version_number + 1
+    data = request.form['data']
+    autosave  = (request.form['autosave'] == "1")
+    new_save = ScriptData(resource_id=resource_id,
+                          data=data,
+                          version=new_version_number,
+                          export='[[],[]]',
+                          tag='',
+                          autosave=autosave)
+    db.session.add(new_save)
+    now = datetime.utcnow()
+    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
+    for screenplay in screenplays:
+        screenplay.last_updated = now
+    db.session.commit()
+    return Response('1', mimetype='text/plain')

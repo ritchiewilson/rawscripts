@@ -31,6 +31,13 @@ class Screenplay:
         return screenplay
 
     @staticmethod
+    def get_latest_version_number(resource_id):
+        latest = ScriptData.query.filter_by(resource_id=resource_id). \
+                     with_entities(ScriptData.version). \
+                     order_by(db.desc('version')).first()
+        return latest[0]
+
+    @staticmethod
     def create_unique_resource_id():
         chars = string.uppercase + string.lowercase + string.digits
         resource_id = None
