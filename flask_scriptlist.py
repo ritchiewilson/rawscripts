@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+from datetime import datetime
 
 from flask import render_template, request, jsonify, redirect, url_for, get_flashed_messages
 from flask_user import login_required, current_user
@@ -34,6 +35,16 @@ def scriptlist():
     return render_template('scriptlist.html', user=user, sign_out=sign_out,
                            email_verified=email_verified)
 
+def format_time(time):
+    d = datetime.utcnow() - time
+    if d.days > 0:
+        return time.strftime("%b %d")
+    elif d.seconds > 7200:
+        return str(int(round(d.seconds/3600))) + " hours ago"
+    elif d.seconds > 60:
+        return str(int(round(d.seconds/60))) + " minutes ago"
+    return "Seconds ago"
+
 @app.route('/list', methods=['POST'])
 @login_required
 def list():
@@ -44,7 +55,8 @@ def list():
     shared = []
     ownedDeleted = []
     for screenplay in screenplays:
-        data = [screenplay.resource_id, screenplay.title, "seconds ago"]
+        data = [screenplay.resource_id, screenplay.title]
+        data.append(format_time(screenplay.last_updated))
         permission = screenplay.permission
         if permission == 'collab':
             permission = 'shared'
