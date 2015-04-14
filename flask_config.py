@@ -8,6 +8,10 @@ class Config(object):
     MAIL_DEFAULT_SENDER = 'test@example.com'
 
     USER_AFTER_LOGOUT_ENDPOINT = ''
+    USER_ENABLE_USERNAME = False
+    USER_ENABLE_CHANGE_USERNAME = False
+    USER_AFTER_CONFIRM_ENDPOINT = 'scriptlist'
+    USER_APP_NAME = 'Rawscripts'
 
 
 class ProductionConfig(Config):

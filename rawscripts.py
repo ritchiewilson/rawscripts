@@ -31,6 +31,7 @@ from flask import Flask, render_template, send_from_directory, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_user import UserManager, SQLAlchemyAdapter, current_user
+from flask_utils import length_password_validator
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -39,7 +40,8 @@ mail = Mail(app)
 
 from flask_models import User
 db_adapter = SQLAlchemyAdapter(db, User)
-user_manager = UserManager(db_adapter, app)
+user_manager = UserManager(db_adapter, app,
+                           password_validator=length_password_validator)
 
 import flask_editor
 import flask_scriptlist

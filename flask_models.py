@@ -80,6 +80,18 @@ class User(db.Model, UserMixin):
 
     __table_args__= (db.Index('ix_user_username', 'username'),)
 
+    def __init__(self, name=None, firstUse=None, username=None, password=None,
+                 reset_password_token=None, active=False, email=None,
+                 confirmed_at=None):
+        self.name = name if name else email
+        self.firstUse = firstUse if firstUse else datetime.utcnow()
+        self.username = username if username else email
+        self.password = password
+        self.reset_password_token = reset_password_token
+        self.active = active
+        self.email = email
+        self.confirmed_at = confirmed_at
+
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
 
