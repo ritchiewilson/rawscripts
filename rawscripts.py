@@ -74,3 +74,7 @@ def images_redirect(img_file):
 @app.route('/js/min/<js_file>')
 def js_redirect(js_file):
     return send_from_directory('static/js/min', js_file)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico')
