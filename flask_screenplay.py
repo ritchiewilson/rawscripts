@@ -17,19 +17,22 @@
 
 from flask import Response, request
 from flask_mail import Message
+from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay, UsersScripts
 
 
 @app.route('/newscript', methods=['POST'])
+@login_required
 def new_screenplay():
     filename = request.form['filename']
-    user = 'rawilson52@gmail.com'
+    user = current_user.name
     screenplay = Screenplay.create(filename, user)
     return Response(screenplay.resource_id, mimetype='text/plain')
 
 @app.route('/emailscript', methods=['POST'])
+@login_required
 def email_screenplay():
     resource_id = request.form['resource_id']
     title_page = request.form['title_page']
@@ -57,6 +60,7 @@ def email_screenplay():
     return Response('sent', mimetype='text/plain')
 
 @app.route('/rename', methods=['POST'])
+@login_required
 def rename_screenplay():
     resource_id = request.form['resource_id']
     rename = request.form['rename']
@@ -75,6 +79,7 @@ def switch_deletion_permissions(switches):
     db.session.commit()
 
 @app.route('/delete', methods=['POST'])
+@login_required
 def delete_screenplay():
     switches = {'owner': 'ownerDeleted',
                 'collab': 'collabDeletedByOwner'}
@@ -82,6 +87,7 @@ def delete_screenplay():
     return Response('1', mimetype='text/plain')
 
 @app.route('/undelete', methods=['POST'])
+@login_required
 def undelete_screenplay():
     switches = {'ownerDeleted': 'owner',
                 'collabDeletedByOwner': 'collab'}
@@ -89,6 +95,7 @@ def undelete_screenplay():
     return Response('1', mimetype='text/plain')
 
 @app.route('/harddelete', methods=['POST'])
+@login_required
 def hard_delete_screenplay():
     resource_id = request.form['resource_id']
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()

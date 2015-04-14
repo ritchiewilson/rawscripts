@@ -17,6 +17,7 @@
 import json
 
 from flask import render_template, request, jsonify, Response
+from flask_user import login_required, current_user
 from htmltreediff import diff
 from lxml import etree
 
@@ -25,8 +26,9 @@ from flask_models import ResourceVersion, UsersScripts, DuplicateScript, ScriptD
 
 
 @app.route('/revisionhistory')
+@login_required
 def revision_history():
-    user = 'rawilson52@gmail.com'
+    user = current_user.name
     resource_id = request.args.get('resource_id')
     version = request.args.get('version')
     revisions = ResourceVersion.get_historical_metadata(resource_id, version)
@@ -47,6 +49,7 @@ def revision_history():
                            resource_id=resource_id, r=data, title=title)
 
 @app.route('/revisionlist', methods=['POST'])
+@login_required
 def revision_list():
     resource_id = request.form['resource_id']
     past_ids = []
@@ -69,6 +72,7 @@ def revision_list():
     return Response(json.dumps(out), mimetype='text/plain')
 
 @app.route('/revisioncompare', methods=['POST'])
+@login_required
 def compare_versions():
     resource_id_1 = request.form['v_o_id']
     resource_id_2 = request.form['v_t_id']
@@ -102,6 +106,7 @@ def compare_versions():
     return begining_string  + diff(html_1, html_2) + end_string
 
 @app.route('/revisionget', methods=['POST'])
+@login_required
 def get_version_html():
     resource_id = request.form['resource_id']
     version = request.form['version']

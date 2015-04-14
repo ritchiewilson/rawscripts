@@ -15,14 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from flask import request, make_response
+from flask_user import login_required, current_user
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData, Screenplay
 
 
 @app.route('/export', methods=['GET'])
+@login_required
 def export_screenplay():
-    user = 'rawilson52@gmail.com'
+    user = current_user.name
     resource_id = request.args.get('resource_id')
     export_format = request.args.get('export_format')
     title_page = request.args.get('title_page')

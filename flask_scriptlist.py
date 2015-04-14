@@ -35,8 +35,9 @@ def scriptlist():
                            email_verified=email_verified)
 
 @app.route('/list', methods=['POST'])
+@login_required
 def list():
-    user = 'rawilson52@gmail.com'
+    user = current_user.name
     screenplays = UsersScripts.query.filter_by(user=user). \
                       order_by(UsersScripts.last_updated.desc()).all()
     owned = []
