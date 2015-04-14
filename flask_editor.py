@@ -88,14 +88,15 @@ def save_screenplay():
     new_version_number = latest_version_number + 1
     data = request.form['data']
     autosave  = (request.form['autosave'] == "1")
+    now = datetime.utcnow()
     new_save = ScriptData(resource_id=resource_id,
                           data=data,
                           version=new_version_number,
+                          timestamp=now,
                           export='[[],[]]',
                           tag='',
                           autosave=autosave)
     db.session.add(new_save)
-    now = datetime.utcnow()
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.last_updated = now
