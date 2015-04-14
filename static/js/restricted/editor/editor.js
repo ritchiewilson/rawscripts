@@ -369,6 +369,8 @@ function findUp(){
 
 
 function ajaxSpell(v, r){
+    // as long as spellcheck doesn't work at all, just turn it off.
+    return;
 	if(EOV=='viewer')return;
     checkSpell=false;
     var data = lines[v].text;
