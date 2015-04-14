@@ -24,7 +24,7 @@ class Screenplay:
                                   permission='owner', folder='?none?')
         db.session.add(screenplay)
         script_data = ScriptData(resource_id=resource_id, data=data, version=1,
-                                 export='', tag='', autosave=False,
+                                 export='[[],[]]', tag='', autosave=False,
                                  timestamp=datetime.utcnow())
         db.session.add(script_data)
         db.session.commit()
@@ -301,6 +301,8 @@ class ScriptData(db.Model):
                              value=value,
                              timestamp=timestamp)
             resource_version.tags.append(tag)
+        if snapshot.export == '':
+            return
         emails, exports = json.loads(snapshot.export)
         for email in emails:
             save_tag(email, 'email')
