@@ -64,7 +64,7 @@ class FetchDB(webapp.RequestHandler):
         output = unicode('@')
         if table == "Users":
             output += self.fetch_by_timestamps('firstUse', models.Users,
-                                               self.user_to_string)
+                                               self.user_to_string, do_json=True)
         if table == "OpenID2":
             output += self.fetch_by_timestamps('timestamp', models.OpenIDData2,
                                                self.open_id2_to_string)
@@ -93,9 +93,10 @@ class FetchDB(webapp.RequestHandler):
         self.response.out.write(ciphertext)
 
     def user_to_string(self, user):
-        fields = [user.name, user.firstUse]
-        fields = [str(field) for field in fields]
-        return ','.join(fields)
+        fields = [user.name, str(user.firstUse), user.verification_token,
+                  user.verified_email, user.verified, user.unsubscribe_token,
+                  user.unsubscribed, user.reminder_sent]
+        return fields
 
     def open_id2_to_string(self, user):
         fields = [user.nickname, user.email, user.user_id,

@@ -33,13 +33,16 @@ def fetch(params):
 
 def commit_users(data, session):
     last_time = None
-    for line in data.split('\n'):
-        if len(line) == 0:
-            continue
-        email, timestamp = line.split(',')
-        firstUse = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
-        user = User(name=email, firstUse=firstUse)
+    users = json.loads(data)
+    for u in users:
+        u[1] = datetime.strptime(u[1], "%Y-%m-%d %H:%M:%S.%f")
+        au = AppengineUser(*u)
+        email, firstUse = u[0], u[1]
+        user = User(email=email, firstUse=firstUse, active=True,
+                    confirmed_at=firstUse)
+        user.appengine_user = au
         session.add(user)
+        session.add(au)
         last_time = firstUse
     session.commit()
     return last_time

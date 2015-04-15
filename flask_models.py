@@ -84,6 +84,7 @@ class User(db.Model, UserMixin):
 
     email = db.Column(db.String(255), nullable=False, unique=True)
     confirmed_at = db.Column(db.DateTime())
+    appengine_user = db.relationship('AppengineUser', uselist=False, backref='user')
 
     __table_args__= (db.Index('ix_user_username', 'username'),)
 
@@ -101,6 +102,33 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
+
+
+class AppengineUser(db.Model):
+    __tablename__ = 'appengine_users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    name = db.Column(db.String)
+    firstUse = db.Column(db.DateTime)
+    verification_token = db.Column(db.String)
+    verified_email = db.Column(db.String)
+    verified = db.Column(db.Boolean)
+    unsubscribe_token = db.Column(db.String)
+    unsubscribed = db.Column(db.Boolean)
+    reminder_sent = db.Column(db.Integer)
+
+    def __init__(self, name, firstUse, verification_token, verified_email,
+                 verified, unsubscribe_token, unsubscribed, reminder_sent):
+        self.name = name
+        self.firstUse = firstUse
+        self.verification_token = verification_token
+        self.verified_email = verified_email
+        self.verified = verified
+        self.unsubscribe_token = unsubscribe_token
+        self.unsubscribed = unsubscribed
+        self.reminder_sent = reminder_sent
 
 
 class OpenIDData2(db.Model):
