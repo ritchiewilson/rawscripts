@@ -24,6 +24,9 @@
           <a href="{{ path }}">{{ text }}</a>
         </li>
       {%- endmacro %}
+      {% if current_user.is_authenticated() %}
+        {{ menu_item("/scriptlist", "My Screenplays") }}
+      {% endif %}
       {{ menu_item("/", "Home") }}
       {{ menu_item("/blog", "Blog") }}
       {{ menu_item("/contact", "Contact") }}
