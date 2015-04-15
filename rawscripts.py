@@ -44,6 +44,10 @@ db_adapter = SQLAlchemyAdapter(db, User)
 user_manager = UserManager(db_adapter, app,
                            password_validator=length_password_validator)
 
+# add my templates to flask-user so it can find my base.html
+my_templates = app.jinja_loader.searchpath[0]
+app.blueprints['flask_user'].jinja_loader.searchpath.insert(0, my_templates)
+
 import flask_editor
 import flask_scriptlist
 import flask_screenplay_export
