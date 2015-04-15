@@ -29,7 +29,7 @@ def blog():
     for post in posts:
         post.link = post.get_url()
         post.date = post.get_date_string()
-    return render_template('blog.html', mode="PRO", posts=posts)
+    return render_template('flask_blog.html', mode="PRO", posts=posts)
 
 @app.route('/blog/<path>')
 def blog_single_post(path):
@@ -39,7 +39,7 @@ def blog_single_post(path):
         post.link = post.get_url()
         post.date = post.get_date_string()
         post = [post]
-    return render_template('blog.html', mode="PRO", posts=post)
+    return render_template('flask_blog.html', mode="PRO", posts=post)
 
 @app.route('/blogpostgui')
 def blog_post_gui():

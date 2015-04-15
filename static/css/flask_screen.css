@@ -156,7 +156,6 @@ p {
 
 #pitch {
     padding: 0px 10px 0 0;
-    border-bottom: 1px solid #ddd;
     height: 310px;
     margin: 0 0 35px;
 }
@@ -230,7 +229,7 @@ p {
 
 #login{
 	background: url(../images/login.png) no-repeat;
-	padding: 20px 0 45px 70px;
+	padding: 20px 20px 45px 20px;
 	margin-left: 5px;
 	margin-top: 0px;
 }
