@@ -19,18 +19,21 @@
 	  <h1><a href="/">RawScripts.com</a></h1>
 	</div>
 	<ul id="menu">
-	  <li class="current"><a href="/">Home</a></li>
-	  <li><a href="/blog">Blog</a></li>
-	  <li><a href="/contact">Contact</a></li>
+      {% macro menu_item(path, text) -%}
+        <li {% if request.path == path or path == request.path|truncate(5, True, "") %} class="current" {% endif %}>
+          <a href="{{ path }}">{{ text }}</a>
+        </li>
+      {%- endmacro %}
+      {{ menu_item("/", "Home") }}
+      {{ menu_item("/blog", "Blog") }}
+      {{ menu_item("/contact", "Contact") }}
 	  <li><a href="http://www.rawscripts.org" target="_blank">Source Code</a></li>
 	</ul>
 	<div class="line"></div>
 	<div id="pitch">
       {% block content %}{% endblock %}
 	  <div id="footer">
-		RawScripts.com | <a href="/tos" onclick="window.open(this.href,
-		'popupwindow', 'width=500,height=500,scrollbars,resizable'); return
-		false;">Terms of Use</a>
+		RawScripts.com | 2010-2015
       </div>
     </div>
   </div>
