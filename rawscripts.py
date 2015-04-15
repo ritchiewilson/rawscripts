@@ -17,6 +17,7 @@
 import json
 import os
 import sys
+from urlparse import urlparse
 
 app_settings = os.environ['APP_SETTINGS']
 init_script = sys.argv[0]
@@ -27,7 +28,7 @@ if init_script in ['manage.py', 'fetch_script.py']:
     if app_settings[13:-6] not in ['Migration', 'Staging']:
         raise Exception("Wait, make sure you're using the right environment")
 
-from flask import Flask, render_template, send_from_directory, request
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_user import UserManager, SQLAlchemyAdapter, current_user
@@ -52,6 +53,11 @@ import flask_screenplay
 
 @app.route('/')
 def welcome():
+    if current_user.is_authenticated():
+        url = urlparse(request.referrer)
+        paths = ['/blog', '/contact', '/about', '/scriptlist']
+        if url.netloc == app.config['SERVER_NAME'] and url.path not in paths:
+            return redirect(url_for('scriptlist'))
     form = user_manager.login_form(next='/scriptlist')
     return render_template('flask_welcome.html', form=form, login_form=form)
 
