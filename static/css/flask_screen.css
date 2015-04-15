@@ -136,7 +136,7 @@ p {
 
 #menu li {
     display: inline;
-    font-size: 1.3em;
+    font-size: 16px;
 }
 
 #menu li a {
@@ -151,6 +151,7 @@ p {
 #menu li a:focus {
     color: #000;
     border-bottom: 1px solid #ddd;
+    text-decoration: none;
 }
 
 #pitch {
