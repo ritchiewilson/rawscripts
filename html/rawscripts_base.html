@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="google-site-verification"
+	content="g6EaCp776BuXUIzQ9vgs9pArmAeHT-Yo0E6kxSFN0l4" />
+	<meta name="description" content="RawScripts is free online screenplay
+	writing software. Write and collaborate on scripts from anywhere and any
+	time. Easily organize Notes to make the best screenplay possible." />
+	 <title>RawScripts.com - Free Online Screenplay Software</title>
+	<link rel="stylesheet" type="text/css" href="/css/flask_screen.css" media="screen" />
+	<link rel="shortcut icon" href="/favicon.ico">
+      <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  {% include "analytics.html" %}
+  <div id="content">
+	<div id="logo">
+	  <h1><a href="/">RawScripts.com</a></h1>
+	</div>
+	<ul id="menu">
+	  <li class="current"><a href="/">Home</a></li>
+	  <li><a href="/blog">Blog</a></li>
+	  <li><a href="/contact">Contact</a></li>
+	  <li><a href="http://www.rawscripts.org" target="_blank">Source Code</a></li>
+	</ul>
+	<div class="line"></div>
+	<div id="pitch">
+      {% block content %}{% endblock %}
+	  <div id="footer">
+		RawScripts.com | <a href="/tos" onclick="window.open(this.href,
+		'popupwindow', 'width=500,height=500,scrollbars,resizable'); return
+		false;">Terms of Use</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
