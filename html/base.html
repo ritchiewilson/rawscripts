@@ -34,7 +34,14 @@
 	</ul>
 	<div class="line"></div>
 	<div id="pitch">
-      {% block content %}{% endblock %}
+      {% if request.path|truncate(5, True, "") != "/user" %}
+        {% block content %}{% endblock %}
+      {% else %}
+        <div class="user-form">
+          {{ self.content() }}
+        </div>
+        {% include request.endpoint + ".html" ignore missing %}
+      {% endif %}
 	  <div id="footer">
 		RawScripts.com | &copy; 2010-2015
       </div>

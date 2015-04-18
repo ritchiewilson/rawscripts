@@ -10,7 +10,7 @@
 
 * {
     margin: 0;
-    padding: 0;
+    /* padding: 0; */
 }
 
 body {
@@ -128,6 +128,11 @@ p {
     font-family: Courier;
 }
 
+#logo h1 a:hover {
+    text-decoration: none;
+    color: white;
+}
+
 #menu {
     float: right;
     margin: 63px 20px 0;
@@ -144,6 +149,7 @@ p {
     color: #808080;
     padding: 0 0 5px;
     margin: 0 0 0 55px;
+    border-bottom: 1px solid white;
 }
 
 #menu li a:hover,
@@ -228,8 +234,20 @@ p {
 }
 
 #login{
-	background: url(../images/login.png) no-repeat;
 	padding: 20px 20px 45px 20px;
 	margin-left: 5px;
 	margin-top: 0px;
+}
+
+.user-form {
+    float: left;
+    width: 45%;
+    padding-bottom: 20px;
+    padding-left: 20px;
+}
+
+.user-form-text {
+    float: left;
+    width: 40%;
+    margin-left: 7%;
 }
