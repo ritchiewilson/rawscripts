@@ -28,7 +28,7 @@ if init_script in ['manage.py', 'fetch_script.py']:
     if app_settings[13:-6] not in ['Migration', 'Staging']:
         raise Exception("Wait, make sure you're using the right environment")
 
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for, Response
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_user import UserManager, SQLAlchemyAdapter, current_user
@@ -78,7 +78,7 @@ def contact():
 
 @app.route('/synccontacts', methods=['POST'])
 def synccontacts():
-    return json.dumps([])
+    return Response('[]', mimetype='text/plain')
 
 @app.route('/css/<css_file>')
 def css_redirect(css_file):
