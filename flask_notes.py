@@ -92,3 +92,13 @@ def notes_position():
         thread.updated = now
     db.session.commit()
     return Response('1', mimetype='text/plain')
+
+@app.route('/notesdeletethread', methods=['POST'])
+def notes_delete_thread():
+    resource_id = request.form['resource_id']
+    thread_id = request.form['thread_id']
+    thread = Note.get_by_thread_id(thread_id)
+    if thread.resource_id == resource_id:
+        db.session.delete(thread)
+        db.session.commit()
+    return Response('1', mimetype='text/plain')
