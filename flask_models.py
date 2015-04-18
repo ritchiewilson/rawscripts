@@ -358,7 +358,10 @@ class ScriptData(db.Model):
 
         def save_tag(entry, _type):
             value = entry[0]
-            timestamp = datetime.strptime(entry[1], "%Y-%m-%d %H:%M:%S.%f")
+            timestamp = entry[1]
+            if len(timestamp) == 19:
+                timestamp += ".000000"
+            timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
             tag = VersionTag(_type=_type,
                              value=value,
                              timestamp=timestamp)
