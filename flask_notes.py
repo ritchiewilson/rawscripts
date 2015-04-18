@@ -17,12 +17,12 @@
 from datetime import datetime
 import json
 
-from flask import Response, request
+from flask import Response, request, render_template
 from flask_mail import Message
 from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
-from flask_models import Note
+from flask_models import Screenplay, Note
 from flask_utils import get_current_user_email_with_default
 
 
@@ -94,6 +94,7 @@ def notes_position():
     return Response('1', mimetype='text/plain')
 
 @app.route('/notesdeletethread', methods=['POST'])
+@login_required
 def notes_delete_thread():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
@@ -104,6 +105,7 @@ def notes_delete_thread():
     return Response('1', mimetype='text/plain')
 
 @app.route('/notesdeletemessage', methods=['POST'])
+@login_required
 def notes_delete_message():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
@@ -136,3 +138,16 @@ def notes_delete_message():
         thread.updated = datetime.utcnow()
     db.session.commit()
     return Response('deleted', mimetype='text/plain')
+
+@app.route('/notesview')
+@login_required
+def notes_view():
+    resource_id = request.args.get('resource_id')
+    title = Screenplay.get_title(resource_id)
+    notes = Note.get_by_resource_id(resource_id)
+    output = [[n.row, n.col, json.loads(n.data), n.thread_id] for n in notes]
+    j = json.dumps(output)
+    # TODO: figure out correct permission here
+    f = False # is allowed to delete threads? defaulting to NO
+    return render_template('mobile/MobileViewNotes.html', j=j, title=title, f=f,
+                           user=current_user.name, sign_out='/user/sign-out')

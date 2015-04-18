@@ -31,6 +31,10 @@ class Screenplay:
         return screenplay
 
     @staticmethod
+    def get_title(resource_id):
+        return UsersScripts.get_title(resource_id)
+
+    @staticmethod
     def duplicate(resource_id, version, user):
         data = ScriptData.get_content_for_version(resource_id, version)
         title = UsersScripts.get_title(resource_id)
