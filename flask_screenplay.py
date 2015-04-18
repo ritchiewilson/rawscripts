@@ -112,3 +112,12 @@ def duplicate_screenplay():
     screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
     url = '/editor?resource_id=' + screenplay.resource_id
     return Response(url, mimetype='text/plain')
+
+@app.route('/revisionduplicate', methods=['POST'])
+@login_required
+def revisionduplicate_screenplay():
+    resource_id = request.form['resource_id']
+    version = int(request.form['version'])
+    screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
+    url = '/editor?resource_id=' + screenplay.resource_id
+    return Response(url, mimetype='text/plain')
