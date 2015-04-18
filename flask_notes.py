@@ -79,3 +79,16 @@ def notes_submit_message():
         return Response('sent', mimetype='text/plain')
     output = json.dumps([content, msg_id, user, thread_id])
     return Response(output, mimetype='text/plain')
+
+@app.route('/notesposition', methods=['POST'])
+def notes_position():
+    resource_id = request.form['resource_id']
+    positions = request.form['positions']
+    now = datetime.utcnow()
+    for row, col, thread_id in json.loads(positions):
+        thread = Note.get_by_thread_id(thread_id)
+        thread.row = row
+        thread.col = col
+        thread.updated = now
+    db.session.commit()
+    return Response('1', mimetype='text/plain')
