@@ -32,12 +32,12 @@ class Screenplay:
 
     @staticmethod
     def duplicate(resource_id, version, user):
-        script_data = ScriptData.get_version(resource_id, version)
+        data = ScriptData.get_content_for_version(resource_id, version)
         title = UsersScripts.get_title(resource_id)
         new_title = "Copy of " + title
         new_resource_id = Screenplay.create_unique_resource_id()
         new_script_data = ScriptData(resource_id=new_resource_id,
-                                     data=script_data.data,
+                                     data=data,
                                      version=version + 1,
                                      export="[[],[]]",
                                      tag='',
