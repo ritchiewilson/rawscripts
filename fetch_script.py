@@ -47,6 +47,18 @@ def commit_users(data, session):
     session.commit()
     return last_time
 
+def commit_notes(data, session):
+    last_time = None
+    notes = json.loads(data)
+    for resource_id, thread_id, updated, data, row, col in notes:
+        updated = datetime.strptime(updated, "%Y-%m-%d %H:%M:%S.%f")
+        note = Note(resource_id=resource_id, thread_id=thread_id, data=data,
+                    updated=updated, row=row, col=col)
+        session.add(note)
+        last_time = updated
+    session.commit()
+    return last_time
+
 def commit_open_id_data2(data, session):
     last_time = None
     for line in data.split('\n'):
@@ -127,6 +139,9 @@ def commit_blog(data, session):
 
 def fetch_all_users():
     fetch_by_timestamps('Users', User, 'firstUse', commit_users)
+
+def fetch_all_notes():
+    fetch_by_timestamps('Notes', Note, 'updated', commit_notes, USERS_PER_REQUEST=100)
 
 def fetch_all_openid2():
     fetch_by_timestamps('OpenID2', OpenIDData2, 'timestamp',
@@ -214,6 +229,8 @@ def fetch_all(password, iv):
     global START_TIME
     PASSWORD = password
     IV = iv
+    fetch_all_notes()
+    START_TIME = None
     fetch_all_users()
     START_TIME = None
     fetch_all_openid2()
