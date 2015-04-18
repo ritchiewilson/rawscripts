@@ -102,3 +102,37 @@ def notes_delete_thread():
         db.session.delete(thread)
         db.session.commit()
     return Response('1', mimetype='text/plain')
+
+@app.route('/notesdeletemessage', methods=['POST'])
+def notes_delete_message():
+    resource_id = request.form['resource_id']
+    thread_id = request.form['thread_id']
+    # TODO: fix inconsistant field name
+    msg_id = request.form['msgId']
+    user = current_user.name
+    thread = Note.get_by_thread_id(thread_id)
+    if thread is None:
+        return Response('no thread', mimetype='text/plain')
+
+    # TODO: check if actually is owner
+    is_owner = True
+
+    def should_keep(msg):
+        _content, _user, _id = msg
+        # lack permission to delete
+        if not (_user == user or is_owner):
+            return True
+        # keep if it's not the message we're looking for
+        return _id != msg_id
+
+    msgs = json.loads(thread.data)
+    new_msgs = filter(should_keep, msgs)
+    if len(msgs) == len(new_msgs):
+        return Response('error', mimetype='text/plain')
+    if len(new_msgs) == 0:
+        db.session.delete(thread)
+    else:
+        thread.data = json.dumps(new_msgs)
+        thread.updated = datetime.utcnow()
+    db.session.commit()
+    return Response('deleted', mimetype='text/plain')
