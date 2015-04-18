@@ -31,6 +31,34 @@ class Screenplay:
         return screenplay
 
     @staticmethod
+    def duplicate(resource_id, version, user):
+        script_data = ScriptData.get_version(resource_id, version)
+        title = UsersScripts.get_title(resource_id)
+        new_title = "Copy of " + title
+        new_resource_id = Screenplay.create_unique_resource_id()
+        new_script_data = ScriptData(resource_id=new_resource_id,
+                                     data=script_data.data,
+                                     version=version + 1,
+                                     export="[[],[]]",
+                                     tag='',
+                                     autosave=False,
+                                     timestamp=datetime.utcnow())
+        db.session.add(new_script_data)
+        dup = DuplicateScript(new_script=new_resource_id,
+                              from_script=resource_id,
+                              from_version=version)
+        db.session.add(dup)
+        user_script = UsersScripts(user=user,
+                                   title=new_title,
+                                   resource_id=new_resource_id,
+                                   last_updated=datetime.utcnow(),
+                                   permission='owner',
+                                   folder='?none?')
+        db.session.add(user_script)
+        db.session.commit()
+        return user_script
+
+    @staticmethod
     def get_latest_version_number(resource_id):
         latest = ScriptData.query.filter_by(resource_id=resource_id). \
                      with_entities(ScriptData.version). \
@@ -166,6 +194,12 @@ class ScriptData(db.Model):
         latest = ScriptData.query.filter_by(resource_id=resource_id). \
                      order_by(db.desc('version')).first()
         return latest
+
+    @staticmethod
+    def get_version(resource_id, version):
+        s = ScriptData.query. \
+                filter_by(resource_id=resource_id, version=version).first()
+        return s
 
     @staticmethod
     def thin_raw_data(resource_id):

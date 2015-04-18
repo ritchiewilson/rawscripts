@@ -103,3 +103,12 @@ def hard_delete_screenplay():
         screenplay.permission = 'hardDelete'
     db.session.commit()
     return Response('1', mimetype='text/plain')
+
+@app.route('/duplicate', methods=['POST'])
+@login_required
+def duplicate_screenplay():
+    resource_id = request.form['resource_id']
+    version = Screenplay.get_latest_version_number(resource_id)
+    screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
+    url = '/editor?resource_id=' + screenplay.resource_id
+    return Response(url, mimetype='text/plain')
