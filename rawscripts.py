@@ -54,6 +54,7 @@ import flask_screenplay_export
 import flask_blog
 import flask_revision_history
 import flask_screenplay
+import flask_convert
 
 @app.route('/')
 def welcome():
