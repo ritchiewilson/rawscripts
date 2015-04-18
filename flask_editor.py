@@ -22,12 +22,8 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData, Screenplay, Note
+from flask_utils import get_current_user_email_with_default
 
-def get_current_user_email_with_default():
-    user = 'test@example.com'
-    if current_user.is_authenticated():
-        user = current_user.name
-    return user
 
 @app.route('/editor')
 def editor():
