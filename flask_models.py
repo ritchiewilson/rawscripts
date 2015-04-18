@@ -567,7 +567,7 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Text)
     title = db.Column(db.String)
-    timestamp = db.Column(db.DateTime, default=db.func.now())
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     path = db.Column(db.String)
 
     def get_url(self):
@@ -590,7 +590,7 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     resource_id = db.Column(db.String, nullable=False)
     thread_id = db.Column(db.String, nullable=False)
-    updated = db.Column(db.DateTime, default=db.func.now())
+    updated = db.Column(db.DateTime, default=datetime.utcnow)
     data = db.Column(db.Text)
     row = db.Column(db.Integer)
     col = db.Column(db.Integer)
