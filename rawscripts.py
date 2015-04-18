@@ -65,6 +65,10 @@ def welcome():
     form = user_manager.login_form(next='/scriptlist')
     return render_template('flask_welcome.html', form=form, login_form=form)
 
+@app.route('/contact')
+def contact():
+    return render_template('flask_contact.html')
+
 @app.route('/synccontacts', methods=['POST'])
 def synccontacts():
     return json.dumps([])
