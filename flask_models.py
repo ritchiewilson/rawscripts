@@ -180,10 +180,10 @@ class ScriptData(db.Model):
     resource_id = db.Column(db.String)
     data = db.Column(db.Text)
     version = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     autosave = db.Column(db.Boolean)
-    export = db.Column(db.String)
-    tag = db.Column(db.String)
+    export = db.Column(db.String, default="[[],[]]")
+    tag = db.Column(db.String, default='')
 
     __table_args__= (db.Index('ix_script_data_resource_id_version',
                               "resource_id", db.asc('version')),
