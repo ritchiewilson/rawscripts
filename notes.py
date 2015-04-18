@@ -126,6 +126,7 @@ class SubmitMessage(webapp.RequestHandler):
 		if found==False:
 			J.append([content,user,d])
 		r.data=simplejson.dumps(J)
+		r.updated = datetime.datetime.utcnow()
 		r.put()
 		output = simplejson.dumps([content, d, user, thread_id])
 
@@ -151,6 +152,7 @@ class Position (webapp.RequestHandler):
 			r = models.Notes.get_by_resource_id_and_thread_id(resource_id, str(i[2]))
 			r.row  = i[0]
 			r.col = i[1]
+			r.updated = datetime.datetime.utcnow()
 			r.put()
 		self.response.headers["Content-type"]="plain/text"
 		self.response.out.write('1')
@@ -204,6 +206,7 @@ class DeleteMessage(webapp.RequestHandler):
 			r.delete()
 		else:
 			r.data=simplejson.dumps(newJ)
+			r.updated = datetime.datetime.utcnow()
 			r.put()
 		self.response.headers['Content-Type'] = 'text/plain'
 		if not deleted:
