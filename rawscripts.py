@@ -58,6 +58,8 @@ import flask_screenplay
 @app.route('/')
 def welcome():
     if current_user.is_authenticated():
+        if not request.referrer:
+            return redirect(url_for('scriptlist'))
         url = urlparse(request.referrer)
         paths = ['/blog', '/contact', '/about', '/scriptlist']
         if url.netloc == app.config['SERVER_NAME'] and url.path not in paths:
