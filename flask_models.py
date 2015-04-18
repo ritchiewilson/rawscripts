@@ -582,3 +582,38 @@ class Blog(db.Model):
 
     def get_date_string(self):
         return self.timestamp.strftime('%b %d, %Y')
+
+
+class Note(db.Model):
+    __tablename__ = "notes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(db.String, nullable=False)
+    thread_id = db.Column(db.String, nullable=False)
+    updated = db.Column(db.DateTime, default=db.func.now())
+    data = db.Column(db.Text)
+    row = db.Column(db.Integer)
+    col = db.Column(db.Integer)
+
+    __table_args__= (db.Index('ix_notes_resource_id', 'resource_id'),
+                     db.Index('ix_notes_thread_id', 'thread_id'))
+
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        return Note.query.filter_by(resource_id=resource_id).all()
+
+    def to_dict(self):
+        # TODO: support for read and unread mssages
+        output = {
+            'row': self.row,
+            'col': self.col,
+            'thread_id': self.thread_id
+        }
+        msg_keys = ['text', 'user', 'msg_id', 'readBool']
+        raw_msgs = json.loads(self.data)
+        msgs = []
+        for raw_msg in raw_msgs:
+            raw_msg.append(1)
+            msgs.append(dict(zip(msg_keys, raw_msg)))
+        output['msgs'] = msgs
+        return output
