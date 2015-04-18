@@ -23,6 +23,7 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Note
+from flask_utils import get_current_user_email_with_default
 
 
 @app.route('/notesnewthread', methods=['POST'])
@@ -33,7 +34,7 @@ def notes_new_thread():
     thread_id = request.form['thread_id']
     content = request.form['content']
     msg_id = str(datetime.utcnow())
-    user = current_user.name
+    user = get_current_user_email_with_default()
     if resource_id != "Demo":
         message = [content, user, msg_id]
         data = json.dumps([message])
@@ -46,3 +47,35 @@ def notes_new_thread():
         return Response('sent', mimetype='text/plain')
     dump = json.dumps([row, col, thread_id, msg_id, user])
     return Response(dump, mimetype='text/plain')
+
+@app.route('/notessubmitmessage', methods=['POST'])
+def notes_submit_message():
+    resource_id = request.form['resource_id']
+    thread_id = request.form['thread_id']
+    content = request.form['content']
+    msg_id = request.form['msg_id'] # only if this edits a previous message
+    user = get_current_user_email_with_default()
+    if resource_id == 'Demo':
+        output = json.dumps([content, msg_id, user, thread_id])
+        return Response(output, mimetype='text/plain')
+
+    thread = Note.get_by_thread_id(thread_id)
+    msgs = json.loads(thread.data)
+    was_new_message = True
+    for msg in msgs:
+        _content, _user, _id = msg
+        if _id == msg_id and _user == user:
+            msg[0] = content
+            was_new_message = False
+
+    if was_new_message:
+        msg_id = str(datetime.utcnow())
+        msgs.append([content, user, msg_id])
+
+    thread.data = json.dumps(msgs)
+    thread.updated = datetime.utcnow()
+    db.session.commit()
+    if request.form['fromPage'] == 'mobileviewnotes':
+        return Response('sent', mimetype='text/plain')
+    output = json.dumps([content, msg_id, user, thread_id])
+    return Response(output, mimetype='text/plain')

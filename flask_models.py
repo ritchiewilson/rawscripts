@@ -602,6 +602,10 @@ class Note(db.Model):
     def get_by_resource_id(resource_id):
         return Note.query.filter_by(resource_id=resource_id).all()
 
+    @staticmethod
+    def get_by_thread_id(thread_id):
+        return Note.query.filter_by(thread_id=thread_id).first()
+
     def to_dict(self):
         # TODO: support for read and unread mssages
         output = {
