@@ -55,6 +55,7 @@ import flask_blog
 import flask_revision_history
 import flask_screenplay
 import flask_convert
+import flask_notes
 
 @app.context_processor
 def inject_config():
