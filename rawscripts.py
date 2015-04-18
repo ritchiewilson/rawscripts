@@ -56,6 +56,10 @@ import flask_revision_history
 import flask_screenplay
 import flask_convert
 
+@app.context_processor
+def inject_config():
+    return dict(MODE='PRO', GA='UA-16492540-1')
+
 @app.route('/')
 def welcome():
     if current_user.is_authenticated():
