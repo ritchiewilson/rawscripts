@@ -15,17 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
 import re
-from django.utils import simplejson
-import StringIO
-from collections import deque
-import sys
-import string
-import time
 import zipfile
-import logging
-import config
+try:
+    from django.utils import simplejson
+except:
+    import json as simplejson
 
 def FinalDraft(data):
     from xml.dom import minidom
