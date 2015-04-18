@@ -52,8 +52,15 @@ def commit_notes(data, session):
     notes = json.loads(data)
     for resource_id, thread_id, updated, data, row, col in notes:
         updated = datetime.strptime(updated, "%Y-%m-%d %H:%M:%S.%f")
-        note = Note(resource_id=resource_id, thread_id=thread_id, data=data,
-                    updated=updated, row=row, col=col)
+        note = session.query(Note).filter_by(thread_id=thread_id).first()
+        if note:
+            note.data = data
+            note.updated = updated
+            note.row = row
+            note.col = col
+        else:
+            note = Note(resource_id=resource_id, thread_id=thread_id, data=data,
+                        updated=updated, row=row, col=col)
         session.add(note)
         last_time = updated
     session.commit()
