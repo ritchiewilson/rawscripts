@@ -52,6 +52,19 @@ def list():
     screenplays = UsersScripts.query.filter_by(user=user). \
                       order_by(UsersScripts.last_updated.desc()).all()
 
+    # One query for all the collaborators and owner information
+    resource_ids = (screenplay.resource_id for screenplay in screenplays)
+    shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
+                             filter(UsersScripts.resource_id.in_(resource_ids)).all()
+    share_data = {}
+    for s in shared_screenplays:
+        if s.resource_id not in share_data:
+            share_data[s.resource_id] = {'collabs': []}
+        if s.permission == 'owner':
+            share_data[s.resource_id]['owner'] = s.user
+        else:
+            share_data[s.resource_id]['collabs'].append(s.user)
+
     # count all unread notes by resource_id
     unread_notes = {}
     for unread_note in UnreadNote.query.filter_by(user=user).all():
@@ -64,14 +77,15 @@ def list():
     shared = []
     ownedDeleted = []
     for screenplay in screenplays:
-        data = [screenplay.resource_id, screenplay.title]
+        resource_id = screenplay.resource_id
+        data = [resource_id, screenplay.title]
         data.append(format_time(screenplay.last_updated))
         permission = screenplay.permission
         if permission == 'collab':
-            permission = 'shared'
+            permission = share_data.get(resource_id, {}).get('owner', 'shared')
         data.append(permission)
         if screenplay.permission != 'collab':
-            sharing_with = []
+            sharing_with = share_data.get(resource_id, {}).get('collabs', [])
             data.append(sharing_with)
         new_notes = unread_notes.get(screenplay.resource_id, 0)
         if permission != 'ownerDeleted':
