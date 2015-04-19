@@ -625,3 +625,17 @@ class Note(db.Model):
             msgs.append(dict(zip(msg_keys, raw_msg)))
         output['msgs'] = msgs
         return output
+
+class UnreadNote (db.Model):
+    __tablename__ = "unread_notes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(db.String)
+    thread_id = db.Column(db.String)
+    msg_id = db.Column(db.String)
+    user = db.Column(db.String)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__= (db.Index('ix_unread_notes_resource_id', 'resource_id'),
+                     db.Index('ix_unread_notes_thread_id', 'thread_id'),
+                     db.Index('ix_unread_notes_user', 'user'))

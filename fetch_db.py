@@ -86,6 +86,9 @@ class FetchDB(webapp.RequestHandler):
         if table == "Notes":
             output += self.fetch_by_timestamps('updated', models.Notes,
                                                self.notes_to_string, do_json=True)
+        if table == "UnreadNotes":
+            output += self.fetch_by_timestamps('timestamp', models.UnreadNotes,
+                                               self.unread_notes_to_string, do_json=True)
         diff = 16 - (len(output) % 16)
         output = ('!' * diff) + output
         obj = AES.new(password, AES.MODE_CBC, iv)
@@ -104,6 +107,11 @@ class FetchDB(webapp.RequestHandler):
     def notes_to_string(self, note):
         fields = [note.resource_id, note.thread_id, str(note.updated),
                   note.data, note.row, note.col]
+        return fields
+
+    def unread_notes_to_string(self, note):
+        fields = [note.resource_id, note.thread_id, note.msg_id,
+                  note.user, str(note.timestamp)]
         return fields
 
     def open_id2_to_string(self, user):
