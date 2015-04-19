@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, get_flas
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, Folder
+from flask_models import UsersScripts, Folder, UnreadNote
 
 
 @app.route('/scriptlist')
@@ -51,6 +51,15 @@ def list():
     user = current_user.name
     screenplays = UsersScripts.query.filter_by(user=user). \
                       order_by(UsersScripts.last_updated.desc()).all()
+
+    # count all unread notes by resource_id
+    unread_notes = {}
+    for unread_note in UnreadNote.query.filter_by(user=user).all():
+        r_id = unread_note.resource_id
+        if r_id not in unread_notes:
+            unread_notes[r_id] = 0
+        unread_notes[r_id] += 1
+
     owned = []
     shared = []
     ownedDeleted = []
@@ -64,7 +73,7 @@ def list():
         if screenplay.permission != 'collab':
             sharing_with = []
             data.append(sharing_with)
-        new_notes = 0
+        new_notes = unread_notes.get(screenplay.resource_id, 0)
         if permission != 'ownerDeleted':
             data.append(new_notes)
 

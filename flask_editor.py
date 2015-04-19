@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData, Screenplay, Note
+from flask_models import UsersScripts, ScriptData, Screenplay, Note, UnreadNote
 from flask_utils import get_current_user_email_with_default
 
 
@@ -60,8 +60,12 @@ def scriptcontent():
     latest_version = ScriptData.get_latest_version(resource_id)
     sharedwith = UsersScripts.get_all_collaborators(resource_id)
 
+    user = current_user.name
+    unread_notes = UnreadNote.query. \
+                       filter_by(resource_id=resource_id, user=user).all()
+    unread_msg_ids = set([n.msg_id for n in unread_notes])
     note_rows = Note.get_by_resource_id(resource_id)
-    notes = [note.to_dict() for note in note_rows]
+    notes = [note.to_dict(unread_msg_ids) for note in note_rows]
 
     return jsonify(title=screenplay.title,
                    lines=json.loads(latest_version.data),

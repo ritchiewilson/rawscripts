@@ -610,7 +610,9 @@ class Note(db.Model):
     def get_by_thread_id(thread_id):
         return Note.query.filter_by(thread_id=thread_id).first()
 
-    def to_dict(self):
+    def to_dict(self, unread_msg_ids=None):
+        if unread_msg_ids is None:
+            unread_msg_ids = []
         # TODO: support for read and unread mssages
         output = {
             'row': self.row,
@@ -621,7 +623,7 @@ class Note(db.Model):
         raw_msgs = json.loads(self.data)
         msgs = []
         for raw_msg in raw_msgs:
-            raw_msg.append(1)
+            raw_msg.append(0 if raw_msg[2] in unread_msg_ids else 1)
             msgs.append(dict(zip(msg_keys, raw_msg)))
         output['msgs'] = msgs
         return output
