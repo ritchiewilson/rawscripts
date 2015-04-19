@@ -77,13 +77,6 @@ class Notes (db.Model):
         q.filter('resource_id =', resource_id)
         return q.fetch(1000)
 
-
-class NotesNotify (db.Model):
-    resource_id = db.StringProperty()
-    thread_id = db.StringProperty()
-    user = db.StringProperty()
-    new_notes= db.IntegerProperty()
-
 class UnreadNotes (db.Model):
     resource_id = db.StringProperty()
     thread_id = db.StringProperty()

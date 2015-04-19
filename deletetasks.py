@@ -93,10 +93,6 @@ class AutomatedDelete (webapp.RequestHandler):
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(1000)
             db.delete(r)
-            q = db.GqlQuery("SELECT __key__ FROM NotesNotify "+
-                                        "WHERE resource_id='"+resource_id+"'")
-            r = q.fetch(1000)
-            db.delete(r)
             q = db.GqlQuery("SELECT __key__ FROM ShareNotify "+
                             "WHERE resource_id='"+resource_id+"'")
             r = q.fetch(1000)
