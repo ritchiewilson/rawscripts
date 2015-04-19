@@ -708,3 +708,17 @@ class TitlePageData(db.Model):
                    'emailChecked', 'registered', 'registeredChecked', 'other',
                    'otherChecked', ]
         return fields
+
+
+class ShareNotify(db.Model):
+    __tablename__ = "share_notify"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String, nullable=False)
+    resource_id = db.Column(db.String, nullable=False)
+    timeshared = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    timeopened = db.Column(db.DateTime)
+    opened = db.Column(db.Boolean)
+
+    __table_args__= (db.Index('ix_share_notify_resource_id', 'resource_id'),
+                     db.Index('ix_share_notify_user', 'user'))

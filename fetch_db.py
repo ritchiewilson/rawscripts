@@ -92,6 +92,10 @@ class FetchDB(webapp.RequestHandler):
         if table == "TitlePageData":
             output += self.fetch_title_page_data()
 
+        if table == "ShareNotify":
+            output += self.fetch_by_timestamps('timeshared', models.ShareNotify,
+                                               self.share_notify_to_string, do_json=True)
+
         diff = 16 - (len(output) % 16)
         output = ('!' * diff) + output
         obj = AES.new(password, AES.MODE_CBC, iv)
@@ -115,6 +119,11 @@ class FetchDB(webapp.RequestHandler):
     def unread_notes_to_string(self, note):
         fields = [note.resource_id, note.thread_id, note.msg_id,
                   note.user, str(note.timestamp)]
+        return fields
+
+    def share_notify_to_string(self, share):
+        fields = [share.user, share.resource_id, str(share.timeshared),
+                  str(share.timeopened), share.opened]
         return fields
 
     def open_id2_to_string(self, user):

@@ -78,6 +78,23 @@ def commit_unread_notes(data, session):
     session.commit()
     return last_time
 
+def commit_share_notify(data, session):
+    last_time = None
+    fields = ['user', 'resource_id', 'timeshared', 'timeopened', 'opened']
+    timestamp_fields = ['timeshared', 'timeopened']
+    last_time_field = 'timeshared'
+    obj_model = ShareNotify
+    lines = json.loads(data)
+    for line in lines:
+        kwargs = dict((fields[i], line[i]) for i in range(len(fields)))
+        for field in timestamp_fields:
+            kwargs[field] = datetime.strptime(kwargs[field], "%Y-%m-%d %H:%M:%S.%f")
+        obj = obj_model(**kwargs)
+        session.add(obj)
+        last_time = kwargs[last_time_field]
+    session.commit()
+    return last_time
+
 
 def commit_open_id_data2(data, session):
     last_time = None
@@ -166,6 +183,10 @@ def fetch_all_notes():
 def fetch_all_unread_notes():
     fetch_by_timestamps('UnreadNotes', UnreadNote, 'timestamp',
                         commit_unread_notes, USERS_PER_REQUEST=100)
+
+def fetch_all_share_notify():
+    fetch_by_timestamps('ShareNotify', ShareNotify, 'timeshared',
+                        commit_share_notify, USERS_PER_REQUEST=100)
 
 def fetch_all_openid2():
     fetch_by_timestamps('OpenID2', OpenIDData2, 'timestamp',
@@ -266,6 +287,8 @@ def fetch_all(password, iv):
     global START_TIME
     PASSWORD = password
     IV = iv
+    fetch_all_share_notify()
+    return
     fetch_all_title_page_data()
     fetch_all_unread_notes()
     START_TIME = None
