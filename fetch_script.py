@@ -38,8 +38,8 @@ def commit_users(data, session):
         u[1] = datetime.strptime(u[1], "%Y-%m-%d %H:%M:%S.%f")
         au = AppengineUser(*u)
         email, firstUse = u[0], u[1]
-        user = User(email=email, firstUse=firstUse, active=True,
-                    confirmed_at=firstUse)
+        user = User(name=email, firstUse=firstUse, username=email, active=True,
+                    email=email, confirmed_at=firstUse)
         user.appengine_user = au
         session.add(user)
         session.add(au)

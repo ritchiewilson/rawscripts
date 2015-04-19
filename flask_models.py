@@ -108,7 +108,7 @@ class User(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    firstUse = db.Column(db.DateTime)
+    firstUse = db.Column(db.DateTime, default=datetime.utcnow)
 
     username = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False, default='')
@@ -121,17 +121,11 @@ class User(db.Model, UserMixin):
 
     __table_args__= (db.Index('ix_user_username', 'username'),)
 
-    def __init__(self, name=None, firstUse=None, username=None, password=None,
-                 reset_password_token=None, active=False, email=None,
-                 confirmed_at=None):
-        self.name = name if name else email
-        self.firstUse = firstUse if firstUse else datetime.utcnow()
-        self.username = username if username else email
-        self.password = password
-        self.reset_password_token = reset_password_token
-        self.active = active
-        self.email = email
-        self.confirmed_at = confirmed_at
+    def __init__(self, **kwargs):
+        email = kwargs['email']
+        for field in ['name', 'username']:
+            kwargs[field] = kwargs.get(field, email)
+        super(User, self).__init__(**kwargs)
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
