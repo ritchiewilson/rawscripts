@@ -39,12 +39,6 @@ class ShareNotify (db.Model):
         q.filter('user =', user)
         return q.fetch(1000)
 
-
-class LastUpdatedEtag (db.Model):
-    name = db.StringProperty()
-    etag = db.StringProperty()
-    resource_id = db.StringProperty()
-
 class Users (db.Model):
     name = db.StringProperty()
     firstUse = db.DateTimeProperty(auto_now_add=True)
