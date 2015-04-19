@@ -22,9 +22,20 @@ from flask_mail import Message
 from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
-from flask_models import Screenplay, Note
+from flask_models import Screenplay, Note, UnreadNote, UsersScripts
 from flask_utils import get_current_user_email_with_default
 
+
+def new_note_notification(resource_id, from_user, thread_id, msg_id):
+    for peer in UsersScripts.query.filter_by(resource_id=resource_id).all():
+        if peer.user.lower() == from_user.lower():
+            continue
+        unread = UnreadNote(resource_id=resource_id,
+                             user=peer.user,
+                             thread_id=thread_id,
+                             msg_id=msg_id)
+        db.session.add(unread)
+    db.session.commit()
 
 @app.route('/notesnewthread', methods=['POST'])
 def notes_new_thread():
@@ -41,6 +52,7 @@ def notes_new_thread():
         note = Note(resource_id=resource_id, thread_id=thread_id,
                     data=data, row=row, col=col)
         db.session.add(note)
+        new_note_notification(resource_id, user, thread_id, msg_id)
         db.session.commit()
 
     if request.form['fromPage'] == 'mobileviewnotes':
@@ -74,6 +86,7 @@ def notes_submit_message():
 
     thread.data = json.dumps(msgs)
     thread.updated = datetime.utcnow()
+    new_note_notification(resource_id, user, thread_id, msg_id)
     db.session.commit()
     if request.form['fromPage'] == 'mobileviewnotes':
         return Response('sent', mimetype='text/plain')
@@ -99,9 +112,11 @@ def notes_delete_thread():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
     thread = Note.get_by_thread_id(thread_id)
-    if thread.resource_id == resource_id:
-        db.session.delete(thread)
-        db.session.commit()
+    db.session.delete(thread)
+    unread_notes = UnreadNote.query.filter_by(thread_id=thread_id).all()
+    for note in unread_notes:
+        db.session.delete(note)
+    db.session.commit()
     return Response('1', mimetype='text/plain')
 
 @app.route('/notesdeletemessage', methods=['POST'])
@@ -136,6 +151,9 @@ def notes_delete_message():
     else:
         thread.data = json.dumps(new_msgs)
         thread.updated = datetime.utcnow()
+    unread_notes = UnreadNote.query.filter_by(msg_id=msg_id).all()
+    for note in unread_notes:
+        db.session.delete(note)
     db.session.commit()
     return Response('deleted', mimetype='text/plain')
 
@@ -151,3 +169,17 @@ def notes_view():
     f = False # is allowed to delete threads? defaulting to NO
     return render_template('mobile/MobileViewNotes.html', j=j, title=title, f=f,
                            user=current_user.name, sign_out='/user/sign-out')
+
+@app.route('/notesmarkasread', methods=['POST'])
+@login_required
+def notes_mark_as_read():
+    resource_id = request.form['resource_id']
+    thread_id = request.form['thread_id']
+    msg_id = request.form['msg_id']
+    user = current_user.name
+    # TODO: I think javascript is double calling this endpoint each time
+    unread_note = UnreadNote.query.filter_by(user=user, msg_id=msg_id).first()
+    if unread_note:
+        db.session.delete(unread_note)
+        db.session.commit()
+    return Response('ok', mimetype='text/plain')
