@@ -6,6 +6,12 @@
     {% endfor %}
   {% endwith %}
   <div style="width:490px; float:left; margin-right:60px;">
+    <div class="alert alert-warning" role="alert">
+      <strong>Notice:</strong> On April 18th, Rawscripts changed its login
+      system.<br><a href="{{ url_for('user.forgot_password') }}"
+      class="alert-link">If you have an accout but need a password, click
+      here!</a>
+    </div>
  	<div id='login'>
       {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
       <h1>Sign in</h1>
@@ -45,7 +51,7 @@
             <div class="col-xs-6 text-right">
               {% if user_manager.enable_forgot_password %}
                 <a href="{{ url_for('user.forgot_password') }}" tabindex='195'>
-                  {%trans%}Forgot your Password?{%endtrans%}</a>
+                  {%trans%}Need New Password?{%endtrans%}</a>
                 {% endif %}
             </div>
           </div>
@@ -67,8 +73,13 @@
       </form>
 	</div>
   </div>
-  <div style="float:left" align="center">
-	<a href="/editor?resource_id=Demo" target="_blank"><img src="/images/editor.png" alt="Click To Try The Online Application"></a><br>
+  <div id="demo-box" style="float:left" align="justify">
+    <p>
+      Free, online screenwriting software. Screenplays are private,
+      secure, and accessible from any computer. Go ahead and
+      <a href="/editor?resource_id=Demo" target="_blank">try out the demo!</a>
+    </p>
+	<a href="/editor?resource_id=Demo" target="_blank"><img src="/images/editor.png" alt="Click To Try The Online Demo"></a><br>
 	<a href="/editor?resource_id=Demo" target="_blank"><span class="h2_span">Click To Try The Online Application.</span></a>
   </div>
 </div>
