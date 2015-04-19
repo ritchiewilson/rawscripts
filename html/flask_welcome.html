@@ -13,6 +13,7 @@
       here!</a>
     </div>
  	<div id='login'>
+      {% if not current_user.is_authenticated() %}
       {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
       <h1>Sign in</h1>
       <form action="/user/sign-in" method="POST" class="form" role="form">
@@ -71,6 +72,7 @@
         {# Submit button #}
         {{ render_submit_field(form.submit, tabindex=180) }}
       </form>
+      {% endif %}
 	</div>
   </div>
   <div id="demo-box" style="float:left" align="justify">
