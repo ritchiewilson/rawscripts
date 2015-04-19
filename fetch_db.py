@@ -89,6 +89,9 @@ class FetchDB(webapp.RequestHandler):
         if table == "UnreadNotes":
             output += self.fetch_by_timestamps('timestamp', models.UnreadNotes,
                                                self.unread_notes_to_string, do_json=True)
+        if table == "TitlePageData":
+            output += self.fetch_title_page_data()
+
         diff = 16 - (len(output) % 16)
         output = ('!' * diff) + output
         obj = AES.new(password, AES.MODE_CBC, iv)
@@ -169,6 +172,38 @@ class FetchDB(webapp.RequestHandler):
             vals = [str(row.key()), row.user, row.data]
             output.append(vals)
         return simplejson.dumps(output)
+
+    def fetch_title_page_data(self):
+        query = models.TitlePageData.all()
+        fields = [
+            'resource_id',
+            'title',
+            'authorOne',
+            'authorTwo',
+            'authorTwoChecked',
+            'authorThree',
+            'authorThreeChecked',
+            'based_on',
+            'based_onChecked',
+            'address',
+            'addressChecked',
+            'phone',
+            'phoneChecked',
+            'cell',
+            'cellChecked',
+            'email',
+            'emailChecked',
+            'registered',
+            'registeredChecked',
+            'other',
+            'otherChecked',
+        ]
+        output = []
+        for row in query.run():
+            data = dict((field, getattr(row, field)) for field in fields)
+            output.append(data)
+        return simplejson.dumps(output)
+
 
 def main():
     application = webapp.WSGIApplication([('/fetchdb', FetchDB),

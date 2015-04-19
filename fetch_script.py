@@ -214,6 +214,19 @@ def fetch_all_folders():
         obj.data = data
     db.session.commit()
 
+
+def fetch_all_title_page_data():
+    print "Fetching Title Pages"
+    params = {'table': 'TitlePageData'}
+    data = fetch(params)
+    print 'Fetched, no loading json'
+    rows = json.loads(data)
+    print 'Saving titlepages'
+    for row in rows:
+        obj = TitlePageData(**row)
+        db.session.add(obj)
+    db.session.commit()
+
 def fetch_all_script_data():
     fetch_by_timestamps('ScriptData', ScriptData, 'timestamp',
                         commit_script_data)
@@ -253,6 +266,7 @@ def fetch_all(password, iv):
     global START_TIME
     PASSWORD = password
     IV = iv
+    fetch_all_title_page_data()
     fetch_all_unread_notes()
     START_TIME = None
     fetch_all_notes()

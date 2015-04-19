@@ -641,3 +641,32 @@ class UnreadNote (db.Model):
     __table_args__= (db.Index('ix_unread_notes_resource_id', 'resource_id'),
                      db.Index('ix_unread_notes_thread_id', 'thread_id'),
                      db.Index('ix_unread_notes_user', 'user'))
+
+
+class TitlePageData(db.Model):
+    __tablename__ = "title_page_data"
+
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(db.String, nullable=False, unique=True)
+    title = db.Column(db.String)
+    authorOne = db.Column(db.String)
+    authorTwo = db.Column(db.String)
+    authorTwoChecked = db.Column(db.String)
+    authorThree  = db.Column(db.String)
+    authorThreeChecked  = db.Column(db.String)
+    based_on  = db.Column(db.String)
+    based_onChecked  = db.Column(db.String)
+    address = db.Column(db.String)
+    addressChecked = db.Column(db.String)
+    phone = db.Column(db.String)
+    phoneChecked = db.Column(db.String)
+    cell = db.Column(db.String)
+    cellChecked = db.Column(db.String)
+    email = db.Column(db.String)
+    emailChecked = db.Column(db.String)
+    registered = db.Column(db.String)
+    registeredChecked = db.Column(db.String)
+    other = db.Column(db.String)
+    otherChecked = db.Column(db.String)
+
+    __table_args__= (db.Index('ix_title_page_data_resource_id', 'resource_id'),)
