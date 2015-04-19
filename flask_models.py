@@ -11,6 +11,7 @@ from flask_user import UserMixin
 
 from rawscripts import app, db
 from export import Text, Pdf
+from flask_utils import get_current_user_email_with_default
 
 
 class Screenplay:
@@ -670,3 +671,46 @@ class TitlePageData(db.Model):
     otherChecked = db.Column(db.String)
 
     __table_args__= (db.Index('ix_title_page_data_resource_id', 'resource_id'),)
+
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        return TitlePageData.query.filter_by(resource_id=resource_id).first()
+
+    @staticmethod
+    def get_or_create(resource_id):
+        obj = TitlePageData.get_by_resource_id(resource_id)
+        if not obj:
+            obj = TitlePageData(resource_id=resource_id)
+            db.session.add(obj)
+            db.session.commit()
+        return obj
+
+    @staticmethod
+    def get_fields_by_resource_id(resource_id):
+        fields = TitlePageData.get_field_names()
+        obj = TitlePageData.get_by_resource_id(resource_id)
+        if obj:
+            output = dict((field, getattr(obj, field)) for field in fields)
+            for field in ['based_on', 'address']:
+                output[field] = output[field].replace("LINEBREAK", '\n')
+            return output
+
+        # If not found, return a mostly empty dict with some sensible defaults.
+        default = dict((field, '') for field in fields)
+        default['resource_id'] = resource_id
+        default['title'] = Screenplay.get_title(resource_id)
+        default['authorOne'] = get_current_user_email_with_default()
+        default['email'] = default['authorOne']
+        default['emailChecked'] = 'checked'
+        return default
+
+    @staticmethod
+    def get_field_names():
+        # TODO: do this dynamically using the models sqlalchemy column names
+        fields = [ 'resource_id', 'title', 'authorOne', 'authorTwo',
+                   'authorTwoChecked', 'authorThree', 'authorThreeChecked',
+                   'based_on', 'based_onChecked', 'address', 'addressChecked',
+                   'phone', 'phoneChecked', 'cell', 'cellChecked', 'email',
+                   'emailChecked', 'registered', 'registeredChecked', 'other',
+                   'otherChecked', ]
+        return fields
