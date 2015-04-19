@@ -20,11 +20,6 @@ class SpellingData (db.Model):
         q.filter('resource_id =', resource_id)
         return q.get()
 
-class ShareDB (db.Model):
-    name = db.StringProperty()
-    resource_id = db.StringProperty()
-    fromPage = db.StringProperty()
-
 class ShareNotify (db.Model):
     user= db.StringProperty()
     resource_id = db.StringProperty()
