@@ -16,6 +16,7 @@ def get_resource_ids():
     rows = ScriptData.query.with_entities(ScriptData.resource_id). \
            distinct().all()
     rows = [row.resource_id for row in rows]
+    rows.sort()
     return rows
     # resource_ids = UsersScripts.get_all_resource_ids()
     current = datetime.utcnow()
