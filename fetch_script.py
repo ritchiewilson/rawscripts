@@ -255,7 +255,7 @@ def fetch_all_title_page_data():
 
 def fetch_all_script_data():
     fetch_by_timestamps('ScriptData', ScriptData, 'timestamp',
-                        commit_script_data)
+                        commit_script_data, USERS_PER_REQUEST=200)
 
 def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_REQUEST=40):
     global START_TIME
@@ -292,7 +292,6 @@ def fetch_all(password, iv):
     global START_TIME
     PASSWORD = password
     IV = iv
-    fetch_all_title_page_data()
     START_TIME = None
     fetch_all_share_notify()
     START_TIME = None
@@ -313,6 +312,7 @@ def fetch_all(password, iv):
     fetch_all_folders()
     START_TIME = None
     fetch_all_blog_posts()
+    fetch_all_title_page_data()
 
 if __name__ == "__main__":
     manager.run()
