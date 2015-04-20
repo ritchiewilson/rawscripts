@@ -244,8 +244,13 @@ def fetch_all_title_page_data():
     rows = json.loads(data)
     print 'Saving titlepages'
     for row in rows:
-        obj = TitlePageData(**row)
-        db.session.add(obj)
+        obj = TitlePageData.get_by_resource_id(row['resource_id'])
+        if obj:
+            for key, val in row.items():
+                setattr(obj, key, val)
+        else:
+            obj = TitlePageData(**row)
+            db.session.add(obj)
     db.session.commit()
 
 def fetch_all_script_data():
@@ -287,9 +292,10 @@ def fetch_all(password, iv):
     global START_TIME
     PASSWORD = password
     IV = iv
-    fetch_all_share_notify()
-    return
     fetch_all_title_page_data()
+    START_TIME = None
+    fetch_all_share_notify()
+    START_TIME = None
     fetch_all_unread_notes()
     START_TIME = None
     fetch_all_notes()
