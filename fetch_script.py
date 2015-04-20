@@ -281,7 +281,7 @@ def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_R
         if last_time is None:
             break
         START_TIME = last_time.isoformat()
-        time.sleep(1)
+        time.sleep(0.5)
     print "Completed fetching", table
 
 
