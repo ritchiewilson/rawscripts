@@ -36,6 +36,7 @@ def scriptlist():
                            email_verified=email_verified)
 
 def format_time(time):
+    time = time.replace(tzinfo=None)
     d = datetime.utcnow() - time
     if d.days > 0:
         return time.strftime("%b %d")
