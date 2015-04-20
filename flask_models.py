@@ -309,7 +309,7 @@ class ScriptData(db.Model):
                     filter(ScriptData.version >= start_from). \
                     order_by('version').with_entities(ScriptData.version).all()
         for save1, save2 in zip(saves, saves[1:]):
-            if save1.version != save2.version + 1:
+            if save1.version + 1 != save2.version:
                 return True
         return False
 
