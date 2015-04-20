@@ -19,7 +19,8 @@ URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
 PASSWORD = None
 IV = None
-LIMITS = [100, 75, 50, 25]
+MAX_LIMIT = 200
+LIMITS = [MAX_LIMIT, 100, 75, 50, 25]
 
 def _fetch(params):
     r = requests.get(URL, params=params)
@@ -36,7 +37,8 @@ def fetch(params):
         try:
             params['limit'] = limit
             data = _fetch(params)
-            print 'Limit worked:', limit
+            if limit != MAX_LIMIT:
+                print 'Limit worked:', limit
             return data
         except:
             pass
