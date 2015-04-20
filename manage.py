@@ -47,11 +47,11 @@ def verify_screenplay(resource_id):
         start_from = max(start_from, dup.from_version + 1)
     last_save = ResourceVersion.get_latest_version(resource_id)
     if not last_save:
-        print "Not migrated:", resource_id
+        print "ERROR: Not migrated:", resource_id
         return
     end_at = last_save.version
     if ScriptData.has_duplicate_versions(resource_id, start_from, end_at):
-        print "Script has multiple saves with same version number:", resource_id
+        print "ERROR: Script has multiple saves with same version number:", resource_id
         return
 
     last_verified = None
@@ -62,7 +62,6 @@ def verify_screenplay(resource_id):
         else:
             print "Error checking version:", resource_id, version
             return
-    print "Last verified was:", resource_id, last_verified
     if last_verified is None:
         return
     check = MigrationCheck.query.filter_by(resource_id=resource_id).first()
@@ -71,8 +70,6 @@ def verify_screenplay(resource_id):
         db.session.add(check)
     check.verified_to = last_verified
     db.session.commit()
-    if start_from != last_verified:
-        print "Moved from", start_from, "to", last_verified
 
 @manager.command
 def verify_screenplays():
@@ -88,7 +85,7 @@ def migrate_screenplay(resource_id):
     latest_raw = ScriptData.get_latest_version(resource_id)
     latest_migrated = ResourceVersion.get_latest_version(resource_id)
     if latest_migrated and latest_raw.version == latest_migrated.version:
-        print "Already fully migrated:", resource_id
+        # "Already fully migrated:", resource_id
         return
     start_from = 1
     if latest_migrated:
