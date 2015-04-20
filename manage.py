@@ -63,9 +63,13 @@ def migrate_screenplay(resource_id):
     return True
 
 @manager.command
-def migrate_to_ops():
-    # resource_ids = UsersScripts.get_all_resource_ids()
+def migrate_to_ops(direction=None):
     resource_ids = get_resource_ids()
+    half = len(resource_ids) / 2
+    if direction == 'fore':
+        resource_ids = resource_ids[:half]
+    if direction == 'back':
+        resource_ids = resource_ids[::-1][:half]
     print "Screenplays to check", len(resource_ids)
     for i, resource_id in enumerate(resource_ids):
         if i % 200 == 0:
