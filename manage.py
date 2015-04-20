@@ -30,7 +30,8 @@ def get_resource_ids():
 @manager.command
 def thin_screenplays():
     # resource_ids = UsersScripts.get_all_resource_ids()
-    resource_ids = get_resource_ids()
+    checks = MigrationCheck.query.all()
+    resource_ids = [check.resource_id for check in checks]
     for n, resource_id in enumerate(resource_ids):
         ScriptData.thin_raw_data(resource_id)
         print "did screenplay:", n, resource_id
@@ -81,27 +82,23 @@ def verify_screenplays():
     print "Done"
 
 def migrate_screenplay(resource_id):
-    if ScriptData.has_duplicate_versions(resource_id, 1, 1000000):
-        print "ERROR: Some version issue, so skipping:", resource_id
-        return False
     if resource_id == 'Demo':
+        return False
+    if DuplicateScript.has_parent(resource_id):
+        #print "Error: not doing duplicate scripts now:", resource_id
         return False
     latest_raw = ScriptData.get_latest_version(resource_id)
     latest_migrated = ResourceVersion.get_latest_version(resource_id)
-    if latest_migrated and latest_raw.version == latest_migrated.version:
-        # "Already fully migrated:", resource_id
-        return False
     start_from = 1
     if latest_migrated:
-        start_from = latest_migrated.version + 1
-    else:
-        first_raw = ScriptData.query.filter_by(resource_id=resource_id). \
-                        order_by(db.asc('version')).first()
-        if first_raw.version != 1 and not DuplicateScript.has_parent(resource_id):
-            print 'ERROR: Skipping Screenplay has no first version, but not dup', resource_id
-            return False
-        start_from = first_raw.version
+        start_from = latest_migrated.version
     end_at = latest_raw.version
+    if ScriptData.has_duplicate_versions(resource_id, start_from, end_at):
+        print "ERROR: Has some duplicate version, so skipping:", resource_id
+        return False
+    if ScriptData.is_missing_versions(resource_id, start_from):
+        print "ERROR: Is missing version, so skipping:", resource_id
+        return False
     for version in range(start_from, end_at + 1):
         success = ScriptData.migrate_version(resource_id, version)
         if not success:
@@ -119,7 +116,7 @@ def migrate_to_ops():
             print "Starting", resource_id, 'screenplay number', i
         success = migrate_screenplay(resource_id)
         if success:
-            verify_screenplay(resource_id)
+            ScriptData.thin_raw_data(resource_id)
     print "Done"
 
 @manager.command

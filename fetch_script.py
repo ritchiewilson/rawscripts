@@ -20,7 +20,7 @@ URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
 PASSWORD = None
 IV = None
-MAX_LIMIT = 200
+MAX_LIMIT = 250
 LIMITS = [MAX_LIMIT, 100, 75, 50, 25]
 
 def _fetch(params):
@@ -296,7 +296,6 @@ def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_R
         if last_time is None:
             break
         START_TIME = last_time.isoformat()
-        time.sleep(0.1)
     print "Completed fetching", table
 
 

@@ -202,21 +202,14 @@ class ScriptData(db.Model):
 
     @staticmethod
     def thin_raw_data(resource_id):
-        check = MigrationCheck.query.filter_by(resource_id=resource_id).first()
-        if not check:
-            print "ERROR: no Migration Check, so skipping:", resource_id
-            return False
-        if ScriptData.has_duplicate_versions(resource_id, 1, 1000000):
-            print "ERROR: Some version issue, so skipping:", resource_id
-            return False
-        # don't delete first save if duplicated from another script
-        from_version = -1
-        dup = DuplicateScript.query.filter_by(new_script=resource_id).first()
-        if dup:
-            from_version = dup.from_version
+        if DuplicateScript.has_parent(resource_id):
             print "ERROR: Duplicate script, so skipping:", resource_id
             return False
-        last_version = check.verified_to
+        last_migration = ResourceVersion.get_latest_version(resource_id)
+        if not last_migration:
+            print "ERROR: Missing migration data. Why?:", resource_id
+            return False
+        last_version = last_migration.version
         data = ScriptData.query.filter_by(resource_id=resource_id). \
                    filter(ScriptData.version < last_version). \
                    with_entities(ScriptData.tag, ScriptData.export, ScriptData.version). \
@@ -224,12 +217,13 @@ class ScriptData(db.Model):
         versions_to_delete = []
         for d in data:
             if d.tag == '' and d.export == '[[],[]]' and d.version % 100 != 0:
-                if d.version != from_version + 1:
+                if d.version != 1:
                     versions_to_delete.append(d.version)
         if versions_to_delete:
             ScriptData.query.filter_by(resource_id=resource_id). \
                 filter(ScriptData.version.in_(versions_to_delete)). \
                 delete(synchronize_session=False)
+            print "DELETING", resource_id, len(versions_to_delete)
         db.session.commit()
         db.session.expire_all()
 
@@ -304,10 +298,19 @@ class ScriptData(db.Model):
                     filter(ScriptData.version >= start_from). \
                     filter(ScriptData.version <= end_at). \
                     order_by('version').with_entities(ScriptData.version).all()
-        for save in saves:
-            if save.version != start_from:
+        for save1, save2 in zip(saves, saves[1:]):
+            if save1.version == save2.version:
                 return True
-            start_from += 1
+        return False
+
+    @staticmethod
+    def is_missing_versions(resource_id, start_from):
+        saves = ScriptData.query.filter_by(resource_id=resource_id). \
+                    filter(ScriptData.version >= start_from). \
+                    order_by('version').with_entities(ScriptData.version).all()
+        for save1, save2 in zip(saves, saves[1:]):
+            if save1.version != save2.version + 1:
+                return True
         return False
 
     @staticmethod
