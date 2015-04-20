@@ -217,7 +217,7 @@ class ScriptData(db.Model):
                    all()
         versions_to_delete = []
         for d in data:
-            if d.tag == '' and d.export == '[[],[]]' and d.version % 250 != 0:
+            if d.tag == '' and d.export == '[[],[]]' and d.version % 100 != 0:
                 if d.version != from_version + 1:
                     versions_to_delete.append(d.version)
         if versions_to_delete:

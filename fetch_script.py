@@ -255,7 +255,7 @@ def fetch_all_title_page_data():
 
 def fetch_all_script_data():
     fetch_by_timestamps('ScriptData', ScriptData, 'timestamp',
-                        commit_script_data, USERS_PER_REQUEST=300)
+                        commit_script_data, USERS_PER_REQUEST=200)
 
 def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_REQUEST=40):
     global START_TIME

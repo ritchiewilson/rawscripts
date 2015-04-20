@@ -98,6 +98,7 @@ def migrate_screenplay(resource_id):
                         order_by(db.asc('version')).first()
         if first_raw.version != 1 and not DuplicateScript.has_parent(resource_id):
             print 'ERROR: Skipping Screenplay has no first version, but not dup', resource_id
+            return
         start_from = first_raw.version
     end_at = latest_raw.version
     for version in range(start_from, end_at + 1):
@@ -105,15 +106,18 @@ def migrate_screenplay(resource_id):
         if not success:
             print "Skipping", resource_id, version
             return
-    print "Migrated from version", start_from, "to", end_at
+    return start_from, end_at
 
 @manager.command
 def migrate_to_ops():
     # resource_ids = UsersScripts.get_all_resource_ids()
     resource_ids = get_resource_ids()
     print "Screenplays to check", len(resource_ids)
-    for resource_id in resource_ids:
+    for i, resource_id in enumerate(resource_ids):
+        if i % 200 == 0:
+            print "Starting", resource_id, 'screenplay number', i
         migrate_screenplay(resource_id)
+        verify_screenplay(resource_id)
     print "Done"
 
 @manager.command
