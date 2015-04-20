@@ -80,13 +80,16 @@ def verify_screenplays():
     print "Done"
 
 def migrate_screenplay(resource_id):
+    if ScriptData.has_duplicate_versions(resource_id, 1, 1000000):
+        print "ERROR: Some version issue, so skipping:", resource_id
+        return False
     if resource_id == 'Demo':
-        return
+        return False
     latest_raw = ScriptData.get_latest_version(resource_id)
     latest_migrated = ResourceVersion.get_latest_version(resource_id)
     if latest_migrated and latest_raw.version == latest_migrated.version:
         # "Already fully migrated:", resource_id
-        return
+        return False
     start_from = 1
     if latest_migrated:
         start_from = latest_migrated.version + 1
@@ -95,15 +98,15 @@ def migrate_screenplay(resource_id):
                         order_by(db.asc('version')).first()
         if first_raw.version != 1 and not DuplicateScript.has_parent(resource_id):
             print 'ERROR: Skipping Screenplay has no first version, but not dup', resource_id
-            return
+            return False
         start_from = first_raw.version
     end_at = latest_raw.version
     for version in range(start_from, end_at + 1):
         success = ScriptData.migrate_version(resource_id, version)
         if not success:
             print "Skipping", resource_id, version
-            return
-    return start_from, end_at
+            return False
+    return True
 
 @manager.command
 def migrate_to_ops():
@@ -113,8 +116,9 @@ def migrate_to_ops():
     for i, resource_id in enumerate(resource_ids):
         if i % 200 == 0:
             print "Starting", resource_id, 'screenplay number', i
-        migrate_screenplay(resource_id)
-        verify_screenplay(resource_id)
+        success = migrate_screenplay(resource_id)
+        if success:
+            verify_screenplay(resource_id)
     print "Done"
 
 @manager.command
