@@ -4,6 +4,7 @@ import base64
 import json
 import time
 import sys
+import zlib
 from datetime import datetime
 
 from flask.ext.script import Manager
@@ -29,8 +30,9 @@ def _fetch(params):
         raise Exception(text)
     ciphertext = base64.b64decode(r.text)
     obj = AES.new(PASSWORD, AES.MODE_CBC, IV)
-    plaintext = obj.decrypt(ciphertext)
-    return plaintext[plaintext.index('@') + 1:]
+    compressed = obj.decrypt(ciphertext)
+    compressed =  compressed[compressed.index('@') + 1:]
+    return zlib.decompress(compressed)
 
 def fetch(params):
     for limit in LIMITS:
@@ -294,7 +296,7 @@ def fetch_by_timestamps(table, model, timestamp_field, parsing_func, USERS_PER_R
         if last_time is None:
             break
         START_TIME = last_time.isoformat()
-        time.sleep(0.25)
+        time.sleep(0.1)
     print "Completed fetching", table
 
 

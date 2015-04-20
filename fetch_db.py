@@ -61,7 +61,7 @@ class FetchDB(webapp.RequestHandler):
             return
 
         table = self.request.get('table')
-        output = unicode('@')
+        output = unicode('')
         if table == "Users":
             output += self.fetch_by_timestamps('firstUse', models.Users,
                                                self.user_to_string, do_json=True)
@@ -96,6 +96,8 @@ class FetchDB(webapp.RequestHandler):
             output += self.fetch_by_timestamps('timeshared', models.ShareNotify,
                                                self.share_notify_to_string, do_json=True)
 
+        import zlib
+        output = '@' + zlib.compress(output)
         diff = 16 - (len(output) % 16)
         output = ('!' * diff) + output
         obj = AES.new(password, AES.MODE_CBC, iv)

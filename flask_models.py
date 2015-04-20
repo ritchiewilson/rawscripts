@@ -204,12 +204,18 @@ class ScriptData(db.Model):
     def thin_raw_data(resource_id):
         check = MigrationCheck.query.filter_by(resource_id=resource_id).first()
         if not check:
-            return
+            print "ERROR: no Migration Check, so skipping:", resource_id
+            return False
+        if ScriptData.has_duplicate_versions(resource_id, 1, 1000000):
+            print "ERROR: Some version issue, so skipping:", resource_id
+            return False
         # don't delete first save if duplicated from another script
         from_version = -1
         dup = DuplicateScript.query.filter_by(new_script=resource_id).first()
         if dup:
             from_version = dup.from_version
+            print "ERROR: Duplicate script, so skipping:", resource_id
+            return False
         last_version = check.verified_to
         data = ScriptData.query.filter_by(resource_id=resource_id). \
                    filter(ScriptData.version < last_version). \
