@@ -19,8 +19,9 @@ URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
 PASSWORD = None
 IV = None
+LIMITS = [100, 75, 50, 25]
 
-def fetch(params):
+def _fetch(params):
     r = requests.get(URL, params=params)
     text = r.text
     if text.startswith('Missing'):
@@ -30,6 +31,16 @@ def fetch(params):
     plaintext = obj.decrypt(ciphertext)
     return plaintext[plaintext.index('@') + 1:]
 
+def fetch(params):
+    for limit in LIMITS:
+        try:
+            params['limit'] = limit
+            data = _fetch(params)
+            print 'Limit worked:', limit
+            return data
+        except:
+            pass
+    raise Exception('WTF? Oh, no limits worked')
 
 def commit_users(data, session):
     last_time = None
