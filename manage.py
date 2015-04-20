@@ -13,6 +13,10 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 def get_resource_ids():
+    rows = ScriptData.query.with_entities(ScriptData.resource_id). \
+           distinct().all()
+    rows = [row.resource_id for row in rows]
+    return rows
     # resource_ids = UsersScripts.get_all_resource_ids()
     current = datetime.utcnow()
     days_ago = current.replace(day=1)
@@ -93,11 +97,14 @@ def migrate_screenplay(resource_id):
         first_raw = ScriptData.query.filter_by(resource_id=resource_id). \
                         order_by(db.asc('version')).first()
         if first_raw.version != 1 and not DuplicateScript.has_parent(resource_id):
-            raise Exception('Screenplay has no first version, but not dup', resource_id)
+            print 'ERROR: Skipping Screenplay has no first version, but not dup', resource_id
         start_from = first_raw.version
     end_at = latest_raw.version
     for version in range(start_from, end_at + 1):
-        ScriptData.migrate_version(resource_id, version)
+        success = ScriptData.migrate_version(resource_id, version)
+        if not success:
+            print "Skipping", resource_id, version
+            return
     print "Migrated from version", start_from, "to", end_at
 
 @manager.command
@@ -210,7 +217,7 @@ def _delete_duplicate_versions(resource_id, version):
 
 @manager.command
 def delete_duplicate_versions():
-    resource_id= 'jQf0siJBempEUZyk3Flz'
+    resource_id= 'Z8G5m0uFo1yC9aS62Oir'
     saves = ScriptData.query.filter_by(resource_id=resource_id). \
                 order_by('version').with_entities(ScriptData.version).all()
     prev_version = None

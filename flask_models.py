@@ -310,15 +310,15 @@ class ScriptData(db.Model):
         exists = ResourceVersion.query. \
                      filter_by(resource_id=resource_id, version=version).first()
         if exists:
-            return
+            return True
         this_version = ScriptData.query.filter_by(resource_id=resource_id,
                                                   version=version).all()
         if len(this_version) == 0:
-            raise Exception('No saved raw data for this version:',
-                            resource_id, version)
+            print 'ERROR: No saved raw data for this version:', resource_id, version
+            return False
         if len(this_version) > 1:
-            raise Exception('Multiple saved raw data for this version:',
-                            resource_id, version)
+            print 'ERROR: Multiple saved raw data for this version:', resource_id, version
+            return False
         this_version = this_version[0]
         rv = ResourceVersion(resource_id=resource_id,
                              version=version,
@@ -345,6 +345,7 @@ class ScriptData(db.Model):
         ScriptData.save_tags(this_version, rv)
         db.session.add(rv)
         db.session.commit()
+        return True
 
     @staticmethod
     def save_tags(snapshot, resource_version):
