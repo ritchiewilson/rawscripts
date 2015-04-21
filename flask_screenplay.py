@@ -42,7 +42,7 @@ def email_screenplay():
 
     # Build email body and html
     body = body_message + "\n\n\n    	"
-    body += "--- This Script written and sent from RawScripts.com."
+    body += "--- This screenplay written and sent from RawScripts.com."
     body += " Check it out---"
     with app.open_resource('static/text/email.txt') as f:
         html_template = f.read()

@@ -57,6 +57,7 @@ import flask_screenplay
 import flask_convert
 import flask_notes
 import flask_titlepage
+import flask_sharing
 
 @app.context_processor
 def inject_config():

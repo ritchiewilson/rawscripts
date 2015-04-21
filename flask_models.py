@@ -102,6 +102,24 @@ class Screenplay:
                           encode("ascii", "ignore")
         return output, ascii_title, content_type
 
+    @staticmethod
+    def add_access(resource_id, collaborators):
+        # uniquify list
+        collaborators = set([c.lower() for c in collaborators if c != ''])
+        existing_rows = UsersScripts.get_all_by_resource_id(resource_id)
+        existing_collaborators = set([row.user.lower() for row in existing_rows])
+        new_collaborators = list(collaborators - existing_collaborators)
+
+        title = Screenplay.get_title(resource_id)
+        for collaborator in new_collaborators:
+            obj = UsersScripts(resource_id=resource_id, permission='collab',
+                               user=collaborator, title=title)
+            db.session.add(obj)
+            notify = ShareNotify(user=collaborator, resource_id=resource_id)
+            db.session.add(notify)
+        db.session.commit()
+        return new_collaborators
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -493,9 +511,9 @@ class UsersScripts(db.Model):
     user = db.Column(db.String)
     resource_id = db.Column(db.String)
     title = db.Column(db.String)
-    last_updated = db.Column(db.DateTime)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
     permission = db.Column(db.String)
-    folder = db.Column(db.String)
+    folder = db.Column(db.String, default='?none?')
 
     __table_args__= (db.Index('ix_users_scripts_resource_id_updated',
                            'resource_id', db.desc('last_updated')),)
@@ -503,6 +521,10 @@ class UsersScripts(db.Model):
     @staticmethod
     def get_by_resource_id(resource_id):
         return UsersScripts.query.filter_by(resource_id=resource_id).first()
+
+    @staticmethod
+    def get_all_by_resource_id(resource_id):
+        return UsersScripts.query.filter_by(resource_id=resource_id).all()
 
     @staticmethod
     def get_all_resource_ids():
@@ -727,8 +749,8 @@ class ShareNotify(db.Model):
     user = db.Column(db.String, nullable=False)
     resource_id = db.Column(db.String, nullable=False)
     timeshared = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    timeopened = db.Column(db.DateTime)
-    opened = db.Column(db.Boolean)
+    timeopened = db.Column(db.DateTime, default=datetime.utcnow)
+    opened = db.Column(db.Boolean, default=False)
 
     __table_args__= (db.Index('ix_share_notify_resource_id', 'resource_id'),
                      db.Index('ix_share_notify_user', 'user'))
