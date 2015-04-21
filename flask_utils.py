@@ -16,7 +16,7 @@ def get_current_user_email_with_default():
         user = current_user.name
     return user
 
-def resource_access(allow_collab=False):
+def resource_access(allow_collab=False, string_response=None):
     def decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
@@ -28,7 +28,10 @@ def resource_access(allow_collab=False):
                 resource_id = request.args.get('resource_id', None)
             user = current_user.email
             permission = Screenplay.get_users_permission(resource_id, user)
-            if permission is None or (permission == 'collab' and allow_collab is False):
+            allowable_permissions = ['owner']
+            if allow_collab:
+                allowable_permissions.append('collab')
+            if permission is None or permission not in allowable_permissions:
                 return abort(403)
             return func(*args, **kwargs)
         return decorated_function

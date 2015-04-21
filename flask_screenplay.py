@@ -21,7 +21,7 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay, UsersScripts
-
+from flask_utils import resource_access
 
 @app.route('/newscript', methods=['POST'])
 @login_required
@@ -33,6 +33,7 @@ def new_screenplay():
 
 @app.route('/emailscript', methods=['POST'])
 @login_required
+@resource_access(allow_collab=True)
 def email_screenplay():
     resource_id = request.form['resource_id']
     title_page = request.form['title_page']
@@ -61,6 +62,7 @@ def email_screenplay():
 
 @app.route('/rename', methods=['POST'])
 @login_required
+@resource_access()
 def rename_screenplay():
     resource_id = request.form['resource_id']
     rename = request.form['rename']
@@ -80,6 +82,7 @@ def switch_deletion_permissions(switches):
 
 @app.route('/delete', methods=['POST'])
 @login_required
+@resource_access()
 def delete_screenplay():
     switches = {'owner': 'ownerDeleted',
                 'collab': 'collabDeletedByOwner'}
@@ -88,6 +91,7 @@ def delete_screenplay():
 
 @app.route('/undelete', methods=['POST'])
 @login_required
+@resource_access()
 def undelete_screenplay():
     switches = {'ownerDeleted': 'owner',
                 'collabDeletedByOwner': 'collab'}
@@ -96,6 +100,7 @@ def undelete_screenplay():
 
 @app.route('/harddelete', methods=['POST'])
 @login_required
+@resource_access()
 def hard_delete_screenplay():
     resource_id = request.form['resource_id']
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
@@ -106,6 +111,7 @@ def hard_delete_screenplay():
 
 @app.route('/duplicate', methods=['POST'])
 @login_required
+@resource_access()
 def duplicate_screenplay():
     resource_id = request.form['resource_id']
     version = Screenplay.get_latest_version_number(resource_id)
@@ -115,6 +121,7 @@ def duplicate_screenplay():
 
 @app.route('/revisionduplicate', methods=['POST'])
 @login_required
+@resource_access()
 def revisionduplicate_screenplay():
     resource_id = request.form['resource_id']
     version = int(request.form['version'])
