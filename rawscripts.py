@@ -19,15 +19,6 @@ import os
 import sys
 from urlparse import urlparse
 
-app_settings = os.environ['APP_SETTINGS']
-init_script = sys.argv[0]
-if init_script == 'runserver.py':
-    if app_settings == 'flask_config.MigrationConfig':
-        raise Exception("Wait, make sure you're using the right environment")
-if init_script in ['manage.py', 'fetch_script.py']:
-    if app_settings[13:-6] not in ['Migration', 'Staging']:
-        raise Exception("Wait, make sure you're using the right environment")
-
 from flask import Flask, render_template, send_from_directory, request, redirect, url_for, Response
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
