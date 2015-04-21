@@ -134,68 +134,6 @@ function init(){
 	}
 	catch(e){};
 
-    verifyEmailPrompt();
-}
-
-function verifyEmailPrompt(){
-    var popup = goog.dom.getElement('verifyemailpopup');
-    if (popup == null)
-        return
-	popup.style.visibility = 'visible';
-    var elem = goog.dom.getElement('user');
-    var email = goog.dom.getTextContent(elem);
-    var reg = /^[a-zA-Z0-9\.]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$/;
-    if (! reg.test(email))
-        email = '';
-	goog.dom.getElement('verify-email-input').value = email;
-	goog.dom.getElement('verify-email-input').focus();
-}
-
-function verifyEmailRemindLater(){
-    alert("Please verify your email address by April 15th.\n\nIf you do not, you may have trouble accessing your work!");
-    goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
-}
-
-function verifyEmailSubmit(){
-    var email = goog.dom.getElement('verify-email-input').value;
-	if (email == ''){
-        return;
-    }
-    var submit_button = goog.dom.getElement('verify-email-submit');
-	submit_button.disabled = true;
-	submit_button.value = "Sending...";
-	goog.dom.getElement('verifyEmailSpinner').style.visibility="visible";
-	goog.net.XhrIo.send('/verify-email',
-                        verifyEmailSubmissionResponse,
-                        'POST',
-			            'email='+encodeURIComponent(email)
-    );
-}
-
-function verifyEmailSubmissionResponse(response){
-    var status = response.target.getResponseText();
-    if (status == 'invalid-email-address'){
-        alert("Please enter a valid email address.")
-        var submit_button = goog.dom.getElement('verify-email-submit');
-	    submit_button.disabled = false;
-	    submit_button.value = "Verify";
-	    goog.dom.getElement('verifyEmailSpinner').style.visibility="hidden";
-        return;
-    }
-    var msg = '';
-    if (status == 'verified'){
-        msg += "Your email address has already been verified.\n\n";
-        msg += "If you continue to see message, you can report the problem to ";
-        msg += "contact@rawscripts.com";
-    }
-    else if (status == 'sent'){
-        msg = "Thanks!\n\n Please check your email for the confirmation link!"
-    }
-    else {
-        msg = "There was some problem in verifying your account. Please try again later.";
-    }
-    alert(msg);
-    goog.dom.removeNode(goog.dom.getElement('verifyemailpopup'));
 }
 
 /**
