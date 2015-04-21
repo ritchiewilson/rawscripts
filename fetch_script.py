@@ -20,7 +20,7 @@ URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
 PASSWORD = None
 IV = None
-MAX_LIMIT = 250
+MAX_LIMIT = 400
 LIMITS = [MAX_LIMIT, 100, 75, 50, 25]
 
 def _fetch(params):
