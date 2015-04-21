@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, get_flas
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, Folder, UnreadNote
+from flask_models import UsersScripts, Folder, UnreadNote, ShareNotify
 
 
 @app.route('/scriptlist')
@@ -49,7 +49,7 @@ def format_time(time):
 @app.route('/list', methods=['POST'])
 @login_required
 def list():
-    user = current_user.name
+    user = current_user.email
     screenplays = UsersScripts.query.filter_by(user=user). \
                       order_by(UsersScripts.last_updated.desc()).all()
 
@@ -74,6 +74,8 @@ def list():
             unread_notes[r_id] = 0
         unread_notes[r_id] += 1
 
+    share_notifications = ShareNotify.get_by_email(user)
+    unopened_screenplays = set([n.resource_id for n in share_notifications if not n.opened])
     owned = []
     shared = []
     ownedDeleted = []
@@ -95,8 +97,8 @@ def list():
         data.append(screenplay.folder)
 
         if screenplay.permission == 'collab':
-            # unopened
-            data.append("False")
+            unopened = resource_id in unopened_screenplays
+            data.append(str(unopened))
 
         if screenplay.permission == 'owner':
             owned.append(data)

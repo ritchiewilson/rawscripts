@@ -754,3 +754,7 @@ class ShareNotify(db.Model):
 
     __table_args__= (db.Index('ix_share_notify_resource_id', 'resource_id'),
                      db.Index('ix_share_notify_user', 'user'))
+
+    @staticmethod
+    def get_by_email(email):
+        return ShareNotify.query.filter_by(user=email).all()
