@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData, Screenplay, Note, UnreadNote
+from flask_models import UsersScripts, ScriptData, Screenplay, Note, UnreadNote, ShareNotify
 from flask_utils import get_current_user_email_with_default
 
 
@@ -36,6 +36,13 @@ def editor():
     permission = UsersScripts.get_users_permission(resource_id, user_email)
     if permission is None and resource_id != 'Demo':
         return redirect(url_for('scriptlist'))
+
+    notification = ShareNotify.query. \
+                       filter_by(resource_id=resource_id, user=user_email).first()
+    if notification:
+        notification.opened = True
+        notification.timeopened = datetime.utcnow()
+        db.session.commit()
 
     EOV = 'editor' if permission == 'owner' else 'viewer'
     sign_out = '/user/sign-out'
