@@ -37,8 +37,6 @@ except:
 
 class FetchPass(webapp.RequestHandler):
     def get(self):
-        if not users.is_current_user_admin():
-            return
         chars = string.uppercase + string.lowercase + string.digits
         def get_random_chars(n):
             return ''.join([random.choice(chars) for x in range(n)])

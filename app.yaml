@@ -16,7 +16,7 @@
 
 
 application: rawscripts-hrd
-version: 5
+version: 6
 runtime: python27
 threadsafe: no
 api_version: 1
@@ -33,8 +33,14 @@ builtins:
 - appstats: on
 
 handlers:
-- url: /
-  script: nologin.py
+- url: /fetchdb
+  script: fetch_db.py
+
+- url: /fetchpass
+  script: fetch_db.py
+
+- url: /.*
+  script: rawscripts_redirect.py
 
 - url: /_ah/login_required
   script: nologin.py
@@ -164,13 +170,6 @@ handlers:
 
 - url: /tos
   script: nologin.py
-
-- url: /fetchdb
-  script: fetch_db.py
-
-- url: /fetchpass
-  login: required
-  script: fetch_db.py
 
 - url: /.*folder.*
   login: required
