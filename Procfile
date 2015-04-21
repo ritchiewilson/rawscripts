@@ -1,1 +1,1 @@
-web: gunicorn -w 5 index:app
+web: gunicorn -w 5 rawscripts:app
