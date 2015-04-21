@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from flask import request, Response
+from flask import request, Response, url_for
 from flask_mail import Message
 from flask_user import login_required, current_user
 
@@ -36,7 +36,7 @@ def share_screenplay():
         title = Screenplay.get_title(resource_id)
 
         # build email body and html
-        script_url = app.config['SERVER_NAME'] + "/editor?resource_id=" + resource_id
+        script_url = url_for('editor', _external=True, resource_id=resource_id)
         body = script_url + "\n\n\n    	"
         body += "--- This screenplay written and sent from RawScripts.com."
         divArea = ''
@@ -51,7 +51,7 @@ def share_screenplay():
         with app.open_resource('static/text/notify.txt') as f:
             html = f.read()
         for key, val in replacements.items():
-            html.replace(key, val)
+            html = html.replace(key, val)
 
         msg = Message(subject, recipients=new_collaborators, body=body, html=html)
         mail.send(msg)
