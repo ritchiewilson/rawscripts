@@ -15,7 +15,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 class RawscriptsRedirect(webapp.RequestHandler):
     def get(self):
-        self.redirect("https://www2.rawscripts.com")
+        self.redirect("http://104.131.39.236")
         return
 
     def post(self):
