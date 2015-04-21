@@ -19,10 +19,12 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app
 from flask_models import UsersScripts, ScriptData, Screenplay
+from flask_utils import resource_access
 
 
 @app.route('/export', methods=['GET'])
 @login_required
+@resource_access(allow_collab=True)
 def export_screenplay():
     user = current_user.name
     resource_id = request.args.get('resource_id')

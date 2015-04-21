@@ -131,6 +131,12 @@ class Screenplay:
         db.session.commit()
         return True
 
+    @staticmethod
+    def get_users_permission(resource_id, user):
+        if resource_id is None:
+            return None
+        return UsersScripts.get_users_permission(resource_id, user)
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
