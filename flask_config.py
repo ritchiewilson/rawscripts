@@ -5,6 +5,7 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = 'this-really-needs-to-be-changed'
+    SERVER_NAME = os.getenv('SERVER_NAME', '')
     MAIL_DEFAULT_SENDER = 'test@example.com'
 
     USER_AFTER_LOGOUT_ENDPOINT = ''
