@@ -14,15 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-from datetime import datetime
 
-from flask import render_template, request, jsonify, redirect, url_for, Response
+from flask import request, Response
+from flask_mail import Message
 from flask_user import login_required, current_user
 
-from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData, Screenplay, Note, UnreadNote
-from flask_utils import get_current_user_email_with_default
+from rawscripts import db, app, mail
+from flask_models import Screenplay
 
 
 @app.route('/share', methods=['POST'])
@@ -51,10 +49,21 @@ def share_screenplay():
             'SCRIPTTITLE': title, 'USER': user,
             'SCRIPTURL': script_url, 'TEXTAREA': divArea}
         with app.open_resource('static/text/notify.txt') as f:
-            html_template = f.read()
+            html = f.read()
         for key, val in replacements.items():
-            html_template.replace(key, val)
+            html.replace(key, val)
+
+        msg = Message(subject, recipients=new_collaborators, body=body, html=html)
+        mail.send(msg)
 
         # TODO: send the danged email
     output = ",".join(new_collaborators)
     return Response(output, mimetype='text/plain')
+
+@app.route('/removeaccess', methods=['POST'])
+@login_required
+def remove_access_to_screenplay():
+    resource_id = request.form['resource_id']
+    collaborator = request.form['removePerson'].lower()
+    Screenplay.remove_access(resource_id, collaborator)
+    return Response(collaborator, mimetype='text/plain')

@@ -120,6 +120,17 @@ class Screenplay:
         db.session.commit()
         return new_collaborators
 
+    @staticmethod
+    def remove_access(resource_id, collaborator):
+        row = UsersScripts.get_by_resource_id(resource_id, user=collaborator)
+        if not row or row.permission != 'collab':
+            return False
+        db.session.delete(row)
+        UnreadNote.query.filter_by(resource_id=resource_id, user=collaborator).delete()
+        ShareNotify.query.filter_by(resource_id=resource_id, user=collaborator).delete()
+        db.session.commit()
+        return True
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -519,8 +530,11 @@ class UsersScripts(db.Model):
                            'resource_id', db.desc('last_updated')),)
 
     @staticmethod
-    def get_by_resource_id(resource_id):
-        return UsersScripts.query.filter_by(resource_id=resource_id).first()
+    def get_by_resource_id(resource_id, user=None):
+        query = UsersScripts.query.filter_by(resource_id=resource_id)
+        if user is not None:
+            query = query.filter_by(user=user)
+        return query.first()
 
     @staticmethod
     def get_all_by_resource_id(resource_id):
