@@ -23,7 +23,7 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay, Note, UnreadNote, UsersScripts
-from flask_utils import get_current_user_email_with_default
+from flask_utils import get_current_user_email_with_default, resource_access
 
 
 def new_note_notification(resource_id, from_user, thread_id, msg_id):
@@ -38,6 +38,7 @@ def new_note_notification(resource_id, from_user, thread_id, msg_id):
     db.session.commit()
 
 @app.route('/notesnewthread', methods=['POST'])
+@resource_access(allow_collab=True)
 def notes_new_thread():
     resource_id = request.form['resource_id']
     row = int(request.form['row'])
@@ -61,6 +62,7 @@ def notes_new_thread():
     return Response(dump, mimetype='text/plain')
 
 @app.route('/notessubmitmessage', methods=['POST'])
+@resource_access(allow_collab=True)
 def notes_submit_message():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
@@ -94,6 +96,7 @@ def notes_submit_message():
     return Response(output, mimetype='text/plain')
 
 @app.route('/notesposition', methods=['POST'])
+@resource_access()
 def notes_position():
     resource_id = request.form['resource_id']
     positions = request.form['positions']
@@ -108,6 +111,7 @@ def notes_position():
 
 @app.route('/notesdeletethread', methods=['POST'])
 @login_required
+@resource_access()
 def notes_delete_thread():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
@@ -121,6 +125,7 @@ def notes_delete_thread():
 
 @app.route('/notesdeletemessage', methods=['POST'])
 @login_required
+@resource_access(allow_collab=True)
 def notes_delete_message():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
@@ -159,6 +164,7 @@ def notes_delete_message():
 
 @app.route('/notesview')
 @login_required
+@resource_access(allow_collab=True)
 def notes_view():
     resource_id = request.args.get('resource_id')
     title = Screenplay.get_title(resource_id)
@@ -172,6 +178,7 @@ def notes_view():
 
 @app.route('/notesmarkasread', methods=['POST'])
 @login_required
+@resource_access(allow_collab=True)
 def notes_mark_as_read():
     resource_id = request.form['resource_id']
     thread_id = request.form['thread_id']
