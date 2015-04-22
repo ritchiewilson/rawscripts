@@ -56,3 +56,21 @@ def change_folder():
         screenplay.folder = folder_id
     db.session.commit()
     return Response('1', mimetype='text/plain')
+
+@app.route('/deletefolder', methods=['POST'])
+@login_required
+def delete_folder():
+    folder_id = request.form.get('folder_id', None)
+    if folder_id is None:
+        return Response('0', mimetype='text/plain')
+    user = current_user.email
+    screenplays = UsersScripts.query.filter_by(user=user, permission='owner',
+                                               folder=folder_id).all()
+    for screenplay in screenplays:
+        screenplay.folder = '?none?'
+    row = Folder.get_by_user(user)
+    folders = json.loads(row.data)
+    arr = [f for f in folders if f[1] != folder_id]
+    row.data = json.dumps(arr)
+    db.session.commit()
+    return Response('1', mimetype='text/plain')
