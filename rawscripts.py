@@ -87,6 +87,10 @@ def css_min_redirect(css_file):
 def images_redirect(img_file):
     return send_from_directory('static/images', img_file)
 
+@app.route('/images/blog/<img_file>')
+def blog_images_redirect(img_file):
+    return send_from_directory('static/images/blog', img_file)
+
 @app.route('/js/min/<js_file>')
 def js_redirect(js_file):
     return send_from_directory('static/js/min', js_file)
