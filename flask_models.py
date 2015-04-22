@@ -612,6 +612,10 @@ class Folder(db.Model):
     data = db.Column(db.String)
     __key__ = db.Column(db.String)
 
+    @staticmethod
+    def get_by_user(user):
+        return Folder.query.filter_by(user=user).first()
+
 class Blog(db.Model):
     __tablename__ = "blog"
 
