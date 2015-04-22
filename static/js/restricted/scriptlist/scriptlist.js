@@ -25,8 +25,6 @@
  */
 window['removeAccess'] = removeAccess;
 window['haveToUndelete'] = haveToUndelete;
-window['verifyEmailRemindLater'] = verifyEmailRemindLater;
-window['verifyEmailSubmit'] = verifyEmailSubmit;
 window['sharePrompt'] = sharePrompt;
 window['init'] = init;
 window['hideEmailPrompt'] = hideEmailPrompt;
