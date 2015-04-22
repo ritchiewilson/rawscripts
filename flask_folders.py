@@ -74,3 +74,20 @@ def delete_folder():
     row.data = json.dumps(arr)
     db.session.commit()
     return Response('1', mimetype='text/plain')
+
+@app.route('/renamefolder', methods=['POST'])
+@login_required
+def rename_folder():
+    folder_name = request.form.get('folder_name', None)
+    folder_id = request.form.get('folder_id', None)
+    if folder_name is None or folder_id is None:
+        return Response('0', mimetype='text/plain')
+    user = current_user.email
+    row = Folder.get_by_user(user)
+    folders = json.loads(row.data)
+    for folder in folders:
+        if folder[1] == folder_id:
+            folder[0] = folder_name
+    row.data = json.dumps(folders)
+    db.session.commit()
+    return Response('1', mimetype='text/plain')
