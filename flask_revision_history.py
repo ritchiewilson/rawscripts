@@ -23,10 +23,12 @@ from lxml import etree
 
 from rawscripts import db, app
 from flask_models import ResourceVersion, UsersScripts, DuplicateScript, ScriptData
+from flask_utils import resource_access
 
 
 @app.route('/revisionhistory')
 @login_required
+@resource_access()
 def revision_history():
     user = current_user.name
     resource_id = request.args.get('resource_id')
@@ -50,6 +52,7 @@ def revision_history():
 
 @app.route('/revisionlist', methods=['POST'])
 @login_required
+@resource_access()
 def revision_list():
     resource_id = request.form['resource_id']
     past_ids = []
@@ -107,6 +110,7 @@ def compare_versions():
 
 @app.route('/revisionget', methods=['POST'])
 @login_required
+@resource_access()
 def get_version_html():
     resource_id = request.form['resource_id']
     version = request.form['version']
