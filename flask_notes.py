@@ -43,7 +43,7 @@ def notes_new_thread():
     resource_id = request.form['resource_id']
     row = int(request.form['row'])
     col = int(request.form['col'])
-    thread_id = request.form['thread_id']
+    thread_id = str(request.form['thread_id'])
     content = request.form['content']
     msg_id = str(datetime.utcnow())
     user = get_current_user_email_with_default()
@@ -65,7 +65,7 @@ def notes_new_thread():
 @resource_access(allow_collab=True)
 def notes_submit_message():
     resource_id = request.form['resource_id']
-    thread_id = request.form['thread_id']
+    thread_id = str(request.form['thread_id'])
     content = request.form['content']
     msg_id = request.form['msg_id'] # only if this edits a previous message
     user = get_current_user_email_with_default()
@@ -114,7 +114,7 @@ def notes_position():
 @resource_access()
 def notes_delete_thread():
     resource_id = request.form['resource_id']
-    thread_id = request.form['thread_id']
+    thread_id = str(request.form['thread_id'])
     thread = Note.get_by_thread_id(thread_id)
     db.session.delete(thread)
     unread_notes = UnreadNote.query.filter_by(thread_id=thread_id).all()
@@ -128,7 +128,7 @@ def notes_delete_thread():
 @resource_access(allow_collab=True)
 def notes_delete_message():
     resource_id = request.form['resource_id']
-    thread_id = request.form['thread_id']
+    thread_id = str(request.form['thread_id'])
     # TODO: fix inconsistant field name
     msg_id = request.form['msgId']
     user = current_user.name
@@ -181,7 +181,7 @@ def notes_view():
 @resource_access(allow_collab=True)
 def notes_mark_as_read():
     resource_id = request.form['resource_id']
-    thread_id = request.form['thread_id']
+    thread_id = str(request.form['thread_id'])
     msg_id = request.form['msg_id']
     user = current_user.name
     # TODO: I think javascript is double calling this endpoint each time
