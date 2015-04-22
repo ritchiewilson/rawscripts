@@ -20,7 +20,7 @@ from flask import request, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import Screenplay, Folder
+from flask_models import Screenplay, Folder, UsersScripts
 
 
 @app.route('/newfolder', methods=['POST'])
@@ -38,5 +38,21 @@ def new_folder():
     J = json.loads(folder.data)
     J.append([folder_name, folder_id])
     folder.data = json.dumps(J)
+    db.session.commit()
+    return Response('1', mimetype='text/plain')
+
+@app.route('/changefolder', methods=['POST'])
+@login_required
+def change_folder():
+    resource_ids = request.form.get('resource_id', None)
+    folder_id = request.form.get('folder_id', None)
+    if resource_ids is None or folder_id is None:
+        return Response('0', mimetype='text/plain')
+    user = current_user.email
+    resource_ids = resource_ids.split(',')
+    screenplays = UsersScripts.query.filter_by(user=user, permission='owner'). \
+                      filter(UsersScripts.resource_id.in_(resource_ids)).all()
+    for screenplay in screenplays:
+        screenplay.folder = folder_id
     db.session.commit()
     return Response('1', mimetype='text/plain')
