@@ -36,7 +36,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///rawscripts.db'
     SERVER_NAME = 'localhost:5000'
-    TESTING = True
+    # TESTING = True
 
 
 class MigrationConfig(DevelopmentConfig):
