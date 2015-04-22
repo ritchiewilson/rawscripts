@@ -20,7 +20,7 @@ URL = 'http://www.rawscripts.com/fetchdb'
 START_TIME = None
 PASSWORD = None
 IV = None
-MAX_LIMIT = 400
+MAX_LIMIT = 500
 LIMITS = [MAX_LIMIT, 100, 75, 50, 25]
 
 def _fetch(params):
@@ -255,9 +255,7 @@ def fetch_all_title_page_data():
     print "Fetching Title Pages"
     params = {'table': 'TitlePageData'}
     data = fetch(params)
-    print 'Fetched, no loading json'
     rows = json.loads(data)
-    print 'Saving titlepages'
     for row in rows:
         obj = TitlePageData.get_by_resource_id(row['resource_id'])
         if obj:
