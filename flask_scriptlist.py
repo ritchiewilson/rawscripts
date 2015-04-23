@@ -54,9 +54,11 @@ def list():
                       order_by(UsersScripts.last_updated.desc()).all()
 
     # One query for all the collaborators and owner information
-    resource_ids = (screenplay.resource_id for screenplay in screenplays)
-    shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
-                             filter(UsersScripts.resource_id.in_(resource_ids)).all()
+    resource_ids = [screenplay.resource_id for screenplay in screenplays]
+    shared_screenplays = []
+    if resource_ids:
+        shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
+                                 filter(UsersScripts.resource_id.in_(resource_ids)).all()
     share_data = {}
     for s in shared_screenplays:
         if s.resource_id not in share_data:
