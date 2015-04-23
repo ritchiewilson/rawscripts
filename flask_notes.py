@@ -102,6 +102,7 @@ def notes_position():
     positions = request.form['positions']
     now = datetime.utcnow()
     for row, col, thread_id in json.loads(positions):
+        thread_id = str(thread_id)
         thread = Note.get_by_thread_id(thread_id)
         thread.row = row
         thread.col = col
