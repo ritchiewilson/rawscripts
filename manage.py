@@ -109,9 +109,9 @@ def _delete_duplicate_versions(resource_id, version):
         obj = second
     else:
         obj = first
-    print 'WILL DELETE:', obj.id, obj.resource_id, obj.version
-    # db.session.delete(obj)
-    # db.session.commit()
+    print 'DELETING:', obj.id, obj.resource_id, obj.version
+    db.session.delete(obj)
+    db.session.commit()
     return True
 
 def get_all_duplicate_script_data_versions():
