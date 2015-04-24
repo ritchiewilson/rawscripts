@@ -84,15 +84,20 @@ def _delete_duplicate_versions(resource_id, version):
     saves = ScriptData.query. \
                 filter_by(resource_id=resource_id,version=version).all()
     if len(saves) != 2:
-        raise Exception('There were not two saves for', resource_id, "version", version)
+        print 'SKIPPING: There were not two saves for', resource_id, "version", version
+        return False
     first, second = saves
     if first.data != second.data:
-        raise Exception("Multiple saves but different data:", resource_id, version)
+        print "SKIPPING: Multiple saves but different data:", resource_id, version
+        return False
     if first.tag != '' or second.tag != '':
-        raise Exception("Multiple saves but they haves tags:", resource_id, version)
-    if first.export != '[[],[]]' or second.export != '[[],[]]':
-        raise Exception("Multiple saves but they have exports:", resource_id, version)
-
+        print "SKIPPING: Multiple saves but they haves tags:", resource_id, version
+        return False
+    def has_export(string):
+        return json.loads(string) != [[],[]]
+    if has_export(first.export) or has_export(second.export):
+        print "SKIPPING: Multiple saves but they have exports:", resource_id, version
+        return False
     obj = None
     if not first.autosave and not second.autosave:
         obj = first if first.timestamp > second.timestamp else second
@@ -104,23 +109,31 @@ def _delete_duplicate_versions(resource_id, version):
         obj = second
     else:
         obj = first
-    db.session.delete(obj)
-    db.session.commit()
-    print "Deleted:", resource_id, "version:", version
+    print 'WILL DELETE:', obj.id, obj.resource_id, obj.version
+    # db.session.delete(obj)
+    # db.session.commit()
+    return True
+
+def get_all_duplicate_script_data_versions():
+    query = ScriptData.query.with_entities(ScriptData.resource_id, ScriptData.version). \
+                group_by(ScriptData.resource_id, ScriptData.version).having(db.func.count() > 1)
+    output = {}
+    for row in query.all():
+        if row.resource_id not in output:
+            output[row.resource_id] = []
+        output[row.resource_id].append(row.version)
+    return output
 
 @manager.command
 def delete_duplicate_versions():
-    resource_id= 'Z8G5m0uFo1yC9aS62Oir'
-    saves = ScriptData.query.filter_by(resource_id=resource_id). \
-                order_by('version').with_entities(ScriptData.version).all()
-    prev_version = None
-    for save in saves:
-        if prev_version is None:
-            prev_version = save.version
-            continue
-        if save.version == prev_version:
-            _delete_duplicate_versions(resource_id, save.version)
-        prev_version = save.version
+    dups = get_all_duplicate_script_data_versions()
+    for resource_id, versions in dups.items():
+        all_deleted = True
+        for version in versions:
+            this_deleted = _delete_duplicate_versions(resource_id, version)
+            all_deleted = all_deleted and this_deleted
+        if all_deleted:
+            ScriptData.thin_raw_data(resource_id)
     return False
 
 
