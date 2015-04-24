@@ -101,7 +101,7 @@ def _delete_duplicate_versions(resource_id, version):
     obj = None
     if not first.autosave and not second.autosave:
         obj = first if first.timestamp > second.timestamp else second
-    if not first.autosave:
+    elif not first.autosave:
         obj = second
     elif not second.autosave:
         obj = first
@@ -128,12 +128,8 @@ def get_all_duplicate_script_data_versions():
 def delete_duplicate_versions():
     dups = get_all_duplicate_script_data_versions()
     for resource_id, versions in dups.items():
-        all_deleted = True
         for version in versions:
-            this_deleted = _delete_duplicate_versions(resource_id, version)
-            all_deleted = all_deleted and this_deleted
-        if all_deleted:
-            ScriptData.thin_raw_data(resource_id)
+            _delete_duplicate_versions(resource_id, version)
     return False
 
 
