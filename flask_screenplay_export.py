@@ -29,7 +29,7 @@ def export_screenplay():
     user = current_user.name
     resource_id = request.args.get('resource_id')
     export_format = request.args.get('export_format')
-    title_page = request.args.get('title_page')
+    title_page = request.args.get('title_page', '')
     if resource_id == 'Demo':
         return
     permission = UsersScripts.get_users_permission(resource_id, user)

@@ -115,3 +115,12 @@ def list():
         folders = json.loads(folders_data.data)
     output = [owned, ownedDeleted, shared, folders]
     return json.dumps(output)
+
+@app.route('/screenplay_data')
+@login_required
+def screenplay_data():
+    user = current_user.email
+    screenplays = UsersScripts.query.filter_by(user=user, permission='owner'). \
+                      order_by(UsersScripts.last_updated.desc()).all()
+
+    return render_template('flask_screenplay_data.html', user=user, screenplays=screenplays)

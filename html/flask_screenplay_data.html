@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Screenplay Data{% endblock %}
+
+{% block content %}
+  <h2>Screenplays for {{ user }}</h2>
+  <table class="table">
+    <tr>
+      <th>Screenplays</th>
+      <th>Export PDF</th>
+      <th>Export TXT</th>
+      <th>Last Updated</th>
+    </tr>
+    {% for screenplay in screenplays %}
+      <tr>
+        <td><a href="{{ url_for('editor', resource_id=screenplay.resource_id) }}" target="_blank">{{ screenplay.title }}</a></td>
+        <td><a href="{{ url_for('export_screenplay', resource_id=screenplay.resource_id, export_format='pdf') }}" target="_blank">Export PDF</a></td>
+        <td><a href="{{ url_for('export_screenplay', resource_id=screenplay.resource_id, export_format='txt') }}" target="_blank">Export TXT</a></td>
+        <td>{{ screenplay.last_updated.strftime('%Y-%m-%d') }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

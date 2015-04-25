@@ -28,7 +28,7 @@ def resource_access(allow_collab=False, string_response=None):
                 resource_id = request.args.get('resource_id', None)
             user = current_user.email
             permission = Screenplay.get_users_permission(resource_id, user)
-            allowable_permissions = ['owner']
+            allowable_permissions = ['owner', 'ownerDeleted']
             if allow_collab:
                 allowable_permissions.append('collab')
             if permission is None or permission not in allowable_permissions:
