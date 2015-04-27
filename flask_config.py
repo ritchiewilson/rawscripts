@@ -4,7 +4,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
-    SECRET_KEY = 'this-really-needs-to-be-changed'
+    SECRET_KEY = os.getenv('FLASK_SECRET_KEY', None)
     SERVER_NAME = os.getenv('SERVER_NAME', '')
     MAIL_DEFAULT_SENDER = 'test@example.com'
 
@@ -21,7 +21,6 @@ class ProductionConfig(Config):
 
 class StagingConfig(Config):
     DEVELOPMENT = True
-    DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'dummy')
 
     MAIL_USERNAME = 'noreply@rawscripts.com'
@@ -32,12 +31,9 @@ class StagingConfig(Config):
     MAIL_USE_SSL = True
 
 class DevelopmentConfig(Config):
+    SECRET_KEY = 'this-really-needs-to-be-changed'
     DEVELOPMENT = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///rawscripts.db'
     SERVER_NAME = 'localhost:5000'
-    # TESTING = True
-
-
-class MigrationConfig(DevelopmentConfig):
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///rawscripts-migration.db'
+    SECRET_KEY = 'this-really-needs-to-be-changed'
