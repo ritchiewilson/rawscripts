@@ -16,15 +16,12 @@
 
 import os
 import StringIO
-import sys
-sys.path.insert(0, 'reportlab.zip')
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.rl_config import defaultPageSize
 import reportlab
-folderFonts = os.path.dirname(reportlab.__file__) + os.sep + 'fonts'
 
 def wrap_text(text, max_chars):
     words = text.split(' ')
