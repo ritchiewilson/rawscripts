@@ -1251,22 +1251,11 @@ function shareScript(){
 	if(EOV=='viewer')return;
 	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('collaborator').value)
 	var arr=[];
-	var nonValidEmail=false;
 	for(i in r){
 		var a = r[i].address_;
 		if(a!=""){
-			try{
-				var domain  = a.split('@')[1].split('.')[0].toLowerCase();
-				if(domain=='gmail' || domain=='yahoo' || domain=='googlemail' || domain=='ymail' || domain=='rocketmail'){
-					arr.push(a);
-				}
-				else{nonValidEmail=true}
-			}
-			catch(err){};
+			arr.push(a);
 		}
-	}
-	if(nonValidEmail==true){
-		alert('At this time you can only collaborate with Gmail or Yahoo accounts.')
 	}
 	if(arr.length==0){
 		alert('You need to add at least one email address.')
