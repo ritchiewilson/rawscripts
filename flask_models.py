@@ -87,14 +87,15 @@ class Screenplay:
         latest_version = ScriptData.get_latest_version(resource_id)
         if not latest_version:
             return None
+        title_page_obj = TitlePageData.get_or_create(resource_id) if titlepage else None
         output = None
         content_type = None
         data = json.loads(latest_version.data)
         if export_format == 'txt':
-            output = Text(data, None)
+            output = Text(data, title_page_obj)
             content_type = 'text/plain'
         elif export_format == 'pdf':
-            output = Pdf(data, None)
+            output = Pdf(data, title_page_obj)
             content_type = 'application/pdf'
         if output is None:
             return None
@@ -731,8 +732,12 @@ class TitlePageData(db.Model):
         obj = TitlePageData.get_by_resource_id(resource_id)
         if not obj:
             obj = TitlePageData(resource_id=resource_id)
-            db.session.add(obj)
-            db.session.commit()
+            obj.title = Screenplay.get_title(resource_id)
+        for field in TitlePageData.get_field_names():
+            if getattr(obj, field) is None:
+                setattr(obj, field, '')
+        db.session.add(obj)
+        db.session.commit()
         return obj
 
     @staticmethod
@@ -741,6 +746,9 @@ class TitlePageData(db.Model):
         obj = TitlePageData.get_by_resource_id(resource_id)
         if obj:
             output = dict((field, getattr(obj, field)) for field in fields)
+            for key, val in output.items():
+                if val is None:
+                    output[key] = ''
             for field in ['based_on', 'address']:
                 output[field] = output[field].replace("LINEBREAK", '\n')
             return output

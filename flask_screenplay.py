@@ -50,7 +50,8 @@ def email_screenplay():
     html = html_template.replace("FILLERTEXT", body_message)
 
     # get pdf file to attach
-    export_file = Screenplay.export_to_file(resource_id, 'pdf')
+    include_title_page = title_page == '1'
+    export_file = Screenplay.export_to_file(resource_id, 'pdf', include_title_page)
     _file, title, content_type = export_file
     filename = title + '.pdf'
 

@@ -29,14 +29,15 @@ def export_screenplay():
     user = current_user.name
     resource_id = request.args.get('resource_id')
     export_format = request.args.get('export_format')
-    title_page = request.args.get('title_page', '')
+    title_page = request.args.get('title_page', '0')
     if resource_id == 'Demo':
         return
     permission = UsersScripts.get_users_permission(resource_id, user)
     if permission not in ['owner', 'collab']:
         return
 
-    export_file = Screenplay.export_to_file(resource_id, export_format)
+    include_title_page = title_page == '1'
+    export_file = Screenplay.export_to_file(resource_id, export_format, include_title_page)
     _file, title, content_type = export_file
     response = make_response(_file.getvalue())
     response.headers['Content-Type'] = content_type
