@@ -1,0 +1,67 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color:#666;
+}
+
+textarea {
+    resize: none;
+}
+
+textarea.form-control {
+    line-height: 1.2;
+}
+
+#header {
+    background-color:#6484DF;
+    padding: 5px;
+}
+
+#page {
+    border:1px black solid;
+    background-color:white;
+    margin: auto;
+    margin-top:30px;
+    margin-bottom:30px;
+    width:600px;
+    height:800px;
+    font-family:Courier;
+    font-size:10pt;
+}
+
+.centered-areas {
+    width: 300px;
+    margin: auto;
+}
+
+.centered-areas textarea {
+    width: 300px;
+    margin: auto;
+    text-align: center;
+}
+
+#title {
+    margin-top: 262px;
+}
+
+#title-input {
+ 	text-decoration: underline;
+}
+
+#written-by {
+    margin: auto;
+    margin-top: 11px;
+    margin-bottom: 47px;
+}
+
+#left-area {
+    margin-left: 60px;
+    width: 230px;
+    float: left;
+}
+
+#right-area {
+    margin-left: 15px;
+    width: 230px;
+    float: left;
+}
