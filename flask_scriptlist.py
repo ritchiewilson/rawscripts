@@ -119,8 +119,9 @@ def list():
 @app.route('/screenplay_data')
 @login_required
 def screenplay_data():
-    user = current_user.email
-    screenplays = UsersScripts.query.filter_by(user=user, permission='owner'). \
+    user = current_user.email.lower()
+    screenplays = UsersScripts.query.filter(db.func.lower(UsersScripts.user) == user). \
+                      filter_by(permission='owner'). \
                       order_by(UsersScripts.last_updated.desc()).all()
 
     return render_template('flask_screenplay_data.html', user=user, screenplays=screenplays)
