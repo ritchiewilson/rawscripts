@@ -41,6 +41,5 @@ def stats():
         year, month, count = row
         months.append({'year': year, 'month': month, 'count':count})
         users += count
-    print months
     scripts = db.session.query(db.func.count(db.distinct(UsersScripts.resource_id))).first()[0]
     return render_template('stats.html', months=months, users=users, scripts=scripts)
