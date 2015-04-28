@@ -28,19 +28,19 @@ def stats():
     if current_user.email != 'rawilson52@gmail.com':
         abort(401)
         return
-    # TODO: counting users per month can be done in one query, but keeps
-    # screwing up in development db.
-    users = User.query.with_entities(User.firstUse).all()
-    time_periods = {}
-    for user in users:
-        t = user.firstUse.strftime('%Y-%m')
-        if t not in time_periods:
-            time_periods[t] = 0
-        time_periods[t] += 1
-
+    query = User.query.with_entities(db.extract('year', User.firstUse),
+                                     db.extract('month', User.firstUse),
+                                     db.func.count()). \
+                group_by(db.extract('year', User.firstUse),
+                         db.extract('month', User.firstUse)). \
+                order_by(db.extract('year', User.firstUse),
+                         db.extract('month', User.firstUse))
     months = []
-    for key, val in time_periods.items():
-        month, year = t.split('-')
-        months.append({'month': month, 'year': year, 'count': val})
+    users = 0
+    for row in query.all():
+        year, month, count = row
+        months.append({'year': year, 'month': month, 'count':count})
+        users += count
+    print months
     scripts = db.session.query(db.func.count(db.distinct(UsersScripts.resource_id))).first()[0]
-    return render_template('stats.html', months=months, users=len(users), scripts=scripts)
+    return render_template('stats.html', months=months, users=users, scripts=scripts)
