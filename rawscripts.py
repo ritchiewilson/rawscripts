@@ -50,6 +50,7 @@ import flask_notes
 import flask_titlepage
 import flask_sharing
 import flask_folders
+import flask_stats
 
 @app.context_processor
 def inject_config():
