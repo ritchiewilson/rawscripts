@@ -1,7 +1,3 @@
-========
- README
-========
-
 
 What is Rawscripts?
 ===================
@@ -20,22 +16,11 @@ If you just want to write screenplays, you can go to
 <http://www.rawscripts.com>. Log in and start writing.
 
 
-Can I Participate in the Project?
-=================================
+How to get the development version running
+==========================================
 
-Heavens, yes! We need writers, coders, graphic designers, bug finders,
-smart people, bastards, brawlers, and bawlers.
-
-Check out <http://www.rawscripts.org/join> for more information about
-contact, mailing lists, IRC, and more.
-
-
-Cool, Where's the Documentation?
-================================
-
-In "docs/source/" you'll find all the documentation as .rst files.
-
-The same docs may be found online at <http://docs.rawscripts.org>
-
-There you can find information on the software, libraraies used,
-getting up and running, and contributing generally.
+git clone https://github.com/ritchiewilson/rawscripts.git
+cd rawscripts
+mkvirtualenv rawscripts
+pip install -r requirements.txt
+python runserver.py
