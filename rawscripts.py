@@ -26,7 +26,7 @@ from flask_user import UserManager, SQLAlchemyAdapter, current_user
 from flask_utils import length_password_validator
 
 app = Flask(__name__, template_folder='html')
-app.config.from_object(os.environ['APP_SETTINGS'])
+app.config.from_object(os.environ.get('APP_SETTINGS', 'flask_config.DevelopmentConfig'))
 db = SQLAlchemy(app)
 mail = Mail(app)
 
