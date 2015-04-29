@@ -87,8 +87,8 @@ def _delete_duplicate_versions(resource_id, version):
         print 'SKIPPING: There were not two saves for', resource_id, "version", version
         return False
     first, second = saves
-    if first.data != second.data:
-        print "SKIPPING: Multiple saves but different data:", resource_id, version
+    if first.timestamp.year == 2015:
+        print "SKIPPING: These duplicates are from this year:", resource_id, version
         return False
     if first.tag != '' or second.tag != '':
         print "SKIPPING: Multiple saves but they haves tags:", resource_id, version
@@ -109,7 +109,7 @@ def _delete_duplicate_versions(resource_id, version):
         obj = second
     else:
         obj = first
-    print 'DELETING:', obj.id, obj.resource_id, obj.version
+    print 'DELETING:', obj.id, obj.resource_id, obj.version, obj.timestamp
     db.session.delete(obj)
     db.session.commit()
     return True
