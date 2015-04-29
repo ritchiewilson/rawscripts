@@ -40,12 +40,12 @@ def thin_screenplays():
 def migrate_screenplay(resource_id):
     if resource_id == 'Demo':
         return False
-    if DuplicateScript.has_parent(resource_id):
-        #print "Error: not doing duplicate scripts now:", resource_id
-        return False
     latest_raw = ScriptData.get_latest_version(resource_id)
     latest_migrated = ResourceVersion.get_latest_version(resource_id)
     start_from = 1
+    if Screenplay.has_parent(resource_id):
+        dup = DuplicateScript.query.filter_by(new_script=resource_id).first()
+        start_from = dup.from_version + 1
     if latest_migrated:
         start_from = latest_migrated.version
     end_at = latest_raw.version

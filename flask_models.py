@@ -80,6 +80,12 @@ class Screenplay:
         return user_script
 
     @staticmethod
+    def has_parent(resource_id):
+        is_dup = DuplicateScript.query. \
+                     filter_by(new_script=resource_id).first()
+        return is_dup is not None
+
+    @staticmethod
     def get_latest_version_number(resource_id):
         latest = ScriptData.query.filter_by(resource_id=resource_id). \
                      with_entities(ScriptData.version). \
@@ -254,9 +260,6 @@ class ScriptData(db.Model):
 
     @staticmethod
     def thin_raw_data(resource_id):
-        if DuplicateScript.has_parent(resource_id):
-            print "ERROR: Duplicate script, so skipping:", resource_id
-            return False
         last_migration = ResourceVersion.get_latest_version(resource_id)
         if not last_migration:
             print "ERROR: Missing migration data. Why?:", resource_id
@@ -267,9 +270,13 @@ class ScriptData(db.Model):
                    with_entities(ScriptData.tag, ScriptData.export, ScriptData.version). \
                    all()
         versions_to_delete = []
+        KEEP_VERSIONS = [1]
+        if Screenplay.has_parent(resource_id):
+            dup = DuplicateScript.query.filter_by(new_script=resource_id).first()
+            KEEP_VERSIONS.append(dup.from_version + 1)
         for d in data:
             if d.tag == '' and d.export == '[[],[]]' and d.version % 100 != 0:
-                if d.version != 1:
+                if d.version not in KEEP_VERSIONS:
                     versions_to_delete.append(d.version)
         if versions_to_delete:
             ScriptData.query.filter_by(resource_id=resource_id). \
