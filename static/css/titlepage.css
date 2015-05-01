@@ -65,3 +65,11 @@ textarea.form-control {
     width: 230px;
     float: left;
 }
+
+.simplebox {
+  outline: none;
+  border: 1px white solid !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}

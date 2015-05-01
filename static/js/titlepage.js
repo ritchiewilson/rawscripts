@@ -1,14 +1,9 @@
 var resource_id = window.location.href.split('=')[1];
-var fadeTimeout;
-
+var styleTimer;
 $( document ).ready(function() {
     $('#save').click(function(){save()});
-    var $textarea = $("textarea");
-    var originalStyles = {
-        borderColor: $textarea.css('border-color')
-    }
-    $(document).mousemove(function(){restyleTextAreas(originalStyles)});
-    fadeTimeout = setTimeout(fadeInputBorders(), 3000);
+    $("#page, textarea").hover(function(){restyleTextAreas()});
+    styleTimer = setTimeout(removeBorders, 5000);
 });
 
 function save() {
@@ -26,19 +21,14 @@ function save() {
     });
 };
 
-function fadeInputBorders() {
-    var div = $('textarea');
-    $({alpha:1}).animate({alpha:0}, {
-        duration: 3000,
-        step: function(){
-            div.css('border-color','rgba(204, 204, 204,'+this.alpha+')');
-        }
-    });
-
+function removeBorders() {
+    if ($("textarea").is(":focus"))
+        return;
+    $('textarea').addClass('simplebox');
 }
 
 function restyleTextAreas(styles) {
-    $('textarea').css(styles);
-    clearTimeout(fadeTimeout);
-    fadeTimeout = setTimeout(fadeInputBorders(), 3000);
+    $('textarea').removeClass('simplebox');
+    clearTimeout(styleTimer);
+    styleTimer = setTimeout(removeBorders, 5000);
 }
