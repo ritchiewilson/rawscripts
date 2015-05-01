@@ -10,6 +10,19 @@ $( document ).ready(function() {
 });
 
 function save() {
+    // first validate each field
+    var all_valid = true;
+    $('textarea').each(function(){
+        var max_rows = $(this).prop('rows');
+        var val = $(this).val();
+        var linecount = (val.match(/\n/g) || []).length + 1;
+        var this_valid = (linecount <= max_rows && val.length < 64 * max_rows);
+        all_valid = (all_valid && this_valid)
+    });
+    if (!all_valid){
+        alert('ERROR: There is too much text in one of the fields.');
+        return;
+    }
     $('#save').prop("disabled", true).val("Saving...");
     var postData = {
         resource_id: resource_id,

@@ -53,7 +53,7 @@ def titlepage_save():
     fields = [ 'title', 'written_by', 'contact' ]
     for field in fields:
         if field in request.form:
-            setattr(obj, field, request.form[field])
+            setattr(obj, field, request.form[field][:64*12])
     obj.migrated = True
     db.session.commit()
     return Response('1', mimetype='text/plain')
