@@ -19,7 +19,7 @@ from flask import render_template, request, redirect, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, TitlePageData
+from flask_models import UsersScripts, TitlePageData, Screenplay
 from flask_utils import get_current_user_email_with_default
 
 
@@ -36,8 +36,9 @@ def titlepage():
         return redirect(url_for('scriptlist'))
 
     fields = TitlePageData.get_fields_by_resource_id(resource_id)
-    sign_out = '/user/sign-out'
-    return render_template('titlepage.html', user=user_email, sign_out=sign_out, **fields)
+    screenplay_title = Screenplay.get_title(resource_id)
+    return render_template('titlepage.html', user=user_email,
+                           screenplay_title=screenplay_title, **fields)
 
 @app.route('/titlepagesave', methods=['POST'])
 @login_required

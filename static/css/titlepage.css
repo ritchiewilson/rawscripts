@@ -17,6 +17,16 @@ textarea.form-control {
     padding: 5px;
 }
 
+#title{
+	font-size:18pt;
+	padding:2px;
+	margin:3px;
+    text-shadow: rgb(153, 153, 153) 1px 1px 1px;
+	float: left;
+	cursor: text;
+    width: 90%;
+}
+
 #page {
     border:1px black solid;
     background-color:white;
