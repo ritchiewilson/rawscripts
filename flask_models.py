@@ -744,6 +744,10 @@ class TitlePageData(db.Model):
     other = db.Column(db.String)
     otherChecked = db.Column(db.String)
 
+    written_by = db.Column(db.String, nullable=False, default='')
+    contact = db.Column(db.String, nullable=False, default='')
+    migrated = db.Column(db.Boolean)
+
     __table_args__= (db.Index('ix_title_page_data_resource_id', 'resource_id'),)
 
     @staticmethod
