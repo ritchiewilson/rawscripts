@@ -4,7 +4,7 @@ $( document ).ready(function() {
     $('#save').click(function(){save()});
     $("#page, textarea").hover(function(){restyleTextAreas()});
     styleTimer = setTimeout(removeBorders, 5000);
-    $("textarea").on("change keypress", function(){
+    $("textarea").on("change keypress keydown", function(){
         $("#save").prop("disabled", false).val("Save");
     })
 });
@@ -19,7 +19,6 @@ function save() {
     }
     $.post('/titlepagesave', postData, function(response){
         $('#save').val("Saved");
-        console.log(response);
     });
 };
 
