@@ -29,41 +29,33 @@ textarea.form-control {
     font-size:10pt;
 }
 
-.centered-areas {
-    width: 300px;
+.input-areas {
+    width: 470px;
     margin: auto;
 }
 
-.centered-areas textarea {
-    width: 300px;
+.input-areas textarea {
     margin: auto;
-    text-align: center;
 }
 
-#title {
+#title-area {
     margin-top: 262px;
 }
 
 #title-input {
  	text-decoration: underline;
+    text-align: center;
 }
 
-#written-by {
+#written-by-input {
+    text-align: center;
+}
+
+#written-by-area {
     margin: auto;
     margin-top: 11px;
     margin-bottom: 47px;
-}
-
-#left-area {
-    margin-left: 60px;
-    width: 230px;
-    float: left;
-}
-
-#right-area {
-    margin-left: 15px;
-    width: 230px;
-    float: left;
+    text-align: center;
 }
 
 .simplebox {

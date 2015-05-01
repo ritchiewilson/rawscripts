@@ -14,9 +14,8 @@ function save() {
     var postData = {
         resource_id: resource_id,
         titleData: $("#title-input").val(),
-        middleData: $("#middle-input").val(),
-        leftData: $("#left-input").val(),
-        rightData: $("#right-input").val()
+        writtenByData: $("#written-by-input").val(),
+        contactData: $("#contact-input").val(),
     }
     $.post('/titlepagesave', postData, function(response){
         $('#save').val("Saved");
