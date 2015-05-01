@@ -760,45 +760,47 @@ class TitlePageData(db.Model):
         if not obj:
             obj = TitlePageData(resource_id=resource_id)
             obj.title = Screenplay.get_title(resource_id)
-        for field in TitlePageData.get_field_names():
-            if getattr(obj, field) is None:
-                setattr(obj, field, '')
-        db.session.add(obj)
-        db.session.commit()
+            db.session.add(obj)
+            db.session.commit()
         return obj
 
     @staticmethod
     def get_fields_by_resource_id(resource_id):
-        fields = TitlePageData.get_field_names()
         obj = TitlePageData.get_by_resource_id(resource_id)
-        if obj:
-            output = dict((field, getattr(obj, field)) for field in fields)
-            for key, val in output.items():
-                if val is None:
-                    output[key] = ''
-            for field in ['based_on', 'address']:
-                output[field] = output[field].replace("LINEBREAK", '\n')
-            return output
+        if not obj:
+            defaults = {
+                'title': Screenplay.get_title(resource_id),
+                'written_by': 'Written By\n\n',
+                'contact': get_current_user_email_with_default()
+            }
+            return defaults
 
-        # If not found, return a mostly empty dict with some sensible defaults.
-        default = dict((field, '') for field in fields)
-        default['resource_id'] = resource_id
-        default['title'] = Screenplay.get_title(resource_id)
-        default['authorOne'] = get_current_user_email_with_default()
-        default['email'] = default['authorOne']
-        default['emailChecked'] = 'checked'
-        return default
+        if not obj.migrated:
+            obj.migrate()
+        fields = [ 'title', 'written_by', 'contact' ]
+        return dict((field, getattr(obj, field)) for field in fields)
 
-    @staticmethod
-    def get_field_names():
-        # TODO: do this dynamically using the models sqlalchemy column names
-        fields = [ 'resource_id', 'title', 'authorOne', 'authorTwo',
-                   'authorTwoChecked', 'authorThree', 'authorThreeChecked',
-                   'based_on', 'based_onChecked', 'address', 'addressChecked',
-                   'phone', 'phoneChecked', 'cell', 'cellChecked', 'email',
-                   'emailChecked', 'registered', 'registeredChecked', 'other',
-                   'otherChecked', ]
-        return fields
+    def migrate(self):
+        def get_string_for_field(field):
+            if getattr(self, field + 'Checked') != 'checked':
+                return ''
+            return getattr(self, field).replace('LINEBREAK', '\n')
+
+        def get_multiple_fields(fields):
+            return '\n'.join([get_string_for_field(field) for field in fields])
+
+        written_by = 'Written By\n\n' + self.authorOne + '\n'
+        written_by += get_multiple_fields(['authorTwo', 'authorThree'])
+        written_by += '\n\n\n' + get_string_for_field('based_on')
+        self.written_by = written_by
+
+        contact = get_string_for_field('address') + '\n\n'
+        contact += get_multiple_fields(['phone', 'cell']) + '\n\n'
+        contact += get_string_for_field('email') + '\n\n'
+        contact += get_multiple_fields(['registered',  'other'])
+        self.contact = contact
+        self.migrated = True
+        db.session.commit()
 
 
 class ShareNotify(db.Model):

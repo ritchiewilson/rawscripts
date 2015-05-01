@@ -49,9 +49,10 @@ def titlepage_save():
         return redirect(url_for('scriptlist'))
 
     obj = TitlePageData.get_or_create(resource_id)
-    accepted_fields = TitlePageData.get_field_names()
-    for field in accepted_fields:
+    fields = [ 'title', 'written_by', 'contact' ]
+    for field in fields:
         if field in request.form:
             setattr(obj, field, request.form[field])
+    obj.migrated = True
     db.session.commit()
     return Response('1', mimetype='text/plain')

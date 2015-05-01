@@ -13,9 +13,9 @@ function save() {
     $('#save').prop("disabled", true).val("Saving...");
     var postData = {
         resource_id: resource_id,
-        titleData: $("#title-input").val(),
-        writtenByData: $("#written-by-input").val(),
-        contactData: $("#contact-input").val(),
+        title: $("#title-input").val(),
+        written_by: $("#written-by-input").val(),
+        contact: $("#contact-input").val(),
     }
     $.post('/titlepagesave', postData, function(response){
         $('#save').val("Saved");
