@@ -798,13 +798,13 @@ class TitlePageData(db.Model):
         written_by = 'Written By\n\n' + self.authorOne + '\n'
         written_by += get_multiple_fields(['authorTwo', 'authorThree'])
         written_by += '\n\n\n' + get_string_for_field('based_on')
-        self.written_by = written_by
+        self.written_by = written_by.rstrip()
 
         contact = get_string_for_field('address') + '\n\n'
         contact += get_multiple_fields(['phone', 'cell']) + '\n\n'
         contact += get_string_for_field('email') + '\n\n'
         contact += get_multiple_fields(['registered',  'other'])
-        self.contact = contact
+        self.contact = contact.rstrip()
         self.migrated = True
         db.session.commit()
 
