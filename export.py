@@ -22,6 +22,7 @@ from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.rl_config import defaultPageSize
 import reportlab
+from xml.sax.saxutils import escape
 
 def wrap_text(text, max_chars):
     words = text.split(' ')
@@ -117,49 +118,18 @@ def Pdf(data, title_page_obj):
         style = getSampleStyleSheet()["Normal"]
         style.fontName = 'Courier'
         style.fontSize = 11
-        p = Paragraph("<para alignment='center'><u>"+r.title+"</u></para>", style)
-        w,h = p.wrap(170, 100)
-        p.drawOn(c, tx-(w/2.0), ty)
-        ty-=lh*2
-        c.drawCentredString(tx,ty,'Written')
-        ty-=lh
-        c.drawCentredString(tx,ty,'by')
-        ty-=lh*2
-        c.drawCentredString(tx,ty,r.authorOne)
-        ty-=lh
-        if r.authorTwoChecked=='checked':
-            c.drawCentredString(tx, ty, r.authorTwo)
-            ty-=lh
-        if r.authorThreeChecked=='checked':
-            c.drawCentredString(tx, ty, r.authorThree)
-            ty-=lh
-        if r.based_onChecked=='checked':
-            ty-=(lh*2)
-            parts = r.based_on.split('LINEBREAK')
-            for i in parts:
-                c.drawCentredString(tx, ty, i)
-                ty-=lh
+        for line in r.title.split('\n'):
+            p = Paragraph("<para alignment='center'><u>" + escape(line) + "</u></para>", style)
+            w,h = p.wrap(370, 100)
+            p.drawOn(c, tx-(w/2.0), ty)
+            ty -= lh
+        ty -= lh
+        for line in r.written_by.split('\n'):
+            c.drawCentredString(tx, ty, line)
+            ty -= lh
 
-        if r.addressChecked=='checked':
-            parts = r.address.split('LINEBREAK')
-            for i in parts:
-                c.drawString(ax, ay, i)
-                ay-=lh
-
-        if r.phoneChecked=='checked':
-            c.drawString(ax, ay, r.phone)
-            ay-=lh
-        if r.cellChecked=='checked':
-            c.drawString(ax, ay, r.cell)
-            ay-=lh
-        if r.emailChecked=='checked':
-            c.drawString(ax, ay, r.email)
-            ay-=lh
-        if r.registeredChecked=='checked':
-            c.drawString(ax, ay, r.registered)
-            ay-=lh
-        if r.otherChecked=='checked':
-            c.drawString(ax, ay, r.other)
+        for line in r.contact.split('\n'):
+            c.drawString(ax, ay, line)
             ay-=lh
 
         c.showPage()
