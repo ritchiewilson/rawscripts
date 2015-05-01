@@ -4,6 +4,9 @@ $( document ).ready(function() {
     $('#save').click(function(){save()});
     $("#page, textarea").hover(function(){restyleTextAreas()});
     styleTimer = setTimeout(removeBorders, 5000);
+    $("textarea").on("change keypress", function(){
+        $("#save").prop("disabled", false).val("Save");
+    })
 });
 
 function save() {
