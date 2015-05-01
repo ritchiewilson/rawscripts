@@ -786,11 +786,15 @@ class TitlePageData(db.Model):
         def get_string_for_field(field):
             if getattr(self, field + 'Checked') != 'checked':
                 return ''
-            return getattr(self, field).replace('LINEBREAK', '\n')
+            string = getattr(self, field, '')
+            string = '' if string is None else string
+            return string.replace('LINEBREAK', '\n')
 
         def get_multiple_fields(fields):
             return '\n'.join([get_string_for_field(field) for field in fields])
 
+        if self.authorOne is None:
+            self.authorOne = ''
         written_by = 'Written By\n\n' + self.authorOne + '\n'
         written_by += get_multiple_fields(['authorTwo', 'authorThree'])
         written_by += '\n\n\n' + get_string_for_field('based_on')
