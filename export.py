@@ -59,38 +59,14 @@ def Text(data, title_page_obj):
         s = center_text(s, r.title)
         s.write("\n\n")
 
-        s.write("                                   Written by\n\n\n")
-        s = center_text(s, r.authorOne)
-        if r.authorTwoChecked=="checked":
-            s = center_text(s, r.authorTwo)
-        if r.authorThreeChecked=="checked":
-            s = center_text(s, r.authorThree)
-        if r.based_onChecked=="checked":
-            lines = r.based_on.split("LINEBREAK")
-            for line in lines:
-                s = center_text(s, line)
+        for line in r.written_by.split('\n'):
+            s = center_text(s, line)
 
         line_breaks = s.getvalue().count('\n')
         s.write('\n' * (39 - line_breaks))
 
-        if r.addressChecked=="checked":
-            lines = r.address.split("LINEBREAK")
-            for line in lines:
-                s.write(line + "\n")
-        s.write("\n\n")
-        if r.phoneChecked == "checked":
-            s.write(r.phone + "\n")
-        if r.cellChecked == "checked":
-            s.write(r.cell + "\n")
-        s.write("\n")
-        if r.emailChecked == "checked":
-            s.write(r.email + "\n")
-        s.write("\n")
-        if r.registeredChecked == "checked":
-            s.write(r.registered + "\n")
-        s.write("\n\n")
-        if r.otherChecked == "checked":
-            s.write(r.other + "\n")
+        for line in r.contact.split('\n'):
+            s.write(line + '\n')
 
         line_breaks = s.getvalue().count('\n')
         s.write('\n' * (64 - line_breaks))

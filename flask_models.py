@@ -110,6 +110,8 @@ class Screenplay:
         if not latest_version:
             return None
         title_page_obj = TitlePageData.get_or_create(resource_id) if titlepage else None
+        if title_page_obj and not title_page_obj.migrated:
+            title_page_obj.migrate()
         output = None
         content_type = None
         data = json.loads(latest_version.data)
