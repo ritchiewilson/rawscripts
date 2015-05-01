@@ -783,6 +783,8 @@ class TitlePageData(db.Model):
         return dict((field, getattr(obj, field)) for field in fields)
 
     def migrate(self):
+        if self.migrated:
+            return
         def get_string_for_field(field):
             if getattr(self, field + 'Checked') != 'checked':
                 return ''
