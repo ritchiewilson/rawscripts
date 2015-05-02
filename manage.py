@@ -27,16 +27,6 @@ def get_resource_ids():
     resource_ids = [s.resource_id for s in stuff]
     return resource_ids
 
-@manager.command
-def thin_screenplays():
-    # resource_ids = UsersScripts.get_all_resource_ids()
-    checks = MigrationCheck.query.all()
-    resource_ids = [check.resource_id for check in checks]
-    for n, resource_id in enumerate(resource_ids):
-        ScriptData.thin_raw_data(resource_id)
-        print "did screenplay:", n, resource_id
-    print "Done"
-
 def migrate_screenplay(resource_id):
     if resource_id == 'Demo':
         return False
@@ -72,7 +62,7 @@ def migrate_to_ops(direction=None):
         resource_ids = resource_ids[::-1][:half]
     print "Screenplays to check", len(resource_ids)
     for i, resource_id in enumerate(resource_ids):
-        if i % 200 == 0:
+        if i % 1000 == 0:
             print "Starting", resource_id, 'screenplay number', i
         success = migrate_screenplay(resource_id)
         if success:

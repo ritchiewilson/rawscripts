@@ -604,16 +604,6 @@ class UsersScripts(db.Model):
         return row.title
 
 
-class MigrationCheck(db.Model):
-    __tablename__ = "migration_check"
-
-    id = db.Column(db.Integer, primary_key=True)
-    resource_id = db.Column(db.String)
-    verified_to = db.Column(db.Integer)
-
-    __table_args__= (db.Index('ix_migration_check_resource_id', 'resource_id'),)
-
-
 class DuplicateScript(db.Model):
     __tablename__ = "duplicate_scripts"
 
