@@ -76,6 +76,10 @@ def contact():
 def synccontacts():
     return Response('[]', mimetype='text/plain')
 
+@app.route('/uploadhelp')
+def uploadhelp():
+    return render_template('uploadhelp.html')
+
 @app.route('/css/<css_file>')
 def css_redirect(css_file):
     return send_from_directory('static/css', css_file)
