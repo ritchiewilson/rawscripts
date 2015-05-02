@@ -6,21 +6,21 @@
 		<title>RawScripts - Scriptlist</title>
 		<link rel="shortcut icon" href="/favicon.ico">
 		{% if MODE == 'DEV' %}
-			<script src='/closure-library/closure/goog/base.js'></script>
+			<script src="/static/closure-library/closure/goog/base.js"></script>
 			{% for file in SCRIPTLIST_JS %}
-			<script src='js/restricted/scriptlist/{{ file }}.js'></script>
+			<script src="/static/js/restricted/scriptlist/{{ file }}.js"></script>
 			{% endfor %}
 		{% else %}
-			<script src='js/min/scriptlist-compiled.js'></script>
+			<script src="/static/js/min/scriptlist-compiled.js"></script>
 		{% endif %}
 		
 		{% if MODE == 'DEV' %}
-			<link rel="stylesheet" href="css/scriptlist.css" type="text/css">
+			<link rel="stylesheet" href="/static/css/scriptlist.css" type="text/css">
 			{% for file in SCRIPTLIST_CSS %}
-			<link rel="stylesheet" href="/closure-library/closure/goog/css/{{ file }}.css" /> 
+			<link rel="stylesheet" href="/static/closure-library/closure/goog/css/{{ file }}.css" />
 			{% endfor %}
 		{% else %}
-			<link rel="stylesheet" href="css/min/scriptlist-all.css" /> 
+			<link rel="stylesheet" href="/static/css/min/scriptlist-all.css" />
 		{% endif %}
 	</head>
 
@@ -55,7 +55,7 @@
 				<input type='button' onClick="batchProcess('hardDelete')" value='Delete Permanantly' style="margin-left:20px" />
 			</div>
 			<div id="refresh">
-				<a href="javascript:refreshList()"><img id="refresh_icon" src="images/refresh_icon.gif" alt="Refreshing Screenplay List">Refresh</a>
+				<a href="javascript:refreshList()"><img id="refresh_icon" src="/static/images/refresh_icon.gif" alt="Refreshing Screenplay List">Refresh</a>
 			</div>
 		</div>
 	</div>
@@ -123,7 +123,7 @@
 		<div class="popup_background"></div>
 		<div class="popup_block">
 			<div class="popup">
-				<a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/static//images/close.png" alt="Close Popup"></a>
 				<br /><br /><span>Email Script</span><br /><br />
 				<label for="recipient">Recipients (max 5, comma seperated)</label><br>
 				<textarea class="text_input" rows='4' name='recipient' id='recipient' style="width:400px"></textarea><br />
@@ -144,7 +144,7 @@
 		<div class="popup_background"></div>
 		<div class="popup_block">
 			<div class="popup">
-				<a href="javascript:hideRenamePrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideRenamePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 				<br />
 				<p id="renameTitle"></p>
 				<br />
@@ -160,24 +160,24 @@
 	<div id="uploadpopup" class="popup_screen">
 		<div class="popup_background"></div>
 		<div class="popup_block">
-			<a href="javascript:hideUploadPrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a><br><br>
+			<a href="javascript:hideUploadPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a><br><br>
 			<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
 			</iframe>
-			<div id="uploading" style="display:none"><p>Converting script...</p><img src="images/uploading.gif" alt="Uploading Screenplay"><br><br></div>
+			<div id="uploading" style="display:none"><p>Converting script...</p><img src="/static/images/uploading.gif" alt="Uploading Screenplay"><br><br></div>
 		</div>
 	</div>
 	<div id="newscriptpopup" class="popup_screen">
 		<div class="popup_background"></div>
 		<div class="popup_block" style="width:400px;">
 			<div class="popup">
-				<a href="javascript:hideNewScriptPrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideNewScriptPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 				<br />
 				<p>New Script Title</p>
 				<br />
 				<input class="text_input" type='text' name='newScript' id='newScript' style="width:350px" />
 				<br />
 				<input type='button' onClick='createScript()' value='Create' id = "createScriptButton" />
-				<img src="images/createScriptIcon.gif" id="createScriptIcon" style="visibility:hidden" alt="Creating New Screenplay">
+				<img src="/static/images/createScriptIcon.gif" id="createScriptIcon" style="visibility:hidden" alt="Creating New Screenplay">
 
 				<br />
 			</div>
@@ -187,7 +187,7 @@
 		<div class="popup_background"></div>
 		<div class="popup_block" style="width:500px;">
 			<div class="popup">
-				<a href="javascript:hideExportPrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideExportPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 				<br />
 				<p>Export as...</p>
 				<table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
@@ -202,7 +202,7 @@
 		<div class="popup_background"></div>
 		<div class="popup_block" style="width:450px; top:10%">
 			<div class="popup">
-				<a href="javascript:hideSharePrompt()" class="close_popup"><img src="/images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideSharePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 				<br>
 				Share Script: <b id="shareTitle"></b>
 				<br><br>
