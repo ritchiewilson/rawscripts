@@ -1,7 +1,6 @@
-<!DOCTYPE html> 
-<head>
-  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-  <title>stats</title>
+{% extends 'admin/master.html' %}
+
+{% block head %}
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script>
     google.load("visualization", "1", {packages:["corechart"]});
@@ -51,18 +50,19 @@ console.log(b)
 	      chart.draw(growthData, {width: 1000, height: 500, title: 'Cumulative Growth of Users'});
 	      }
 	</script>
-</head>
-<body id="stats">
-	<div id="content">
-		<p>Number of users: {{ users }}</p>
-		<p>Number of scripts: {{ scripts }}</p>
-		<p>Average: <span id='average'></span></p>
-		<script>
-		document.getElementById('average').innerHTML={{ scripts }}/{{ users }}
-		</script>
-		<div id='usersChart'></div>
-		<p>Cumulative growth of users</p>
-		<div id='growthChart'></div>
-	</div>
-</body>
-</html>
+{% endblock %}
+
+{% block body %}
+  <div id="content">
+	<p>Number of users: {{ users }}</p>
+	<p>Number of scripts: {{ scripts }}</p>
+	<p>Average: <span id='average'></span></p>
+	<script>
+	  document.getElementById('average').innerHTML={{ scripts }}/{{ users }}
+	</script>
+	<div id='usersChart'></div>
+	<p>Cumulative growth of users</p>
+	<div id='growthChart'></div>
+  </div>
+{% endblock %}
+
