@@ -110,8 +110,6 @@ class Screenplay:
         if not latest_version:
             return None
         title_page_obj = TitlePageData.get_or_create(resource_id) if titlepage else None
-        if title_page_obj and not title_page_obj.migrated:
-            title_page_obj.migrate()
         output = None
         content_type = None
         data = json.loads(latest_version.data)
@@ -716,29 +714,8 @@ class TitlePageData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     resource_id = db.Column(db.String, nullable=False, unique=True)
     title = db.Column(db.String)
-    authorOne = db.Column(db.String)
-    authorTwo = db.Column(db.String)
-    authorTwoChecked = db.Column(db.String)
-    authorThree  = db.Column(db.String)
-    authorThreeChecked  = db.Column(db.String)
-    based_on  = db.Column(db.String)
-    based_onChecked  = db.Column(db.String)
-    address = db.Column(db.String)
-    addressChecked = db.Column(db.String)
-    phone = db.Column(db.String)
-    phoneChecked = db.Column(db.String)
-    cell = db.Column(db.String)
-    cellChecked = db.Column(db.String)
-    email = db.Column(db.String)
-    emailChecked = db.Column(db.String)
-    registered = db.Column(db.String)
-    registeredChecked = db.Column(db.String)
-    other = db.Column(db.String)
-    otherChecked = db.Column(db.String)
-
     written_by = db.Column(db.String, nullable=False, default='')
     contact = db.Column(db.String, nullable=False, default='')
-    migrated = db.Column(db.Boolean)
 
     __table_args__= (db.Index('ix_title_page_data_resource_id', 'resource_id'),)
 
@@ -767,38 +744,8 @@ class TitlePageData(db.Model):
             }
             return defaults
 
-        if not obj.migrated:
-            obj.migrate()
         fields = [ 'title', 'written_by', 'contact' ]
         return dict((field, getattr(obj, field)) for field in fields)
-
-    def migrate(self):
-        if self.migrated:
-            return
-        def get_string_for_field(field):
-            if getattr(self, field + 'Checked') != 'checked':
-                return ''
-            string = getattr(self, field, '')
-            string = '' if string is None else string
-            return string.replace('LINEBREAK', '\n')
-
-        def get_multiple_fields(fields):
-            return '\n'.join([get_string_for_field(field) for field in fields])
-
-        if self.authorOne is None:
-            self.authorOne = ''
-        written_by = 'Written By\n\n' + self.authorOne + '\n'
-        written_by += get_multiple_fields(['authorTwo', 'authorThree'])
-        written_by += '\n\n\n' + get_string_for_field('based_on')
-        self.written_by = written_by.rstrip()
-
-        contact = get_string_for_field('address') + '\n\n'
-        contact += get_multiple_fields(['phone', 'cell']) + '\n\n'
-        contact += get_string_for_field('email') + '\n\n'
-        contact += get_multiple_fields(['registered',  'other'])
-        self.contact = contact.rstrip()
-        self.migrated = True
-        db.session.commit()
 
 
 class ShareNotify(db.Model):
