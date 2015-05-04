@@ -1,5 +1,6 @@
 Flask==0.10.1
 Flask-Admin==1.1.0
+Flask-Assets==0.10
 Flask-Login==0.2.11
 Flask-Mail==0.9.1
 Flask-Migrate==1.3.0
@@ -27,8 +28,10 @@ passlib==1.6.2
 psycopg2==2.6
 py-bcrypt==0.4
 pycrypto==2.6.1
+pyenchant==1.6.6
 reportlab==3.1.44
 requests==2.5.3
 six==1.9.0
 validate-email==1.2
+webassets==0.10.1
 wsgiref==0.1.2

@@ -24,6 +24,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_user import UserManager, SQLAlchemyAdapter, current_user
 from flask_utils import length_password_validator
+from flask.ext.assets import Environment, Bundle
 
 app = Flask(__name__, template_folder='html')
 app.config.from_object(os.environ.get('APP_SETTINGS', 'flask_config.DevelopmentConfig'))
@@ -39,6 +40,11 @@ user_manager = UserManager(db_adapter, app,
 my_templates = app.jinja_loader.searchpath[0]
 app.blueprints['flask_user'].jinja_loader.searchpath.insert(0, my_templates)
 
+assets = Environment(app)
+editor_js = Bundle('js/restricted/editor/spellcheck.coffee',
+                   filters='coffeescript', output='js/editor-coffee.js')
+assets.register('editor', editor_js)
+
 import flask_editor
 import flask_scriptlist
 import flask_screenplay_export
@@ -51,6 +57,7 @@ import flask_titlepage
 import flask_sharing
 import flask_folders
 import flask_stats
+import spellcheck
 
 @app.context_processor
 def inject_config():
