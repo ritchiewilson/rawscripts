@@ -367,6 +367,10 @@
 		{% endfor %}
 	{% else %}
 		<script src='/js/min/editor-compiled.js'></script>
-	{% endif %}
+    {% endif %}
+	{% include "jquery.html" -%}
+    {% assets "editor" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
 	</body>
 </html>

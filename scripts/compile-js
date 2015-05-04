@@ -46,15 +46,17 @@ ROOT=$(pwd)
 rm $ROOT"/static/js/min/"$PAGE"-compiled.js"
 
 cd $ROOT"/static/js/restricted/"$PAGE 
-cat * > $ROOT"/static/js/restricted/"$PAGE"-temp.js"
+cat *.js > $ROOT"/static/js/restricted/"$PAGE"-temp.js"
 
 cd $ROOT"/static/closure-library/closure/bin"
 
 I_FILE=$ROOT"/static/js/restricted/"$PAGE"-temp.js"
-O_FILE=$ROOT"/static/js/min/"$PAGE"-compiled.js"
+O_FILE=$ROOT"/static/js/min/"$PAGE"-temp-with-deps.js"
+COMPILED_FILE=$ROOT"/static/js/min/"$PAGE"-compiled.js"
 CL_ROOT=$ROOT"/static/closure-library/"
-JAR=$ROOT"/scripts/compiler/compiler.jar"
+JQUERY=$ROOT"/scripts/jquery-externs.js"
 
-python calcdeps.py -i $I_FILE -p $CL_ROOT -o compiled > $O_FILE -c $JAR -f '--compilation_level=ADVANCED_OPTIMIZATIONS'
+python calcdeps.py -i $I_FILE -p $CL_ROOT -o script > $O_FILE
+closure --compilation_level ADVANCED_OPTIMIZATIONS --externs $JQUERY --js $O_FILE > $COMPILED_FILE
 
-rm $ROOT"/static/js/restricted/"$PAGE"-temp.js"
+rm $I_FILE $O_FILE
