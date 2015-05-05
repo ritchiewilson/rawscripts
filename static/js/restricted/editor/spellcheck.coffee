@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Spellcheck
     constructor: ->
-        @LINES_PER_BATCH = 500
+        @LINES_PER_BATCH = 100
         @popupId = "spellcheckpopup"
         @popupElem = $("#" + @popupId)
         @popupElem.find(".close").click (event) => @closePopup(event)
