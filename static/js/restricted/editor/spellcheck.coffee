@@ -19,9 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Spellcheck
     constructor: ->
         @LINES_PER_BATCH = 500
-        @lines_with_errors = []
-        @current_line_index = null
-        @current_error_in_line = null
         @popupId = "spellcheckpopup"
         @popupElem = $("#" + @popupId)
         @popupElem.find(".close").click (event) => @closePopup(event)
@@ -31,6 +28,9 @@ class Spellcheck
 
     launch: ->
         @lines_with_errors = []
+        @current_line_index = null
+        @current_error_in_line = null
+        @ignoreWords = []
         @popupElem.css "visibility", "visible"
         @fetchSpellingData(0)
 
@@ -58,6 +58,12 @@ class Spellcheck
             @nextError()
             @renderCurrentError()
 
+    getCurrentError: ->
+        if @lines_with_errors == [] or @current_line_index is null
+            return null
+        segments = @lines_with_errors[@current_line_index].lineSegments
+        return (s for s in segments when s.err)[@current_error_in_line]
+
     nextError: ->
         if @lines_with_errors == []
             @current_line_index = @current_error_in_line = null
@@ -71,8 +77,14 @@ class Spellcheck
         if num_errors <= @current_error_in_line
             @current_error_in_line = 0
             @current_line_index++
+
+        # check if this has gone past last error
         if @current_line_index >= @lines_with_errors.length
             @current_line_index = @current_error_in_line = null
+            return
+
+        if @getCurrentError().text in @ignoreWords
+            @nextError()
 
     renderCurrentError: ->
         # cleanup old data
@@ -116,7 +128,10 @@ class Spellcheck
         @renderCurrentError()
 
     ignoreAll: (event) ->
-        console.log(event)
+        word = @getCurrentError().text
+        if word not in @ignoreWords
+            @ignoreWords.push(word)
+        @ignore()
 
     change: (event) ->
         console.log(event)
