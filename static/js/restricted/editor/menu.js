@@ -93,7 +93,7 @@ function menuSelect(e){
     else if(id=='insertNote')newThread();
     else if(id=='editTitlePage')editTitlePage();
     else if(id=='tag')tagPrompt();
-    else if(id=='spellCheck')launchSpellCheck();
+    else if(id=='spellCheck')window['spell']['launch']();
     else if(id=='find')findPrompt();
     else if(id=='findReplace')findReplacePrompt();
     else if(id=='selectAll')selectAll();

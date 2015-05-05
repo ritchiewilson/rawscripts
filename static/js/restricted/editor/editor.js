@@ -173,7 +173,7 @@ function toolbarActions(e){
 	else if(c=='Undo')undo();
 	else if(c=='Redo')redo();
 	else if(c=='InsertNote')newThread();
-	else if(c=='Spellcheck')launchSpellCheck();
+	else if(c=='Spellcheck')window['spell']['launch']();
 	else if(c=='Email')emailPrompt();
 	else if(c.substr(0,6)=='-font-')changeFontSize(c.substr(1));
 }

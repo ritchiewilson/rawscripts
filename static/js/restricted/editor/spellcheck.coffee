@@ -22,11 +22,20 @@ class Spellcheck
         @lines_with_errors = []
         @current_line_index = null
         @current_error_in_line = null
+        @popupId = "spellcheckpopup"
+        @popupElem = $("#" + @popupId)
+        @popupElem.find(".close").click (event) => @closePopup(event)
+        $("#sIgnore").click (event) => @ignore(event)
+        $("#sIgnoreAll").click (event) => @ignoreAll(event)
+        $("#sChange").click (event) => @change(event)
 
     launch: ->
         @lines_with_errors = []
-        $("#spellcheckpopup").css "visibility", "visible"
+        @popupElem.css "visibility", "visible"
         @fetchSpellingData(0)
+
+    closePopup: (event) ->
+        @popupElem.css "visibility", "hidden"
 
     fetchSpellingData: (startFrom) ->
         if startFrom >= lines.length
@@ -80,5 +89,15 @@ class Spellcheck
         elem.attr("id", "spellcheckfocus")
         $("#sFocus").text(elem.data("text"))
 
+    ignore: (event) ->
+        console.log(event)
+
+    ignoreAll: (event) ->
+        console.log(event)
+
+    change: (event) ->
+        console.log(event)
+
 
 spell = new Spellcheck()
+
