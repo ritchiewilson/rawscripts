@@ -48,6 +48,8 @@ class Spellcheck
 
     fetchSpellingData: (startFrom) ->
         if startFrom >= lines.length
+            if @current_line_index is null
+                @renderCurrentError()
             return
         batch = lines[startFrom...(startFrom + @LINES_PER_BATCH)]
         lineIndex = startFrom
@@ -62,7 +64,7 @@ class Spellcheck
             @lines_with_errors.push line
         startFrom = @LINES_PER_BATCH + parseInt(data.startFrom)
         @fetchSpellingData startFrom
-        if @current_line_index is null
+        if @current_line_index is null and @lines_with_errors.length > 0
             @nextError()
             @renderCurrentError()
 
