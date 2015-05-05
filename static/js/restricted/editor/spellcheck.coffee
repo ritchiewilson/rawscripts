@@ -59,11 +59,30 @@ class Spellcheck
             @renderCurrentError()
 
     nextError: ->
+        if @lines_with_errors == []
+            @current_line_index = @current_error_in_line = null
+            return # there is no 'next' if there are no errors
         if @current_line_index is null
-            @current_line_index = @current_error_in_line = 0
-            return
+            @current_line_index = 0
+            @current_error_in_line = -1
+        @current_error_in_line++
+        segments = @lines_with_errors[@current_line_index].lineSegments
+        num_errors = (s for s in segments when s.err).length
+        if num_errors <= @current_error_in_line
+            @current_error_in_line = 0
+            @current_line_index++
+        if @current_line_index >= @lines_with_errors.length
+            @current_line_index = @current_error_in_line = null
 
     renderCurrentError: ->
+        # cleanup old data
+        $("#sSentance").empty()
+        $(".spellcheckitem").remove()
+
+        if @current_line_index is null
+            @alertDoneChecking()
+            return
+
         # render original text with bad word in red
         err_index = 0
         suggest = []
@@ -77,7 +96,6 @@ class Spellcheck
             $("#sSentance").append(span)
 
         # render suggestions box
-        $(".spellcheckitem").remove()
         for s in suggest
             item = $("<div>").addClass("spellcheckitem").text(s).data("text", s)
             $("#sSuggest").append(item)
@@ -89,8 +107,13 @@ class Spellcheck
         elem.attr("id", "spellcheckfocus")
         $("#sFocus").text(elem.data("text"))
 
+    alertDoneChecking: ->
+        alert "Done Spell Checking"
+        @closePopup()
+
     ignore: (event) ->
-        console.log(event)
+        @nextError()
+        @renderCurrentError()
 
     ignoreAll: (event) ->
         console.log(event)
