@@ -27,15 +27,29 @@ from rawscripts import app
 @app.route('/spellcheck', methods=['POST'])
 @login_required
 def spellcheck():
-    words = request.form.get('data', '')
-    spellchecker = SpellChecker('en_US')
-    spellchecker.set_text(words)
+    lines = request.form['batch']
+    start_from = request.form.get('start_from', None)
     output = []
-    for err in spellchecker:
-        incorrect_word = [err.word]
-        suggestions = err.suggest()
-        if not suggestions:
-            suggestions = ['No Suggestions']
-        incorrect_word.append(suggestions)
-        output.append(incorrect_word)
-    return Response(json.dumps(output), mimetype='text/plain')
+    line_index = start_from
+    for line in json.loads(lines):
+        line_segments = get_spelling_data_for_line(line['text'])
+        if line_segments is None:
+            continue # this line is correct
+        data = {'index': line['index'], 'lineSegments': line_segments}
+        output.append(data)
+    return jsonify(spellingData=output, startFrom=start_from)
+
+def get_spelling_data_for_line(text):
+    line_segments = []
+    spellchecker = SpellChecker('en_US')
+    prev_index = 0
+    spellchecker.set_text(text)
+    for i, err in enumerate(spellchecker):
+        good_words = {'err': False, 'text': text[prev_index:err.wordpos]}
+        bad_word = {'err': True, 'text': err.word, 'suggest': err.suggest(), 'index': i}
+        line_segments += [good_words, bad_word]
+        prev_index = err.wordpos + len(err.word)
+    if not line_segments:
+        return None # Alls correct
+    line_segments.append({'err': False, 'text': text[prev_index:]})
+    return line_segments

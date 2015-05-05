@@ -83,6 +83,7 @@ var editorWidth = 850;
 var editorHeight = 850;
 var headerHeight=65+26;
 var lines = [];
+window['lines'] = lines;
 	/*
 	 * Notes notation
 	 * notes[x] refers to thread
