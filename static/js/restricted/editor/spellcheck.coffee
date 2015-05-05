@@ -35,6 +35,11 @@ class Spellcheck
         @fetchSpellingData(0)
 
     closePopup: (event) ->
+        for line in @lines_with_errors
+            newText = (s.text for s in line.lineSegments).join('')
+            lines[line.index].text = newText
+        wrapAll()
+        pagination()
         @popupElem.css "visibility", "hidden"
 
     fetchSpellingData: (startFrom) ->
@@ -134,8 +139,15 @@ class Spellcheck
         @ignore()
 
     change: (event) ->
-        console.log(event)
-
+        elem = $("#spellcheckfocus")
+        if elem.length == 0
+            return
+        replaceWith = elem.data("text")
+        error = @getCurrentError()
+        error.old_text = error.text
+        error.text = replaceWith
+        @nextError()
+        @renderCurrentError()
 
 spell = new Spellcheck()
 

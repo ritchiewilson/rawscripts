@@ -58,3 +58,5 @@ window['emailNotifyMsg'] = emailNotifyMsg;
 window['removeAccess'] = removeAccess;
 window['selection'] = selection;
 window['requestAnimFrame'] = requestAnimFrame;
+window['wrapAll'] = wrapAll;
+window['pagination'] = pagination;
