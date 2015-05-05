@@ -48,6 +48,7 @@ window['hideSharePrompt'] = hideSharePrompt;
 window['hideEmailPrompt'] = hideEmailPrompt;
 window['emailScript'] = emailScript;
 window['save'] = save;
+window['saveTimer'] = saveTimer;
 window['setJustPasted'] = setJustPasted;
 window['paint'] = paint;
 window['init'] = init;

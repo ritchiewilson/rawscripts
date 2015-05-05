@@ -35,29 +35,32 @@ class Spellcheck
         @fetchSpellingData(0)
 
     closePopup: (event) ->
+        causedChange = false
         for line in @lines_with_errors
             newText = (s.text for s in line.lineSegments).join('')
+            causedChange or= (lines[line.index].text != newText)
             lines[line.index].text = newText
         wrapAll()
         pagination()
+        if causedChange
+            saveTimer()
         @popupElem.css "visibility", "hidden"
 
     fetchSpellingData: (startFrom) ->
         if startFrom >= lines.length
             return
-        batch = lines[startFrom..(startFrom + @LINES_PER_BATCH)]
+        batch = lines[startFrom...(startFrom + @LINES_PER_BATCH)]
         lineIndex = startFrom
         for line in batch
             line.index = lineIndex
             lineIndex++
         data = {batch: JSON.stringify(batch), start_from: startFrom}
-        startFrom += @LINES_PER_BATCH
         $.post('/spellcheck', data, (a, b, c) => @parseSpellingResponse(a, b, c))
 
     parseSpellingResponse: (data, textStatus, jqXHR) ->
         for line in data.spellingData
             @lines_with_errors.push line
-        startFrom = data.startFrom + @LINES_PER_BATCH
+        startFrom = @LINES_PER_BATCH + parseInt(data.startFrom)
         @fetchSpellingData startFrom
         if @current_line_index is null
             @nextError()
