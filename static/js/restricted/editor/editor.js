@@ -21,7 +21,14 @@ var currentScene=1;
 var ud=0;
 var viewNotes=true;
 var timer;
+
 var typeToScript=true;
+// shim to access this variable from outside closure
+function setTypeToScript(bool){
+    typeToScript = bool;
+}
+window['setTypeToScript'] = setTypeToScript
+
 var findForcePaint = false;
 var pasting=false;
 var justPasted=false;

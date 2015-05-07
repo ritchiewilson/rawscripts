@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Spellcheck
     constructor: ->
+        if EOV != 'editor'
+            return
         @LINES_PER_BATCH = 100
         @popupId = "spellcheckpopup"
         @popupElem = $("#" + @popupId)
@@ -27,6 +29,9 @@ class Spellcheck
         $("#sChange").click (event) => @change(event)
 
     launch: ->
+        if EOV != 'editor'
+            return
+        setTypeToScript(false)
         @lines_with_errors = []
         @current_line_index = null
         @current_error_in_line = null
@@ -45,6 +50,7 @@ class Spellcheck
         if causedChange
             saveTimer()
         @popupElem.css "visibility", "hidden"
+        setTypeToScript(true)
 
     fetchSpellingData: (startFrom) ->
         if startFrom >= lines.length
