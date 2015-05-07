@@ -111,15 +111,11 @@ class Spellcheck
             @alertDoneChecking()
             return
 
-        currentLine = @lines_with_errors[@current_line_index]
-        toUpper = lines[currentLine.index].format in [0, 2, 5]
-
         # render original text with bad word in red
         err_index = 0
         suggest = []
         for segment in @lines_with_errors[@current_line_index].lineSegments
-            text = if toUpper then segment.text.toUpperCase() else segment.text
-            span = $("<span>").text(text)
+            span = $("<span>").text(@getStringInCorrectCase(segment.text))
             if segment.err
                 if err_index == @current_error_in_line
                     span.attr("id", "sFocus").css("color", "red")
@@ -129,7 +125,7 @@ class Spellcheck
 
         # render suggestions box
         for s in suggest
-            displayText = if toUpper then s.toUpperCase() else s
+            displayText = @getStringInCorrectCase(s)
             item = $("<div>").addClass("spellcheckitem").text(displayText).data("text", s)
             $("#sSuggest").append(item)
         $(".spellcheckitem").click((event) => @selectSuggestion(event))
@@ -138,11 +134,17 @@ class Spellcheck
         $("#spellcheckfocus").removeAttr("id")
         elem = $(event.target)
         elem.attr("id", "spellcheckfocus")
-        $("#sFocus").text(elem.data("text"))
+        text = @getStringInCorrectCase(elem.data("text"))
+        $("#sFocus").text(text)
 
     alertDoneChecking: ->
         alert "Done Spell Checking"
         @closePopup()
+
+    getStringInCorrectCase: (string)->
+        currentLine = @lines_with_errors[@current_line_index]
+        toUpper = lines[currentLine.index].format in [0, 2, 5]
+        return if toUpper then string.toUpperCase() else string
 
     ignore: (event) ->
         @nextError()
