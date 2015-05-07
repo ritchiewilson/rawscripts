@@ -69,10 +69,10 @@ class Spellcheck
         for line in data.spellingData
             @lines_with_errors.push line
         startFrom = @LINES_PER_BATCH + parseInt(data.startFrom)
-        @fetchSpellingData startFrom
         if @current_line_index is null and @lines_with_errors.length > 0
             @nextError()
             @renderCurrentError()
+        @fetchSpellingData startFrom
 
     getCurrentError: ->
         if @lines_with_errors == [] or @current_line_index is null
