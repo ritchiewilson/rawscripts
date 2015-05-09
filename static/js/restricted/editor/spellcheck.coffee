@@ -49,6 +49,8 @@ class Spellcheck
                 newText = (s.text for s in line.lineSegments).join('')
                 lines[line.index].text = newText
             saveTimer()
+            undoQue = []
+            redoQue = []
         wrapAll()
         pagination()
         @popupElem.css "visibility", "hidden"
