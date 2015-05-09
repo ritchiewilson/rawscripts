@@ -223,11 +223,11 @@ class Spellcheck
             if data.spellingData.length > 0
                 newData = data.spellingData[0]
                 lineWithError.lineSegments = newData.lineSegments
-                @currentError = 0
             else
                 @lines_with_errors.splice(@lines_with_errors.indexOf(lineWithError), 1)
                 if @lines_with_errors.length <= @current_line_index
                     @current_line_index = null
+            @current_error_in_line = 0
             @renderCurrentError()
         )
 
