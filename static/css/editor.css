@@ -219,22 +219,26 @@ td a{
 	overflow:auto;
 }
 #sc_popup_block{
-	width:500px; 
+	width: 540px;
 	height:220px;
 }
 #sSentance{
 	width:235px; 
-	height:120px; 
+	height:140px; 
 	overflow:auto; 
 	float:left
 }
 #sSuggest{
-	width:120px; 
-	height:120px; 
+	width:140px; 
+	height:140px; 
 	background-color:white; 
 	float:left; 
 	border:2px inset; 
 	margin-left:10px;
+    overflow: auto;
+}
+#sFocus {
+    color: red;
 }
 #spellControls{
 	float:left; 
@@ -259,6 +263,9 @@ td a{
     font-family:Verdana, Geneva, sans-serif;
     font-size:10pt;
     cursor:pointer;
+}
+.spellcheckitem.disabled {
+    color: #888;
 }
 #spellcheckfocus{
     background-color:lightBlue;

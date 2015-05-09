@@ -27,6 +27,7 @@ class Spellcheck
         $("#sIgnore").click (event) => @ignore(event)
         $("#sIgnoreAll").click (event) => @ignoreAll(event)
         $("#sChange").click (event) => @change(event)
+        $("#sSentance").on "input", (event) => @textChanged(event)
 
     launch: ->
         if EOV != 'editor'
@@ -109,6 +110,7 @@ class Spellcheck
             @nextError()
 
     renderCurrentError: ->
+        @manuallyChanged = false
         @emptyInputs()
         if @current_line_index is null
             @alertDoneChecking()
@@ -132,10 +134,11 @@ class Spellcheck
             span.attr("id", id)
             $("#sSentance").append(span)
             return span.text()
+        transform = if @currentLineIsUpperCase() then "uppercase" else "none"
+        $("#sSentance").css('text-transform', transform)
 
         @expectedPreContext = addSpan(preContext, "spellcheck-pre-context")
         @expectedErrorText = addSpan(currentError.text, "sFocus")
-        $("#sFocus").css("color", "red")
         @expectedPostContext = addSpan(postContext, "spellcheck-post-context")
 
         # render suggestions box
@@ -154,12 +157,15 @@ class Spellcheck
 
     alertDoneChecking: ->
         @emptyInputs()
-        alert "Done Spell Checking"
+        alert "Done Spell Checking."
         @closePopup()
 
-    getStringInCorrectCase: (string)->
+    currentLineIsUpperCase: ->
         currentLine = @lines_with_errors[@current_line_index]
-        toUpper = lines[currentLine.index].format in [0, 2, 5]
+        return lines[currentLine.index].format in [0, 2, 5]
+
+    getStringInCorrectCase: (string)->
+        toUpper = @currentLineIsUpperCase()
         return if toUpper then string.toUpperCase() else string
 
     emptyInputs: ->
@@ -177,6 +183,9 @@ class Spellcheck
         @ignore()
 
     change: (event) ->
+        if @manuallyChanged
+            @useManualChange()
+            return
         elem = $("#spellcheckfocus")
         if elem.length == 0
             return
@@ -186,6 +195,31 @@ class Spellcheck
         error.text = replaceWith
         @nextError()
         @renderCurrentError()
+
+    useManualChange: ->
+        lineWithError = @getCurrentLine()
+        newText = $("#sSentance").text()
+        line = lines[lineWithError.index]
+        line.text = newText
+        line.index = lineWithError.index
+        data = {batch: JSON.stringify([line]), startFrom: line.index}
+        $.post('/spellcheck', data, (data, textStatus, jqXHR) =>
+            if data.spellingData.length > 0
+                newData = data.spellingData[0]
+                lineWithError.lineSegments = newData.lineSegments
+                @currentError = 0
+            else
+                @lines_with_errors.splice(@lines_with_errors.indexOf(lineWithError), 1)
+                if @lines_with_errors.length <= @current_line_index
+                    @current_line_index = null
+            @renderCurrentError()
+        )
+
+    textChanged: (event) ->
+        $("#sFocus").removeAttr("id")
+        $(".spellcheckitem").off("click").addClass("disabled")
+        $("#spellcheckfocus").removeAttr("id")
+        @manuallyChanged = true
 
 spell = new Spellcheck()
 

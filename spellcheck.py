@@ -33,17 +33,19 @@ def spellcheck():
     line_index = start_from
     spellchecker = SpellChecker('en_US')
     for line in json.loads(lines):
-        line_segments = get_spelling_data_for_line(line['text'], spellchecker)
+        line_segments = get_spelling_data_for_line(line, spellchecker)
         if line_segments is None:
             continue # this line is correct
         data = {'index': line['index'], 'lineSegments': line_segments}
         output.append(data)
     return jsonify(spellingData=output, startFrom=start_from)
 
-def get_spelling_data_for_line(text, spellchecker):
+def get_spelling_data_for_line(line, spellchecker):
+    text = line['text']
+    transformed_text = text.upper() if line['format'] in [0, 2, 5] else text
     line_segments = []
     prev_index = 0
-    spellchecker.set_text(text)
+    spellchecker.set_text(transformed_text)
     for i, err in enumerate(spellchecker):
         good_words = {'err': False, 'text': text[prev_index:err.wordpos]}
         bad_word = {'err': True, 'text': err.word, 'suggest': err.suggest(), 'index': i}
