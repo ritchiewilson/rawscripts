@@ -38,21 +38,32 @@ class Spellcheck
         @current_error_in_line = null
         @ignoreWords = []
         @popupElem.css "visibility", "visible"
+        @disableInputs()
         @fetchSpellingData(0)
+        @lastLineChanged = null
 
     closePopup: (event) ->
         @emptyInputs()
-        causedChange = false
-        for line in @lines_with_errors
-            newText = (s.text for s in line.lineSegments).join('')
-            causedChange or= (lines[line.index].text != newText)
-            lines[line.index].text = newText
+        if @lastLineChanged isnt null
+            for line in @lines_with_errors[..@lastLineChanged]
+                newText = (s.text for s in line.lineSegments).join('')
+                lines[line.index].text = newText
+            saveTimer()
         wrapAll()
         pagination()
-        if causedChange
-            saveTimer()
         @popupElem.css "visibility", "hidden"
         setTypeToScript(true)
+
+    disableInputs: ->
+        @emptyInputs()
+        @popupElem.find("input").prop("disabled", true)
+        $("#spellcheck-title").css "display", "none"
+        $("#spellcheck-waiting").css "display", "block"
+
+    enableInputs: ->
+        @popupElem.find("input").prop("disabled", false)
+        $("#spellcheck-title").css "display", "block"
+        $("#spellcheck-waiting").css "display", "none"
 
     fetchSpellingData: (startFrom) ->
         if startFrom >= lines.length
@@ -147,6 +158,7 @@ class Spellcheck
             item = $("<div>").addClass("spellcheckitem").text(displayText).data("text", s)
             $("#sSuggest").append(item)
         $(".spellcheckitem").click((event) => @selectSuggestion(event))
+        @enableInputs()
 
     selectSuggestion: (event) ->
         $("#spellcheckfocus").removeAttr("id")
@@ -183,6 +195,7 @@ class Spellcheck
         @ignore()
 
     change: (event) ->
+        @lastLineChanged = @current_line_index
         if @manuallyChanged
             @useManualChange()
             return
@@ -202,6 +215,7 @@ class Spellcheck
         line = lines[lineWithError.index]
         line.text = newText
         line.index = lineWithError.index
+        @disableInputs()
         data = {batch: JSON.stringify([line]), startFrom: line.index}
         $.post('/spellcheck', data, (data, textStatus, jqXHR) =>
             if data.spellingData.length > 0
