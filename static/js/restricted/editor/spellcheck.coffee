@@ -40,6 +40,7 @@ class Spellcheck
         @fetchSpellingData(0)
 
     closePopup: (event) ->
+        @emptyInputs()
         causedChange = false
         for line in @lines_with_errors
             newText = (s.text for s in line.lineSegments).join('')
@@ -80,6 +81,11 @@ class Spellcheck
         segments = @lines_with_errors[@current_line_index].lineSegments
         return (s for s in segments when s.err)[@current_error_in_line]
 
+    getCurrentLine: ->
+        if @lines_with_errors == [] or @current_line_index is null
+            return null
+        return @lines_with_errors[@current_line_index]
+
     nextError: ->
         if @lines_with_errors == []
             @current_line_index = @current_error_in_line = null
@@ -103,10 +109,7 @@ class Spellcheck
             @nextError()
 
     renderCurrentError: ->
-        # cleanup old data
-        $("#sSentance").empty()
-        $(".spellcheckitem").remove()
-
+        @emptyInputs()
         if @current_line_index is null
             @alertDoneChecking()
             return
@@ -114,17 +117,29 @@ class Spellcheck
         # render original text with bad word in red
         err_index = 0
         suggest = []
-        for segment in @lines_with_errors[@current_line_index].lineSegments
-            span = $("<span>").text(@getStringInCorrectCase(segment.text))
-            if segment.err
-                if err_index == @current_error_in_line
-                    span.attr("id", "sFocus").css("color", "red")
-                    suggest = segment.suggest
-                err_index++
+        currentError = @getCurrentError()
+        currentLine = @getCurrentLine()
+        preContext = postContext = acc = ""
+        for segment in currentLine.lineSegments
+            if segment is currentError
+                preContext = acc
+                acc = ""
+                continue
+            acc += segment.text
+        postContext = acc
+        addSpan = (text, id) =>
+            span = $("<span>").text(@getStringInCorrectCase(text))
+            span.attr("id", id)
             $("#sSentance").append(span)
+            return span.text()
+
+        @expectedPreContext = addSpan(preContext, "spellcheck-pre-context")
+        @expectedErrorText = addSpan(currentError.text, "sFocus")
+        $("#sFocus").css("color", "red")
+        @expectedPostContext = addSpan(postContext, "spellcheck-post-context")
 
         # render suggestions box
-        for s in suggest
+        for s in currentError.suggest
             displayText = @getStringInCorrectCase(s)
             item = $("<div>").addClass("spellcheckitem").text(displayText).data("text", s)
             $("#sSuggest").append(item)
@@ -138,6 +153,7 @@ class Spellcheck
         $("#sFocus").text(text)
 
     alertDoneChecking: ->
+        @emptyInputs()
         alert "Done Spell Checking"
         @closePopup()
 
@@ -145,6 +161,10 @@ class Spellcheck
         currentLine = @lines_with_errors[@current_line_index]
         toUpper = lines[currentLine.index].format in [0, 2, 5]
         return if toUpper then string.toUpperCase() else string
+
+    emptyInputs: ->
+        $("#sSentance").empty()
+        $(".spellcheckitem").remove()
 
     ignore: (event) ->
         @nextError()
