@@ -77,9 +77,6 @@ def _delete_duplicate_versions(resource_id, version):
         print 'SKIPPING: There were not two saves for', resource_id, "version", version
         return False
     first, second = saves
-    if first.timestamp.year == 2015:
-        print "SKIPPING: These duplicates are from this year:", resource_id, version
-        return False
     if first.tag != '' or second.tag != '':
         print "SKIPPING: Multiple saves but they haves tags:", resource_id, version
         return False
