@@ -86,7 +86,6 @@ function menuSelect(e){
     else if(id=='rename')renamePrompt();
     else if(id=='exportas')exportPrompt();
     else if(id=='duplicate')duplicate();
-    else if(id=='close')closeScript();
     //Edit
     else if(id=='undo')undo();
     else if(id=='redo')redo();

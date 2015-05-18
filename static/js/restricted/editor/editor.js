@@ -932,41 +932,6 @@ function updateOneScene(v){
 	catch(e){};
 }
 
-
-
-
-
-//menu options and stuff
-// closing the window
-function closeScript(){
-	clearTimeout(timer);
-	if(resource_id=='Demo' || EOV=='viewer'){
-		self.close()
-	}
-	var arr=[]
-	for(x in lines){
-		arr.push([lines[x].text,lines[x].format])
-	}
-	var data=JSON.stringify(arr);
-	goog.dom.getElement('saveButton').value='Saving...';
-	goog.net.XhrIo.send('/save', function(d){
-		self.close();
-		},
-		'POST',
-		"data="+encodeURIComponent(data)+"&resource_id="+resource_id+"&autosave=0"
-	);
-	var arr = []
-	for (i in notes){
-		arr.push([notes[i].row, notes[i].col, notes[i].thread_id])
-	}
-	if(arr.length!=0){
-		goog.net.XhrIo.send('/notesposition', 
-			function(d){},
-			'POST',
-			"positions="+encodeURIComponent(JSON.stringify(arr))+"&resource_id="+resource_id
-		);
-	}
-}
 // new script
 function newScriptPrompt(){
     if(checkIfDemo())return;
