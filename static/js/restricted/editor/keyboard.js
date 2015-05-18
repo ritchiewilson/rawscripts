@@ -534,8 +534,7 @@ function enter(){
 		// if canvas is users focus add
 		// a new line of text
 		saveTimer();
-		if(checkSpell)ajaxSpell(pos.row);
-		
+
 		// remove trailing white space.... don't
 		// know why
 		lines[pos.row].text=lines[pos.row].text.replace(/\s+$/,"");
@@ -713,8 +712,6 @@ function upArrow(e){
 			}
 			// if this is the first line in a block of wrapped text
 			if(integ==0){
-				if(checkSpell)ajaxSpell(pos.row);
-
 				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
 				// If the previous line (the one we're jumping into)
 				// has only one line, don't run the calcs, just go to it
@@ -745,8 +742,6 @@ function upArrow(e){
 				pos.col=0;
 			}
 			else{
-				if(checkSpell)ajaxSpell(pos.row);
-				
 				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
 				//If the previous line (the one we're jumping into)
 				//has only one line, don't run the calcs, just go to it
@@ -813,7 +808,6 @@ function downArrow(e){
 			}
 			//if this is the last line in a block of wrapped text
 			if(integ+1==lineLengths.length){
-				if(checkSpell)ajaxSpell(pos.row);
 				for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
 					pos.col-=lineLengths[newinteg];
 				}
@@ -871,7 +865,6 @@ function leftArrow(e){
 		var change=false;
 		if(pos.row==0 && pos.col==0) return;
 		if(pos.col==0){
-			if(checkSpell)ajaxSpell(pos.row);
 			pos.row--;
 			pos.col=lines[pos.row].text.length;
 			var change=true;
@@ -909,7 +902,6 @@ function rightArrow(e){
 		var change=false;
 		if(pos.col==lines[pos.row].text.length && pos.row==lines.length-1)return;
 		if(pos.col==lines[pos.row].text.length){
-			if(checkSpell)ajaxSpell(pos.row);
 			pos.row++;
 			pos.col=0;
 			change=true;

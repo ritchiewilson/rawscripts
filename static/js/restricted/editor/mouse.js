@@ -33,8 +33,6 @@ function mouseDown(e){
 	// i.e. popups and dom sutff isn't being
 	// interacted with
 	if(typeToScript){
-		// check spelling if it's time
-		if(checkSpell)ajaxSpell(pos.row);
 		// if a suggest box is open, quit this
 		// function. the box has it's own logic
 		if(goog.dom.getElement('suggestBox')!=null){

@@ -229,26 +229,7 @@ function init(){
 		var d = goog.dom.getElement(sKeys[i][0]+'-shortcut');
 		if (d!=null){goog.dom.setTextContent(d, meta+sKeys[i][1]);}
 	}
-	
-	
-	// try to call server for list of contacts
-	// and fill in autocomplete fields
-	try{
-		goog.net.XhrIo.send('/synccontacts',
-			function(e){
-				if(e.target.getResponseText()=='none')return;
-				try{
-					var arr = e.target.getResponseJson();
-					var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('recipient'), true);
-					var shareAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('collaborator'), true);
-				}
-				catch(e){};
-			},
-			'POST'
-		);
-	}
-	catch(e){};
-	
+
 	// decorate toolbar
 	var tb = new goog.ui.Toolbar();
 	tb.decorate(goog.dom.getElement('gtb'));
@@ -303,10 +284,8 @@ function parseInitialJSON(e){
     var p = e.target.getResponseJson();
 	// script title
 	// lines of text in the script
-	// spelling data
 	// notes on the script
 	// collaborators on script
-	// contacts list
 	// autosave setting
 
 	// set up title
@@ -345,17 +324,6 @@ function parseInitialJSON(e){
 	}
     }
 
-	// put in spelling data into global variable
-    if(p['spelling'].length!=0){
-        var wrong=p['spelling'][0];
-        var ignore =p['spelling'][1];
-        for (w in wrong){
-            spellWrong.push(wrong[w])
-        }
-        for (i in ignore){
-            spellIgnore.push(ignore[i]);
-        }
-    }
     // put notes into global variable
 	var x=p['notes'];
     for(i in x){
@@ -393,11 +361,6 @@ function parseInitialJSON(e){
         newA.appendChild(document.createTextNode('Remove Access'));
         newA.href="javascript:removeAccess('"+collabs[i]+"')";
     }
-
-	// well, shit. This looks redundant. Gotta test this
-	// out and see why this is here. Done on init()
-	var emailAutoComplete = new goog.ui.AutoComplete.Basic(p['contacts'], goog.dom.getElement('recipient'), true);
-	var shareAutoComplete = new goog.ui.AutoComplete.Basic(p['contacts'], goog.dom.getElement('collaborator'), true);
 
 	// changes the autosave bool to user prefrence
 	autosaveBool = (p['autosave']=='true' ? true : false);

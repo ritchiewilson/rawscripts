@@ -76,10 +76,8 @@ def scriptcontent():
 
     return jsonify(title=screenplay.title,
                    lines=json.loads(latest_version.data),
-                   spelling=[],
                    notes=notes,
                    sharedwith=sharedwith,
-                   contacts=[],
                    autosave='true')
 
 @app.route('/save', methods=['POST'])

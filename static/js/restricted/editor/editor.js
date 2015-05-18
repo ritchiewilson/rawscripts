@@ -123,9 +123,6 @@ window['lines'] = lines;
      *
 	 * */
 var notes=[];
-var spellWrong=[];
-var spellIgnore=[];
-var checkSpell=false;
 var fMenu, eMenu, vMenu, sMenu;
 var notesPosition=[];
 var googSuggestMenu;
@@ -296,7 +293,6 @@ function saveTimer(){
 	if(EOV=='viewer')return;
 	goog.dom.getElement('saveButton').disabled=false;
 	goog.dom.getElement('saveButton').value='Save';
-	checkSpell=true;
 	if(autosaveBool){
 		clearTimeout(timer);
 		timer = setTimeout('save(1)',7000);
@@ -376,51 +372,6 @@ function findUp(){
 	pos.col = anch.col+l;
 	autoScroll();
 }
-
-
-function ajaxSpell(v, r){
-    // as long as spellcheck doesn't work at all, just turn it off.
-    return;
-	if(EOV=='viewer')return;
-    checkSpell=false;
-    var data = lines[v].text;
-    if (lines[v].format==0 || lines[v].format==2 || lines[v].format==5){
-        data=data.toUpperCase();
-    }
-    var words = data.split(' ');
-    for (i=0; i<words.length; i++){
-        var found=false;
-        for (j in spellWrong){
-            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
-                found=true;
-            }
-        }
-        for (j in spellIgnore){
-            if (words[i].toUpperCase()==spellWrong[j][0].toUpperCase()){
-                found=true;
-            }
-        }
-        if(found){
-            words.splice(i,1)
-            i--;
-        }
-    }
-	i=null;
-    var j = JSON.stringify(words);
-	goog.net.XhrIo.send('/spellcheck',
-		function(d){
-			if(d.target.getResponseText()=='correct')return;
-			var x=d.target.getResponseJson();
-			for (i in x){
-	            spellWrong.push(x[i]);
-	        }
-			x=i=null;
-		},
-		'POST',
-		'data='+encodeURIComponent(j)+'&resource_id='+resource_id
-	)
-}
-
 
 function selection(){
 	//order stuff

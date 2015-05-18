@@ -35,7 +35,6 @@ goog.require('goog.debug.DivConsole');
 goog.require('goog.debug.Logger');
 goog.require('goog.debug.LogManager');
 goog.require('goog.object');
-goog.require('goog.ui.AutoComplete.Basic');
 goog.require('goog.format.EmailAddress');
 goog.require('goog.fx');
 goog.require('goog.fx.dom');
