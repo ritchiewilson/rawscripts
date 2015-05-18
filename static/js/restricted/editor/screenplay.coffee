@@ -19,27 +19,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Screenplay
     constructor: (resource_id) ->
         @resource_id = resource_id
-        @saves_in_flight = []
+        @saveInFlight = false
+
+    getLastSavedVersionNumber: ->
+        if not @lastSavedVersionNumber?
+            @lastSavedVersionNumber = window["lastSavedVersionNumber"]
+        return @lastSavedVersionNumber
 
     save: (autosave) ->
-        if EOV != 'editor'
+        if EOV != 'editor' or @saveInFlight
             return
         linesToSend = ([line.text, line.format] for line in lines)
         data = {
             data: JSON.stringify(linesToSend),
             autosave: autosave,
-            resource_id: resource_id
+            resource_id: resource_id,
+            expected_version_number: @getLastSavedVersionNumber() + 1
         }
+        @saveInFlight = true
         @setSaveUI("Saving...", disabled = true)
         $.post("/save", data,  (a, b, c) => @saveResponseHandler(a, b, c))
+            .fail( => @saveResponseHandler(data = {success: false}))
 
     setSaveUI: (text, disabled, errorDisplay = false) ->
         $("#saveButton").val(text).prop("disabled", disabled)
         $("#saveError").css("display", if errorDisplay then "table" else "none")
 
     saveResponseHandler: (data, textStatus, jqXHR) ->
-        if data == "1"
+        @saveInFlight = false
+        if data.success
             @setSaveUI("Saved", disabled = true)
+            @lastSavedVersionNumber = data.versionSaved
         else
             @setSaveUI("Save", disabled = false, errorDisplay = true)
 

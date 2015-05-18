@@ -292,6 +292,7 @@ function parseInitialJSON(e){
     var title=p['title'];
     goog.dom.getElement('title').innerHTML=title;
 	document.title = title;
+    window["lastSavedVersionNumber"] = p["lastSavedVersionNumber"]
 
 	// set up lines of text into global variable
     var x = p['lines'];

@@ -76,6 +76,7 @@ def scriptcontent():
 
     return jsonify(title=screenplay.title,
                    lines=json.loads(latest_version.data),
+                   lastSavedVersionNumber=latest_version.version,
                    notes=notes,
                    sharedwith=sharedwith,
                    autosave='true')
@@ -87,15 +88,30 @@ def save_screenplay():
     if resource_id == 'Demo':
         return Response('demo', mimetype='text/plain')
 
+    failed = Response('0', mimetype='text/plain')
+
     user_email = current_user.name
     permission = UsersScripts.get_users_permission(resource_id, user_email)
     if permission != 'owner':
-        return Response('0', mimetype='text/plain')
+        return failed
 
     latest_version_number = Screenplay.get_latest_version_number(resource_id)
     new_version_number = latest_version_number + 1
+
+    expected_version_number = request.form.get('expected_version_number', None)
+    if expected_version_number is not None:
+        expected_version_number = int(expected_version_number)
+        if Screenplay.version_exists(resource_id, expected_version_number):
+            return failed
+        if expected_version_number > (latest_version_number + 5):
+            return failed
+        new_version_number = expected_version_number
+
     data = request.form['data']
-    autosave  = (request.form['autosave'] == "1")
+    # set some limit on how much data can be saved
+    if len(data) > 800 * 1000:
+        return failed
+    autosave  = (int(request.form['autosave']) == 1)
     now = datetime.utcnow()
     new_save = ScriptData(resource_id=resource_id,
                           data=data,
@@ -109,4 +125,6 @@ def save_screenplay():
     for screenplay in screenplays:
         screenplay.last_updated = now
     db.session.commit()
-    return Response('1', mimetype='text/plain')
+    if expected_version_number is None:
+        return Response('1', mimetype='text/plain')
+    return jsonify(success=True, versionSaved=new_version_number)

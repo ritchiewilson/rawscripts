@@ -160,6 +160,15 @@ class Screenplay:
             return None
         return UsersScripts.get_users_permission(resource_id, user)
 
+    @staticmethod
+    def version_exists(resource_id, version):
+        models = [ScriptData, ResourceVersion]
+        for m in models:
+            q = m.query.filter_by(resource_id=resource_id, version=version)
+            if db.session.query(q.exists()).scalar():
+                return True
+        return False
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
