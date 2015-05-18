@@ -1034,27 +1034,7 @@ function save(v){
         }
         return;
     }
-	var arr=[];
-	for(x in lines){
-		arr.push([lines[x].text, lines[x].format])
-	}
-    var data=JSON.stringify(arr);
-    goog.dom.getElement('saveButton').value='Saving...';
-    goog.net.XhrIo.send('/save', function(d){
-			if(d.target.getResponseText()=='1'){
-	        	goog.dom.getElement('saveButton').value='Saved';
-	        	goog.dom.getElement('saveButton').disabled=true;
-				goog.dom.getElement('saveError').style.display='none';
-			}
-			else{
-				goog.dom.getElement('saveButton').value='Save';
-	        	goog.dom.getElement('saveButton').disabled=false;
-				goog.dom.getElement('saveError').style.display='table';
-			}
-		},
-		'POST',
-		"data="+encodeURIComponent(data)+"&resource_id="+resource_id+"&autosave="+v
-	);
+    window["screenplay"]["save"](v);
     var arr = []
     for (i in notes){
         arr.push([notes[i].row, notes[i].col, notes[i].thread_id])

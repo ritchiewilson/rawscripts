@@ -41,7 +41,8 @@ my_templates = app.jinja_loader.searchpath[0]
 app.blueprints['flask_user'].jinja_loader.searchpath.insert(0, my_templates)
 
 assets = Environment(app)
-editor_js = Bundle('js/restricted/editor/spellcheck.coffee',
+editor_js = Bundle('js/restricted/editor/screenplay.coffee',
+                   'js/restricted/editor/spellcheck.coffee',
                    filters='coffeescript', output='js/editor-coffee.js')
 assets.register('editor', editor_js)
 

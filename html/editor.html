@@ -13,7 +13,8 @@
 		{% endif %}
 		<link rel="shortcut icon" href="/favicon.ico">
 		<script type="text/javascript" charset="utf-8">
-		var EOV='{{ EOV }}'
+		  var EOV="{{ EOV }}";
+          var resource_id="{{ resource_id }}";
 		</script>
 	</head>
 	<body onload="init()" onpaste="var pasting=true; var t=setTimeout('paste()',50);" oncut="var t=setTimeout('cut()',50)">
