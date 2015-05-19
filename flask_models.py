@@ -591,11 +591,13 @@ class UsersScripts(db.Model):
         # this check is just for the EOV in the editor window
         if resource_id == 'Demo':
             return 'owner'
-        row = UsersScripts.query.filter_by(resource_id=resource_id,
-                                           user=user).first()
-        if row is None:
-            return None
-        return row.permission
+        rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
+        # dumb looping is maybe best current way to handle case sensitivity
+        # issues
+        for row in rows:
+            if row.user.lower() == user.lower():
+                return row.permission
+        return None
 
     @staticmethod
     def get_all_collaborators(resource_id):
