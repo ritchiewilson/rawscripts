@@ -133,6 +133,7 @@ function createSuggestBox(d){
 	// and the position of the left edge of the proposed
 	// suggest box
 	if(d=='c'){
+        characters.sort(sortCharacters);
         var v=characters;
     }
     else{
@@ -209,4 +210,10 @@ function createSuggestBox(d){
 			goog.dom.removeNode(goog.dom.getElement('suggestBox'))
 	    });
 	}
+}
+
+function sortCharacters(a, b){
+    if (a[1] < b[1]) return 1;
+    if (a[1] > b[1]) return -1;
+    return 0;
 }
