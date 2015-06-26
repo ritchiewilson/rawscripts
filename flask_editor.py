@@ -54,8 +54,10 @@ def scriptcontent():
     resource_id = request.form['resource_id']
     if resource_id == 'Demo':
         latest_version = ScriptData.get_latest_version('Demo')
-        return jsonify(title='Duck Soup', lines=json.loads(latest_version.data),
-                       spelling=[],
+        lines = [["Fade in:", 1], ["INT. ", 0]]
+        if latest_version is not None:
+            lines = json.loads(latest_version.data)
+        return jsonify(title='Duck Soup', lines=lines,
                        notes=[], sharedwith=[], contacts=[], autosave='true')
 
     user_email = get_current_user_email_with_default()
