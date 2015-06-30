@@ -958,7 +958,10 @@ body{
 	margin-top:0px;
 	width:100%;
 }
-.current{
+.tab:hover {
+    background-color: #ccf;
+}
+.tab.current, .tab.current:hover {
 	background-color:#2352AE;
     color:white;
 	font-weight:bold;

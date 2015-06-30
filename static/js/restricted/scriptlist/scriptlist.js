@@ -95,24 +95,9 @@ function init(){
 	for (i in arr){
 		var f = goog.dom.getElement(arr[i]);
 		goog.events.listen(f, goog.events.EventType.CLICK, function(e){
-			goog.dom.getElementByClass('current').style.backgroundColor='white';
 			goog.dom.getElementByClass('current').className='tab';
 			e.target.className='tab current';
 			tabs(e.target.id)
-			e.target.style.backgroundColor = '#2352AE';
-		});
-		goog.events.listen(f, goog.events.EventType.MOUSEOVER, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#ccf'
-			}
-			else{
-				e.target.style.backgroundColor = '#2352AE'
-			}
-		});
-		goog.events.listen(f, goog.events.EventType.MOUSEOUT, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#fff'
-			}
 		});
 	}
 	// get contacts from server and put in autocomplete
@@ -207,24 +192,9 @@ function refreshList(v){
 				contents.id = folders[i][1]+"_contents";
 				contents.className = "folderContents"
 				goog.events.listen(f, goog.events.EventType.CLICK, function(e){
-					goog.dom.getElementByClass('current').style.backgroundColor='white';
 					goog.dom.getElementByClass('current').className='tab';
 					e.target.className='tab current';
 					tabs(e.target.id)
-					e.target.style.backgroundColor = '#2352AE';
-				});
-				goog.events.listen(f, goog.events.EventType.MOUSEOVER, function(e){
-					if(e.target.className!='tab current'){
-						e.target.style.backgroundColor = '#ccf'
-					}
-					else{
-						e.target.style.backgroundColor = '#2352AE'
-					}
-				});
-				goog.events.listen(f, goog.events.EventType.MOUSEOUT, function(e){
-					if(e.target.className!='tab current'){
-						e.target.style.backgroundColor = '#fff'
-					}
 				});
 			}
 			goog.dom.getElement("loading").style.display = 'none';
@@ -492,7 +462,6 @@ function refreshList(v){
 		    }
 			if(goog.dom.getElement(current)==null)current="ownedFolder"
 			goog.dom.getElement(current).className = goog.dom.getElement(current).className.replace(" current","")+" current";
-			goog.dom.getElement(current).style.backgroundColor="#2352AE";
 			tabs(current);
 			if(v && typeof(v)!='object'){
 				sharePrompt(v);
@@ -1227,24 +1196,9 @@ function newFolder(){
 		option.value=id;
 		td.appendChild(document.createTextNode("Last Modified"));
 		goog.events.listen(d, goog.events.EventType.CLICK, function(e){
-			goog.dom.getElementByClass('current').style.backgroundColor='white';
 			goog.dom.getElementByClass('current').className='tab';
 			e.target.className='tab current';
 			tabs(e.target.id)
-			e.target.style.backgroundColor = '#2352AE';
-		});
-		goog.events.listen(d, goog.events.EventType.MOUSEOVER, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#ccf'
-			}
-			else{
-				e.target.style.backgroundColor = '#2352AE'
-			}
-		});
-		goog.events.listen(d, goog.events.EventType.MOUSEOUT, function(e){
-			if(e.target.className!='tab current'){
-				e.target.style.backgroundColor = '#fff'
-			}
 		});
 	}
 }
