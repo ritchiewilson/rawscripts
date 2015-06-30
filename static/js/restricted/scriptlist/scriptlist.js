@@ -152,50 +152,7 @@ function refreshList(v){
 			var select = goog.dom.getElement('move_to_folder');
 			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
 			for(i in folders){
-				var f = d.appendChild(document.createElement('div'));
-				f.className="tab";
-				f.id="Folder"+folders[i][1];
-				f.appendChild(document.createElement('img')).src="images/folder.png";
-				f.appendChild(document.createTextNode(' '+folders[i][0]))
-				var option = select.appendChild(document.createElement('option'))
-				option.appendChild(document.createTextNode(folders[i][0]));
-				option.value=folders[i][1];
-				var content_plus_header=goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
-				content_plus_header.id=folders[i][1];
-				content_plus_header.className='content_plus_header';
-				content_plus_header.style.display="none";
-				var ch = content_plus_header.appendChild(document.createElement('div'))
-				ch.className="contentsHeader";
-				var table = ch.appendChild(document.createElement('table'));
-				table.width="100%";
-				tr = table.appendChild(document.createElement('tr'));
-				var td = tr.appendChild(document.createElement('td'));
-				td.style.width="15px";
-				var cb = td.appendChild(document.createElement('input'));
-				cb.type='checkbox';
-				cb.style.visibility="hidden"
-				var n = tr.appendChild(document.createElement('td'))
-				n.appendChild(document.createTextNode(folders[i][0]));
-				td = tr.appendChild(document.createElement('td'));
-				td.style.width="120px";
-				td.align = "center";
-				td.appendChild(document.createTextNode("Shared With"));
-				td = tr.appendChild(document.createElement('td'));
-				td.style.width="120px";
-				td.align = "center";
-				td.appendChild(document.createTextNode("Email"));
-				td = tr.appendChild(document.createElement('td'));
-				td.style.width="160px";
-				td.align = "center";
-				td.appendChild(document.createTextNode("Last Modified"));
-				var contents = content_plus_header.appendChild(document.createElement('div'));
-				contents.id = folders[i][1]+"_contents";
-				contents.className = "folderContents"
-				goog.events.listen(f, goog.events.EventType.CLICK, function(e){
-					goog.dom.getElementByClass('current').className='tab';
-					e.target.className='tab current';
-					tabs(e.target.id)
-				});
+                createUIForFolder(folders[i][0], folders[i][1]);
 			}
 			goog.dom.getElement("loading").style.display = 'none';
 		    //remove old data
@@ -1160,48 +1117,56 @@ function newFolder(){
 			'POST',
 			'folder_name='+encodeURIComponent(f)+'&folder_id='+id
 		)
-		var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
-		d.className="tab";
-		d.id="Folder"+id;
-		d.appendChild(document.createElement("img")).src="images/folder.png";
-		d.appendChild(document.createTextNode(" "+f));
-		var content_plus_header=goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
-		content_plus_header.id=id;
-		content_plus_header.className='content_plus_header';
-		content_plus_header.style.display="none";
-		var ch = content_plus_header.appendChild(document.createElement('div'))
-		ch.className="contentsHeader";
-		var table = ch.appendChild(document.createElement('table'));
-		table.width="100%";
-		var tr = table.appendChild(document.createElement('tr'));
-		var td = tr.appendChild(document.createElement('td'));
-		td.style.width="15px";
-		var cb = td.appendChild(document.createElement('input'));
-		cb.type='checkbox';
-		cb.style.visibility="hidden";
-		tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(f));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Shared With"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="120px";
-		td.align = "center";
-		td.appendChild(document.createTextNode("Email"));
-		td = tr.appendChild(document.createElement('td'));
-		td.style.width="160px";
-		td.align = "center";
-		var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
-		option.appendChild(document.createTextNode(f));
-		option.value=id;
-		td.appendChild(document.createTextNode("Last Modified"));
-		goog.events.listen(d, goog.events.EventType.CLICK, function(e){
-			goog.dom.getElementByClass('current').className='tab';
-			e.target.className='tab current';
-			tabs(e.target.id)
-		});
-	}
+        createUIForFolder(f, id);
+    }
 }
+
+function createUIForFolder (name, id){
+    var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
+	d.className="tab";
+	d.id="Folder"+id;
+	d.appendChild(document.createElement("img")).src="images/folder.png";
+	d.appendChild(document.createTextNode(" " + name));
+	var content_plus_header = goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
+	content_plus_header.id=id;
+	content_plus_header.className='content_plus_header';
+	content_plus_header.style.display="none";
+	var ch = content_plus_header.appendChild(document.createElement('div'))
+	ch.className="contentsHeader";
+	var table = ch.appendChild(document.createElement('table'));
+	table.width="100%";
+	var tr = table.appendChild(document.createElement('tr'));
+	var td = tr.appendChild(document.createElement('td'));
+	td.style.width="15px";
+	var cb = td.appendChild(document.createElement('input'));
+	cb.type='checkbox';
+	cb.style.visibility="hidden";
+	tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(name));
+	td = tr.appendChild(document.createElement('td'));
+	td.style.width="120px";
+	td.align = "center";
+	td.appendChild(document.createTextNode("Shared With"));
+	td = tr.appendChild(document.createElement('td'));
+	td.style.width="120px";
+	td.align = "center";
+	td.appendChild(document.createTextNode("Email"));
+	td = tr.appendChild(document.createElement('td'));
+	td.style.width="160px";
+	td.align = "center";
+	td.appendChild(document.createTextNode("Last Modified"));
+    var contents = content_plus_header.appendChild(document.createElement('div'));
+	contents.id = id + "_contents";
+	contents.className = "folderContents";
+	var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
+	option.appendChild(document.createTextNode(name));
+	option.value=id;
+	goog.events.listen(d, goog.events.EventType.CLICK, function(e){
+		goog.dom.getElementByClass('current').className='tab';
+		e.target.className='tab current';
+		tabs(e.target.id)
+	});
+}
+
 /**
  * Prompts the user for a new name for the
  * folder. It then finds the relevant folder_id
