@@ -100,23 +100,6 @@ function init(){
 			tabs(e.target.id)
 		});
 	}
-	// get contacts from server and put in autocomplete
-	try{
-		goog.net.XhrIo.send('/synccontacts',
-			function(e){
-				if(e.target.getResponseText()=='none')return;
-				try{
-					var arr = e.target.getResponseJson();
-					var emailAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('recipient'), true);
-					var shareAutoComplete = new goog.ui.AutoComplete.Basic(arr, goog.dom.getElement('collaborator'), true);
-				}
-				catch(e){};
-			},
-			'POST'
-		);
-	}
-	catch(e){};
-
 }
 
 /**
