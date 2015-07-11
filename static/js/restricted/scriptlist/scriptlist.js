@@ -120,8 +120,6 @@ function refreshList(v){
 					goog.dom.removeNode(fc[i])
 				}
 			}
-			var select = goog.dom.getElement('move_to_folder');
-			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
 
             var scope = window["angular"]["element"](document.getElementsByTagName("html"))["scope"]();
             scope["$apply"](function(){
@@ -1129,9 +1127,6 @@ function createUIForFolder (name, id){
     var contents = content_plus_header.appendChild(document.createElement('div'));
 	contents.id = id + "_contents";
 	contents.className = "folderContents";
-	var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
-	option.appendChild(document.createTextNode(name));
-	option.value=id;
 }
 
 /**

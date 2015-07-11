@@ -59,6 +59,10 @@
 				<input id="move_to_trash" type="button" onClick="batchProcess('delete')" value="Move to Trash" />
 				<select name="move_to_folder" id="move_to_folder" onchange="moveToFolder(this.options[this.selectedIndex].value)">
 				  <option value="move_to">Move to Folder...</option>
+                  <option value="{[ folder[1] ]}" ng-repeat="folder in folders">
+                    {[ folder[0] ]}
+                  </option>
+                  <option value="?none?">Remove From Folder</option>
 				</select>
 			  </div>
 			</div>
