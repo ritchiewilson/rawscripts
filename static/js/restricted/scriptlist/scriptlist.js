@@ -107,9 +107,8 @@ function refreshList(v){
 		    //update with new info
 			var j = d.target.getResponseJson();
 		    var x=j[0];
-		    var z=j[1];
-		    var ss=j[2];
-			var folders=j[3];
+		    var ss=j[1];
+			var folders=j[2];
 			// know which tab is current, to be rest
 			//set up folders
 			var current = goog.dom.getElementByClass('current').id;
@@ -184,108 +183,6 @@ function refreshList(v){
 		        updatedTd.appendChild(document.createTextNode(updated));
 		    }
 		    goog.dom.getElement("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
-    
-		    goog.dom.getElement('trashLoading').style.display = 'none';
-		    goog.dom.getElement('trashNoEntries').style.display=(z.length==0 ? 'block' :'none');
-		    //remove old data
-		    var childs = goog.dom.getElement('trash_contents').childNodes;
-		    for (var i=0; i<childs.length; i++){
-		        childs[i].parentNode.removeChild(childs[i]);
-		        i--;
-		    }
-		    //update with new info
-		    var listDiv = goog.dom.getElement('trash_contents').appendChild(document.createElement('div'));
-		    listDiv.id = 'trashList';
-			x=z;
-		    for(i in x){
-		        var title = x[i][1];
-		        var resource_id = x[i][0];
-		        var updated = x[i][2]
-		        var shared_with=x[i][4]
-				var folder = x[i][5];
-		        var entryDiv = listDiv.appendChild(document.createElement('div'));
-		        entryDiv.id = resource_id;
-		        entryDiv.className = 'entry';
-		        var entryTable = entryDiv.appendChild(document.createElement('table'));
-		        entryTable.width = '100%';
-		        var entryTr = entryTable.appendChild(document.createElement('tr'));
-		        //make checkbox
-		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-		        checkboxTd.className='checkboxCell';
-		        var input = checkboxTd.appendChild(document.createElement('input'));
-		        input.type='checkbox';
-		        input.name = 'trashListItems';
-		        input.value = resource_id;
-		        //make title
-		        var titleCell = entryTr.appendChild(document.createElement('td'));
-		        var titleLink = titleCell.appendChild(document.createElement('a'));
-		        titleLink.id = 'name'+resource_id;
-		        /*
-		        if (newNotes==true){
-		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-		            newNotesSpan.appendChild(document.createTextNode(' New Notes'));
-		            newNotesSpan.className = 'redAlertSpan';
-		        }
-		        */
-		        var href = 'javascript:haveToUndelete()';
-		        titleLink.href=href;
-		        titleLink.appendChild(document.createTextNode(title));
-				//folder column
-				var folderTd  = entryTr.appendChild(document.createElement('td'));
-				folderTd.align = "center";
-				folderTd.className="folderCell";
-				if(folder!="?none?"){
-					for(fold in folders){
-						if (folders[fold][1]==folder){
-							var span = folderTd.appendChild(document.createElement('span'));
-							span.appendChild(document.createTextNode(folders[fold][0]));
-							span.className="folderSpan";
-						}
-					}
-				}
-				folderTd.style.display="none";
-		        //shared column
-		        var sharedTd = entryTr.appendChild(document.createElement('td'));
-		        sharedTd.className = 'sharedCell';
-		        sharedTd.align = 'right';
-        
-		        if (shared_with.length==0){
-		            var collabs = '';
-		        }
-		        else{
-		            if (shared_with.length==1){
-		                var collabs = '1 person ';
-		            }
-		            else {
-		                var collabs = String(shared_with.length)+" people ";
-		            }
-		        }
-		        sharedTd.appendChild(document.createTextNode(collabs));
-		        var manage = sharedTd.appendChild(document.createElement('a'));
-		        var href = "javascript:sharePrompt('"+resource_id+"')";
-		        manage.href=href;
-		        manage.appendChild(document.createTextNode('Manage'));
-		        manage.id = 'share'+resource_id;
-		        manage.title = shared_with.join('&');
-				sharedTd.style.display="none";
-        
-		        //email column
-		        var emailTd = entryTr.appendChild(document.createElement('td'));
-		        emailTd.className = 'emailCell';
-		        emailTd.align='center';
-		        var emailLink = emailTd.appendChild(document.createElement('a'));
-		        emailLink.className = 'emailLink';
-		        href = 'javascript:emailPrompt("'+resource_id+'")';
-		        emailLink.href=href;
-		        emailLink.appendChild(document.createTextNode('Email'));
-				emailTd.style.display="none";
-		        // Last updated
-		        var updatedTd = entryTr.appendChild(document.createElement('td'));
-		        updatedTd.className = 'updatedCell';
-		        updatedTd.align='center';
-		        updatedTd.appendChild(document.createTextNode(updated));
-		
-		    }
 			if(goog.dom.getElement(current)==null)current="ownedFolder"
             var currentFolderID = current.replace("Folder", "");
             scope["$apply"](function(){

@@ -24,9 +24,14 @@ angular
     )
     .filter 'filterFolder', ->
         (input, currentFolder) ->
-            if not input or not currentFolder or currentFolder is 'owned'
+            if not input or not currentFolder
                 return input
-            return (screenplay for screenplay in input when screenplay[6] is currentFolder)
+            if currentFolder is "trash"
+                return (s for s in input when s.is_trashed)
+            out = (s for s in input when not s.is_trashed)
+            if currentFolder is "owned"
+                return out
+            return (screenplay for screenplay in out when screenplay.folder is currentFolder)
     .controller 'ScriptlistController', ($scope) ->
         scriptlist = @
         scriptlist.screenplays = []
@@ -41,7 +46,13 @@ angular
         scriptlist.getFolderName = (id, folders) ->
             names = (folder[0] for folder in folders when folder[1] == id)
             return if not names then null else names[0]
+        scriptlist.getCurrentFolderName = (id, folders) ->
+            if id of scriptlist.defaultFolders
+                return scriptlist.defaultFolders[id]
+            return scriptlist.getFolderName(id, folders)
         scriptlist.sharePrompt = (id) ->
             sharePrompt(id)
         scriptlist.emailPrompt = (id) ->
             emailPrompt(id)
+        scriptlist.haveToUndelete = ->
+            haveToUndelete()
