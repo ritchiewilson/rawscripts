@@ -47,3 +47,4 @@ rawscripts-migration.db
 scripts/jquery-externs.js
 static/.webassets*
 static/js/editor-coffee.js
+static/js/scriptlist-coffee.js
