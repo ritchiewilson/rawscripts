@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="scriptlist" ng-controller="ScriptlistController as sc">
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="chrome=1">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -13,7 +13,13 @@
 		{% else %}
 			<script src="/static/js/min/scriptlist-compiled.js"></script>
 		{% endif %}
-		
+
+        {% include "angular.html" -%}
+
+        {% assets "scriptlist" %}
+            <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
+
 		{% if MODE == 'DEV' %}
 			<link rel="stylesheet" href="/static/css/scriptlist.css" type="text/css">
 			{% for file in SCRIPTLIST_CSS %}
@@ -63,14 +69,22 @@
 
 	<div>
 
-		<div id="folders">
-			<div id="ownedFolder" class="tab current">My Scripts</div>
-			<div id="sharedFolder" class="tab">Shared With Me</div>
-			<div id="trashFolder" class="tab">Trash</div>
+	  <div id="folders">
+        <div id="{[ id ]}Folder" class="tab" ng-repeat="(id, text) in sc.defaultFolders"
+             ng-click="sc.setCurrentFolder(id)"
+             ng-class="sc.currentFolder === id ? 'current' : ''">
+          {[ text ]}
+        </div>
 			<div id="new_folder_div">
 				<input type="button" name="new_folder" value="New Folder" id="new_folder" onclick="newFolder()">
 			</div>
-			<div id="user_folders"></div>
+            <div id="user_folders">
+              <div id="Folder{[ folder[1] ]}" class="tab" ng-repeat="folder in folders"
+                   ng-click="sc.setCurrentFolder(folder[1])"
+                   ng-class="sc.currentFolder === folder[1] ? 'current' : ''">
+                <img src="images/folder.png"> {[ folder[0] ]}
+              </div>
+            </div>
 		</div>
 
 		<div id="scriptlists">
@@ -123,7 +137,7 @@
 		<div class="popup_background"></div>
 		<div class="popup_block">
 			<div class="popup">
-				<a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/static//images/close.png" alt="Close Popup"></a>
+				<a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 				<br /><br /><span>Email Script</span><br /><br />
 				<label for="recipient">Recipients (max 5, comma seperated)</label><br>
 				<textarea class="text_input" rows='4' name='recipient' id='recipient' style="width:400px"></textarea><br />

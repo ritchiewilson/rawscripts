@@ -46,6 +46,10 @@ editor_js = Bundle('js/restricted/editor/screenplay.coffee',
                    filters='coffeescript', output='js/editor-coffee.js')
 assets.register('editor', editor_js)
 
+scriptlist_js = Bundle('js/restricted/scriptlist/scriptlist.coffee',
+                       filters='coffeescript', output='js/scriptlist-coffee.js')
+assets.register('scriptlist', scriptlist_js)
+
 import flask_editor
 import flask_scriptlist
 import flask_screenplay_export

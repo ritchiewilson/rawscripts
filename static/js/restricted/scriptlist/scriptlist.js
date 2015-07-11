@@ -55,7 +55,7 @@ window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 window['hardDelete'] = hardDelete;
-
+window["tabs"] = tabs;
 
 
 
@@ -90,16 +90,6 @@ function init(){
 	// user defined folders
 	goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
 	goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
-	// Put some listens on folder tabs
-	var arr = ['ownedFolder', 'sharedFolder', 'trashFolder'];
-	for (i in arr){
-		var f = goog.dom.getElement(arr[i]);
-		goog.events.listen(f, goog.events.EventType.CLICK, function(e){
-			goog.dom.getElementByClass('current').className='tab';
-			e.target.className='tab current';
-			tabs(e.target.id)
-		});
-	}
 }
 
 /**
@@ -130,13 +120,15 @@ function refreshList(v){
 					goog.dom.removeNode(fc[i])
 				}
 			}
-			var d=goog.dom.getElement('user_folders');
-			goog.dom.removeChildren(d);
 			var select = goog.dom.getElement('move_to_folder');
 			select.innerHTML="<option value='move_to'>Move To Folder...</option><option value='?none?'>Remove From Folder</option>";
-			for(i in folders){
-                createUIForFolder(folders[i][0], folders[i][1]);
-			}
+
+            var scope = window["angular"]["element"](document.getElementsByTagName("html"))["scope"]();
+            scope["$apply"](function(){
+                scope["folders"] = folders;
+            });
+            for (i in folders)
+                createUIForFolder(folders[i][0], folders[i][1])
 			goog.dom.getElement("loading").style.display = 'none';
 		    //remove old data
 		    var childs = goog.dom.getElement('owned_contents').childNodes;
@@ -401,8 +393,11 @@ function refreshList(v){
 		
 		    }
 			if(goog.dom.getElement(current)==null)current="ownedFolder"
-			goog.dom.getElement(current).className = goog.dom.getElement(current).className.replace(" current","")+" current";
-			tabs(current);
+            var currentFolderID = current.replace("Folder", "");
+            scope["$apply"](function(){
+                scope["currentFolder"] = currentFolderID;
+            });
+            tabs(current);
 			if(v && typeof(v)!='object'){
 				sharePrompt(v);
 			}
@@ -1105,11 +1100,6 @@ function newFolder(){
 }
 
 function createUIForFolder (name, id){
-    var d = goog.dom.getElement('user_folders').appendChild(document.createElement('div'));
-	d.className="tab";
-	d.id="Folder"+id;
-	d.appendChild(document.createElement("img")).src="images/folder.png";
-	d.appendChild(document.createTextNode(" " + name));
 	var content_plus_header = goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
 	content_plus_header.id=id;
 	content_plus_header.className='content_plus_header';
@@ -1143,11 +1133,6 @@ function createUIForFolder (name, id){
 	var option = goog.dom.getElement('move_to_folder').appendChild(document.createElement('option'));
 	option.appendChild(document.createTextNode(name));
 	option.value=id;
-	goog.events.listen(d, goog.events.EventType.CLICK, function(e){
-		goog.dom.getElementByClass('current').className='tab';
-		e.target.className='tab current';
-		tabs(e.target.id)
-	});
 }
 
 /**
