@@ -55,7 +55,6 @@ window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 window['hardDelete'] = hardDelete;
-window["tabs"] = tabs;
 
 
 
@@ -114,118 +113,15 @@ function refreshList(v){
 			// know which tab is current, to be rest
 			//set up folders
 			var current = goog.dom.getElementByClass('current').id;
-			var fc = goog.dom.getElementsByClass('content_plus_header');
-			for (i in fc){
-				if(fc[i].id!='owned' && fc[i].id!='shared' && fc[i].id!='trash'){
-					goog.dom.removeNode(fc[i])
-				}
-			}
 
             var scope = window["angular"]["element"](document.getElementsByTagName("html"))["scope"]();
             scope["$apply"](function(){
                 scope["folders"] = folders;
+                scope["screenplays"] = x;
             });
-            for (i in folders)
-                createUIForFolder(folders[i][0], folders[i][1])
 			goog.dom.getElement("loading").style.display = 'none';
-		    //remove old data
-		    var childs = goog.dom.getElement('owned_contents').childNodes;
-		    for (var i=0; i<childs.length; i++){
-		        childs[i].parentNode.removeChild(childs[i]);
-		        i--;
-		    }
-			var listDiv = goog.dom.getElement('owned_contents').appendChild(document.createElement('div'));
-		    listDiv.id = 'list';
+
 			goog.dom.getElement('noentries').style.display=(x.length==0 ? "block" : "none");
-		    for (var i=0; i<x.length; i++){
-		        var title = x[i][1];
-		        var resource_id = x[i][0];
-		        var updated = x[i][2];
-		        var shared_with=x[i][4];
-				var new_notes=x[i][5];
-				var folder = x[i][6];
-		        var entryDiv = listDiv.appendChild(document.createElement('div'));
-		        entryDiv.id = resource_id;
-		        entryDiv.className = 'entry';
-		        var entryTable = entryDiv.appendChild(document.createElement('table'));
-		        entryTable.width = '100%';
-		        var entryTr = entryTable.appendChild(document.createElement('tr'));
-		        //make checkbox
-		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-		        checkboxTd.className='checkboxCell';
-		        var input = checkboxTd.appendChild(document.createElement('input'));
-		        input.type='checkbox';
-		        input.name = 'listItems';
-		        input.value = resource_id;
-		        //make title
-		        var titleCell = entryTr.appendChild(document.createElement('td'));
-		        var titleLink = titleCell.appendChild(document.createElement('a'));
-		        titleLink.id = 'name'+resource_id;
-		        if (new_notes!=0){
-		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-		            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note" : " "+new_notes+' New Notes')));
-		            newNotesSpan.className = 'redAlertSpan';
-		        }
-		        var href = 'javascript:script("'+resource_id+'")';
-		        titleLink.href=href;
-		        titleLink.appendChild(document.createTextNode(title));
-				//folder column
-				var folderTd  = entryTr.appendChild(document.createElement('td'));
-				folderTd.align = "center";
-				folderTd.className="folderCell";
-				if(folder!="?none?"){
-					for(fold in folders){
-						if (folders[fold][1]==folder){
-							var span = folderTd.appendChild(document.createElement('span'));
-							span.appendChild(document.createTextNode(folders[fold][0]));
-							span.className="folderSpan";
-						}
-					}
-				}
-		        //shared column
-		        var sharedTd = entryTr.appendChild(document.createElement('td'));
-		        sharedTd.className = 'sharedCell';
-		        sharedTd.align = 'right';
-        
-		        if (shared_with.length==0){
-		            var collabs = '';
-		        }
-		        else{
-		            if (shared_with.length==1){
-		                var collabs = '1 person ';
-		            }
-		            else {
-		                var collabs = String(shared_with.length)+" people ";
-		            }
-		        }
-		        sharedTd.appendChild(document.createTextNode(collabs));
-		        var manage = sharedTd.appendChild(document.createElement('a'));
-		        var href = "javascript:sharePrompt('"+resource_id+"')";
-		        manage.href=href;
-		        manage.appendChild(document.createTextNode('Manage'));
-		        manage.id = 'share'+resource_id;
-		        manage.title = shared_with.join('&');
-        
-		        //email column
-		        var emailTd = entryTr.appendChild(document.createElement('td'));
-		        emailTd.className = 'emailCell';
-		        emailTd.align='center';
-		        var emailLink = emailTd.appendChild(document.createElement('a'));
-		        emailLink.className = 'emailLink';
-		        href = 'javascript:emailPrompt("'+resource_id+'")';
-		        emailLink.href=href;
-		        emailLink.appendChild(document.createTextNode('Email'));
-		        // Last updated
-		        var updatedTd = entryTr.appendChild(document.createElement('td'));
-		        updatedTd.className = 'updatedCell';
-		        updatedTd.align='center';
-		        updatedTd.appendChild(document.createTextNode(updated));
-				if(folder!="?none?"){
-					var obj = entryDiv.cloneNode(true);
-					var obj = goog.dom.getElement(folder+"_contents").appendChild(obj);
-					obj.getElementsByTagName("input")[0].name="listItems"+folder;
-				}
-			}
 		    // showing sharing scripts
 		    //remove old data
 		    var childs = goog.dom.getElement('shared_contents').childNodes;
@@ -395,7 +291,6 @@ function refreshList(v){
             scope["$apply"](function(){
                 scope["currentFolder"] = currentFolderID;
             });
-            tabs(current);
 			if(v && typeof(v)!='object'){
 				sharePrompt(v);
 			}
@@ -1052,26 +947,6 @@ function emailNotifyMsg(e){
  * can move scripts into folders.
 */
 
-/**
- * the logic for clicking on a folder (defualt or user defined)
- * and then opening up the list of relevant files
- * @param { string } v folder id
- */
-function tabs(v){
-	var c = document.getElementsByTagName('input');
-	for (var i=0; i<c.length; i++){
-		if (c[i].type == 'checkbox'){
-			c[i].checked = false;
-		}
-	}
-	var c = document.getElementsByTagName('div');
-	for(var i=0; i<c.length; i++){
-		if(c[i].className=="content_plus_header")c[i].style.display="none";
-	}
-	goog.dom.getElement(v.replace("Folder","")).style.display="block";
-	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_script_buttons";
-	goog.dom.getElement(v.replace("Folder","_script_buttons")).style.display="block";
-}
 
 /**
  * called when use clicks "New Folder" button.
@@ -1092,42 +967,9 @@ function newFolder(){
 			'POST',
 			'folder_name='+encodeURIComponent(f)+'&folder_id='+id
 		)
-        createUIForFolder(f, id);
     }
 }
 
-function createUIForFolder (name, id){
-	var content_plus_header = goog.dom.getElement('scriptlists').appendChild(document.createElement("div"));
-	content_plus_header.id=id;
-	content_plus_header.className='content_plus_header';
-	content_plus_header.style.display="none";
-	var ch = content_plus_header.appendChild(document.createElement('div'))
-	ch.className="contentsHeader";
-	var table = ch.appendChild(document.createElement('table'));
-	table.width="100%";
-	var tr = table.appendChild(document.createElement('tr'));
-	var td = tr.appendChild(document.createElement('td'));
-	td.style.width="15px";
-	var cb = td.appendChild(document.createElement('input'));
-	cb.type='checkbox';
-	cb.style.visibility="hidden";
-	tr.appendChild(document.createElement('td')).appendChild(document.createTextNode(name));
-	td = tr.appendChild(document.createElement('td'));
-	td.style.width="120px";
-	td.align = "center";
-	td.appendChild(document.createTextNode("Shared With"));
-	td = tr.appendChild(document.createElement('td'));
-	td.style.width="120px";
-	td.align = "center";
-	td.appendChild(document.createTextNode("Email"));
-	td = tr.appendChild(document.createElement('td'));
-	td.style.width="160px";
-	td.align = "center";
-	td.appendChild(document.createTextNode("Last Modified"));
-    var contents = content_plus_header.appendChild(document.createElement('div'));
-	contents.id = id + "_contents";
-	contents.className = "folderContents";
-}
 
 /**
  * Prompts the user for a new name for the

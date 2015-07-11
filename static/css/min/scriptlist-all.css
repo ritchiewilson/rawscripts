@@ -1125,3 +1125,7 @@ a{
     padding: 10px;
     font-size: 12pt;
 }
+
+.actionable-span {
+    cursor: pointer;
+}

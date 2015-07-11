@@ -22,8 +22,14 @@ angular
             $interpolateProvider.startSymbol('{[')
             $interpolateProvider.endSymbol(']}')
     )
+    .filter 'filterFolder', ->
+        (input, currentFolder) ->
+            if not input or not currentFolder or currentFolder is 'owned'
+                return input
+            return (screenplay for screenplay in input when screenplay[6] is currentFolder)
     .controller 'ScriptlistController', ($scope) ->
         scriptlist = @
+        scriptlist.screenplays = []
         scriptlist.defaultFolders =
             owned: "My Scripts"
             shared: "Shared With Me"
@@ -32,4 +38,10 @@ angular
         scriptlist.folders = []
         scriptlist.setCurrentFolder = (id) ->
             scriptlist.currentFolder = id
-            tabs(id)
+        scriptlist.getFolderName = (id, folders) ->
+            names = (folder[0] for folder in folders when folder[1] == id)
+            return if not names then null else names[0]
+        scriptlist.sharePrompt = (id) ->
+            sharePrompt(id)
+        scriptlist.emailPrompt = (id) ->
+            emailPrompt(id)

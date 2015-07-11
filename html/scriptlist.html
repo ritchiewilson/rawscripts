@@ -94,25 +94,66 @@
 		</div>
 
 		<div id="scriptlists">
-			<div id="owned" class="content_plus_header">
+			<div id="owned" class="content_plus_header" ng-show="sc.currentFolder != 'shared' && sc.currentFolder != 'trash'">
 				<table class="contentsHeader" width="100%">
 					<tr>
 						<td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
-						<td>My Scripts</td>
+						<td>{[ sc.currentFolder === 'owned' ? 'My Scripts' : sc.getFolderName(sc.currentFolder, folders) ]}</td>
 						<td style="width:120px" align="center">Folder</td>
 						<td style="width:120px" align="center">Shared With</td>
 						<td style="width:120px" align="center">Email</td>
 						<td style="width:160px" align="center">Last Modified</td>
 					</tr>
 				</table>
-				<div id="owned_contents" class="folderContents"></div>
+				<div id="owned_contents" class="folderContents">
+                  <div id="list">
+                    <div id="{[ screenplay[0] ]}" class="entry" ng-repeat="screenplay in screenplays|filterFolder:sc.currentFolder">
+                      <table width="100%">
+                        <tr>
+                          <td class="checkboxCell">
+                            <input value="{[ screenplay[0] ]}" type="checkbox" name="listItems" />
+                          </td>
+                          <td>
+                            <a id="name{[ screenplay[0] ]}" href="/editor?resource_id={[ screenplay[0] ]}" target="_blank">{[ screenplay[1] ]}</a>
+                            <span class="redAlertSpan" ng-if="screenplay[5] > 0">
+                              <ng-pluralize count="screenplay[5]"
+                                            when="{'0':'',
+                                                  'one': 'New Note',
+                                                  'other': '{} New Notes'}">
+                              </ng-pluralize>
+                            </span>
+                          </td>
+                          <td class="folderCell" align="center">
+                            <span class="folderSpan" ng-if="screenplay[6] != '?none?'">
+                              {[ sc.getFolderName(screenplay[6], folders) ]}
+                            </span>
+                          </td>
+                          <td class="sharedCell" align="right">
+                            <ng-pluralize count="screenplay[4].length"
+                                          when="{'0':'',
+                                                'one': '1 person ',
+                                                'other': '{} people '}">
+                            </ng-pluralize>
+                            <span id="share{[ screenplay[0] ]}" title="{[ screenplay[4].join('&') ]}" ng-click="sc.sharePrompt(screenplay[0])" class="actionable-span">Manage</span>
+                          </td>
+                          <td class="emailCell" align="center">
+                            <span class="actionable-span emailLink" ng-click="sc.emailPrompt(screenplay[0])">Email</span>
+                          </td>
+                          <td class="updatedCell" align="center">
+                            {[ screenplay[2] ]}
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
 				<div id="loading"><div align="center">Loading...</div></div>
 				<div id="noentries" class="none_of_type" align="center">
 					<span>You haven't started any scripts yet.</span><br><br>
 					<a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
 				</div>
 			</div>
-			<div id="shared" class="content_plus_header">
+			<div id="shared" class="content_plus_header" ng-show="sc.currentFolder == 'shared'">
 				<table class="contentsHeader" width="100%">
 					<tr>
 						<td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
@@ -125,7 +166,7 @@
 				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 			</div>
-			<div id="trash" class="content_plus_header">
+			<div id="trash" class="content_plus_header" ng-show="sc.currentFolder == 'trash'">
 				<table class="contentsHeader" width="100%">
 					<tr>
 						<td style='width:15px;'><input onClick='selectAll(this, "trashListItems")' type='checkbox' value='all' /></td>
