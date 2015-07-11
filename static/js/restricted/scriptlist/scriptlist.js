@@ -1069,7 +1069,6 @@ function tabs(v){
 	var c = document.getElementsByTagName('div');
 	for(var i=0; i<c.length; i++){
 		if(c[i].className=="content_plus_header")c[i].style.display="none";
-		if(c[i].className=="buttons_block")c[i].style.display="none";
 	}
 	goog.dom.getElement(v.replace("Folder","")).style.display="block";
 	if(v!="ownedFolder" && v!="sharedFolder"  && v!="trashFolder")v="owned_script_buttons";

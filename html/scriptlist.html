@@ -44,21 +44,23 @@
 				<input type='button' onClick="newScriptPrompt()" value='New Script' />
 				<input type="button" onClick="uploadPrompt()" value="Upload" />
 			</div>
-			<div id="owned_script_buttons" class="buttons_block">
+            <div ng-switch="sc.currentFolder">
+			  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">
+				<input type="button" onClick="exportPrompt()" value="Export" />
+			  </div>
+			  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
+				<input type="button" onClick="batchProcess('undelete')" value="Undelete" />
+				<input type="button" onClick="batchProcess('hardDelete')" value="Delete Permanantly" style="margin-left:20px" />
+			  </div>
+			  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
 				<input type="button" onClick="renamePrompt()" value="Rename" />
-				<input type='button' onClick="duplicate()" value='Duplicate' />
-				<input type='button' onClick="exportPrompt()" value='Export' />
-				<input id="move_to_trash" type='button' onClick="batchProcess('delete')" value='Move to Trash' />
+				<input type="button" onClick="duplicate()" value="Duplicate" />
+				<input type="button" onClick="exportPrompt()" value="Export" />
+				<input id="move_to_trash" type="button" onClick="batchProcess('delete')" value="Move to Trash" />
 				<select name="move_to_folder" id="move_to_folder" onchange="moveToFolder(this.options[this.selectedIndex].value)">
-					<option value="move_to">Move to Folder...</option>
+				  <option value="move_to">Move to Folder...</option>
 				</select>
-			</div>
-			<div id="shared_script_buttons" class="buttons_block">
-				<input type='button' onClick="exportPrompt()" value='Export' />
-			</div>
-			<div id="trash_script_buttons" class="buttons_block">
-				<input type='button' onClick="batchProcess('undelete')" value='Undelete' />
-				<input type='button' onClick="batchProcess('hardDelete')" value='Delete Permanantly' style="margin-left:20px" />
+			  </div>
 			</div>
 			<div id="refresh">
 				<a href="javascript:refreshList()"><img id="refresh_icon" src="/static/images/refresh_icon.gif" alt="Refreshing Screenplay List">Refresh</a>

@@ -923,12 +923,10 @@ body{
 }
 #shared_script_buttons{
 	float:left; 
-	display:none;
 	margin-left:55px;
 }
 #trash_script_buttons{
 	float:left; 
-	display:none;
 	margin-left:55px;
 }
 #refresh{
