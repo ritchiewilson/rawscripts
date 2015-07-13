@@ -24,7 +24,6 @@
  * to the window object; as done here.
  */
 window['removeAccess'] = removeAccess;
-window['haveToUndelete'] = haveToUndelete;
 window['sharePrompt'] = sharePrompt;
 window['init'] = init;
 window['hideEmailPrompt'] = hideEmailPrompt;
@@ -488,14 +487,6 @@ function exportScripts(){
 	hideExportPrompt();
 }
 
-
-/**
- * An alert if a user tries to open a trashed
- * script. (sucky UI, need to fix)
- */
-function haveToUndelete(){
-	alert("You have to Undelete this script to view it.\n\nThe Undelete button is right above your scriptlist.");
-}
 
 /**
  * Permananetly delete a script

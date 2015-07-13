@@ -62,7 +62,7 @@ angular
         scriptlist.emailPrompt = (id) ->
             emailPrompt(id)
         scriptlist.haveToUndelete = ->
-            haveToUndelete()
+            alert "You have to Undelete this script to view it."
 
         # Use this for both move into and out of trash
         $scope.trashCheckedScreenplays = (should_delete) ->
