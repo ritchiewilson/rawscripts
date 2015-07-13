@@ -67,7 +67,8 @@ angular
         # Use this for both move into and out of trash
         $scope.trashCheckedScreenplays = (should_delete) ->
             url = if should_delete then "/delete" else "/undelete"
-            toTrash = (s for s in $scope.screenplays when s.is_checked)
+            visible = folderFilter($scope.screenplays, $scope.currentFolder)
+            toTrash = (s for s in visible when s.is_checked)
             for s in toTrash
                 s.is_processing = true
                 $http.post(url, {resource_id: s.resource_id})
