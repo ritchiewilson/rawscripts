@@ -74,7 +74,7 @@ def rename_screenplay():
     return Response('done', mimetype='text/plain')
 
 def switch_deletion_permissions(switches):
-    resource_id = request.form['resource_id']
+    resource_id = request.json['resource_id']
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         if screenplay.permission in switches:
@@ -88,7 +88,7 @@ def delete_screenplay():
     switches = {'owner': 'ownerDeleted',
                 'collab': 'collabDeletedByOwner'}
     switch_deletion_permissions(switches)
-    return Response('1', mimetype='text/plain')
+    return Response(request.json['resource_id'], mimetype='text/plain')
 
 @app.route('/undelete', methods=['POST'])
 @login_required
@@ -97,7 +97,7 @@ def undelete_screenplay():
     switches = {'ownerDeleted': 'owner',
                 'collabDeletedByOwner': 'collab'}
     switch_deletion_permissions(switches)
-    return Response('1', mimetype='text/plain')
+    return Response(request.json['resource_id'], mimetype='text/plain')
 
 @app.route('/harddelete', methods=['POST'])
 @login_required

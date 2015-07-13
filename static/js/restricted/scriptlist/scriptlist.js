@@ -488,79 +488,6 @@ function exportScripts(){
 	hideExportPrompt();
 }
 
-/**
- * Moves Script to trash. First greys the scripts
- * to be deleted, and when the server confirms the 
- * scripts are in the trash, it moves them.
- * @param { string object } v resource_id of script
- */
-function deleteScript(v){
-	var scriptDiv = goog.dom.getElement(v);
-	scriptDiv.style.backgroundColor = '#ccc';
-	scriptDiv.style.opacity = '0.5';
-	var c = document.getElementsByTagName('div');
-	for (i in c){
-		if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
-			c[i].style.backgroundColor = '#ccc';
-			c[i].style.opacity = '0.5';
-		}
-	}
-	goog.net.XhrIo.send('/delete',
-		function(){
-	        scriptDiv.parentNode.removeChild(scriptDiv);
-	        goog.dom.getElement('trashList').appendChild(scriptDiv);
-	        scriptDiv.style.backgroundColor='#f9f9fc';
-	        scriptDiv.style.opacity='1';
-	        var t=scriptDiv.firstChild;
-	        t=(t.nodeName=='#text' ? t.nextSibling : t);
-	        t.getElementsByTagName('input')[0].name='trashListItems';
-	        var c = t.getElementsByTagName('td');
-	        c[2].style.display="none";
-			c[3].style.display='none';
-			c[4].style.display="none";
-			c[1].firstChild.href="javascript:haveToUndelete()";
-			goog.dom.getElement("trashNoEntries").style.display="none";
-			var c = document.getElementsByTagName('div');
-			for (i in c){
-				if(c[i].className=="entry" && c[i].id==v && c[i]!=scriptDiv){
-					c[i].parentNode.removeChild(c[i])
-				}
-			}
-        },
-		'POST',
-		'resource_id='+v
-		);
-}
-/**
- * Remove Script from trash
- * @param {string} v resource_id of script to revive
- */
-function undelete(v){
-    var scriptDiv = goog.dom.getElement(v);
-	scriptDiv.style.backgroundColor = '#ccc';
-	scriptDiv.style.opacity = '0.5';
-	goog.net.XhrIo.send('/undelete',
-		function(){
-			scriptDiv.parentNode.removeChild(scriptDiv);
-			goog.dom.getElement('list').appendChild(scriptDiv);
-			scriptDiv.style.backgroundColor='#f9f9fc';
-			scriptDiv.style.opacity='1';
-			var t=scriptDiv.firstChild;
-			t=(t.nodeName=='#text' ? t.nextSibling : t);
-			t=t.firstChild;
-			t=(t.nodeName=='#text' ? t.nextSibling : t);
-			var c = t.getElementsByTagName('td');
-			t.getElementsByTagName('input')[0].name='listItems';
-			t.getElementsByTagName('a')[0].href="javascript:script('"+v+"')"
-			for (i in c){
-				if (c[i].style!=undefined)c[i].style.display="table-cell"
-			}
-			goog.dom.getElement("noentries").style.display="none";
-		},
-		'POST',
-		'resource_id='+v
-	);
-}
 
 /**
  * An alert if a user tries to open a trashed
@@ -608,8 +535,6 @@ function batchProcess(v){
             if(listItems[i].type == 'checkbox'){
                 if (listItems[i].checked == true){
                     if (listItems[i].name.match(/listitems/gi)){
-                        if(v=='delete')	deleteScript(listItems[i].value);
-                        if(v=='undelete')undelete(listItems[i].value);
                         if(v=='hardDelete')hardDelete(listItems[i].value);
 						found=true;
                     }			

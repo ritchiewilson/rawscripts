@@ -1032,6 +1032,10 @@ body{
 	border-bottom:1px #999999 solid;
 	background-color:#f9f9fc;
 }
+.entry.processing{
+	background-color:#ccc;
+    opacity: 0.5;
+}
 .checkboxCell{
 	width:15px;
 }

@@ -24,6 +24,9 @@ def resource_access(allow_collab=False, string_response=None):
             resource_id = None
             if request.method == 'POST':
                 resource_id = request.form.get('resource_id', None)
+                # Angular sends json data, so this now needs to be checked as well
+                if resource_id is None and request.json:
+                    resource_id = request.json.get('resource_id', None)
             elif request.method == 'GET':
                 resource_id = request.args.get('resource_id', None)
             user = current_user.email

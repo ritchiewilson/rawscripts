@@ -55,14 +55,15 @@
 			<input type="button" onClick="exportPrompt()" value="Export" />
 		  </div>
 		  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
-			<input type="button" onClick="batchProcess('undelete')" value="Undelete" />
+			<input type="button" value="Undelete" ng-click="trashCheckedScreenplays(false)" />
 			<input type="button" onClick="batchProcess('hardDelete')" value="Delete Permanantly" style="margin-left:20px" />
 		  </div>
 		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
 			<input type="button" onClick="renamePrompt()" value="Rename" />
 			<input type="button" onClick="duplicate()" value="Duplicate" />
 			<input type="button" onClick="exportPrompt()" value="Export" />
-			<input id="move_to_trash" type="button" onClick="batchProcess('delete')" value="Move to Trash" />
+			<input id="move_to_trash" type="button" value="Move to Trash"
+                   ng-click="trashCheckedScreenplays(true)" />
 			<select name="move_to_folder" id="move_to_folder" onchange="moveToFolder(this.options[this.selectedIndex].value)">
 			  <option value="move_to">Move to Folder...</option>
               <option value="{[ folder[1] ]}" ng-repeat="folder in folders">
@@ -113,11 +114,14 @@
 		  </table>
 		  <div id="owned_contents" class="folderContents">
             <div id="list">
-              <div id="{[ screenplay.resource_id ]}" class="entry" ng-repeat="screenplay in screenplays|filterFolder:sc.currentFolder">
+              <div id="{[ screenplay.resource_id ]}" class="entry"
+                   ng-repeat="screenplay in screenplays|filterFolder:sc.currentFolder"
+                   ng-class="screenplay.is_processing ? 'processing' : ''">
                 <table width="100%">
                   <tr>
                     <td class="checkboxCell">
-                      <input value="{[ screenplay.resource_id ]}" type="checkbox" name="listItems" />
+                      <input value="{[ screenplay.resource_id ]}" type="checkbox" name="listItems"
+                             ng-model="screenplay.is_checked" />
                     </td>
                     <td ng-if="sc.currentFolder != 'trash'">
                       <a id="name{[ screenplay.resource_id ]}"

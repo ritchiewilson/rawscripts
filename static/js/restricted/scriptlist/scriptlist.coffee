@@ -32,7 +32,7 @@ angular
             if currentFolder is "owned"
                 return out
             return (screenplay for screenplay in out when screenplay.folder is currentFolder)
-    .controller 'ScriptlistController', ($scope) ->
+    .controller 'ScriptlistController', ($scope, $http) ->
         scriptlist = @
         scriptlist.screenplays = []
         scriptlist.defaultFolders =
@@ -41,6 +41,13 @@ angular
             trash: "Trash"
         scriptlist.currentFolder = "owned"
         scriptlist.folders = []
+
+        $scope.getScreenplayByResourceId = (resource_id) ->
+            for s in $scope.screenplays
+                if s.resource_id == resource_id
+                    return s
+            return null
+
         scriptlist.setCurrentFolder = (id) ->
             scriptlist.currentFolder = id
         scriptlist.getFolderName = (id, folders) ->
@@ -56,3 +63,16 @@ angular
             emailPrompt(id)
         scriptlist.haveToUndelete = ->
             haveToUndelete()
+
+        # Use this for both move into and out of trash
+        $scope.trashCheckedScreenplays = (should_delete) ->
+            url = if should_delete then "/delete" else "/undelete"
+            toTrash = (s for s in $scope.screenplays when s.is_checked?)
+            for s in toTrash
+                s.is_processing = true
+                $http.post(url, {resource_id: s.resource_id})
+                    .success (data) ->
+                        s = $scope.getScreenplayByResourceId(data)
+                        s.is_trashed = should_delete
+                        s.is_checked = false
+                        s.is_processing = false
