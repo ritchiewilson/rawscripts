@@ -50,7 +50,7 @@
 		  <input type="button" onClick="newScriptPrompt()" value="New Script" />
 		  <input type="button" onClick="uploadPrompt()" value="Upload" />
 		</div>
-        <div ng-switch="sc.currentFolder">
+        <div ng-switch="currentFolder">
 		  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">
 			<input type="button" onClick="exportPrompt()" value="Export" />
 		  </div>
@@ -83,8 +83,8 @@
 	<div>
 	  <div id="folders">
         <div id="{[ id ]}Folder" class="tab" ng-repeat="(id, text) in sc.defaultFolders"
-             ng-click="sc.setCurrentFolder(id)"
-             ng-class="sc.currentFolder === id ? 'current' : ''">
+             ng-click="setCurrentFolder(id)"
+             ng-class="currentFolder === id ? 'current' : ''">
              {[ text ]}
         </div>
 		<div id="new_folder_div">
@@ -92,30 +92,34 @@
 		</div>
         <div id="user_folders">
           <div id="Folder{[ folder[1] ]}" class="tab" ng-repeat="folder in folders"
-               ng-click="sc.setCurrentFolder(folder[1])"
-               ng-class="sc.currentFolder === folder[1] ? 'current' : ''">
+               ng-click="setCurrentFolder(folder[1])"
+               ng-class="currentFolder === folder[1] ? 'current' : ''">
                <img src="images/folder.png"> {[ folder[0] ]}
           </div>
         </div>
 	  </div>
 
 	  <div id="scriptlists">
-		<div id="owned" class="content_plus_header" ng-show="sc.currentFolder != 'shared'">
+		<div id="owned" class="content_plus_header" ng-show="currentFolder != 'shared'">
 		  <table class="contentsHeader" width="100%">
 			<tr>
 			  <td class="checkboxCell">
-                <input onClick="selectAll(this, 'listItems')" type="checkbox" value="all" /></td>
-			  <td>{[ sc.getCurrentFolderName(sc.currentFolder, folders) ]}</td>
-			  <td class="folderCell" align="center" ng-hide="sc.currentFolder == 'trash'">Folder</td>
-			  <td class="sharedCell" align="center" ng-hide="sc.currentFolder == 'trash'">Shared With</td>
-			  <td class="emailCell" align="center" ng-hide="sc.currentFolder == 'trash'">Email</td>
+                <input ng-click="selectAll(sc.selectAll)"
+                       ng-checked="allAreSelected()"
+                       ng-model="sc.selectAll"
+                       type="checkbox" value="all" />
+              </td>
+			  <td>{[ getCurrentFolderName() ]}</td>
+			  <td class="folderCell" align="center" ng-hide="currentFolder == 'trash'">Folder</td>
+			  <td class="sharedCell" align="center" ng-hide="currentFolder == 'trash'">Shared With</td>
+			  <td class="emailCell" align="center" ng-hide="currentFolder == 'trash'">Email</td>
 			  <td class="updatedCell" align="center">Last Modified</td>
 			</tr>
 		  </table>
 		  <div id="owned_contents" class="folderContents">
             <div id="list">
               <div id="{[ screenplay.resource_id ]}" class="entry"
-                   ng-repeat="screenplay in screenplays|filterFolder:sc.currentFolder"
+                   ng-repeat="screenplay in screenplays|folder:currentFolder"
                    ng-class="screenplay.is_processing ? 'processing' : ''">
                 <table width="100%">
                   <tr>
@@ -123,7 +127,7 @@
                       <input value="{[ screenplay.resource_id ]}" type="checkbox" name="listItems"
                              ng-model="screenplay.is_checked" />
                     </td>
-                    <td ng-if="sc.currentFolder != 'trash'">
+                    <td ng-if="currentFolder != 'trash'">
                       <a id="name{[ screenplay.resource_id ]}"
                          href="/editor?resource_id={[ screenplay.resource_id ]}"
                          target="_blank">
@@ -137,19 +141,19 @@
                         </ng-pluralize>
                       </span>
                     </td>
-                    <td ng-if="sc.currentFolder == 'trash'">
+                    <td ng-if="currentFolder == 'trash'">
                       <span id="name{[ screenplay.resource_id ]}"
                             class="actionable-span"
                             ng-click="sc.haveToUndelete()">
                         {[ screenplay.title ]}
                       </span>
                     </td>
-                    <td class="folderCell" align="center" ng-hide="sc.currentFolder == 'trash'">
+                    <td class="folderCell" align="center" ng-hide="currentFolder == 'trash'">
                       <span class="folderSpan" ng-if="screenplay.folder != '?none?'">
                         {[ sc.getFolderName(screenplay.folder, folders) ]}
                       </span>
                     </td>
-                    <td class="sharedCell" align="right" ng-hide="sc.currentFolder == 'trash'">
+                    <td class="sharedCell" align="right" ng-hide="currentFolder == 'trash'">
                       <ng-pluralize count="screenplay.shared_with.length"
                                     when="{'0':'',
                                            'one': '1 person ',
@@ -162,7 +166,7 @@
                             Manage
                       </span>
                     </td>
-                    <td class="emailCell" align="center" ng-hide="sc.currentFolder == 'trash'">
+                    <td class="emailCell" align="center" ng-hide="currentFolder == 'trash'">
                       <span class="actionable-span emailLink"
                             ng-click="sc.emailPrompt(screenplay.resource_id)">
                             Email
@@ -187,7 +191,7 @@
           </div>
 		</div>
 
-		<div id="shared" class="content_plus_header" ng-show="sc.currentFolder == 'shared'">
+		<div id="shared" class="content_plus_header" ng-show="currentFolder == 'shared'">
 		  <table class="contentsHeader" width="100%">
 			<tr>
 			  <td class="checkboxCell"><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>

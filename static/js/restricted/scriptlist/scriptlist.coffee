@@ -22,7 +22,7 @@ angular
             $interpolateProvider.startSymbol('{[')
             $interpolateProvider.endSymbol(']}')
     )
-    .filter 'filterFolder', ->
+    .filter 'folder', ->
         (input, currentFolder) ->
             if not input or not currentFolder
                 return input
@@ -32,15 +32,15 @@ angular
             if currentFolder is "owned"
                 return out
             return (screenplay for screenplay in out when screenplay.folder is currentFolder)
-    .controller 'ScriptlistController', ($scope, $http) ->
+    .controller 'ScriptlistController', ($scope, $http, folderFilter) ->
         scriptlist = @
-        scriptlist.screenplays = []
         scriptlist.defaultFolders =
             owned: "My Scripts"
             shared: "Shared With Me"
             trash: "Trash"
-        scriptlist.currentFolder = "owned"
-        scriptlist.folders = []
+        $scope.screenplays = []
+        $scope.currentFolder = "owned"
+        $scope.folders = []
 
         $scope.getScreenplayByResourceId = (resource_id) ->
             for s in $scope.screenplays
@@ -48,15 +48,15 @@ angular
                     return s
             return null
 
-        scriptlist.setCurrentFolder = (id) ->
-            scriptlist.currentFolder = id
+        $scope.setCurrentFolder = (id) ->
+            $scope.currentFolder = id
         scriptlist.getFolderName = (id, folders) ->
             names = (folder[0] for folder in folders when folder[1] == id)
             return if not names then null else names[0]
-        scriptlist.getCurrentFolderName = (id, folders) ->
-            if id of scriptlist.defaultFolders
-                return scriptlist.defaultFolders[id]
-            return scriptlist.getFolderName(id, folders)
+        $scope.getCurrentFolderName = () ->
+            if $scope.currentFolder of scriptlist.defaultFolders
+                return scriptlist.defaultFolders[$scope.currentFolder]
+            return scriptlist.getFolderName($scope.currentFolder, $scope.folders)
         scriptlist.sharePrompt = (id) ->
             sharePrompt(id)
         scriptlist.emailPrompt = (id) ->
@@ -67,7 +67,7 @@ angular
         # Use this for both move into and out of trash
         $scope.trashCheckedScreenplays = (should_delete) ->
             url = if should_delete then "/delete" else "/undelete"
-            toTrash = (s for s in $scope.screenplays when s.is_checked?)
+            toTrash = (s for s in $scope.screenplays when s.is_checked)
             for s in toTrash
                 s.is_processing = true
                 $http.post(url, {resource_id: s.resource_id})
@@ -76,3 +76,16 @@ angular
                         s.is_trashed = should_delete
                         s.is_checked = false
                         s.is_processing = false
+
+        $scope.selectAll = (state) ->
+            for s in $scope.screenplays
+                s.is_checked = false
+            for s in folderFilter($scope.screenplays, $scope.currentFolder)
+                s.is_checked = state
+
+        $scope.allAreSelected = ->
+            toCheck = folderFilter($scope.screenplays, $scope.currentFolder)
+            return false if toCheck.length == 0
+            for s in toCheck
+                return false if not s.is_checked
+            return true

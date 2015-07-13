@@ -48,7 +48,6 @@ window['exportPrompt'] = exportPrompt;
 window['batchProcess'] = batchProcess;
 window['refreshList'] = refreshList;
 window['newFolder'] = newFolder;
-window['selectAll'] = selectAll;
 window['script'] = script;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
@@ -196,18 +195,6 @@ function refreshList(v){
 	);
 }
 
-
-function selectAll(obj, which){
-	var listItems = document.getElementsByTagName('input');
-	var bool = obj.checked
-	for(var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if(listItems[i].name ==which){
-				listItems[i].checked = bool;
-			}
-		}
-	}
-}
 
 /**
  * Opens a script in a new Tab
