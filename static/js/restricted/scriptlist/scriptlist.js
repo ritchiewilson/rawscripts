@@ -41,8 +41,6 @@ window['newScriptPrompt'] = newScriptPrompt;
 window['uploadPrompt'] = uploadPrompt;
 window['renamePrompt'] = renamePrompt;
 window['exportPrompt'] = exportPrompt;
-window['moveToFolder'] = moveToFolder;
-window['exportPrompt'] = exportPrompt;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -617,41 +615,6 @@ function deleteFolder(){
 	}
 }
 
-/**
- * Called when user makes selection from select
- * menu "move_to_folder". Input "v" will be:
- * 1) "move_to", meaning no change, or
- * 2) "?none?", meaning remove from folders, or
- * 3) the 10-digit id of the user defined 
- * folder the files should be moved to.
- * @param {string} folder if to move checked
- * script to
- */
-function moveToFolder(v){
-	if(v!="move_to"){
-		var c = document.getElementsByTagName("input");
-		var found = false;
-		var arr = [];
-		for (i in c){
-			if (c[i].type=="checkbox" && c[i].checked==true && c[i].parentNode.className=="checkboxCell"){
-				var e = c[i];
-				while(e.nodeName!="DIV")e=e.parentNode;
-				e.style.backgroundColor = '#ccc';
-				e.style.opacity = '0.5';
-				found=true;
-				arr.push(c[i].value)
-			}
-		}
-		if(found==true){
-			goog.net.XhrIo.send('/changefolder',
-				refreshList,
-				'POST',
-				'resource_id='+arr.join(',')+'&folder_id='+v
-			);
-		}
-		goog.dom.getElement("move_to_folder").selectedIndex=0;
-	}
-}
 
 /**
  * Open context menu on user defined folders

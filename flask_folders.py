@@ -44,8 +44,8 @@ def new_folder():
 @app.route('/changefolder', methods=['POST'])
 @login_required
 def change_folder():
-    resource_ids = request.form.get('resource_id', None)
-    folder_id = request.form.get('folder_id', None)
+    resource_ids = request.json.get('resource_id', None)
+    folder_id = request.json.get('folder_id', None)
     if resource_ids is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email

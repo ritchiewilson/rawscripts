@@ -123,6 +123,23 @@ angular
                 .success (data) ->
                     $scope.folders.push([folderName, id])
 
+        $scope.moveToFolder = ->
+            folderId = scriptlist.moveToFolderSelection
+            return false if folderId == ""
+            screenplays = $scope.getCheckedScreenplays()
+            if screenplays.length == 0
+                scriptlist.moveToFolderSelection = ""
+                return false
+            for s in screenplays
+                s.is_processing = true
+            resource_ids = (s.resource_id for s in screenplays).join()
+            $http.post("/changefolder", {resource_id: resource_ids, folder_id: folderId})
+                .success (data) ->
+                    for s in screenplays
+                        s.folder = folderId
+                        s.is_processing = false
+                    scriptlist.moveToFolderSelection = ""
+
         $scope.duplicateScreenplay = ->
             selected = $scope.getCheckedScreenplays()
             if selected.length == 0
