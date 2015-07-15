@@ -44,7 +44,6 @@ window['exportPrompt'] = exportPrompt;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
-window['hardDelete'] = hardDelete;
 
 
 
@@ -327,24 +326,6 @@ function exportScripts(){
         }
     }
 	hideExportPrompt();
-}
-
-
-/**
- * Permananetly delete a script
- * @param {string} v resource_id of script
- */
-function hardDelete(v){
-    var scriptDiv = goog.dom.getElement(v);
-    scriptDiv.style.backgroundColor = '#ccc';
-    scriptDiv.style.opacity = '0.5';
-	goog.net.XhrIo.send('/harddelete',
-		function(){
-			scriptDiv.parentNode.removeChild(scriptDiv);
-		},
-		'POST',
-		'resource_id='+v
-	);
 }
 
 
