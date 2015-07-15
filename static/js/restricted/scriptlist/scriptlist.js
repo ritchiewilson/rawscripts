@@ -42,10 +42,8 @@ window['uploadPrompt'] = uploadPrompt;
 window['renamePrompt'] = renamePrompt;
 window['duplicate'] = duplicate;
 window['exportPrompt'] = exportPrompt;
-window['batchProcess'] = batchProcess;
 window['moveToFolder'] = moveToFolder;
 window['exportPrompt'] = exportPrompt;
-window['batchProcess'] = batchProcess;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -385,36 +383,6 @@ function hardDelete(v){
 	);
 }
 
-/**
- * For actions done on multiple scripts, namely
- * delete, undelete, and harddelete, this is what
- * is called on user input (click). This goes through
- * what is selected and sendes the resource_id to 
- * the expected function.
- * @param {string} v delete, undelete, or hardDelete
- */
-function batchProcess(v){
-    var con = true;
-    if(v=='hardDelete'){
-        con=false;
-        if (confirm("Are you sure you want to delete these scripts? This cannot be undone."))con=true;
-    }
-    if(con){
-		var found=false;
-        var listItems = document.getElementsByTagName('input');
-        for (var i=0; i<listItems.length; i++){
-            if(listItems[i].type == 'checkbox'){
-                if (listItems[i].checked == true){
-                    if (listItems[i].name.match(/listitems/gi)){
-                        if(v=='hardDelete')hardDelete(listItems[i].value);
-						found=true;
-                    }			
-                }
-            }
-        }
-		if(found==true)setTimeout("refreshList()", 5000);
-    }
-}
 
 /**
  * Opens email prompt GUI on click
