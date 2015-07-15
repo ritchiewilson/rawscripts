@@ -48,7 +48,6 @@ window['exportPrompt'] = exportPrompt;
 window['batchProcess'] = batchProcess;
 window['refreshList'] = refreshList;
 window['newFolder'] = newFolder;
-window['script'] = script;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -107,9 +106,6 @@ function refreshList(v){
 		    var x=j[0];
 		    var ss=j[1];
 			var folders=j[2];
-			// know which tab is current, to be rest
-			//set up folders
-			var current = goog.dom.getElementByClass('current').id;
 
             var scope = window["angular"]["element"](document.getElementsByTagName("html"))["scope"]();
             scope["$apply"](function(){
@@ -123,11 +119,6 @@ function refreshList(v){
 		    goog.dom.getElement('sharedLoading').style.display='none';
 		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
 
-			if(goog.dom.getElement(current)==null)current="ownedFolder"
-            var currentFolderID = current.replace("Folder", "");
-            scope["$apply"](function(){
-                scope["currentFolder"] = currentFolderID;
-            });
 			if(v && typeof(v)!='object'){
 				sharePrompt(v);
 			}
@@ -137,17 +128,6 @@ function refreshList(v){
 	);
 }
 
-
-/**
- * Opens a script in a new Tab
- * @param {string} v Resource ID of
- * Script to be opened.
- */
-function script(v){
-	url = '/editor?resource_id=' + v;
-	window.open(url);
-	setTimeout('refreshList()',5000);
-}
 
 /**
  * Opens the New Script Popup with the button
