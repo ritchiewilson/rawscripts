@@ -38,11 +38,13 @@ angular
             owned: "My Scripts"
             shared: "Shared With Me"
             trash: "Trash"
+        scriptlist.newScreenplayTitle = "Untitled Screenplay"
         $scope.screenplays = []
         $scope.sharedWithMe = []
         $scope.currentFolder = "owned"
         $scope.folders = []
         $scope.refreshing = false
+        $scope.currentModal = ""
 
         $scope.getScreenplayByResourceId = (resource_id) ->
             for s in $scope.screenplays
@@ -59,6 +61,10 @@ angular
             if $scope.currentFolder of scriptlist.defaultFolders
                 return scriptlist.defaultFolders[$scope.currentFolder]
             return scriptlist.getFolderName($scope.currentFolder, $scope.folders)
+
+        $scope.setCurrentModal = (id) ->
+            $scope.currentModal = id
+            
         scriptlist.sharePrompt = (id) ->
             sharePrompt(id)
         scriptlist.emailPrompt = (id) ->
@@ -139,6 +145,17 @@ angular
                         s.folder = folderId
                         s.is_processing = false
                     scriptlist.moveToFolderSelection = ""
+
+        $scope.newScreenplay =  ->
+            title = scriptlist.newScreenplayTitle
+            return false if title == ""
+            $scope.creatingNewScreenplay = true
+            $http.post("/newscript", {filename: title})
+                .success (data) ->
+                    window.open("/editor?resource_id=" + data)
+                    $scope.setCurrentModal('')
+                    $scope.creatingNewScreenplay = false
+                    $scope.refreshList()
 
         $scope.duplicateScreenplay = ->
             selected = $scope.getCheckedScreenplays()

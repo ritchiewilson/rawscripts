@@ -47,7 +47,7 @@
 
 	  <div id="option_bar">
 		<div id="static_buttons">
-		  <input type="button" onClick="newScriptPrompt()" value="New Script" />
+		  <input type="button" ng-click="setCurrentModal('new')" value="New Script" />
 		  <input type="button" onClick="uploadPrompt()" value="Upload" />
 		</div>
         <div ng-switch="currentFolder">
@@ -195,7 +195,7 @@
 		  <div id="noentries" class="none_of_type" align="center"
                ng-if="currentFolder ==='owned' && !hasOwnedScreenplays()">
 			<span>You haven't started any scripts yet.</span><br><br>
-			<a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
+			<a href="" ng-click="setCurrentModal('new')">Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
 		  </div>
           <div id="trashNoEntries" class="none_of_type" align="center"
                ng-if="currentFolder === 'trash' && !hasTrashedScreenplays()">
@@ -261,11 +261,11 @@
 	</div>
 
 
-    <div id="emailpopup" class="popup_screen">
+    <div ng-if="currentModal === 'email'" id="emailpopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block">
 		<div class="popup">
-		  <a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 		  <br /><br /><span>Email Script</span><br /><br />
 		  <label for="recipient">Recipients (max 5, comma seperated)</label><br>
 		  <textarea class="text_input" rows='4' name='recipient' id='recipient' style="width:400px"></textarea><br />
@@ -283,11 +283,11 @@
 	  </div>
 	</div>
 
-	<div id="renamepopup" class="popup_screen">
+	<div ng-if="currentModal === 'rename'" id="renamepopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block">
 		<div class="popup">
-		  <a href="javascript:hideRenamePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 		  <br />
 		  <p id="renameTitle"></p>
 		  <br />
@@ -301,39 +301,46 @@
 	  </div>
 	</div>
 
-	<div id="uploadpopup" class="popup_screen">
+	<div ng-if="currentModal === 'upload'" id="uploadpopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block">
-		<a href="javascript:hideUploadPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a><br><br>
+		<a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a><br><br>
 		<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
 		</iframe>
 		<div id="uploading" style="display:none"><p>Converting script...</p><img src="/static/images/uploading.gif" alt="Uploading Screenplay"><br><br></div>
 	  </div>
 	</div>
 
-	<div id="newscriptpopup" class="popup_screen">
+	<div ng-if="currentModal === 'new'" id="newscriptpopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block" style="width:400px;">
 		<div class="popup">
-		  <a href="javascript:hideNewScriptPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-		  <br />
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup">
+            <img src="/static/images/close.png" alt="Close Popup">
+          </a>
+		  <br>
 		  <p>New Script Title</p>
-		  <br />
-		  <input class="text_input" type='text' name='newScript' id='newScript' style="width:350px" />
-		  <br />
-		  <input type='button' onClick='createScript()' value='Create' id = "createScriptButton" />
-		  <img src="/static/images/createScriptIcon.gif" id="createScriptIcon" style="visibility:hidden" alt="Creating New Screenplay">
-          
-		  <br />
+		  <br>
+          <form ng-submit="newScreenplay()">
+		    <input class="text_input" type="text" name="newScript" id="newScript"
+                   style="width:350px" ng-model="sc.newScreenplayTitle">
+		    <br>
+		    <input type="submit"
+                   value="{[ creatingNewScreenplay ? 'Creating...' : 'Create' ]}"
+                   id="createScriptButton" ng-disabled="creatingNewScreenplay">
+            <img ng-if="creatingNewScreenplay" src="/static/images/createScriptIcon.gif"
+                 id="createScriptIcon" alt="Creating New Screenplay">
+          </form>
+		  <br>
 		</div>
 	  </div>
 	</div>
 
-	<div id="exportpopup" class="popup_screen">
+	<div ng-if="currentModal === 'export'" id="exportpopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block" style="width:500px;">
 		<div class="popup">
-		  <a href="javascript:hideExportPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 		  <br />
 		  <p>Export as...</p>
 		  <table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
@@ -345,11 +352,11 @@
 	  </div>
 	</div>
 
-	<div id="sharepopup" class="popup_screen">
+	<div ng-if="currentModal === 'share'" id="sharepopup" class="popup_screen">
 	  <div class="popup_background"></div>
 	  <div class="popup_block" style="width:450px; top:10%">
 		<div class="popup">
-		  <a href="javascript:hideSharePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 		  <br>
 		  Share Script: <b id="shareTitle"></b>
 		  <br><br>

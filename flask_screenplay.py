@@ -26,7 +26,9 @@ from flask_utils import resource_access
 @app.route('/newscript', methods=['POST'])
 @login_required
 def new_screenplay():
-    filename = request.form['filename']
+    filename = request.form.get('filename', None)
+    if filename is None:
+        filename = request.json.get('filename', None)
     user = current_user.name
     screenplay = Screenplay.create(filename, user)
     return Response(screenplay.resource_id, mimetype='text/plain')

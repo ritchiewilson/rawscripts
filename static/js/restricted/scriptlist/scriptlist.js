@@ -31,13 +31,10 @@ window['emailScript'] = emailScript;
 window['hideRenamePrompt'] = hideRenamePrompt;
 window['renameScript'] = renameScript;
 window['hideUploadPrompt'] = hideUploadPrompt;
-window['hideNewScriptPrompt'] = hideNewScriptPrompt;
-window['createScript'] = createScript;
 window['hideExportPrompt'] = hideExportPrompt;
 window['exportScripts'] = exportScripts;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
-window['newScriptPrompt'] = newScriptPrompt;
 window['uploadPrompt'] = uploadPrompt;
 window['renamePrompt'] = renamePrompt;
 window['exportPrompt'] = exportPrompt;
@@ -66,14 +63,7 @@ function init(){
 			}
 		}
 	);
-	goog.events.listen(goog.dom.getElement('newScript'), goog.events.EventType.KEYDOWN,
-		function(e){
-			if(e.keyCode==13){
-				e.preventDefault();
-				createScript();
-			}
-		}
-	);
+
 	// Some setup for contextual menus on the
 	// user defined folders
 	goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
@@ -93,50 +83,6 @@ function refreshList(v){
     return;
 }
 
-
-/**
- * Opens the New Script Popup with the button
- * is clicked
- */
-function newScriptPrompt(){
-	goog.dom.getElement('newscriptpopup').style.visibility = 'visible';
-	goog.dom.getElement('newScript').value = "Untitled Screenplay";
-	goog.dom.getElement('newScript').focus();
-	goog.dom.getElement('newScript').select();
-}
-/**
- * Hides the New Script Popup with the X icon
- * is clicked
- */
-function hideNewScriptPrompt(){
-	goog.dom.getElement('newScript').value = "";
-	goog.dom.getElement('newscriptpopup').style.visibility = 'hidden';
-	goog.dom.getElement('createScriptButton').disabled=false;
-	goog.dom.getElement('createScriptButton').value="Create";
-	goog.dom.getElement('createScriptIcon').style.visibility="hidden";
-}
-/**
- * Sends the user created screenplay title to
- * the server. Server creates new screenplay,
- * responds with new, unique resource id.
- */
-function createScript (){
-	var filename = goog.dom.getElement('newScript').value;
-	if (filename!=''){
-		goog.dom.getElement('createScriptButton').disabled=true;
-		goog.dom.getElement('createScriptButton').value="Creating Script...";
-		goog.dom.getElement('createScriptIcon').style.visibility="visible";
-		goog.net.XhrIo.send('/newscript',
-			function(d){
-				window.open('/editor?resource_id='+d.target.getResponseText());
-				hideNewScriptPrompt();
-				refreshList();
-			},
-			'POST',
-			'fromPage=scriptlist&filename='+encodeURIComponent(filename)
-		);
-	}
-}
 
 /**
  * Opens the upload prompt on click
