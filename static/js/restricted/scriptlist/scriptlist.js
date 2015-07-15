@@ -40,7 +40,6 @@ window['shareScript'] = shareScript;
 window['newScriptPrompt'] = newScriptPrompt;
 window['uploadPrompt'] = uploadPrompt;
 window['renamePrompt'] = renamePrompt;
-window['duplicate'] = duplicate;
 window['exportPrompt'] = exportPrompt;
 window['moveToFolder'] = moveToFolder;
 window['exportPrompt'] = exportPrompt;
@@ -245,39 +244,6 @@ function renameScript(){
 	hideRenamePrompt()
 }
 
-/**
- * Makes a copy of selected script
- */
-function duplicate(){
-	// make sure only one script is selected
-    var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name != 'trashListItems' && listItems[i].name != 'sharedListItems'){
-					var resource_id = listItems[i].value;
-					counter++;
-				}
-			}
-		}
-	}
-	if(counter>1)alert("select one at a time");
-	else if (counter==1){
-		// if only one script, post data to server
-		goog.net.XhrIo.send('/duplicate',
-			function(d){
-				if(d.target.getResponseText()=='fail')return;
-				else{
-					window.open(d.target.getResponseText());
-					refreshList()
-				}
-			},
-			'POST',
-			'resource_id='+resource_id+'&fromPage=scriptlist'
-		);
-    }
-}
 
 /**
  * Takes checked boxes (selected scripts),

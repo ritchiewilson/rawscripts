@@ -122,6 +122,20 @@ angular
             $http.post("/newfolder", {folder_name: folderName, folder_id: id})
                 .success (data) ->
                     $scope.folders.push([folderName, id])
+
+        $scope.duplicateScreenplay = ->
+            selected = $scope.getCheckedScreenplays()
+            if selected.length == 0
+                alert "You must first select which screenplay to duplicate."
+                return
+            if selected.length > 1
+                alert "Please select one screenplay at a time to duplicate."
+                return
+            resource_id = selected[0].resource_id
+            $http.post("/duplicate", {resource_id: resource_id})
+                .success (data) ->
+                    window.open(data)
+                    $scope.refreshList()
             
         $scope.refreshList = ->
             $scope.refreshing = true

@@ -60,7 +60,7 @@
 		  </div>
 		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
 			<input type="button" onClick="renamePrompt()" value="Rename" />
-			<input type="button" onClick="duplicate()" value="Duplicate" />
+			<input type="button" ng-click="duplicateScreenplay()" value="Duplicate" />
 			<input type="button" onClick="exportPrompt()" value="Export" />
 			<input id="move_to_trash" type="button" value="Move to Trash"
                    ng-click="trashCheckedScreenplays(true)" />

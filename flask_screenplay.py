@@ -114,7 +114,9 @@ def hard_delete_screenplay():
 @login_required
 @resource_access()
 def duplicate_screenplay():
-    resource_id = request.form['resource_id']
+    resource_id = request.form.get('resource_id', None)
+    if resource_id is None:
+        resource_id = request.json.get('resource_id', None)
     version = Screenplay.get_latest_version_number(resource_id)
     screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
     url = '/editor?resource_id=' + screenplay.resource_id
