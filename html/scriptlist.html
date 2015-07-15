@@ -85,7 +85,10 @@
         <div id="{[ id ]}Folder" class="tab" ng-repeat="(id, text) in sc.defaultFolders"
              ng-click="setCurrentFolder(id)"
              ng-class="currentFolder === id ? 'current' : ''">
-             {[ text ]}
+          {[ text ]}
+          <span ng-if="id === 'shared' && numberOfUnopenedSharedScreenplays() > 0">
+            ({[ numberOfUnopenedSharedScreenplays() ]})
+          </span>
         </div>
 		<div id="new_folder_div">
 		  <input type="button" name="new_folder" value="New Folder" id="new_folder" onclick="newFolder()">

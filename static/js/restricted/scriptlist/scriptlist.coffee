@@ -39,6 +39,7 @@ angular
             shared: "Shared With Me"
             trash: "Trash"
         $scope.screenplays = []
+        $scope.sharedWithMe = []
         $scope.currentFolder = "owned"
         $scope.folders = []
 
@@ -102,3 +103,5 @@ angular
                 return false if not s.is_checked
             return true
 
+        $scope.numberOfUnopenedSharedScreenplays = ->
+            return (s for s in $scope.sharedWithMe when s[6] is "True").length

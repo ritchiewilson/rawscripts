@@ -115,6 +115,7 @@ function refreshList(v){
             scope["$apply"](function(){
                 scope["folders"] = folders;
                 scope["screenplays"] = x;
+                scope["sharedWithMe"] = ss;
             });
 			goog.dom.getElement("loading").style.display = 'none';
 
@@ -130,7 +131,6 @@ function refreshList(v){
 		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
 		    var listDiv = goog.dom.getElement('shared_contents').appendChild(document.createElement('div'));
 		    listDiv.id = 'sharedList';
-			var number_unopened = 0;
 		    for (i in ss){
 		        var resource_id=ss[i][0];
 		        var title = ss[i][1];
@@ -162,7 +162,6 @@ function refreshList(v){
 					var newNotesSpan = titleCell.appendChild(document.createElement('span'));
 		            newNotesSpan.appendChild(document.createTextNode(" New Script"));
 		            newNotesSpan.className = 'redAlertSpan';
-					number_unopened++;
 				}
 				else if (new_notes!=0){
 		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
@@ -180,7 +179,6 @@ function refreshList(v){
 		        updatedTd.align="center";
 		        updatedTd.appendChild(document.createTextNode(updated));
 		    }
-		    goog.dom.getElement("sharedFolder").innerHTML = "Shared With Me"+(number_unopened==0 ? "" : " ("+number_unopened+")")
 			if(goog.dom.getElement(current)==null)current="ownedFolder"
             var currentFolderID = current.replace("Folder", "");
             scope["$apply"](function(){
