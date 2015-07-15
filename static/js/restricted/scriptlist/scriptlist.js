@@ -46,7 +46,6 @@ window['batchProcess'] = batchProcess;
 window['moveToFolder'] = moveToFolder;
 window['exportPrompt'] = exportPrompt;
 window['batchProcess'] = batchProcess;
-window['refreshList'] = refreshList;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -97,34 +96,7 @@ function init(){
  * is opened
  */
 function refreshList(v){
-	goog.dom.getElement("refresh_icon").style.visibility="visible";
-	goog.net.XhrIo.send('/list',
-		function(d){
-		    //update with new info
-			var j = d.target.getResponseJson();
-		    var x=j[0];
-		    var ss=j[1];
-			var folders=j[2];
-
-            var scope = window["angular"]["element"](document.getElementsByTagName("html"))["scope"]();
-            scope["$apply"](function(){
-                scope["folders"] = folders;
-                scope["screenplays"] = x;
-                scope["sharedWithMe"] = ss;
-            });
-			goog.dom.getElement("loading").style.display = 'none';
-
-			goog.dom.getElement('noentries').style.display=(x.length==0 ? "block" : "none");
-		    goog.dom.getElement('sharedLoading').style.display='none';
-		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
-
-			if(v && typeof(v)!='object'){
-				sharePrompt(v);
-			}
-			goog.dom.getElement("refresh_icon").style.visibility="hidden";
-		},
-		'POST'
-	);
+    return;
 }
 
 

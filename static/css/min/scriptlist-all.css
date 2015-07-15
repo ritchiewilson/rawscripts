@@ -933,13 +933,7 @@ body{
 	float:right;
 	font-size:12pt;
 	margin-right:10px;
-}
-#refresh a{
-	color:#333;
-	text-decoration:none;
-}
-#refresh_icon{
-	visibility:visible;
+    cursor: pointer;
 }
 
 
@@ -1014,7 +1008,6 @@ body{
 	color:#666; 
 	background-color:white; 
 	padding-top:17px; 
-	display:none;
 	width:300px;
 	margin:auto;
 }

@@ -42,6 +42,7 @@ angular
         $scope.sharedWithMe = []
         $scope.currentFolder = "owned"
         $scope.folders = []
+        $scope.refreshing = false
 
         $scope.getScreenplayByResourceId = (resource_id) ->
             for s in $scope.screenplays
@@ -106,6 +107,12 @@ angular
         $scope.numberOfUnopenedSharedScreenplays = ->
             return (s for s in $scope.sharedWithMe when s.unopened).length
 
+        $scope.hasOwnedScreenplays = ->
+            return (s for s in $scope.screenplays when !s.is_trashed).length > 0
+
+        $scope.hasTrashedScreenplays = ->
+            return (s for s in $scope.screenplays when s.is_trashed).length > 0
+
         $scope.newFolder = ->
             folderName = prompt("New Folder Name")
             return false if !folderName?
@@ -116,4 +123,12 @@ angular
                 .success (data) ->
                     $scope.folders.push([folderName, id])
             
-            
+        $scope.refreshList = ->
+            $scope.refreshing = true
+            $http.post("/list")
+                .success (data) ->
+                    $scope.screenplays = data[0]
+                    $scope.sharedWithMe = data[1]
+                    $scope.folders = data[2]
+                    $scope.refreshing = false
+        $scope.refreshList()

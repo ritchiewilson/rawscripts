@@ -74,7 +74,12 @@
 		  </div>
 		</div>
 		<div id="refresh">
-		  <a href="javascript:refreshList()"><img id="refresh_icon" src="/static/images/refresh_icon.gif" alt="Refreshing Screenplay List">Refresh</a>
+		  <span ng-click="refreshList()">
+            <img id="refresh_icon" src="/static/images/refresh_icon.gif"
+                 alt="Refreshing Screenplay List"
+                 ng-if="refreshing">
+            Refresh
+          </span>
 		</div>
 	  </div>
 	</div>
@@ -184,12 +189,14 @@
             </div>
           </div>
           
-		  <div id="loading"><div align="center">Loading...</div></div>
-		  <div id="noentries" class="none_of_type" align="center">
+		  <div id="loading" ng-if="refreshing"><div align="center">Loading...</div></div>
+		  <div id="noentries" class="none_of_type" align="center"
+               ng-if="currentFolder ==='owned' && !hasOwnedScreenplays()">
 			<span>You haven't started any scripts yet.</span><br><br>
 			<a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
 		  </div>
-          <div id="trashNoEntries" class="none_of_type" align="center">
+          <div id="trashNoEntries" class="none_of_type" align="center"
+               ng-if="currentFolder === 'trash' && !hasTrashedScreenplays()">
             <p>You have no trash.</p><p>You are a very clean person.</p>
           </div>
 		</div>
@@ -242,8 +249,11 @@
               </div>
             </div>
           </div>
-		  <div id="sharedLoading"><div style="" align="center">Loading...</div></div>
-		  <div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
+		  <div id="sharedLoading" ng-if="refreshing"><div style="" align="center">Loading...</div></div>
+          <div id="sharedNoEntries" class="none_of_type" align="center"
+               ng-if="currentFolder === 'shared' && sharedWithMe.length === 0">
+            No one is sharing screenplays with you.
+          </div>
 		</div>
 	  </div>
 	</div>
