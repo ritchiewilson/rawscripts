@@ -81,6 +81,8 @@ def list():
     owned = []
     shared = []
     for screenplay in screenplays:
+        if screenplay.permission == "hardDelete":
+            continue
         resource_id = screenplay.resource_id
         data = [resource_id, screenplay.title]
         data.append(format_time(screenplay.last_updated))
