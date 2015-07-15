@@ -120,65 +120,9 @@ function refreshList(v){
 			goog.dom.getElement("loading").style.display = 'none';
 
 			goog.dom.getElement('noentries').style.display=(x.length==0 ? "block" : "none");
-		    // showing sharing scripts
-		    //remove old data
-		    var childs = goog.dom.getElement('shared_contents').childNodes;
-		    for (var i=0; i<childs.length; i++){
-		        childs[i].parentNode.removeChild(childs[i]);
-		        i--;
-		    }
 		    goog.dom.getElement('sharedLoading').style.display='none';
 		    goog.dom.getElement('sharedNoEntries').style.display=(ss.length==0 ? 'block' :'none');
-		    var listDiv = goog.dom.getElement('shared_contents').appendChild(document.createElement('div'));
-		    listDiv.id = 'sharedList';
-		    for (i in ss){
-		        var resource_id=ss[i][0];
-		        var title = ss[i][1];
-		        var updated = ss[i][2];
-		        var owner = ss[i][3];
-				var new_notes=ss[i][4];
-				var unopened = ss[i][6];
-		        var entryDiv = listDiv.appendChild(document.createElement('div'));
-		        entryDiv.id = resource_id;
-		        entryDiv.className = 'entry';
-		        var entryTable = entryDiv.appendChild(document.createElement('table'));
-		        entryTable.width = '100%';
-		        var entryTr = entryTable.appendChild(document.createElement('tr'));
-		        //make checkbox
-		        var checkboxTd = entryTr.appendChild(document.createElement('td'));
-		        checkboxTd.className='checkboxCell';
-		        var input = checkboxTd.appendChild(document.createElement('input'));
-		        input.type='checkbox';
-		        input.name = 'sharedListItems';
-		        input.value = resource_id;
-		        //make title
-		        var titleCell = entryTr.appendChild(document.createElement('td'));
-		        var titleLink = titleCell.appendChild(document.createElement('a'));
-		        titleLink.id = 'name'+resource_id;
-		        var href = 'javascript:script("'+resource_id+'")';
-		        titleLink.href=href;
-		        titleLink.appendChild(document.createTextNode(title));
-				if (unopened=="True"){
-					var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-		            newNotesSpan.appendChild(document.createTextNode(" New Script"));
-		            newNotesSpan.className = 'redAlertSpan';
-				}
-				else if (new_notes!=0){
-		            var newNotesSpan = titleCell.appendChild(document.createElement('span'));
-		            newNotesSpan.appendChild(document.createTextNode((new_notes==1 ? " New Note  " : " "+new_notes+' New Notes  ')));
-		            newNotesSpan.className = 'redAlertSpan';
-		        }
-		        //show owner
-		        var ownerTd = entryTr.appendChild(document.createElement('td'));
-		        ownerTd.appendChild(document.createTextNode(owner));
-		        ownerTd.align="right";
-		        ownerTd.className='ownerCell';
-		        //updated
-		        var updatedTd = entryTr.appendChild(document.createElement('td'));
-		        updatedTd.className="updatedCell";
-		        updatedTd.align="center";
-		        updatedTd.appendChild(document.createTextNode(updated));
-		    }
+
 			if(goog.dom.getElement(current)==null)current="ownedFolder"
             var currentFolderID = current.replace("Folder", "");
             scope["$apply"](function(){

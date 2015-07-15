@@ -104,4 +104,4 @@ angular
             return true
 
         $scope.numberOfUnopenedSharedScreenplays = ->
-            return (s for s in $scope.sharedWithMe when s[6] is "True").length
+            return (s for s in $scope.sharedWithMe when s.unopened).length

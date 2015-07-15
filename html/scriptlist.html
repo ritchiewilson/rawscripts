@@ -203,7 +203,45 @@
 			  <td style="width:160px" align="center">Last Modified</td>
 			</tr>
 		  </table>
-		  <div id="shared_contents" class="folderContents"></div>
+
+		  <div id="shared_contents" class="folderContents">
+            <div id="sharedList">
+              <div id="{[ screenplay.resource_id ]}" class="entry"
+                   ng-repeat="screenplay in sharedWithMe">
+                <table width="100%">
+                  <tr>
+                    <td class="checkboxCell">
+                      <input value="{[ screenplay.resource_id ]}" type="checkbox" name="sharedListItems"
+                             ng-model="screenplay.is_checked" />
+                    </td>
+                    <td>
+                      <a id="name{[ screenplay.resource_id ]}"
+                         href="/editor?resource_id={[ screenplay.resource_id ]}"
+                         target="_blank">
+                         {[ screenplay.title ]}
+                      </a>
+                      <span class="redAlertSpan" ng-if="screenplay.unopened">
+                        New Script
+                      </span>
+                      <span class="redAlertSpan" ng-if="!screenplay.unopened && screenplay.new_notes > 0">
+                        <ng-pluralize count="screenplay.new_notes"
+                                      when="{'0':'',
+                                             'one': 'New Note',
+                                             'other': '{} New Notes'}">
+                        </ng-pluralize>
+                      </span>
+                    </td>
+                    <td class="ownerCell" align="right">
+                      {[ screenplay.owner ]}
+                    </td>
+                    <td class="updatedCell" align="center">
+                      {[ screenplay.last_updated ]}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
 		  <div id="sharedLoading"><div style="" align="center">Loading...</div></div>
 		  <div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
 		</div>

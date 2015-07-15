@@ -85,7 +85,6 @@ def list():
             continue
         resource_id = screenplay.resource_id
         data = [resource_id, screenplay.title]
-        data.append(format_time(screenplay.last_updated))
         obj = {
             'resource_id': resource_id,
             'title': screenplay.title,
@@ -95,25 +94,19 @@ def list():
         }
         permission = screenplay.permission
         if permission == 'collab':
-            permission = share_data.get(resource_id, {}).get('owner', 'shared')
-        data.append(permission)
+            obj['owner'] = share_data.get(resource_id, {}).get('owner', 'shared')
         if screenplay.permission != 'collab':
             sharing_with = share_data.get(resource_id, {}).get('collabs', [])
-            data.append(sharing_with)
             obj['shared_with'] = sharing_with
         new_notes = unread_notes.get(screenplay.resource_id, 0)
         obj['new_notes'] = new_notes
-        if permission != 'ownerDeleted':
-            data.append(new_notes)
-
-        data.append(screenplay.folder)
 
         if screenplay.permission == 'collab':
             unopened = resource_id in unopened_screenplays
-            data.append(str(unopened))
+            obj["unopened"] = unopened
 
         if screenplay.permission == 'collab':
-            shared.append(data)
+            shared.append(obj)
         else:
             obj["is_trashed"] = screenplay.permission == 'ownerDeleted'
             owned.append(obj)
