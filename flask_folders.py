@@ -26,8 +26,8 @@ from flask_models import Screenplay, Folder, UsersScripts
 @app.route('/newfolder', methods=['POST'])
 @login_required
 def new_folder():
-    folder_name = request.form.get('folder_name', None)
-    folder_id = request.form.get('folder_id', None)
+    folder_name = request.json.get('folder_name', None)
+    folder_id = request.json.get('folder_id', None)
     if folder_name is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email

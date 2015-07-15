@@ -47,7 +47,6 @@ window['moveToFolder'] = moveToFolder;
 window['exportPrompt'] = exportPrompt;
 window['batchProcess'] = batchProcess;
 window['refreshList'] = refreshList;
-window['newFolder'] = newFolder;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -668,29 +667,6 @@ function emailNotifyMsg(e){
  * Users can Create, Rename, and Delete folders. They
  * can move scripts into folders.
 */
-
-
-/**
- * called when use clicks "New Folder" button.
- * Prompts user for a folder name, then creates it.
- * Attached to the folder name is a folder ID, a 
- * random 10-digit number. All info is attached to that
- * number, so the name can change, or there can be two folders
- * with the same name. A screenplay not in a folder has a
- * folder_id of "?none?"
- */
-function newFolder(){
-	var f = prompt("New Folder Name");
-	f=f.replace(/^\s+/,"").replace(/\s+$/,"");
-	if(f!=null && f!=""){
-		var id = Math.round(Math.random()*10000000000);
-		goog.net.XhrIo.send('/newfolder',
-			function(){},
-			'POST',
-			'folder_name='+encodeURIComponent(f)+'&folder_id='+id
-		)
-    }
-}
 
 
 /**

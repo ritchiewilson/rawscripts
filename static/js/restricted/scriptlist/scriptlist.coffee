@@ -105,3 +105,15 @@ angular
 
         $scope.numberOfUnopenedSharedScreenplays = ->
             return (s for s in $scope.sharedWithMe when s.unopened).length
+
+        $scope.newFolder = ->
+            folderName = prompt("New Folder Name")
+            return false if !folderName?
+            folderName = folderName.trim()
+            return false if folderName == ""
+            id = String(Math.round(Math.random()*10000000000))
+            $http.post("/newfolder", {folder_name: folderName, folder_id: id})
+                .success (data) ->
+                    $scope.folders.push([folderName, id])
+            
+            
