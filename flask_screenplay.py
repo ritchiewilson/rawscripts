@@ -103,12 +103,12 @@ def undelete_screenplay():
 @login_required
 @resource_access()
 def hard_delete_screenplay():
-    resource_id = request.form['resource_id']
+    resource_id = request.json['resource_id']
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.permission = 'hardDelete'
     db.session.commit()
-    return Response('1', mimetype='text/plain')
+    return Response(resource_id, mimetype='text/plain')
 
 @app.route('/duplicate', methods=['POST'])
 @login_required

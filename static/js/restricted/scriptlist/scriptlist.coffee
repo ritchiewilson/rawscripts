@@ -64,12 +64,14 @@ angular
         scriptlist.haveToUndelete = ->
             alert "You have to Undelete this script to view it."
 
+        $scope.getCheckedScreenplays = ->
+            visible = folderFilter($scope.screenplays, $scope.currentFolder)
+            return (s for s in visible when s.is_checked)
+
         # Use this for both move into and out of trash
         $scope.trashCheckedScreenplays = (should_delete) ->
             url = if should_delete then "/delete" else "/undelete"
-            visible = folderFilter($scope.screenplays, $scope.currentFolder)
-            toTrash = (s for s in visible when s.is_checked)
-            for s in toTrash
+            for s in $scope.getCheckedScreenplays()
                 s.is_processing = true
                 $http.post(url, {resource_id: s.resource_id})
                     .success (data) ->
@@ -78,6 +80,15 @@ angular
                         s.is_checked = false
                         s.is_processing = false
 
+        $scope.hardDelete = ->
+            if not confirm("Are you sure you want to delete these scripts? This cannot be undone.")
+                return false
+            for s in $scope.getCheckedScreenplays()
+                s.is_processing = true
+                $http.post("/harddelete", {resource_id: s.resource_id})
+                    .success (data) ->
+                        $scope.screenplays = (s for s in $scope.screenplays when s.resource_id != data)
+                
         $scope.selectAll = (state) ->
             for s in $scope.screenplays
                 s.is_checked = false
@@ -90,3 +101,4 @@ angular
             for s in toCheck
                 return false if not s.is_checked
             return true
+

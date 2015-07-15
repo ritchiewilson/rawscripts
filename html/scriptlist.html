@@ -56,7 +56,7 @@
 		  </div>
 		  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
 			<input type="button" value="Undelete" ng-click="trashCheckedScreenplays(false)" />
-			<input type="button" onClick="batchProcess('hardDelete')" value="Delete Permanantly" style="margin-left:20px" />
+			<input type="button" ng-click="hardDelete()" value="Delete Permanantly" style="margin-left:20px" />
 		  </div>
 		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
 			<input type="button" onClick="renamePrompt()" value="Rename" />
