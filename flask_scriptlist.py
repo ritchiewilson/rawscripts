@@ -107,7 +107,7 @@ def list():
 
         if screenplay.permission == 'collab':
             shared.append(obj)
-        else:
+        elif screenplay.permission in ['owner', 'ownerDeleted']:
             obj["is_trashed"] = screenplay.permission == 'ownerDeleted'
             owned.append(obj)
 
