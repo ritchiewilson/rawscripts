@@ -48,7 +48,7 @@
 	  <div id="option_bar">
 		<div id="static_buttons">
 		  <input type="button" ng-click="setCurrentModal('new')" value="New Script" />
-		  <input type="button" onClick="uploadPrompt()" value="Upload" />
+		  <input type="button" ng-click="setCurrentModal('upload')" value="Upload" />
 		</div>
         <div ng-switch="currentFolder">
 		  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">

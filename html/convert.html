@@ -3,7 +3,7 @@
 <script>
 function post(){
 	var win = window.parent;
-    win.postMessage('uploading', "http://www.rawscripts.com");
+    win.postMessage('uploading', "{{ origin }}");
 }
 function titleChange(){
 	var filename = document.getElementById('file').value;

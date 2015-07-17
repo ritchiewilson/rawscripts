@@ -180,3 +180,13 @@ angular
                     $scope.folders = data[2]
                     $scope.refreshing = false
         $scope.refreshList()
+
+        $scope.receiveUploadMessage = (event) ->
+            return false if event.origin != window.location.origin
+            if event.data is "uploading"
+                return
+            alphanumberic = /^[a-z0-9]+$/i
+            if alphanumberic.test event.data
+                window.open("/editor?resource_id=" + event.data)
+                $scope.refreshList()
+        window.addEventListener "message", $scope.receiveUploadMessage, false

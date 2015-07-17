@@ -21,11 +21,16 @@ from rawscripts import db, app
 from flask_models import Screenplay
 from convert import Text, FinalDraft, Celtx
 
+def _get_origin():
+    netloc =  app.config['SERVER_NAME']
+    protocol = 'http://' if netloc.startswith('localhost') else 'https://'
+    return protocol + netloc
 
 @app.route('/convert')
 @login_required
 def convert():
-    return render_template('convert.html')
+    origin = _get_origin()
+    return render_template('convert.html', origin=origin)
 
 @app.route('/convertprocess', methods=['POST'])
 @login_required
@@ -44,4 +49,6 @@ def convert_process():
     else:
         content = Text(data)
     screenplay = Screenplay.create(filename, current_user.name, content)
-    return render_template('UploadComplete.html', url=screenplay.resource_id)
+    origin = _get_origin()
+    return render_template('UploadComplete.html', url=screenplay.resource_id,
+                           origin=origin)

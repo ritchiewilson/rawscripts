@@ -30,12 +30,10 @@ window['hideEmailPrompt'] = hideEmailPrompt;
 window['emailScript'] = emailScript;
 window['hideRenamePrompt'] = hideRenamePrompt;
 window['renameScript'] = renameScript;
-window['hideUploadPrompt'] = hideUploadPrompt;
 window['hideExportPrompt'] = hideExportPrompt;
 window['exportScripts'] = exportScripts;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
-window['uploadPrompt'] = uploadPrompt;
 window['renamePrompt'] = renamePrompt;
 window['exportPrompt'] = exportPrompt;
 window['emailPrompt'] = emailPrompt;
@@ -83,46 +81,6 @@ function refreshList(v){
     return;
 }
 
-
-/**
- * Opens the upload prompt on click
- */
-function uploadPrompt(){
-	goog.dom.getElement('uploadpopup').style.visibility = 'visible';
-}
-/**
- * Hides the upload prompt on click
- */
-function hideUploadPrompt(){
-	goog.dom.getElement('uploadFrame').src = '/convert';
-	goog.dom.getElement('uploadpopup').style.visibility = 'hidden';
-}
-
-/**
- * Add listener for messages from upload iframes
- */
-window.addEventListener("message", recieveMessage, false);
-
-/**
- * Takes that message from iframe and shows correct
- * GUI, either "Loading" bar, or "Complete" message
- * @param {event object} e Contains data from cross
- * iframe message event
- */
-function recieveMessage(e){
-	if(e.origin!="http://www.rawscripts.com")return;
-	if(e.data=="uploading"){
-		goog.dom.getElement("uploading").style.display="block";
-		goog.dom.getElement("uploadFrame").style.display="none";
-	}
-	else{
-		goog.dom.getElement("uploading").style.display="none";
-		goog.dom.getElement("uploadFrame").style.display="block";
-		window.open("/editor?resource_id="+e.data);
-		refreshList();
-	}
-    
-}
 /**
  * Opens the rename prompt on click
  */
