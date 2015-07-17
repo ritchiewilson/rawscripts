@@ -28,13 +28,10 @@ window['sharePrompt'] = sharePrompt;
 window['init'] = init;
 window['hideEmailPrompt'] = hideEmailPrompt;
 window['emailScript'] = emailScript;
-window['hideRenamePrompt'] = hideRenamePrompt;
-window['renameScript'] = renameScript;
 window['hideExportPrompt'] = hideExportPrompt;
 window['exportScripts'] = exportScripts;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
-window['renamePrompt'] = renamePrompt;
 window['exportPrompt'] = exportPrompt;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
@@ -46,14 +43,6 @@ function init(){
 	// grab scripts, and create lists
 	refreshList();
 	// prevent some defaults on forms in prompt
-	goog.events.listen(goog.dom.getElement('renameField'), goog.events.EventType.KEYDOWN,
-		function(e){
-			if(e.keyCode==13){
-				e.preventDefault();
-				renameScript()
-			}
-		}
-	);
 	goog.events.listen(goog.dom.getElement('subject'), goog.events.EventType.KEYDOWN,
 		function(e){
 			if(e.keyCode==13){
@@ -79,70 +68,6 @@ function init(){
  */
 function refreshList(v){
     return;
-}
-
-/**
- * Opens the rename prompt on click
- */
-function renamePrompt(){
-	// first check that user has selected only
-	// one script to rename
-	var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name != 'trashListItems' && listItems[i].name != 'sharedListItems'){
-					var resource_id = listItems[i].value;
-					counter++;
-				}
-			}
-		}
-	}
-	if(counter>1)alert("Please select one at a time");
-	else if (counter==1){
-		// if only one script, open rename prompt
-		var title = 'name' + resource_id;
-		goog.dom.getElement('renameTitle').innerHTML = "Rename " + goog.dom.getElement(title).innerHTML;
-		goog.dom.getElement('renameField').value = goog.dom.getElement(title).innerHTML;
-		goog.dom.getElement('renamepopup').style.visibility = 'visible';
-		goog.dom.getElement('resource_id').value = resource_id;
-	}
-	
-}
-/**
- * hides the rename prompt on click
- */
-function hideRenamePrompt(){
-	goog.dom.getElement('renameField').value = "";
-	goog.dom.getElement('renamepopup').style.visibility = 'hidden';
-}
-
-/**
- * Collects new user inputed title, updates GUI,
- * then sends new title and resource_id to server
- */	
-function renameScript(){
-	// Collect resource_id and new name
-	var resource_id = goog.dom.getElement('resource_id').value;
-	var rename = goog.dom.getElement('renameField').value;
-	if (rename==""){return;}
-	// Update DOM
-	var id = "name"+resource_id;
-	var a = document.getElementsByTagName('a');
-	for (i in a){
-		if (a[i].id==id){
-			a[i].innerHTML = rename;
-		}
-	}
-	// Send data to server
-	goog.net.XhrIo.send('/rename',
-		function(){},
-		'POST',
-		'resource_id='+resource_id+'&rename='+rename+'&fromPage=scriptlist'
-	);
-	// Hide prompt
-	hideRenamePrompt()
 }
 
 

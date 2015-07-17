@@ -59,7 +59,7 @@
 			<input type="button" ng-click="hardDelete()" value="Delete Permanantly" style="margin-left:20px" />
 		  </div>
 		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
-			<input type="button" onClick="renamePrompt()" value="Rename" />
+			<input type="button" ng-click="renameModal()" value="Rename" />
 			<input type="button" ng-click="duplicateScreenplay()" value="Duplicate" />
 			<input type="button" onClick="exportPrompt()" value="Export" />
 			<input id="move_to_trash" type="button" value="Move to Trash"
@@ -288,15 +288,17 @@
 	  <div class="popup_block">
 		<div class="popup">
 		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-		  <br />
-		  <p id="renameTitle"></p>
-		  <br />
-		  <input type="hidden" value="blank" id="resource_id" />
-		  <input class="text_input" type='text' name='renameField' id='renameField' style="width:350px" />
-		  <br />
-		  <input type='button' onClick='renameScript()' value='Rename' />
-          
-		  <br />
+		  <br>
+		  <p id="renameTitle">Renaming: {[ getFirstCheckedScreenplay().title ]}</p>
+		  <br>
+          <form ng-submit="renameScreenplay()">
+		    <input class="text_input" type="text" name="renameField"
+                   id="renameField" style="width:350px"
+                   ng-model="checkedScreenplay.tmpTitle">
+		    <br>
+		    <input type="submit" value="Rename" />
+          </form>
+		  <br>
 		</div>
 	  </div>
 	</div>

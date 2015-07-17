@@ -190,3 +190,31 @@ angular
                 window.open("/editor?resource_id=" + event.data)
                 $scope.refreshList()
         window.addEventListener "message", $scope.receiveUploadMessage, false
+
+        $scope.renameModal = ->
+            selected = $scope.getCheckedScreenplays()
+            if selected.length == 0
+                alert "You must first select which screenplay to rename."
+                return
+            if selected.length > 1
+                alert "Please select one screenplay at a time to rename."
+                return
+            $scope.checkedScreenplay = $scope.getFirstCheckedScreenplay()
+            $scope.checkedScreenplay.tmpTitle = $scope.checkedScreenplay.title
+            $scope.currentModal = "rename"
+
+        $scope.renameScreenplay = ->
+            s = $scope.checkedScreenplay
+            $scope.currentModal = ""
+            return false if s.tmpTitle is ""
+            s.is_processing = true
+            $http.post("/rename", {resource_id: s.resource_id, rename: s.tmpTitle})
+                .success (data) ->
+                    s.is_processing = false
+                    s.title = s.tmpTitle
+
+        $scope.getFirstCheckedScreenplay = ->
+            checked = $scope.getCheckedScreenplays()
+            return if checked.length == 0 then {} else checked[0]
+
+            

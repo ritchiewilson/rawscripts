@@ -21,7 +21,7 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay, UsersScripts
-from flask_utils import resource_access
+from flask_utils import resource_access, get_resource_id_from_request
 
 @app.route('/newscript', methods=['POST'])
 @login_required
@@ -67,8 +67,10 @@ def email_screenplay():
 @login_required
 @resource_access()
 def rename_screenplay():
-    resource_id = request.form['resource_id']
-    rename = request.form['rename']
+    resource_id = get_resource_id_from_request()
+    rename = request.form.get('rename', None)
+    if rename is None:
+        rename = request.json.get('rename', None)
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.title = rename
@@ -76,7 +78,7 @@ def rename_screenplay():
     return Response('done', mimetype='text/plain')
 
 def switch_deletion_permissions(switches):
-    resource_id = request.json['resource_id']
+    resource_id = get_resource_id_from_request()
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         if screenplay.permission in switches:
@@ -90,7 +92,7 @@ def delete_screenplay():
     switches = {'owner': 'ownerDeleted',
                 'collab': 'collabDeletedByOwner'}
     switch_deletion_permissions(switches)
-    return Response(request.json['resource_id'], mimetype='text/plain')
+    return Response(get_resource_id_from_request(), mimetype='text/plain')
 
 @app.route('/undelete', methods=['POST'])
 @login_required
@@ -99,13 +101,13 @@ def undelete_screenplay():
     switches = {'ownerDeleted': 'owner',
                 'collabDeletedByOwner': 'collab'}
     switch_deletion_permissions(switches)
-    return Response(request.json['resource_id'], mimetype='text/plain')
+    return Response(get_resource_id_from_request(), mimetype='text/plain')
 
 @app.route('/harddelete', methods=['POST'])
 @login_required
 @resource_access()
 def hard_delete_screenplay():
-    resource_id = request.json['resource_id']
+    resource_id = get_resource_id_from_request()
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.permission = 'hardDelete'
@@ -116,9 +118,7 @@ def hard_delete_screenplay():
 @login_required
 @resource_access()
 def duplicate_screenplay():
-    resource_id = request.form.get('resource_id', None)
-    if resource_id is None:
-        resource_id = request.json.get('resource_id', None)
+    resource_id = get_resource_id_from_request()
     version = Screenplay.get_latest_version_number(resource_id)
     screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
     url = '/editor?resource_id=' + screenplay.resource_id

@@ -16,25 +16,30 @@ def get_current_user_email_with_default():
         user = current_user.name
     return user
 
+def get_resource_id_from_request():
+    resource_id = None
+    if request.method == 'POST':
+        resource_id = request.form.get('resource_id', None)
+        # Angular sends json data, so this now needs to be checked as well
+        if resource_id is None and request.json:
+            resource_id = request.json.get('resource_id', None)
+    elif request.method == 'GET':
+        resource_id = request.args.get('resource_id', None)
+    return resource_id
+
 def resource_access(allow_collab=False, string_response=None):
     def decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
             from flask_models import Screenplay
-            resource_id = None
-            if request.method == 'POST':
-                resource_id = request.form.get('resource_id', None)
-                # Angular sends json data, so this now needs to be checked as well
-                if resource_id is None and request.json:
-                    resource_id = request.json.get('resource_id', None)
-            elif request.method == 'GET':
-                resource_id = request.args.get('resource_id', None)
+            resource_id = get_resource_id_from_request()
             user = current_user.email
             permission = Screenplay.get_users_permission(resource_id, user)
             allowable_permissions = ['owner', 'ownerDeleted']
             if allow_collab:
                 allowable_permissions.append('collab')
-            if permission is None or permission not in allowable_permissions:
+            if permission is None or permission not in allowable_permissions \
+               or resource_id is None:
                 return abort(403)
             return func(*args, **kwargs)
         return decorated_function
