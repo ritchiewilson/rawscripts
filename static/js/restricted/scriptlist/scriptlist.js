@@ -28,11 +28,8 @@ window['sharePrompt'] = sharePrompt;
 window['init'] = init;
 window['hideEmailPrompt'] = hideEmailPrompt;
 window['emailScript'] = emailScript;
-window['hideExportPrompt'] = hideExportPrompt;
-window['exportScripts'] = exportScripts;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
-window['exportPrompt'] = exportPrompt;
 window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
@@ -68,93 +65,6 @@ function init(){
  */
 function refreshList(v){
     return;
-}
-
-
-/**
- * Takes checked boxes (selected scripts),
- * then creates a table in the export prompt
- * giving options for title page and export
- * format.
- */
-function exportPrompt(){
-	var counter = 0;
-	var listItems = document.getElementsByTagName('input');
-	for (var i=0; i<listItems.length; i++){
-		if(listItems[i].type == 'checkbox'){
-			if (listItems[i].checked == true){
-				if (listItems[i].name.match(/listitems/gi)){
-					var newRow = document.createElement('tr');
-					var row = goog.dom.getElement('exportList').appendChild(newRow);
-					var newData = row.appendChild(document.createElement('td'));
-					var newTxt = document.createTextNode(goog.dom.getElement('name'+listItems[i].value).innerHTML);
-					newData.appendChild(newTxt);
-					//Create Selection cell					
-					newData = row.appendChild(document.createElement('td'));
-					var newSelect = document.createElement('select');
-					var select = newData.appendChild(newSelect);
-					select.name = listItems[i].value;
-					select.className='export_format_select';
-					var option = select.appendChild(document.createElement('option'));
-					option.appendChild(document.createTextNode('Adobe PDF'));
-					option = select.appendChild(document.createElement('option'));
-					option.appendChild(document.createTextNode('.txt'));
-                    newData = newRow.appendChild(document.createElement('td'));
-                    newSelect = newData.appendChild(document.createElement('select'));
-                    newSelect.name="export_format";
-                    option = newSelect.appendChild(document.createElement('option'));
-                    option.appendChild(document.createTextNode('Without Title Page'));
-                    option = newSelect.appendChild(document.createElement('option'));
-                    option.appendChild(document.createTextNode('With Title Page'));
-                    var a = newRow.appendChild(document.createElement('td')).appendChild(document.createElement('a'));
-                    a.appendChild(document.createTextNode('Edit Title page'));
-                    a.href="/titlepage?resource_id="+listItems[i].value;
-                    a.target="_blank"
-					a.style.color="blue"
-					counter++;
-				}
-			}
-		}
-	}
-	if (counter>0){
-		goog.dom.getElement('exportpopup').style.visibility = 'visible';
-	}
-}
-/**
- * Hides export promt. Called when user clicks
- * close icon. Also called after user actually 
- * exports scripts.
- */
-function hideExportPrompt(){
-	goog.dom.getElement('exportpopup').style.visibility = 'hidden';
-	goog.dom.getElement('exportList').innerHTML = '';
-}
-/**
- * Cycles through scripts to be exported. For
- * each script to be exported, collects options
- * and opens a new window at a url with those
- * options.
- */
-function exportScripts(){
-	var id;
-	var format;
-	var exports = document.getElementsByTagName('select');
-	for (var i=0; i<exports.length; i++){
-        if(exports[i].className=='export_format_select'){
-            id = exports[i].name;
-            if (exports[i].selectedIndex == 0){format = 'pdf';}
-            else{format = 'txt';}
-            var n = exports[i].parentNode;
-            n = n.nextSibling;
-            if(n.nodeName=="#text")n=n.nextSibling;
-            n=n.firstChild;
-            if(n.nodeName=="#text")n=n.nextSibling;
-            var title = "&title_page="+n.selectedIndex;
-            url = '/export?resource_id=' + id + '&export_format=' + format + '&fromPage=scriptlist'+title;
-            window.open(url);
-        }
-    }
-	hideExportPrompt();
 }
 
 

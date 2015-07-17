@@ -52,7 +52,7 @@
 		</div>
         <div ng-switch="currentFolder">
 		  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">
-			<input type="button" onClick="exportPrompt()" value="Export" />
+			<input type="button" ng-click="exportModal()" value="Export" />
 		  </div>
 		  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
 			<input type="button" value="Undelete" ng-click="trashCheckedScreenplays(false)" />
@@ -61,7 +61,7 @@
 		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
 			<input type="button" ng-click="renameModal()" value="Rename" />
 			<input type="button" ng-click="duplicateScreenplay()" value="Duplicate" />
-			<input type="button" onClick="exportPrompt()" value="Export" />
+			<input type="button" ng-click="exportModal()" value="Export" />
 			<input id="move_to_trash" type="button" value="Move to Trash"
                    ng-click="trashCheckedScreenplays(true)" />
             <select name="move_to_folder" id="move_to_folder"
@@ -343,13 +343,37 @@
 	  <div class="popup_block" style="width:500px;">
 		<div class="popup">
 		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-		  <br />
+		  <br>
 		  <p>Export as...</p>
-		  <table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
-		  <br />
-		  <input type='button' onClick='exportScripts()' value='Export' />
-          
-		  <br />
+		  <table cellspacing="0" cellpadding="0" style="border:none; width:450px" id="exportList">
+            <tr>
+              <th>Title</th>
+              <th>File Format</th>
+              <th>Include Titlepage</th>
+              <th></th>
+            </tr>
+            <tr ng-repeat="screenplay in getCheckedScreenplays()">
+              <td>{[ screenplay.title ]}</td>
+              <td align="center">
+                <select ng-model="screenplay.exportFormat">
+                  <option value="pdf">PDF</option>
+                  <option value="txt">.txt</option>
+                </select>
+              </td>
+              <td align="center">
+                <input type="checkbox" ng-model="screenplay.exportTitlepage">
+              </td>
+              <td>
+                <a href="/titlepage?resource_id={[ screenplay.resource_id ]}"
+                   target="_blank" style="color:blue">
+                  Edit title Page
+                </a>
+              </td>
+            </tr>
+          </table>
+		  <br>
+		  <input type="button" ng-click="exportScreenplays()" value="Export">
+		  <br>
 		</div>
 	  </div>
 	</div>

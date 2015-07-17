@@ -216,5 +216,21 @@ angular
         $scope.getFirstCheckedScreenplay = ->
             checked = $scope.getCheckedScreenplays()
             return if checked.length == 0 then {} else checked[0]
-
             
+        $scope.exportModal = ->
+            selected = $scope.getCheckedScreenplays()
+            if selected.length == 0
+                alert "You must first select which screenplays to export."
+                return
+            for s in selected
+                s.exportFormat = "pdf"
+                s.exportTitlepage = false
+            $scope.currentModal = "export"
+
+        $scope.exportScreenplays = ->
+            for s in $scope.getCheckedScreenplays()
+                url = "/export?resource_id=" + s.resource_id
+                url += "&export_format=" + s.exportFormat
+                url += "&title_page=" + if s.exportTitlepage then "1" else "0"
+                window.open(url)
+            $scope.currentModal = ""
