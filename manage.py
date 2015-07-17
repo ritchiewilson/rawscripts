@@ -3,7 +3,7 @@ import glob
 import os
 
 from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask.ext.migrate import Migrate, MigrateCommand, stamp
 
 from rawscripts import app, db
 from flask_models import *
@@ -119,6 +119,22 @@ def delete_duplicate_versions():
             _delete_duplicate_versions(resource_id, version)
     return False
 
+@manager.command
+def build_db():
+    uri = app.config['SQLALCHEMY_DATABASE_URI']
+    if not uri.startswith('sqlite'):
+        msg = 'This script is intended for sqlite dbs only.\n'
+        msg += 'You should probably use the migration script: '
+        msg += "'python manage.py db upgrade'"
+        raise Exception(msg)
+    db_file = uri.split('/')[-1]
+    if os.path.exists(db_file):
+        msg = 'The database already exists. If you want to rebuild the '
+        msg += 'database, you must first remove the file:\n'
+        msg += db_file
+        raise Exception(msg)
+    db.create_all()
+    stamp()
 
 if __name__ == "__main__":
     manager.run()
