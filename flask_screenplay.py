@@ -37,11 +37,17 @@ def new_screenplay():
 @login_required
 @resource_access(allow_collab=True)
 def email_screenplay():
-    resource_id = request.form['resource_id']
-    title_page = request.form['title_page']
-    subject = request.form['subject']
-    body_message = request.form['body_message']
-    recipients = request.form['recipients'].split(',')
+    resource_id = get_resource_id_from_request()
+    title_page = request.form.get('title_page', None)
+    if title_page is None:
+        title_page = request.json.get('title_page', None)
+    subject = "Screenplay"
+    body_message = ""
+    raw_recipients = request.form.get('recipients', None)
+    if raw_recipients is None:
+        raw_recipients = request.json.get('recipients', None)
+    print request.json
+    recipients = raw_recipients.split(',')
 
     # Build email body and html
     body = body_message + "\n\n\n    	"
@@ -59,8 +65,10 @@ def email_screenplay():
 
     msg = Message(subject, recipients=recipients, body=body, html=html)
     msg.attach(filename, content_type, _file.getvalue())
-    mail.send(msg)
-
+    try:
+        mail.send(msg)
+    except:
+        return Response('failed', mimetype='text/plain')
     return Response('sent', mimetype='text/plain')
 
 @app.route('/rename', methods=['POST'])

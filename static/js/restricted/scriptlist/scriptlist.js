@@ -26,11 +26,8 @@
 window['removeAccess'] = removeAccess;
 window['sharePrompt'] = sharePrompt;
 window['init'] = init;
-window['hideEmailPrompt'] = hideEmailPrompt;
-window['emailScript'] = emailScript;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
-window['emailPrompt'] = emailPrompt;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 
@@ -67,73 +64,6 @@ function refreshList(v){
     return;
 }
 
-
-/**
- * Opens email prompt GUI on click
- * @param { string } v resource_id of script
- */
-function emailPrompt(v){
-	var resource_id=v;
-	goog.dom.getElement('emailpopup').style.visibility = 'visible';
-    goog.dom.getElement('edit_title_href').href='/titlepage?resource_id='+resource_id
-}
-
-/**
- * Hide email prompt when email is complete
- * or when user chooses.
- */
-function hideEmailPrompt(){
-	goog.dom.getElement('emailpopup').style.visibility = 'hidden';
-	goog.dom.getElement('recipient').value = "";
-	goog.dom.getElement('subject').value = "";
-	goog.dom.getElement('email_message').innerHTML = "";
-}
-
-/**
- * Does the job of collecting recipient names,
- * subject, and message, then sends that and
- * the resource_id to server.
- */
-function emailScript(){
-	var r = goog.format.EmailAddress.parseList(goog.dom.getElement('recipient').value)
-	var arr=[];
-	for(i in r){
-		if(r[i].address_!="")arr.push(r[i].address_);
-	}
-	if(arr.length==0){
-		alert('You need to add at least one email address.')
-		return;
-	}
-	var recipients = arr.join(',');
-	var subject = goog.dom.getElement('subject').value;
-	if(subject=="")subject="Script";
-	var body_message = goog.dom.getElement('email_message').innerHTML;
-    var title_page = goog.dom.getElement("emailTitle").selectedIndex;
-    var resource_id = goog.dom.getElement('edit_title_href').href.split('=')[1];
-	goog.net.XhrIo.send('/emailscript',
-		emailComplete,
-		'POST',
-		'resource_id='+resource_id+'&recipients='+recipients+'&subject='+encodeURIComponent(subject)+'&body_message='+encodeURIComponent(body_message)+'&fromPage=scriptlist&title_page='+title_page
-	);
-	goog.dom.getElement('emailS').disabled = true;
-	goog.dom.getElement('emailS').value = 'Sending...';
-}
-
-/**
- * If email sent, good. If not, alert
- */
-function emailComplete(e){
-    console.log(e)
-	goog.dom.getElement('emailS').disabled = false;
-	goog.dom.getElement('emailS').value = 'Send';
-	if (e.target.getResponseText()=='sent'){
-		alert("Email Sent")
-		hideEmailPrompt();
-	}
-	else{
-		alert("There was a problem sending your email. Please try again later.")
-	}
-}
 
 /**
  * Opens the share prompt, and populate the

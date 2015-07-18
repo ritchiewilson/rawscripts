@@ -234,3 +234,25 @@ angular
                 url += "&title_page=" + if s.exportTitlepage then "1" else "0"
                 window.open(url)
             $scope.currentModal = ""
+
+        $scope.emailModal = (resource_id) ->
+            $scope.checkedScreenplay = $scope.getScreenplayByResourceId(resource_id)
+            $scope.checkedScreenplay.emailTitlepage = "0"
+            $scope.currentModal = "email"
+
+        $scope.emailScreenplay = ->
+            s = $scope.checkedScreenplay
+            params =
+                resource_id: s.resource_id
+                recipients: s.emailRecipients
+                title_page: s.emailTitlepage
+            $scope.emailing = true
+            $http.post("/emailscript", params)
+                .success (data) ->
+                    $scope.emailing = false
+                    if data is "sent"
+                        alert "Email Sent"
+                        $scope.setCurrentModal("")
+                    else
+                        alert "There was a problem sending your email. Please try again later."
+

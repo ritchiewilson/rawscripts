@@ -178,7 +178,7 @@
                     </td>
                     <td class="emailCell" align="center" ng-hide="currentFolder == 'trash'">
                       <span class="actionable-span emailLink"
-                            ng-click="sc.emailPrompt(screenplay.resource_id)">
+                            ng-click="emailModal(screenplay.resource_id)">
                             Email
                       </span>
                     </td>
@@ -266,19 +266,26 @@
 	  <div class="popup_block">
 		<div class="popup">
 		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-		  <br /><br /><span>Email Script</span><br /><br />
-		  <label for="recipient">Recipients (max 5, comma seperated)</label><br>
-		  <textarea class="text_input" rows='4' name='recipient' id='recipient' style="width:400px"></textarea><br />
-		  <label for="subject">Subject</label><br />
-		  <input class="text_input" type='text' name='subject' id='subject' style="width:400px" /><br />
-		  <label for="message">Message (optional)</label><br />
-		  <div class="text_input" contentEditable='true' name='message' id='email_message'></div><br>
-		  <select id="emailTitle">
-			<option>Without title Page</option>
-			<option>With title Page</option>
-		  </select>
-		  <a id="edit_title_href" href="#" target="_blank">Edit Title Page</a><br /><br>
-		  <input type='button' id="emailS" onClick='emailScript()' value='Send' /><br />
+		  <br><br>
+          <span>Email Screenplay: {[ checkedScreenplay.title ]}</span>
+          <br><br>
+          <form ng-submit="emailScreenplay()">
+		    <label for="recipient">Recipients (max 5, comma seperated)</label><br>
+		    <textarea class="text_input" rows="4" name="recipient" id="recipient" style="width:400px"
+                      ng-model="checkedScreenplay.emailRecipients"></textarea>
+            <br>
+		    <select id="emailTitle" ng-model="checkedScreenplay.emailTitlepage">
+			  <option value="0">Without title Page</option>
+			  <option value="1">With title Page</option>
+		    </select>
+		    <a href="/titlepage?resource_id={[ checkedScreenplay.resource_id ]}" target="_blank" style="color:blue">
+              Edit Title Page
+            </a>
+            <br>
+            <br>
+		    <input type="submit" value="{[ emailing ? 'Sending...' : 'Send' ]}" ng-disabled="emailing">
+          </form>
+          <br>
 		</div>
 	  </div>
 	</div>
