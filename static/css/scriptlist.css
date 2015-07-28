@@ -102,9 +102,10 @@ body{
 	position:absolute;
 	left:0px;
 	top:135px;
-	width:50%;
+	width:160px;
 }
 .tab{
+    position: relative;
 	cursor:pointer;
 	padding:2px 0 2px 15px;
 	margin-top:0px;
@@ -126,6 +127,23 @@ body{
 }
 #new_folder{
 	margin-left:40px;
+}
+
+.folder-options {
+    position: absolute;
+    padding: 3px;
+    padding-left: 15px;
+    right: 0px;
+    top: 0px;
+    visibility: hidden;
+    background-color: white;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, white 30%);
+    color: black;
+    height: 100%;
+}
+
+.tab:hover .folder-options {
+    visibility: visible;
 }
 
 /* Main Section of the screen, script lists*/
