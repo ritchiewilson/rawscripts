@@ -34,17 +34,6 @@ window['emailNotifyMsg'] = emailNotifyMsg;
 
 
 function init(){
-	// grab scripts, and create lists
-	refreshList();
-	// prevent some defaults on forms in prompt
-	goog.events.listen(goog.dom.getElement('subject'), goog.events.EventType.KEYDOWN,
-		function(e){
-			if(e.keyCode==13){
-				e.preventDefault();
-			}
-		}
-	);
-
 	// Some setup for contextual menus on the
 	// user defined folders
 	goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
