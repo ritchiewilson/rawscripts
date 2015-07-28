@@ -212,32 +212,7 @@ function emailNotifyMsg(e){
 */
 
 
-/**
- * Prompts the user for a new name for the
- * folder. It then finds the relevant folder_id
- * and posts the change.
- * @param { string } v folder id
- */
-function renameFolder(v){
-	var prev_title=goog.dom.getTextContent(goog.dom.getElement('Folder'+v));
-	var f = prompt("Rename Folder", prev_title)
-	if(f!=null){
-		f=f.replace(/^\s+/,"").replace(/\s+$/,"");
-		if(f!=""){
-			var folder_id = v;
-			var d = goog.dom.getElement("Folder"+v);
-			goog.dom.removeChildren(d);
-			d.appendChild(document.createElement("img")).src="images/folder.png";
-			d.appendChild(document.createElement("span")).appendChild(document.createTextNode(" "));
-			d.appendChild(document.createTextNode(f));
-			goog.net.XhrIo.send('/renamefolder',
-				refreshList,
-				'POST',
-				'folder_name='+f+'&folder_id='+folder_id
-			);
-		}
-	}
-}
+
 /**
  * Confirms the user wants to delete the
  * folder. Then does if if true
@@ -286,7 +261,6 @@ function contextmenu(e){
  */
 function folderContextMenuAction(e){
 	if(e.target.content_=='Rename Folder'){
-		renameFolder(folder_id.replace('Folder',''))
 	}
 	else if(e.target.content_=='Delete Folder'){
 		deleteFolder(folder_id.replace('Folder',''))

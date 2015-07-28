@@ -105,7 +105,8 @@
           <div id="Folder{[ folder[1] ]}" class="tab" ng-repeat="folder in folders"
                ng-click="setCurrentFolder(folder[1])"
                ng-class="currentFolder === folder[1] ? 'current' : ''">
-               <img src="images/folder.png"> {[ folder[0] ]}
+            <img src="images/folder.png"> {[ folder[0] ]}
+            <span class="glyphicon glyphicon-pencil" ng-click="renameFolder(folder[1])"></span>
           </div>
         </div>
 	  </div>

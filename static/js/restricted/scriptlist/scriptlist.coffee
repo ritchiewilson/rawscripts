@@ -256,3 +256,14 @@ angular
                     else
                         alert "There was a problem sending your email. Please try again later."
 
+        $scope.renameFolder = (id) ->
+            currentName = scriptlist.getFolderName(id, $scope.folders)
+            newName = prompt("Rename Folder", currentName)
+            return false if !newName?
+            newName = newName.trim()
+            return false if newName == ""
+            $http.post("renamefolder", {folder_name: newName, folder_id: id})
+                .success (data) ->
+                    for folder in $scope.folders
+                        if folder[1] == id
+                            folder[0] = newName
