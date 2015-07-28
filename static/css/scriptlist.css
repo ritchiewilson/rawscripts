@@ -19,7 +19,6 @@
 @charset "UTF-8";
 /* CSS Document */
 img { border:none; }
-tr {border:1px #999999 solid; width:90%}
 td {border:none}
 body{
 	margin:0; 
@@ -191,7 +190,7 @@ body{
     opacity: 0.5;
 }
 .checkboxCell{
-	width:15px;
+	width: 25px;
 }
 .folderCell{
 	width:120px;
