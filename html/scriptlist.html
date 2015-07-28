@@ -369,7 +369,7 @@
               <th>Title</th>
               <th>File Format</th>
               <th>Include Titlepage</th>
-              <th></th>
+              <th ng-if="currentFolder != 'shared'"></th>
             </tr>
             <tr ng-repeat="screenplay in getCheckedScreenplays()">
               <td>{[ screenplay.title ]}</td>
@@ -382,7 +382,7 @@
               <td align="center">
                 <input type="checkbox" ng-model="screenplay.exportTitlepage">
               </td>
-              <td>
+              <td ng-if="currentFolder != 'shared'">
                 <a href="/titlepage?resource_id={[ screenplay.resource_id ]}"
                    target="_blank" style="color:blue">
                   Edit title Page
