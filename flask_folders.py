@@ -60,7 +60,7 @@ def change_folder():
 @app.route('/deletefolder', methods=['POST'])
 @login_required
 def delete_folder():
-    folder_id = request.form.get('folder_id', None)
+    folder_id = request.json.get('folder_id', None)
     if folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email

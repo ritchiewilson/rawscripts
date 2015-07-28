@@ -267,3 +267,16 @@ angular
                     for folder in $scope.folders
                         if folder[1] == id
                             folder[0] = newName
+
+        $scope.deleteFolder = (id) ->
+            if not confirm("Are you sure you want to delete this folder?")
+                return false
+            $http.post("/deletefolder", {folder_id: id})
+                .success (data) ->
+                    $scope.folders = (f for f in $scope.folders when f[1] != id)
+                    for s in $scope.screenplays
+                        if s.folder == id
+                            s.folder = "?none?"
+                    if $scope.currentFolder == id
+                        $scope.currentFolder = "owned"
+

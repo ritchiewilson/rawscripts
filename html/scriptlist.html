@@ -31,7 +31,7 @@
 	{% endif %}
   </head>
 
-  <body onload="init()">
+  <body>
 	{% include "analytics.html" %}
 	<div id="header">
 
@@ -106,6 +106,7 @@
                ng-click="setCurrentFolder(folder[1])"
                ng-class="currentFolder === folder[1] ? 'current' : ''">
             <img src="images/folder.png"> {[ folder[0] ]}
+            <span class="glyphicon glyphicon-remove" ng-click="deleteFolder(folder[1])"></span>
             <span class="glyphicon glyphicon-pencil" ng-click="renameFolder(folder[1])"></span>
           </div>
         </div>

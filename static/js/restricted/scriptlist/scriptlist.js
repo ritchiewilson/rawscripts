@@ -25,20 +25,11 @@
  */
 window['removeAccess'] = removeAccess;
 window['sharePrompt'] = sharePrompt;
-window['init'] = init;
 window['hideSharePrompt'] = hideSharePrompt;
 window['shareScript'] = shareScript;
 window['emailNotifyShare'] = emailNotifyShare;
 window['emailNotifyMsg'] = emailNotifyMsg;
 
-
-
-function init(){
-	// Some setup for contextual menus on the
-	// user defined folders
-	goog.events.listen(window, goog.events.EventType.CLICK, removeContextMenu)
-	goog.events.listen(window, goog.events.EventType.CONTEXTMENU, contextmenu)
-}
 
 /**
  * Calls the server for all screenplay information
@@ -200,79 +191,3 @@ function emailNotifyMsg(e){
 	}
 }
 
-/* FOLDER FUNCTIONS
- * 
- * Aside from permission based folders ("My Scripts", 
- * "Shared With Me", and "Trash"), Users can create
- * folders of their own to organize scripts how they
- * choose. 
- * 
- * Users can Create, Rename, and Delete folders. They
- * can move scripts into folders.
-*/
-
-
-
-/**
- * Confirms the user wants to delete the
- * folder. Then does if if true
- */
-function deleteFolder(){
-	var c = confirm("Are you sure you want to delete this folder?")
-	if(c==true){
-		var f = folder_id.replace('Folder','');
-		goog.net.XhrIo.send('/deletefolder',
-			refreshList,
-			'POST',
-			'folder_id='+f
-		);
-	}
-}
-
-
-/**
- * Open context menu on user defined folders
- * @param {goog.events.BrowserEvent} e The div
- * object that is right clicked on.
- */
-function contextmenu(e){
-	if(goog.dom.getElement('folder_context_menu')!=null){
-		goog.dom.removeNode('folder_context_menu')
-	}
-	if(e.target.className=="tab" || e.target.className=="tab current"){
-		if(e.target.id!="ownedFolder" && e.target.id!="sharedFolder" && e.target.id!="trashFolder"){
-			e.preventDefault();
-			folder_id=e.target.id;
-			var menu = new goog.ui.PopupMenu();
-			menu.setId('folder_context_menu');
-			menu.addItem(new goog.ui.MenuItem('Rename Folder'));
-			menu.addItem(new goog.ui.MenuItem('Delete Folder'));
-			menu.render(document.body);
-			menu.setPosition(e.clientX,e.clientY);
-			menu.setVisible(true)
-			goog.events.listen(menu, 'action', folderContextMenuAction)
-		}
-	}
-}
-
-/**
- * Event from folder context menu
- * @param {goog.events.Event} e option clicked
- */
-function folderContextMenuAction(e){
-	if(e.target.content_=='Rename Folder'){
-	}
-	else if(e.target.content_=='Delete Folder'){
-		deleteFolder(folder_id.replace('Folder',''))
-	}
-
-}
-/**
- * Context menu doesn't dissaprear on
- * unfocus. So this function does that
- */
-function removeContextMenu(){
-	if(goog.dom.getElement('folder_context_menu')!=null){
-		goog.dom.removeNode('folder_context_menu');
-	}
-}
