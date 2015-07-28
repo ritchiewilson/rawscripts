@@ -73,7 +73,10 @@ angular
             alert "You have to Undelete this script to view it."
 
         $scope.getCheckedScreenplays = ->
-            visible = folderFilter($scope.screenplays, $scope.currentFolder)
+            if $scope.currentFolder is "shared"
+                visible = $scope.sharedWithMe
+            else
+                visible = folderFilter($scope.screenplays, $scope.currentFolder)
             return (s for s in visible when s.is_checked)
 
         # Use this for both move into and out of trash
@@ -100,11 +103,18 @@ angular
         $scope.selectAll = (state) ->
             for s in $scope.screenplays
                 s.is_checked = false
+            if $scope.currentFolder is "shared"
+                for s in $scope.sharedWithMe
+                    s.is_checked = state
+                return true
             for s in folderFilter($scope.screenplays, $scope.currentFolder)
                 s.is_checked = state
 
         $scope.allAreSelected = ->
-            toCheck = folderFilter($scope.screenplays, $scope.currentFolder)
+            if $scope.currentFolder is "shared"
+                toCheck = $scope.sharedWithMe
+            else
+                toCheck = folderFilter($scope.screenplays, $scope.currentFolder)
             return false if toCheck.length == 0
             for s in toCheck
                 return false if not s.is_checked

@@ -214,8 +214,10 @@
 		  <table class="contentsHeader" width="100%">
 			<tr>
 			  <td class="checkboxCell" align="center">
-                <input onClick='selectAll(this, "sharedListItems")'
-                       type='checkbox' value='all' />
+                <input ng-click="selectAll(sc.selectAll)"
+                       ng-checked="allAreSelected()"
+                       ng-model="sc.selectAll"
+                       type="checkbox" value="all" />
               </td>
 			  <td>Friends' Scripts</td>
 			  <td style="width:120px" align="right">Owner</td>
