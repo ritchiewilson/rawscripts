@@ -65,10 +65,6 @@ angular
         $scope.setCurrentModal = (id) ->
             $scope.currentModal = id
             
-        scriptlist.sharePrompt = (id) ->
-            sharePrompt(id)
-        scriptlist.emailPrompt = (id) ->
-            emailPrompt(id)
         scriptlist.haveToUndelete = ->
             alert "You have to Undelete this script to view it."
 
@@ -290,3 +286,32 @@ angular
                     if $scope.currentFolder == id
                         $scope.currentFolder = "owned"
 
+        $scope.shareModal = (resource_id) ->
+            $scope.checkedScreenplay = $scope.getScreenplayByResourceId(resource_id)
+            $scope.currentModal = "share"
+            scriptlist.newCollaborators = ""
+            scriptlist.newCollaboratorsNotify = true
+
+        $scope.removeAccess = (email) ->
+            if not confirm("Are you sure you want to take away access from #{email}?")
+                return false
+            params =
+                resource_id: $scope.checkedScreenplay.resource_id
+                removePerson: email
+            $http.post("/removeaccess", params)
+                .success (data) ->
+                    orig = $scope.checkedScreenplay.shared_with
+                    $scope.checkedScreenplay.shared_with = (e for e in orig when e != email)
+
+        $scope.addCollaborators = ->
+            params =
+                resource_id: $scope.checkedScreenplay.resource_id
+                collaborators: scriptlist.newCollaborators
+                sendEmail: if scriptlist.newCollaboratorsNotify then "y" else "n"
+            $http.post("/share", params)
+                .success (data) ->
+                    newCollaborators = data.split(",")
+                    for c in newCollaborators
+                        if "@" in c
+                            $scope.checkedScreenplay.shared_with.push c
+                    scriptlist.newCollaborators = ""

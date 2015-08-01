@@ -5,15 +5,6 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>RawScripts - Scriptlist</title>
 	<link rel="shortcut icon" href="/favicon.ico">
-	{% if MODE == 'DEV' %}
-	  <script src="/static/closure-library/closure/goog/base.js"></script>
-	  {% for file in SCRIPTLIST_JS %}
-		<script src="/static/js/restricted/scriptlist/{{ file }}.js"></script>
-	  {% endfor %}
-	{% else %}
-	  <script src="/static/js/min/scriptlist-compiled.js"></script>
-	{% endif %}
-
     {% include "angular.html" -%}
 
     {% assets "scriptlist" %}
@@ -176,10 +167,8 @@
                                            'one': '1 person ',
                                            'other': '{} people '}">
                       </ng-pluralize>
-                      <span id="share{[ screenplay.resource_id ]}"
-                            title="{[ screenplay.shared_with.join('&') ]}"
-                            class="actionable-span"
-                            ng-click="sc.sharePrompt(screenplay.resource_id)">
+                      <span class="actionable-span"
+                            ng-click="shareModal(screenplay.resource_id)">
                             Manage
                       </span>
                     </td>
@@ -403,18 +392,25 @@
 		<div class="popup">
 		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
 		  <br>
-		  Share Script: <b id="shareTitle"></b>
+		  Share Script: <b id="shareTitle">{[ checkedScreenplay.title ]}</b>
 		  <br><br>
 		  <table id="hasAccess" width="350px" cellspacing=0>
-		  </table><br>
+            <tr ng-repeat="email in checkedScreenplay.shared_with">
+              <td>{[ email ]}</td>
+              <td align="right">
+                <span class="actionable-span" ng-click="removeAccess(email)">
+                  Remove Access
+                </span>
+              </td>
+            </tr>
+		  </table>
+          <br>
+          <form ng-submit="addCollaborators()">
 		  <span>To be added: (comma seperated)</span><br>
-		  <textarea rows='3' class="text_input" name='collaborator' id='collaborator'></textarea>
+		  <textarea rows="3" class="text_input" id="collaborator" ng-model="sc.newCollaborators"></textarea>
 		  <br>
-		  <input type="checkbox" name="email_notify_share" id="email_notify_share" onchange="emailNotifyShare(this)"><span> </span>Send email to new collaborators<br>
-		  <input type="checkbox" name="email_notify_msg" id="email_notify_msg" onchange="emailNotifyMsg(this)"><span> </span>Add personal message to email<br>
-		  <div class="text_input" contentEditable='true' name='share_message' id='share_message' style="width:400px; height:80px; overflow:auto; display:none"></div>
-		  <input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
-		  <input type="hidden" value="blank" id="shareResource_id" />
+		  <input type="checkbox" ng-model="sc.newCollaboratorsNotify"><span> </span>Notify new collaborators by email<br>
+		  <input type="submit" value="Add Collaborators" />
 		</div>
 	  </div>
 	</div>

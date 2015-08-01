@@ -21,16 +21,21 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay
+from flask_utils import resource_access, get_resource_id_from_request
 
 
 @app.route('/share', methods=['POST'])
 @login_required
+@resource_access()
 def share_screenplay():
-    resource_id = request.form['resource_id']
-    collaborators = request.form['collaborators'].split(',')
+    resource_id = get_resource_id_from_request()
+    collaborators_raw = request.form.get('collaborators', None)
+    if collaborators_raw is None:
+        collaborators_raw = request.json.get('collaborators', None)
+    collaborators = collaborators_raw.split(',')
     new_collaborators = Screenplay.add_access(resource_id, collaborators)
 
-    if new_collaborators and request.form.get('sendEmail', '') == 'y':
+    if new_collaborators and request.json.get('sendEmail', '') == 'y':
         user = current_user.email
         subject = 'Rawscripts.com: ' + user + " has shared a screenplay with you."
         title = Screenplay.get_title(resource_id)
@@ -40,10 +45,6 @@ def share_screenplay():
         body = script_url + "\n\n\n    	"
         body += "--- This screenplay written and sent from RawScripts.com."
         divArea = ''
-        if request.form.get('addMsg', '') == 'y':
-            divArea = "<div style='width:300px; margin-left:20px; font-size:12pt; font-family:serif'>"
-            divArea += request.form.get('msg', '')
-            divArea += "<br><b>--" + user + "</b></div>"
 
         replacements = {
             'SCRIPTTITLE': title, 'USER': user,
@@ -62,8 +63,9 @@ def share_screenplay():
 
 @app.route('/removeaccess', methods=['POST'])
 @login_required
+@resource_access()
 def remove_access_to_screenplay():
-    resource_id = request.form['resource_id']
-    collaborator = request.form['removePerson'].lower()
+    resource_id = request.json['resource_id']
+    collaborator = request.json['removePerson'].lower()
     Screenplay.remove_access(resource_id, collaborator)
     return Response(collaborator, mimetype='text/plain')
