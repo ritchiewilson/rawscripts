@@ -26,8 +26,8 @@ from flask_models import Screenplay, Folder, UsersScripts
 @app.route('/newfolder', methods=['POST'])
 @login_required
 def new_folder():
-    folder_name = request.form.get('folder_name', None)
-    folder_id = request.form.get('folder_id', None)
+    folder_name = request.json.get('folder_name', None)
+    folder_id = request.json.get('folder_id', None)
     if folder_name is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email
@@ -44,8 +44,8 @@ def new_folder():
 @app.route('/changefolder', methods=['POST'])
 @login_required
 def change_folder():
-    resource_ids = request.form.get('resource_id', None)
-    folder_id = request.form.get('folder_id', None)
+    resource_ids = request.json.get('resource_id', None)
+    folder_id = request.json.get('folder_id', None)
     if resource_ids is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email
@@ -60,7 +60,7 @@ def change_folder():
 @app.route('/deletefolder', methods=['POST'])
 @login_required
 def delete_folder():
-    folder_id = request.form.get('folder_id', None)
+    folder_id = request.json.get('folder_id', None)
     if folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email
@@ -78,8 +78,8 @@ def delete_folder():
 @app.route('/renamefolder', methods=['POST'])
 @login_required
 def rename_folder():
-    folder_name = request.form.get('folder_name', None)
-    folder_id = request.form.get('folder_id', None)
+    folder_name = request.json.get('folder_name', None)
+    folder_id = request.json.get('folder_id', None)
     if folder_name is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email

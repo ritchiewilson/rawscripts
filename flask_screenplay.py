@@ -21,12 +21,14 @@ from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
 from flask_models import Screenplay, UsersScripts
-from flask_utils import resource_access
+from flask_utils import resource_access, get_resource_id_from_request
 
 @app.route('/newscript', methods=['POST'])
 @login_required
 def new_screenplay():
-    filename = request.form['filename']
+    filename = request.form.get('filename', None)
+    if filename is None:
+        filename = request.json.get('filename', None)
     user = current_user.name
     screenplay = Screenplay.create(filename, user)
     return Response(screenplay.resource_id, mimetype='text/plain')
@@ -35,11 +37,17 @@ def new_screenplay():
 @login_required
 @resource_access(allow_collab=True)
 def email_screenplay():
-    resource_id = request.form['resource_id']
-    title_page = request.form['title_page']
-    subject = request.form['subject']
-    body_message = request.form['body_message']
-    recipients = request.form['recipients'].split(',')
+    resource_id = get_resource_id_from_request()
+    title_page = request.form.get('title_page', None)
+    if title_page is None:
+        title_page = request.json.get('title_page', None)
+    subject = "Screenplay"
+    body_message = ""
+    raw_recipients = request.form.get('recipients', None)
+    if raw_recipients is None:
+        raw_recipients = request.json.get('recipients', None)
+    print request.json
+    recipients = raw_recipients.split(',')
 
     # Build email body and html
     body = body_message + "\n\n\n    	"
@@ -57,16 +65,20 @@ def email_screenplay():
 
     msg = Message(subject, recipients=recipients, body=body, html=html)
     msg.attach(filename, content_type, _file.getvalue())
-    mail.send(msg)
-
+    try:
+        mail.send(msg)
+    except:
+        return Response('failed', mimetype='text/plain')
     return Response('sent', mimetype='text/plain')
 
 @app.route('/rename', methods=['POST'])
 @login_required
 @resource_access()
 def rename_screenplay():
-    resource_id = request.form['resource_id']
-    rename = request.form['rename']
+    resource_id = get_resource_id_from_request()
+    rename = request.form.get('rename', None)
+    if rename is None:
+        rename = request.json.get('rename', None)
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.title = rename
@@ -74,7 +86,7 @@ def rename_screenplay():
     return Response('done', mimetype='text/plain')
 
 def switch_deletion_permissions(switches):
-    resource_id = request.form['resource_id']
+    resource_id = get_resource_id_from_request()
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         if screenplay.permission in switches:
@@ -88,7 +100,7 @@ def delete_screenplay():
     switches = {'owner': 'ownerDeleted',
                 'collab': 'collabDeletedByOwner'}
     switch_deletion_permissions(switches)
-    return Response('1', mimetype='text/plain')
+    return Response(get_resource_id_from_request(), mimetype='text/plain')
 
 @app.route('/undelete', methods=['POST'])
 @login_required
@@ -97,24 +109,24 @@ def undelete_screenplay():
     switches = {'ownerDeleted': 'owner',
                 'collabDeletedByOwner': 'collab'}
     switch_deletion_permissions(switches)
-    return Response('1', mimetype='text/plain')
+    return Response(get_resource_id_from_request(), mimetype='text/plain')
 
 @app.route('/harddelete', methods=['POST'])
 @login_required
 @resource_access()
 def hard_delete_screenplay():
-    resource_id = request.form['resource_id']
+    resource_id = get_resource_id_from_request()
     screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
     for screenplay in screenplays:
         screenplay.permission = 'hardDelete'
     db.session.commit()
-    return Response('1', mimetype='text/plain')
+    return Response(resource_id, mimetype='text/plain')
 
 @app.route('/duplicate', methods=['POST'])
 @login_required
 @resource_access()
 def duplicate_screenplay():
-    resource_id = request.form['resource_id']
+    resource_id = get_resource_id_from_request()
     version = Screenplay.get_latest_version_number(resource_id)
     screenplay = Screenplay.duplicate(resource_id, version, current_user.name)
     url = '/editor?resource_id=' + screenplay.resource_id

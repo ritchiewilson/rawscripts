@@ -1,254 +1,419 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta http-equiv="X-UA-Compatible" content="chrome=1">
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<title>RawScripts - Scriptlist</title>
-		<link rel="shortcut icon" href="/favicon.ico">
-		{% if MODE == 'DEV' %}
-			<script src="/static/closure-library/closure/goog/base.js"></script>
-			{% for file in SCRIPTLIST_JS %}
-			<script src="/static/js/restricted/scriptlist/{{ file }}.js"></script>
-			{% endfor %}
-		{% else %}
-			<script src="/static/js/min/scriptlist-compiled.js"></script>
-		{% endif %}
-		
-		{% if MODE == 'DEV' %}
-			<link rel="stylesheet" href="/static/css/scriptlist.css" type="text/css">
-			{% for file in SCRIPTLIST_CSS %}
-			<link rel="stylesheet" href="/static/closure-library/closure/goog/css/{{ file }}.css" />
-			{% endfor %}
-		{% else %}
-			<link rel="stylesheet" href="/static/css/min/scriptlist-all.css" />
-		{% endif %}
-	</head>
+<html ng-app="scriptlist" ng-controller="ScriptlistController as sc">
+  <head>
+	<meta http-equiv="X-UA-Compatible" content="chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>RawScripts - Scriptlist</title>
+	<link rel="shortcut icon" href="/favicon.ico">
+    {% include "angular.html" -%}
 
-	<body onload="init()">
+    {% assets "scriptlist" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+
+      <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
+	{% if MODE == 'DEV' %}
+	  <link rel="stylesheet" href="/static/css/scriptlist.css" type="text/css">
+	  {% for file in SCRIPTLIST_CSS %}
+		<link rel="stylesheet" href="/static/closure-library/closure/goog/css/{{ file }}.css" />
+	  {% endfor %}
+	{% else %}
+	  <link rel="stylesheet" href="/static/css/min/scriptlist-all.css" />
+	{% endif %}
+  </head>
+
+  <body>
 	{% include "analytics.html" %}
 	<div id="header">
-		<div id="logo"> 
-			<h1>RawScripts.com</h1> 
+
+	  <div id="logo"> 
+		<h1>RawScripts.com</h1> 
+	  </div>
+      
+	  <div id="header_nav">
+		<b id="user">{{  user  }}</b> | <a href="/contact" target="_blank">Contact</a>  |
+        <a href="/">Home</a> |
+        <a href="http://www.rawscripts.org" target="_blank">Download Source</a> |
+        <a href="{{ sign_out }}">Sign Out</a>
+	  </div>
+
+	  <div id="option_bar">
+		<div id="static_buttons">
+		  <input type="button" ng-click="setCurrentModal('new')" value="New Script" />
+		  <input type="button" ng-click="setCurrentModal('upload')" value="Upload" />
 		</div>
-		<div id='header_nav'>
-			<b id="user">{{  user  }}</b> | <a href="/contact" target="_blank">Contact</a>  |  <a href="/">Home</a> | <a href="http://www.rawscripts.org" target="_blank">Download Source</a> | <a href="{{ sign_out }}">Sign Out</a>
+        <div ng-switch="currentFolder">
+		  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">
+			<input type="button" ng-click="exportModal()" value="Export" />
+		  </div>
+		  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
+			<input type="button" value="Undelete" ng-click="trashCheckedScreenplays(false)" />
+			<input type="button" ng-click="hardDelete()" value="Delete Permanantly" style="margin-left:20px" />
+		  </div>
+		  <div id="owned_script_buttons" class="buttons_block" ng-switch-default>
+			<input type="button" ng-click="renameModal()" value="Rename" />
+			<input type="button" ng-click="duplicateScreenplay()" value="Duplicate" />
+			<input type="button" ng-click="exportModal()" value="Export" />
+			<input id="move_to_trash" type="button" value="Move to Trash"
+                   ng-click="trashCheckedScreenplays(true)" />
+            <select name="move_to_folder" id="move_to_folder"
+                    ng-model="sc.moveToFolderSelection"
+                    ng-change="moveToFolder()">
+              <option value="">Move to Folder...</option>
+              <option value="{[ folder[1] ]}" ng-repeat="folder in folders">
+                {[ folder[0] ]}
+              </option>
+              <option value="?none?">Remove From Folder</option>
+            </select>
+		  </div>
 		</div>
-		<div id="option_bar">
-			<div id="static_buttons">
-				<input type='button' onClick="newScriptPrompt()" value='New Script' />
-				<input type="button" onClick="uploadPrompt()" value="Upload" />
-			</div>
-			<div id="owned_script_buttons" class="buttons_block">
-				<input type="button" onClick="renamePrompt()" value="Rename" />
-				<input type='button' onClick="duplicate()" value='Duplicate' />
-				<input type='button' onClick="exportPrompt()" value='Export' />
-				<input id="move_to_trash" type='button' onClick="batchProcess('delete')" value='Move to Trash' />
-				<select name="move_to_folder" id="move_to_folder" onchange="moveToFolder(this.options[this.selectedIndex].value)">
-					<option value="move_to">Move to Folder...</option>
-				</select>
-			</div>
-			<div id="shared_script_buttons" class="buttons_block">
-				<input type='button' onClick="exportPrompt()" value='Export' />
-			</div>
-			<div id="trash_script_buttons" class="buttons_block">
-				<input type='button' onClick="batchProcess('undelete')" value='Undelete' />
-				<input type='button' onClick="batchProcess('hardDelete')" value='Delete Permanantly' style="margin-left:20px" />
-			</div>
-			<div id="refresh">
-				<a href="javascript:refreshList()"><img id="refresh_icon" src="/static/images/refresh_icon.gif" alt="Refreshing Screenplay List">Refresh</a>
-			</div>
+		<div id="refresh">
+		  <span ng-click="refreshList()">
+            <img id="refresh_icon" src="/static/images/refresh_icon.gif"
+                 alt="Refreshing Screenplay List"
+                 ng-if="refreshing">
+            Refresh
+          </span>
 		</div>
+	  </div>
 	</div>
 
 
 	<div>
-
-		<div id="folders">
-			<div id="ownedFolder" class="tab current">My Scripts</div>
-			<div id="sharedFolder" class="tab">Shared With Me</div>
-			<div id="trashFolder" class="tab">Trash</div>
-			<div id="new_folder_div">
-				<input type="button" name="new_folder" value="New Folder" id="new_folder" onclick="newFolder()">
-			</div>
-			<div id="user_folders"></div>
+	  <div id="folders">
+        <div id="{[ id ]}Folder" class="tab" ng-repeat="(id, text) in sc.defaultFolders"
+             ng-click="setCurrentFolder(id)"
+             ng-class="currentFolder === id ? 'current' : ''">
+          {[ text ]}
+          <span ng-if="id === 'shared' && numberOfUnopenedSharedScreenplays() > 0">
+            ({[ numberOfUnopenedSharedScreenplays() ]})
+          </span>
+        </div>
+		<div id="new_folder_div">
+		  <input type="button" name="new_folder" value="New Folder" id="new_folder" ng-click="newFolder()">
 		</div>
-
-		<div id="scriptlists">
-			<div id="owned" class="content_plus_header">
-				<table class="contentsHeader" width="100%">
-					<tr>
-						<td style='width:15px;'><input onClick='selectAll(this, "listItems")' type='checkbox' value='all' /></td>
-						<td>My Scripts</td>
-						<td style="width:120px" align="center">Folder</td>
-						<td style="width:120px" align="center">Shared With</td>
-						<td style="width:120px" align="center">Email</td>
-						<td style="width:160px" align="center">Last Modified</td>
-					</tr>
-				</table>
-				<div id="owned_contents" class="folderContents"></div>
-				<div id="loading"><div align="center">Loading...</div></div>
-				<div id="noentries" class="none_of_type" align="center">
-					<span>You haven't started any scripts yet.</span><br><br>
-					<a href='javascript:newScriptPrompt()'>Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
-				</div>
-			</div>
-			<div id="shared" class="content_plus_header">
-				<table class="contentsHeader" width="100%">
-					<tr>
-						<td style='width:15px;'><input onClick='selectAll(this, "sharedListItems")' type='checkbox' value='all' /></td>
-						<td>Friends' Scripts</td>
-						<td style="width:120px" align="right">Owner</td>
-						<td style="width:160px" align="center">Last Modified</td>
-					</tr>
-				</table>
-				<div id="shared_contents" class="folderContents"></div>
-				<div id="sharedLoading"><div style="" align="center">Loading...</div></div>
-				<div id="sharedNoEntries" class="none_of_type" align="center">No one is sharing scripts with you.</div>
-			</div>
-			<div id="trash" class="content_plus_header">
-				<table class="contentsHeader" width="100%">
-					<tr>
-						<td style='width:15px;'><input onClick='selectAll(this, "trashListItems")' type='checkbox' value='all' /></td>
-						<td>Trash</td>
-						<td style="width:160px" align="center">Last Modified</td>
-					</tr>
-				</table>
-				<div id="trash_contents" class="folderContents"></div>
-				<div id="trashLoading"><div style="" align="center">Loading...</div></div>
-				<div id="trashNoEntries" class="none_of_type" align="center"><p>You have no trash.</p><p>You are a very clean person.</p></div>
-			</div>
-		</div>
-	</div>
-	<div id="emailpopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block">
-			<div class="popup">
-				<a href="javascript:hideEmailPrompt()" class="close_popup"><img src="/static//images/close.png" alt="Close Popup"></a>
-				<br /><br /><span>Email Script</span><br /><br />
-				<label for="recipient">Recipients (max 5, comma seperated)</label><br>
-				<textarea class="text_input" rows='4' name='recipient' id='recipient' style="width:400px"></textarea><br />
-				<label for="subject">Subject</label><br />
-				<input class="text_input" type='text' name='subject' id='subject' style="width:400px" /><br />
-				<label for="message">Message (optional)</label><br />
-				<div class="text_input" contentEditable='true' name='message' id='email_message'></div><br>
-				<select id="emailTitle">
-					<option>Without title Page</option>
-					<option>With title Page</option>
-				</select>
-				<a id="edit_title_href" href="#" target="_blank">Edit Title Page</a><br /><br>
-				<input type='button' id="emailS" onClick='emailScript()' value='Send' /><br />
-			</div>
-		</div>
-	</div>
-	<div id="renamepopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block">
-			<div class="popup">
-				<a href="javascript:hideRenamePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-				<br />
-				<p id="renameTitle"></p>
-				<br />
-				<input type="hidden" value="blank" id="resource_id" />
-				<input class="text_input" type='text' name='renameField' id='renameField' style="width:350px" />
-				<br />
-				<input type='button' onClick='renameScript()' value='Rename' />
-
-				<br />
-			</div>
-		</div>
-	</div>
-	<div id="uploadpopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block">
-			<a href="javascript:hideUploadPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a><br><br>
-			<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
-			</iframe>
-			<div id="uploading" style="display:none"><p>Converting script...</p><img src="/static/images/uploading.gif" alt="Uploading Screenplay"><br><br></div>
-		</div>
-	</div>
-	<div id="newscriptpopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block" style="width:400px;">
-			<div class="popup">
-				<a href="javascript:hideNewScriptPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-				<br />
-				<p>New Script Title</p>
-				<br />
-				<input class="text_input" type='text' name='newScript' id='newScript' style="width:350px" />
-				<br />
-				<input type='button' onClick='createScript()' value='Create' id = "createScriptButton" />
-				<img src="/static/images/createScriptIcon.gif" id="createScriptIcon" style="visibility:hidden" alt="Creating New Screenplay">
-
-				<br />
-			</div>
-		</div>
-	</div>
-	<div id="exportpopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block" style="width:500px;">
-			<div class="popup">
-				<a href="javascript:hideExportPrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-				<br />
-				<p>Export as...</p>
-				<table cellspacing='0' cellpadding='0' style='border:none; width:450px' id="exportList"></table>
-				<br />
-				<input type='button' onClick='exportScripts()' value='Export' />
-
-				<br />
-			</div>
-		</div>
-	</div>
-	<div id="sharepopup" class="popup_screen">
-		<div class="popup_background"></div>
-		<div class="popup_block" style="width:450px; top:10%">
-			<div class="popup">
-				<a href="javascript:hideSharePrompt()" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
-				<br>
-				Share Script: <b id="shareTitle"></b>
-				<br><br>
-				<table id="hasAccess" width="350px" cellspacing=0>
-				</table><br>
-				<span>To be added: (comma seperated)</span><br>
-				<textarea rows='3' class="text_input" name='collaborator' id='collaborator'></textarea>
-				<br>
-				<input type="checkbox" name="email_notify_share" id="email_notify_share" onchange="emailNotifyShare(this)"><span> </span>Send email to new collaborators<br>
-				<input type="checkbox" name="email_notify_msg" id="email_notify_msg" onchange="emailNotifyMsg(this)"><span> </span>Add personal message to email<br>
-				<div class="text_input" contentEditable='true' name='share_message' id='share_message' style="width:400px; height:80px; overflow:auto; display:none"></div>
-				<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
-				<input type="hidden" value="blank" id="shareResource_id" />
-			</div>
-		</div>
-	</div>
-    {% if not email_verified %}
-    <div id="verifyemailpopup" class="popup_screen">
-	  <div class="popup_background"></div>
-	  <div class="popup_block" style="width:400px; top:10%">
-		<div class="popup">
-		  <div class="alert">
-            Please Verify Your Email Address
+        <div id="user_folders">
+          <div id="Folder{[ folder[1] ]}" class="tab" ng-repeat="folder in folders"
+               ng-click="setCurrentFolder(folder[1])"
+               ng-class="currentFolder === folder[1] ? 'current' : ''">
+            <img src="images/folder.png"> {[ folder[0] ]}
+            <div class="folder-options">
+              <span class="glyphicon glyphicon-pencil" title="Rename"
+                    ng-click="renameFolder(folder[1])"></span>
+              <span class="glyphicon glyphicon-remove" title="Delete"
+                    ng-click="deleteFolder(folder[1])"></span>
+            </div>
           </div>
-          <div id="verify-email-body-text">
-            <p>
-              Rawscripts will soon be changing the way you login, so that you
-              will need a username and password. <a style="color:blue" target="_blank" href="http://www.rawscripts.com/blog/Login-System-Changing-Soon">Read more</a>.
-            </p>
-            <p>
-              To ensure a smooth transition, please verify your email
-              address. You will be sent a confirmation link.
-            </p>
+        </div>
+	  </div>
+
+	  <div id="scriptlists">
+		<div id="owned" class="content_plus_header" ng-show="currentFolder != 'shared'">
+		  <table class="contentsHeader" width="100%">
+			<tr>
+			  <td class="checkboxCell" align="center">
+                <input ng-click="selectAll(sc.selectAll)"
+                       ng-checked="allAreSelected()"
+                       ng-model="sc.selectAll"
+                       type="checkbox" value="all" />
+              </td>
+			  <td>{[ getCurrentFolderName() ]}</td>
+			  <td class="folderCell" align="center" ng-hide="currentFolder == 'trash'">Folder</td>
+			  <td class="sharedCell" align="center" ng-hide="currentFolder == 'trash'">Shared With</td>
+			  <td class="emailCell" align="center" ng-hide="currentFolder == 'trash'">Email</td>
+			  <td class="updatedCell" align="center">Last Modified</td>
+			</tr>
+		  </table>
+		  <div id="owned_contents" class="folderContents">
+            <div id="list">
+              <div id="{[ screenplay.resource_id ]}" class="entry"
+                   ng-repeat="screenplay in screenplays|folder:currentFolder"
+                   ng-class="screenplay.is_processing ? 'processing' : ''">
+                <table width="100%">
+                  <tr>
+                    <td class="checkboxCell" align="center">
+                      <input value="{[ screenplay.resource_id ]}" type="checkbox" name="listItems"
+                             ng-model="screenplay.is_checked" />
+                    </td>
+                    <td ng-if="currentFolder != 'trash'">
+                      <a id="name{[ screenplay.resource_id ]}"
+                         href="/editor?resource_id={[ screenplay.resource_id ]}"
+                         target="_blank">
+                         {[ screenplay.title ]}
+                      </a>
+                      <span class="redAlertSpan" ng-if="screenplay.new_notes > 0">
+                        <ng-pluralize count="screenplay.new_notes"
+                                      when="{'0':'',
+                                             'one': 'New Note',
+                                             'other': '{} New Notes'}">
+                        </ng-pluralize>
+                      </span>
+                    </td>
+                    <td ng-if="currentFolder == 'trash'">
+                      <span id="name{[ screenplay.resource_id ]}"
+                            class="actionable-span"
+                            ng-click="sc.haveToUndelete()">
+                        {[ screenplay.title ]}
+                      </span>
+                    </td>
+                    <td class="folderCell" align="center" ng-hide="currentFolder == 'trash'">
+                      <span class="folderSpan" ng-if="screenplay.folder != '?none?'">
+                        {[ sc.getFolderName(screenplay.folder, folders) ]}
+                      </span>
+                    </td>
+                    <td class="sharedCell" align="right" ng-hide="currentFolder == 'trash'">
+                      <ng-pluralize count="screenplay.shared_with.length"
+                                    when="{'0':'',
+                                           'one': '1 person ',
+                                           'other': '{} people '}">
+                      </ng-pluralize>
+                      <span class="actionable-span"
+                            ng-click="shareModal(screenplay.resource_id)">
+                            Manage
+                      </span>
+                    </td>
+                    <td class="emailCell" align="center" ng-hide="currentFolder == 'trash'">
+                      <span class="actionable-span emailLink"
+                            ng-click="emailModal(screenplay.resource_id)">
+                            Email
+                      </span>
+                    </td>
+                    <td class="updatedCell" align="center">
+                      {[ screenplay.last_updated ]}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
           </div>
-          <b>Your email address:</b>
-          <br>
-		  <input class="text_input" type='text' name='verify-email-input' id='verify-email-input'/>
-		  <br />
-          <div style="margin-left:150px;margin-top:20px;">
-			<input type='button' onClick='verifyEmailRemindLater()' value="Remind Me Later" id="verify-email-remind-later" />
-			<input style="margin-left:20px; margin-right:10px;;" type='button' onClick='verifyEmailSubmit()' value='Verify' id="verify-email-submit" />
-			<img src="images/createScriptIcon.gif" id="verifyEmailSpinner" style="visibility:hidden" alt="Sending confirmation">
+          
+		  <div id="loading" ng-if="refreshing"><div align="center">Loading...</div></div>
+		  <div id="noentries" class="none_of_type" align="center"
+               ng-if="currentFolder ==='owned' && !hasOwnedScreenplays()">
+			<span>You haven't started any scripts yet.</span><br><br>
+			<a href="" ng-click="setCurrentModal('new')">Start a new script</a> or <a href="javascript:uploadPrompt()">Upload an existing one</a> now.
+		  </div>
+          <div id="trashNoEntries" class="none_of_type" align="center"
+               ng-if="currentFolder === 'trash' && !hasTrashedScreenplays()">
+            <p>You have no trash.</p><p>You are a very clean person.</p>
+          </div>
+		</div>
+
+		<div id="shared" class="content_plus_header" ng-show="currentFolder == 'shared'">
+		  <table class="contentsHeader" width="100%">
+			<tr>
+			  <td class="checkboxCell" align="center">
+                <input ng-click="selectAll(sc.selectAll)"
+                       ng-checked="allAreSelected()"
+                       ng-model="sc.selectAll"
+                       type="checkbox" value="all" />
+              </td>
+			  <td>Friends' Scripts</td>
+			  <td style="width:120px" align="right">Owner</td>
+			  <td style="width:160px" align="center">Last Modified</td>
+			</tr>
+		  </table>
+
+		  <div id="shared_contents" class="folderContents">
+            <div id="sharedList">
+              <div id="{[ screenplay.resource_id ]}" class="entry"
+                   ng-repeat="screenplay in sharedWithMe">
+                <table width="100%">
+                  <tr>
+                    <td class="checkboxCell" align="center">
+                      <input value="{[ screenplay.resource_id ]}" type="checkbox" name="sharedListItems"
+                             ng-model="screenplay.is_checked" />
+                    </td>
+                    <td>
+                      <a id="name{[ screenplay.resource_id ]}"
+                         href="/editor?resource_id={[ screenplay.resource_id ]}"
+                         target="_blank">
+                         {[ screenplay.title ]}
+                      </a>
+                      <span class="redAlertSpan" ng-if="screenplay.unopened">
+                        New Script
+                      </span>
+                      <span class="redAlertSpan" ng-if="!screenplay.unopened && screenplay.new_notes > 0">
+                        <ng-pluralize count="screenplay.new_notes"
+                                      when="{'0':'',
+                                             'one': 'New Note',
+                                             'other': '{} New Notes'}">
+                        </ng-pluralize>
+                      </span>
+                    </td>
+                    <td class="ownerCell" align="right">
+                      {[ screenplay.owner ]}
+                    </td>
+                    <td class="updatedCell" align="center">
+                      {[ screenplay.last_updated ]}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+		  <div id="sharedLoading" ng-if="refreshing"><div style="" align="center">Loading...</div></div>
+          <div id="sharedNoEntries" class="none_of_type" align="center"
+               ng-if="currentFolder === 'shared' && sharedWithMe.length === 0">
+            No one is sharing screenplays with you.
           </div>
 		</div>
 	  </div>
 	</div>
-	{% endif %}
-</body>
+
+
+    <div ng-if="currentModal === 'email'" id="emailpopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block">
+		<div class="popup">
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <br><br>
+          <span>Email Screenplay: {[ checkedScreenplay.title ]}</span>
+          <br><br>
+          <form ng-submit="emailScreenplay()">
+		    <label for="recipient">Recipients (max 5, comma seperated)</label><br>
+		    <textarea class="text_input" rows="4" name="recipient" id="recipient" style="width:400px"
+                      ng-model="checkedScreenplay.emailRecipients"></textarea>
+            <br>
+		    <select id="emailTitle" ng-model="checkedScreenplay.emailTitlepage">
+			  <option value="0">Without title Page</option>
+			  <option value="1">With title Page</option>
+		    </select>
+		    <a href="/titlepage?resource_id={[ checkedScreenplay.resource_id ]}" target="_blank" style="color:blue">
+              Edit Title Page
+            </a>
+            <br>
+            <br>
+		    <input type="submit" value="{[ emailing ? 'Sending...' : 'Send' ]}" ng-disabled="emailing">
+          </form>
+          <br>
+		</div>
+	  </div>
+	</div>
+
+	<div ng-if="currentModal === 'rename'" id="renamepopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block">
+		<div class="popup">
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <br>
+		  <p id="renameTitle">Renaming: {[ getFirstCheckedScreenplay().title ]}</p>
+		  <br>
+          <form ng-submit="renameScreenplay()">
+		    <input class="text_input" type="text" name="renameField"
+                   id="renameField" style="width:350px"
+                   ng-model="checkedScreenplay.tmpTitle">
+		    <br>
+		    <input type="submit" value="Rename" />
+          </form>
+		  <br>
+		</div>
+	  </div>
+	</div>
+
+	<div ng-if="currentModal === 'upload'" id="uploadpopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block">
+		<a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a><br><br>
+		<iframe id="uploadFrame" style="float:none;" frameborder="0" height="200px" src="/convert">
+		</iframe>
+		<div id="uploading" style="display:none"><p>Converting script...</p><img src="/static/images/uploading.gif" alt="Uploading Screenplay"><br><br></div>
+	  </div>
+	</div>
+
+	<div ng-if="currentModal === 'new'" id="newscriptpopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block" style="width:400px;">
+		<div class="popup">
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup">
+            <img src="/static/images/close.png" alt="Close Popup">
+          </a>
+		  <br>
+		  <p>New Script Title</p>
+		  <br>
+          <form ng-submit="newScreenplay()">
+		    <input class="text_input" type="text" name="newScript" id="newScript"
+                   style="width:350px" ng-model="sc.newScreenplayTitle">
+		    <br>
+		    <input type="submit"
+                   value="{[ creatingNewScreenplay ? 'Creating...' : 'Create' ]}"
+                   id="createScriptButton" ng-disabled="creatingNewScreenplay">
+            <img ng-if="creatingNewScreenplay" src="/static/images/createScriptIcon.gif"
+                 id="createScriptIcon" alt="Creating New Screenplay">
+          </form>
+		  <br>
+		</div>
+	  </div>
+	</div>
+
+	<div ng-if="currentModal === 'export'" id="exportpopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block" style="width:500px;">
+		<div class="popup">
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <br>
+		  <p>Export as...</p>
+		  <table cellspacing="0" cellpadding="0" style="border:none; width:450px" id="exportList">
+            <tr>
+              <th>Title</th>
+              <th>File Format</th>
+              <th>Include Titlepage</th>
+              <th ng-if="currentFolder != 'shared'"></th>
+            </tr>
+            <tr ng-repeat="screenplay in getCheckedScreenplays()">
+              <td>{[ screenplay.title ]}</td>
+              <td align="center">
+                <select ng-model="screenplay.exportFormat">
+                  <option value="pdf">PDF</option>
+                  <option value="txt">.txt</option>
+                </select>
+              </td>
+              <td align="center">
+                <input type="checkbox" ng-model="screenplay.exportTitlepage">
+              </td>
+              <td ng-if="currentFolder != 'shared'">
+                <a href="/titlepage?resource_id={[ screenplay.resource_id ]}"
+                   target="_blank" style="color:blue">
+                  Edit title Page
+                </a>
+              </td>
+            </tr>
+          </table>
+		  <br>
+		  <input type="button" ng-click="exportScreenplays()" value="Export">
+		  <br>
+		</div>
+	  </div>
+	</div>
+
+	<div ng-if="currentModal === 'share'" id="sharepopup" class="popup_screen">
+	  <div class="popup_background"></div>
+	  <div class="popup_block" style="width:450px; top:10%">
+		<div class="popup">
+		  <a href="" ng-click="setCurrentModal('')" class="close_popup"><img src="/static/images/close.png" alt="Close Popup"></a>
+		  <br>
+		  Share Script: <b id="shareTitle">{[ checkedScreenplay.title ]}</b>
+		  <br><br>
+		  <table id="hasAccess" width="350px" cellspacing=0>
+            <tr ng-repeat="email in checkedScreenplay.shared_with">
+              <td>{[ email ]}</td>
+              <td align="right">
+                <span class="actionable-span" ng-click="removeAccess(email)">
+                  Remove Access
+                </span>
+              </td>
+            </tr>
+		  </table>
+          <br>
+          <form ng-submit="addCollaborators()">
+		    <span>To be added: (comma seperated)</span><br>
+		    <textarea rows="3" class="text_input" id="collaborator" ng-model="sc.newCollaborators"></textarea>
+		    <br>
+		    <input type="checkbox" ng-model="sc.newCollaboratorsNotify"><span> </span>Notify new collaborators by email<br>
+		    <input type="submit" value="Add Collaborators">
+          </form>
+		</div>
+	  </div>
+	</div>
+  </body>
 </html>

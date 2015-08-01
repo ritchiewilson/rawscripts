@@ -80,40 +80,42 @@ def list():
     unopened_screenplays = set([n.resource_id for n in share_notifications if not n.opened])
     owned = []
     shared = []
-    ownedDeleted = []
     for screenplay in screenplays:
+        if screenplay.permission == "hardDelete":
+            continue
         resource_id = screenplay.resource_id
         data = [resource_id, screenplay.title]
-        data.append(format_time(screenplay.last_updated))
+        obj = {
+            'resource_id': resource_id,
+            'title': screenplay.title,
+            'last_updated': format_time(screenplay.last_updated),
+            'permission': screenplay.permission,
+            'folder': screenplay.folder
+        }
         permission = screenplay.permission
         if permission == 'collab':
-            permission = share_data.get(resource_id, {}).get('owner', 'shared')
-        data.append(permission)
+            obj['owner'] = share_data.get(resource_id, {}).get('owner', 'shared')
         if screenplay.permission != 'collab':
             sharing_with = share_data.get(resource_id, {}).get('collabs', [])
-            data.append(sharing_with)
+            obj['shared_with'] = sharing_with
         new_notes = unread_notes.get(screenplay.resource_id, 0)
-        if permission != 'ownerDeleted':
-            data.append(new_notes)
-
-        data.append(screenplay.folder)
+        obj['new_notes'] = new_notes
 
         if screenplay.permission == 'collab':
             unopened = resource_id in unopened_screenplays
-            data.append(str(unopened))
+            obj["unopened"] = unopened
 
-        if screenplay.permission == 'owner':
-            owned.append(data)
-        elif screenplay.permission == 'collab':
-            shared.append(data)
-        elif screenplay.permission == 'ownerDeleted':
-            ownedDeleted.append(data)
+        if screenplay.permission == 'collab':
+            shared.append(obj)
+        elif screenplay.permission in ['owner', 'ownerDeleted']:
+            obj["is_trashed"] = screenplay.permission == 'ownerDeleted'
+            owned.append(obj)
 
     folders = []
     folders_data = Folder.query.filter_by(user=user).first()
     if folders_data:
         folders = json.loads(folders_data.data)
-    output = [owned, ownedDeleted, shared, folders]
+    output = [owned, shared, folders]
     return json.dumps(output)
 
 @app.route('/screenplay_data')
