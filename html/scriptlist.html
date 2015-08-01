@@ -406,13 +406,14 @@
 		  </table>
           <br>
           <form ng-submit="addCollaborators()">
-		  <span>To be added: (comma seperated)</span><br>
-		  <textarea rows="3" class="text_input" id="collaborator" ng-model="sc.newCollaborators"></textarea>
-		  <br>
-		  <input type="checkbox" ng-model="sc.newCollaboratorsNotify"><span> </span>Notify new collaborators by email<br>
-		  <input type="submit" value="Add Collaborators" />
+		    <span>To be added: (comma seperated)</span><br>
+		    <textarea rows="3" class="text_input" id="collaborator" ng-model="sc.newCollaborators"></textarea>
+		    <br>
+		    <input type="checkbox" ng-model="sc.newCollaboratorsNotify"><span> </span>Notify new collaborators by email<br>
+		    <input type="submit" value="Add Collaborators">
+          </form>
 		</div>
 	  </div>
 	</div>
-</body>
+  </body>
 </html>
