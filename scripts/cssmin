@@ -7,9 +7,7 @@ then
   echo "usage: ./cssmin <page-to-compile>
 
 for Example:
-	./cssmin editor
-or:
-	./cssmin scriptlist"
+	./cssmin editor"
   exit $E_BADARGS
 fi
 
@@ -25,13 +23,10 @@ ROOT=$(pwd)
 if [ "$PAGE" = "editor" ]
 then
   declare -a CAT_FILES=('menu' 'menuitem' 'menuseparator' 'common' 'toolbar' 'button' 'dialog' 'custombutton' 'autocomplete' 'tab' 'tabbar' 'colormenubutton' 'palette' 'colorpalette' 'editor/bubble' 'editor/dialog' 'editortoolbar')
-elif [ "$PAGE" = "scriptlist" ]
-then
-  declare -a CAT_FILES=('menu' 'menuitem' 'menuseparator' 'common' 'toolbar' 'button' 'custombutton' 'autocomplete')
 else
   echo "
 *******************************************************
-ERROR: that's not a thing. Try 'editor' or 'scriptlist'
+ERROR: that's not a thing. Try 'editor'
 *******************************************************"
   exit $E_BADARGS
 fi
@@ -48,3 +43,4 @@ done
 cat $ROOT'/static/css/'$PAGE'.css' >> $ROOT'/static/css/min/'$PAGE'-all.css'
 
 echo "***Done! Combined all usefull CSS for ${PAGE}***"
+
