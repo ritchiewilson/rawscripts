@@ -12,14 +12,7 @@
     {% endassets %}
 
       <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
-	{% if MODE == 'DEV' %}
-	  <link rel="stylesheet" href="/static/css/scriptlist.css" type="text/css">
-	  {% for file in SCRIPTLIST_CSS %}
-		<link rel="stylesheet" href="/static/closure-library/closure/goog/css/{{ file }}.css" />
-	  {% endfor %}
-	{% else %}
 	  <link rel="stylesheet" href="/static/css/scriptlist.css" />
-	{% endif %}
   </head>
 
   <body>
