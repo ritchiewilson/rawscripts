@@ -7,9 +7,7 @@ then
   echo "usage: compile-js <page-to-compile>
 
 for Example:
-	./compile-js editor
-or:
-	./compile-js scriptlist"
+	./compile-js editor"
   exit $E_BADARGS
 fi
 
@@ -21,16 +19,13 @@ PAGE=${args[0]}
 if [ "$PAGE" = "editor" ]
 then
   echo "Compiling editor files..."
-elif [ "$PAGE" = "scriptlist" ]
-then
-  echo "Compiling scriptlist files...."
 elif [ "$PAGE" = "titlepage" ]
 then
   echo "Compiling titlepage files..."
 else
   echo "
 ************ERROR: No such page $PAGE.*************
-Choose from 'editor', 'scriptlist', or 'titlepage'.
+Choose from 'editor' or 'titlepage'.
 ***************************************************"
   exit $E_BADARGS
 fi
