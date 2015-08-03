@@ -66,7 +66,7 @@ import spellcheck
 
 @app.context_processor
 def inject_config():
-    return dict(MODE='PRO', GA='UA-16492540-1')
+    return dict(MODE='PRO', ANALYTICS_ID=app.config['ANALYTICS_ID'])
 
 @app.route('/')
 def welcome():

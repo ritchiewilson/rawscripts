@@ -14,6 +14,8 @@ class Config(object):
     USER_AFTER_CONFIRM_ENDPOINT = 'scriptlist'
     USER_APP_NAME = 'Rawscripts'
 
+    ANALYTICS_ID = os.getenv('ANALYTICS_ID', None)
+
 
 class ProductionConfig(Config):
     DEBUG = False

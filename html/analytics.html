@@ -1,8 +1,8 @@
-{% if MODE == 'PRO' and GA %}
+{% if MODE == 'PRO' and ANALYTICS_ID %}
 <script type="text/javascript">
 
 var _gaq = _gaq || [];
-_gaq.push(['_setAccount', '{{ GA }}']);
+_gaq.push(['_setAccount', '{{ ANALYTICS_ID }}']);
 _gaq.push(['_trackPageview']);
 
 (function() {
