@@ -20,7 +20,7 @@ from flask import request, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import Screenplay, Folder, UsersScripts
+from flask_models import Screenplay, Folder
 
 
 @app.route('/newfolder', methods=['POST'])
@@ -49,12 +49,10 @@ def change_folder():
     if resource_ids is None or folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email
-    resource_ids = resource_ids.split(',')
-    screenplays = UsersScripts.query.filter_by(user=user, permission='owner'). \
-                      filter(UsersScripts.resource_id.in_(resource_ids)).all()
-    for screenplay in screenplays:
-        screenplay.folder = folder_id
-    db.session.commit()
+    for resource_id in resource_ids.split(','):
+        if Screenplay.get_users_permission(resource_id, user) != 'owner':
+            continue
+        Screenplay.set_folder(resource_id, folder_id)
     return Response('1', mimetype='text/plain')
 
 @app.route('/deletefolder', methods=['POST'])
@@ -64,10 +62,7 @@ def delete_folder():
     if folder_id is None:
         return Response('0', mimetype='text/plain')
     user = current_user.email
-    screenplays = UsersScripts.query.filter_by(user=user, permission='owner',
-                                               folder=folder_id).all()
-    for screenplay in screenplays:
-        screenplay.folder = '?none?'
+    Screenplay.remove_all_from_folder(folder_id, user)
     row = Folder.get_by_user(user)
     folders = json.loads(row.data)
     arr = [f for f in folders if f[1] != folder_id]

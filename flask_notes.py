@@ -22,16 +22,16 @@ from flask_mail import Message
 from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
-from flask_models import Screenplay, Note, UnreadNote, UsersScripts
+from flask_models import Screenplay, Note, UnreadNote
 from flask_utils import get_current_user_email_with_default, resource_access
 
 
 def new_note_notification(resource_id, from_user, thread_id, msg_id):
-    for peer in UsersScripts.query.filter_by(resource_id=resource_id).all():
-        if peer.user.lower() == from_user.lower():
+    for peer in Screenplay.get_all_collaborators(resource_id):
+        if peer.lower() == from_user.lower():
             continue
         unread = UnreadNote(resource_id=resource_id,
-                             user=peer.user,
+                             user=peer,
                              thread_id=thread_id,
                              msg_id=msg_id)
         db.session.add(unread)

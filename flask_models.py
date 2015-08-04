@@ -276,6 +276,22 @@ class Screenplay(db.Model):
             row.last_updated = new_time
         db.session.commit()
 
+    @staticmethod
+    def set_folder(resource_id, folder_id):
+        row = UsersScripts.query. \
+              filter_by(permission='owner', resource_id=resource_id).first()
+        if row:
+            row.folder = folder_id
+        db.session.commit()
+
+    @staticmethod
+    def remove_all_from_folder(folder_id, user):
+        rows = UsersScripts.query.filter_by(user=user, permission='owner',
+                                            folder=folder_id).all()
+        for row in rows:
+            row.folder = '?none?'
+        db.session.commit()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
