@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData, Screenplay, Note, UnreadNote, ShareNotify
+from flask_models import ScriptData, Screenplay, Note, UnreadNote, ShareNotify
 from flask_utils import get_current_user_email_with_default
 
 
@@ -33,7 +33,7 @@ def editor():
 
     user_email = get_current_user_email_with_default()
 
-    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    permission = Screenplay.get_users_permission(resource_id, user_email)
     if permission is None and resource_id != 'Demo':
         return redirect(url_for('scriptlist'))
 
@@ -61,13 +61,13 @@ def scriptcontent():
                        notes=[], sharedwith=[], contacts=[], autosave='true')
 
     user_email = get_current_user_email_with_default()
-    screenplay = UsersScripts.query.filter_by(resource_id=resource_id,
-                                              user=user_email).first()
-    if not screenplay:
+    permission = Screenplay.get_users_permission(resource_id, user_email)
+    if permission not in ['owner', 'collab']:
         return 'not found'
 
+    title = Screenplay.get_title(resource_id)
     latest_version = ScriptData.get_latest_version(resource_id)
-    sharedwith = UsersScripts.get_all_collaborators(resource_id)
+    sharedwith = Screenplay.get_all_collaborators(resource_id)
 
     user = current_user.name
     unread_notes = UnreadNote.query. \
@@ -76,7 +76,7 @@ def scriptcontent():
     note_rows = Note.get_by_resource_id(resource_id)
     notes = [note.to_dict(unread_msg_ids) for note in note_rows]
 
-    return jsonify(title=screenplay.title,
+    return jsonify(title=title,
                    lines=json.loads(latest_version.data),
                    lastSavedVersionNumber=latest_version.version,
                    notes=notes,
@@ -93,7 +93,7 @@ def save_screenplay():
     failed = Response('0', mimetype='text/plain')
 
     user_email = current_user.name
-    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    permission = Screenplay.get_users_permission(resource_id, user_email)
     if permission != 'owner':
         return failed
 
@@ -123,10 +123,6 @@ def save_screenplay():
                           tag='',
                           autosave=autosave)
     db.session.add(new_save)
-    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
-    for screenplay in screenplays:
-        screenplay.last_updated = now
+    Screenplay.set_last_updated(resource_id, now)
     db.session.commit()
-    if expected_version_number is None:
-        return Response('1', mimetype='text/plain')
     return jsonify(success=True, versionSaved=new_version_number)

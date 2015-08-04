@@ -265,6 +265,17 @@ class Screenplay(db.Model):
                 row.permission = switches[row.permission]
         db.session.commit()
 
+    @staticmethod
+    def get_all_collaborators(resource_id):
+        return UsersScripts.get_all_collaborators(resource_id)
+
+    @staticmethod
+    def set_last_updated(resource_id, new_time):
+        rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
+        for row in rows:
+            row.last_updated = new_time
+        db.session.commit()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
