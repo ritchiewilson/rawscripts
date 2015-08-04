@@ -22,7 +22,7 @@ from htmltreediff import diff
 from lxml import etree
 
 from rawscripts import db, app
-from flask_models import ResourceVersion, UsersScripts, DuplicateScript, ScriptData
+from flask_models import ResourceVersion, Screenplay, DuplicateScript, ScriptData
 from flask_utils import resource_access
 
 
@@ -46,7 +46,7 @@ def revision_history():
         d['tagged'] = '' if tag == '' else 'Tag'
         data.append(d)
 
-    title = UsersScripts.get_title(resource_id)
+    title = Screenplay.get_title(resource_id)
     return render_template('revisionhistory.html', user=user, mode="PRO",
                            resource_id=resource_id, r=data, title=title)
 

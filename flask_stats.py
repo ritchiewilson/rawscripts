@@ -19,7 +19,7 @@ from flask import render_template, abort
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import User, UsersScripts
+from flask_models import User, Screenplay
 from flask_admin import Admin, BaseView, expose, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 
@@ -44,7 +44,7 @@ class StatsView(AdminIndexView):
             year, month, count = row
             months.append({'year': year, 'month': month, 'count':count})
             users += count
-        scripts = db.session.query(db.func.count(db.distinct(UsersScripts.resource_id))).first()[0]
+        scripts = Screenplay.count()
         return self.render('stats.html', months=months, users=users, scripts=scripts)
 
 

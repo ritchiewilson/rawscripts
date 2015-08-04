@@ -216,6 +216,20 @@ class Screenplay(db.Model):
         db.session.commit()
         return True
 
+    @staticmethod
+    def count():
+        return db.session.query(db.func.count(db.distinct(UsersScripts.resource_id))).first()[0]
+
+    @staticmethod
+    def get_all_hard_deleted():
+        return UsersScripts.query.filter_by(permission='hardDelete').all()
+
+    @staticmethod
+    def get_all_recently_updated(date_cutoff):
+        return UsersScripts.query. \
+            filter(UsersScripts.last_updated > date_cutoff). \
+            order_by('resource_id').all()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'

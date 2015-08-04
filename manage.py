@@ -18,14 +18,6 @@ def get_resource_ids():
     rows = [row.resource_id for row in rows]
     rows.sort()
     return rows
-    # resource_ids = UsersScripts.get_all_resource_ids()
-    current = datetime.utcnow()
-    days_ago = current.replace(day=1)
-    days_ago = current.replace(month=3)
-    stuff = UsersScripts.query.filter(UsersScripts.last_updated > days_ago). \
-            order_by('resource_id').all()
-    resource_ids = [s.resource_id for s in stuff]
-    return resource_ids
 
 def migrate_screenplay(resource_id):
     if resource_id == 'Demo':
@@ -138,7 +130,7 @@ def build_db():
 
 @manager.command
 def expunge_hard_deletes():
-    screenplays = UsersScripts.query.filter_by(permission='hardDelete').all()
+    screenplays = Screenplay.get_all_hard_deleted()
     print "Found", len(screenplays), "to delete"
     for s in screenplays:
         if Screenplay.delete_all(s.resource_id):

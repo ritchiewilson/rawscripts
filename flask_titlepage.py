@@ -19,7 +19,7 @@ from flask import render_template, request, redirect, url_for, Response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, TitlePageData, Screenplay
+from flask_models import TitlePageData, Screenplay
 from flask_utils import get_current_user_email_with_default
 
 
@@ -31,7 +31,7 @@ def titlepage():
 
     user_email = get_current_user_email_with_default()
 
-    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    permission = Screenplay.get_users_permission(resource_id, user_email)
     if permission != 'owner' and resource_id != 'Demo':
         return redirect(url_for('scriptlist'))
 
@@ -45,7 +45,7 @@ def titlepage():
 def titlepage_save():
     user_email = get_current_user_email_with_default()
     resource_id = request.form['resource_id']
-    permission = UsersScripts.get_users_permission(resource_id, user_email)
+    permission = Screenplay.get_users_permission(resource_id, user_email)
     if permission != 'owner':
         return redirect(url_for('scriptlist'))
 

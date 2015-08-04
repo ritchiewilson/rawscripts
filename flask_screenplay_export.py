@@ -18,7 +18,7 @@ from flask import request, make_response
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, ScriptData, Screenplay
+from flask_models import ScriptData, Screenplay
 from flask_utils import resource_access
 
 
@@ -32,7 +32,7 @@ def export_screenplay():
     title_page = request.args.get('title_page', '0')
     if resource_id == 'Demo':
         return
-    permission = UsersScripts.get_users_permission(resource_id, user)
+    permission = Screenplay.get_users_permission(resource_id, user)
     if permission not in ['owner', 'collab']:
         return
 
