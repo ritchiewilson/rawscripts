@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, get_flas
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import UsersScripts, Folder, UnreadNote, ShareNotify
+from flask_models import Folder, UnreadNote, ShareNotify, Screenplay
 
 
 @app.route('/scriptlist')
@@ -50,23 +50,11 @@ def format_time(time):
 @login_required
 def list():
     user = current_user.email
-    screenplays = UsersScripts.query.filter_by(user=user). \
-                      order_by(UsersScripts.last_updated.desc()).all()
+    screenplays = current_user.get_owned_screenplays()
 
     # One query for all the collaborators and owner information
     resource_ids = [screenplay.resource_id for screenplay in screenplays]
-    shared_screenplays = []
-    if resource_ids:
-        shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
-                                 filter(UsersScripts.resource_id.in_(resource_ids)).all()
-    share_data = {}
-    for s in shared_screenplays:
-        if s.resource_id not in share_data:
-            share_data[s.resource_id] = {'collabs': []}
-        if s.permission == 'owner':
-            share_data[s.resource_id]['owner'] = s.user
-        else:
-            share_data[s.resource_id]['collabs'].append(s.user)
+    share_data = Screenplay.get_collaboration_metadata(resource_ids, user)
 
     # count all unread notes by resource_id
     unread_notes = {}
@@ -117,13 +105,3 @@ def list():
         folders = json.loads(folders_data.data)
     output = [owned, shared, folders]
     return json.dumps(output)
-
-@app.route('/screenplay_data')
-@login_required
-def screenplay_data():
-    user = current_user.email.lower()
-    screenplays = UsersScripts.query.filter(db.func.lower(UsersScripts.user) == user). \
-                      filter_by(permission='owner'). \
-                      order_by(UsersScripts.last_updated.desc()).all()
-
-    return render_template('flask_screenplay_data.html', user=user, screenplays=screenplays)

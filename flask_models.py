@@ -292,6 +292,22 @@ class Screenplay(db.Model):
             row.folder = '?none?'
         db.session.commit()
 
+    @staticmethod
+    def get_collaboration_metadata(resource_ids, user):
+        if not resource_ids:
+            return {}
+        shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
+                                 filter(UsersScripts.resource_id.in_(resource_ids)).all()
+        share_data = {}
+        for s in shared_screenplays:
+            if s.resource_id not in share_data:
+                share_data[s.resource_id] = {'collabs': []}
+            if s.permission == 'owner':
+                share_data[s.resource_id]['owner'] = s.user
+            else:
+                share_data[s.resource_id]['collabs'].append(s.user)
+        return share_data
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -317,6 +333,10 @@ class User(db.Model, UserMixin):
         for field in ['name', 'username']:
             kwargs[field] = kwargs.get(field, email)
         super(User, self).__init__(**kwargs)
+
+    def get_owned_screenplays(self):
+        return UsersScripts.query.filter_by(user=self.email). \
+            order_by(UsersScripts.last_updated.desc()).all()
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
