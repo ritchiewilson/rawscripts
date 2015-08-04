@@ -29,8 +29,30 @@ from rawscripts import app, db
 from export import Text, Pdf
 from flask_utils import get_current_user_email_with_default
 
+collaborators = db.Table('collaborators',
+    db.Column('screenplay_id', db.Integer, db.ForeignKey('screenplays.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'))
+)
 
-class Screenplay:
+class Screenplay(db.Model):
+    __tablename__ = 'screenplays'
+
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(db.String, nullable=False, unique=True)
+    title = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    is_trashed = db.Column(db.Boolean, default=False)
+    is_hard_deleted = db.Column(db.Boolean, default=False)
+
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    collaborators = db.relationship('User', secondary=collaborators,
+                                    backref='read_only_screenplays')
+
+    __table_args__= (db.Index('ix_screenplays_resource_id_updated',
+                              'resource_id', db.desc('last_updated')),
+                     db.Index('fk_screenplays_owner_id', 'owner_id'))
+
     @staticmethod
     def create(title, user, data=None):
         if data is None:
@@ -210,6 +232,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), nullable=False, unique=True)
     confirmed_at = db.Column(db.DateTime())
     appengine_user = db.relationship('AppengineUser', uselist=False, backref='user')
+    screenplays = db.relationship('Screenplay', backref='owner')
 
     __table_args__= (db.Index('ix_user_username', 'username'),)
 
