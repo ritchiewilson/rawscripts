@@ -136,5 +136,15 @@ def build_db():
     db.create_all()
     stamp()
 
+@manager.command
+def expunge_hard_deletes():
+    screenplays = UsersScripts.query.filter_by(permission='hardDelete').all()
+    print "Found", len(screenplays), "to delete"
+    for s in screenplays:
+        if Screenplay.delete_all(s.resource_id):
+            print 'Deleted', s.resource_id
+        else:
+            print 'Skipping', s.resource_id
+
 if __name__ == "__main__":
     manager.run()

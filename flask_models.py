@@ -86,6 +86,12 @@ class Screenplay:
         return is_dup is not None
 
     @staticmethod
+    def has_child(resource_id):
+        child = DuplicateScript.query. \
+                     filter_by(from_script=resource_id).first()
+        return child is not None
+
+    @staticmethod
     def get_latest_version_number(resource_id):
         latest = ScriptData.query.filter_by(resource_id=resource_id). \
                      with_entities(ScriptData.version). \
@@ -168,6 +174,25 @@ class Screenplay:
             if db.session.query(q.exists()).scalar():
                 return True
         return False
+
+    @staticmethod
+    def delete_all(resource_id):
+        screenplay = UsersScripts.get_by_resource_id(resource_id)
+        if screenplay is None:
+            return False
+        if screenplay.permission != 'hardDelete':
+            return False
+        if Screenplay.has_child(resource_id):
+            return False
+        for row in DuplicateScript.query.filter_by(new_script=resource_id).all():
+            db.session.delete(row)
+        models = [ResourceVersion, TitlePageData, ScriptData, Note, UnreadNote,
+                  ShareNotify, UsersScripts]
+        for model in models:
+            for row in model.query.filter_by(resource_id=resource_id).all():
+                db.session.delete(row)
+        db.session.commit()
+        return True
 
 
 class User(db.Model, UserMixin):
@@ -498,8 +523,8 @@ class ResourceVersion(db.Model):
     version = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime)
     autosave = db.Column(db.Boolean)
-    ops = db.relationship('Op')
-    tags = db.relationship('VersionTag')
+    ops = db.relationship('Op', cascade='delete,delete-orphan')
+    tags = db.relationship('VersionTag', cascade='delete,delete-orphan')
 
     __table_args__= (db.Index('ix_resource_versions_resource_id_version', "resource_id", db.asc('version')),)
 
