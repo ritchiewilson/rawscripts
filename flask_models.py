@@ -48,6 +48,7 @@ class Screenplay(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     collaborators = db.relationship('User', secondary=collaborators,
                                     backref='read_only_screenplays')
+    unregistered_collaborators = db.relationship('UnregisteredCollaborator')
 
     __table_args__= (db.Index('ix_screenplays_resource_id_updated',
                               'resource_id', db.desc('last_updated')),
@@ -919,3 +920,12 @@ class ShareNotify(db.Model):
     @staticmethod
     def get_by_email(email):
         return ShareNotify.query.filter_by(user=email).all()
+
+
+class UnregisteredCollaborator(db.Model):
+    __tablename__ = "unregistered_collaborators"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String, nullable=False)
+    screenplay_id = db.Column(db.Integer, db.ForeignKey('screenplays.id'),
+                              nullable=False)
