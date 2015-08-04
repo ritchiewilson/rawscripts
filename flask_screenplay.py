@@ -20,7 +20,7 @@ from flask_mail import Message
 from flask_user import login_required, current_user
 
 from rawscripts import db, app, mail
-from flask_models import Screenplay, UsersScripts
+from flask_models import Screenplay
 from flask_utils import resource_access, get_resource_id_from_request
 
 @app.route('/newscript', methods=['POST'])
@@ -79,47 +79,31 @@ def rename_screenplay():
     rename = request.form.get('rename', None)
     if rename is None:
         rename = request.json.get('rename', None)
-    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
-    for screenplay in screenplays:
-        screenplay.title = rename
-    db.session.commit()
+    Screenplay.rename(resource_id, rename)
     return Response('done', mimetype='text/plain')
-
-def switch_deletion_permissions(switches):
-    resource_id = get_resource_id_from_request()
-    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
-    for screenplay in screenplays:
-        if screenplay.permission in switches:
-            screenplay.permission = switches[screenplay.permission]
-    db.session.commit()
 
 @app.route('/delete', methods=['POST'])
 @login_required
 @resource_access()
 def delete_screenplay():
-    switches = {'owner': 'ownerDeleted',
-                'collab': 'collabDeletedByOwner'}
-    switch_deletion_permissions(switches)
-    return Response(get_resource_id_from_request(), mimetype='text/plain')
+    resource_id = get_resource_id_from_request()
+    Screenplay.move_to_trash(resource_id)
+    return Response(resource_id, mimetype='text/plain')
 
 @app.route('/undelete', methods=['POST'])
 @login_required
 @resource_access()
 def undelete_screenplay():
-    switches = {'ownerDeleted': 'owner',
-                'collabDeletedByOwner': 'collab'}
-    switch_deletion_permissions(switches)
-    return Response(get_resource_id_from_request(), mimetype='text/plain')
+    resource_id = get_resource_id_from_request()
+    Screenplay.remove_from_trash(resource_id)
+    return Response(resource_id, mimetype='text/plain')
 
 @app.route('/harddelete', methods=['POST'])
 @login_required
 @resource_access()
 def hard_delete_screenplay():
     resource_id = get_resource_id_from_request()
-    screenplays = UsersScripts.query.filter_by(resource_id=resource_id).all()
-    for screenplay in screenplays:
-        screenplay.permission = 'hardDelete'
-    db.session.commit()
+    Screenplay.hard_delete(resource_id)
     return Response(resource_id, mimetype='text/plain')
 
 @app.route('/duplicate', methods=['POST'])

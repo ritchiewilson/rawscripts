@@ -230,6 +230,41 @@ class Screenplay(db.Model):
             filter(UsersScripts.last_updated > date_cutoff). \
             order_by('resource_id').all()
 
+    @staticmethod
+    def rename(resource_id, new_name):
+        if new_name is None:
+            return False
+        for row in UsersScripts.query.filter_by(resource_id=resource_id).all():
+            row.title = new_name
+        db.session.commit()
+
+    @staticmethod
+    def hard_delete(resource_id):
+        rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
+        for row in rows:
+            row.permission = 'hardDelete'
+        db.session.commit()
+
+    @staticmethod
+    def move_to_trash(resource_id):
+        switches = {'owner': 'ownerDeleted',
+                    'collab': 'collabDeletedByOwner'}
+        Screenplay.switch_deletion_permissions(resource_id, switches)
+
+    @staticmethod
+    def remove_from_trash(resource_id):
+        switches = {'ownerDeleted': 'owner',
+                    'collabDeletedByOwner': 'collab'}
+        Screenplay.switch_deletion_permissions(resource_id, switches)
+
+    @staticmethod
+    def switch_deletion_permissions(resource_id, switches):
+        rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
+        for row in rows:
+            if row.permission in switches:
+                row.permission = switches[row.permission]
+        db.session.commit()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
