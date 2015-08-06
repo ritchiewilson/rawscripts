@@ -342,6 +342,11 @@ class Screenplay(db.Model):
             row.folder = folder_id
         db.session.commit()
 
+    def get_folder(self):
+        row = UsersScripts.query. \
+                  filter_by(resource_id=self.resource_id, permission='owner').first()
+        return row.folder if row else '?none?'
+
     @staticmethod
     def remove_all_from_folder(folder_id, user):
         rows = UsersScripts.query.filter_by(user=user, permission='owner',
@@ -349,22 +354,6 @@ class Screenplay(db.Model):
         for row in rows:
             row.folder = '?none?'
         db.session.commit()
-
-    @staticmethod
-    def get_collaboration_metadata(resource_ids, user):
-        if not resource_ids:
-            return {}
-        shared_screenplays = UsersScripts.query.filter(UsersScripts.user != user). \
-                                 filter(UsersScripts.resource_id.in_(resource_ids)).all()
-        share_data = {}
-        for s in shared_screenplays:
-            if s.resource_id not in share_data:
-                share_data[s.resource_id] = {'collabs': []}
-            if s.permission == 'owner':
-                share_data[s.resource_id]['owner'] = s.user
-            else:
-                share_data[s.resource_id]['collabs'].append(s.user)
-        return share_data
 
     @staticmethod
     def migrate_from_UsersScripts(resource_id):
@@ -436,10 +425,6 @@ class User(db.Model, UserMixin):
     @staticmethod
     def get_by_email(email):
         return User.query.filter(User.email.ilike(email)).first()
-
-    def get_owned_screenplays(self):
-        return UsersScripts.query.filter_by(user=self.email). \
-            order_by(UsersScripts.last_updated.desc()).all()
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)

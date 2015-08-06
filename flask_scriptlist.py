@@ -50,11 +50,6 @@ def format_time(time):
 @login_required
 def list():
     user = current_user.email
-    screenplays = current_user.get_owned_screenplays()
-
-    # One query for all the collaborators and owner information
-    resource_ids = [screenplay.resource_id for screenplay in screenplays]
-    share_data = Screenplay.get_collaboration_metadata(resource_ids, user)
 
     # count all unread notes by resource_id
     unread_notes = {}
@@ -66,38 +61,38 @@ def list():
 
     share_notifications = ShareNotify.get_by_email(user)
     unopened_screenplays = set([n.resource_id for n in share_notifications if not n.opened])
-    owned = []
     shared = []
-    for screenplay in screenplays:
-        if screenplay.permission == "hardDelete":
+    read_only = current_user.read_only_screenplays
+    for screenplay in sorted(read_only, key=lambda obj: obj.last_updated, reverse=True):
+        if screenplay.is_trashed or screenplay.is_hard_deleted:
             continue
         resource_id = screenplay.resource_id
-        data = [resource_id, screenplay.title]
         obj = {
             'resource_id': resource_id,
             'title': screenplay.title,
             'last_updated': format_time(screenplay.last_updated),
-            'permission': screenplay.permission,
-            'folder': screenplay.folder
+            'owner': screenplay.owner.email,
+            'new_notes': unread_notes.get(resource_id, 0),
+            'unopened': resource_id in unopened_screenplays
         }
-        permission = screenplay.permission
-        if permission == 'collab':
-            obj['owner'] = share_data.get(resource_id, {}).get('owner', 'shared')
-        if screenplay.permission != 'collab':
-            sharing_with = share_data.get(resource_id, {}).get('collabs', [])
-            obj['shared_with'] = sharing_with
-        new_notes = unread_notes.get(screenplay.resource_id, 0)
-        obj['new_notes'] = new_notes
+        shared.append(obj)
 
-        if screenplay.permission == 'collab':
-            unopened = resource_id in unopened_screenplays
-            obj["unopened"] = unopened
-
-        if screenplay.permission == 'collab':
-            shared.append(obj)
-        elif screenplay.permission in ['owner', 'ownerDeleted']:
-            obj["is_trashed"] = screenplay.permission == 'ownerDeleted'
-            owned.append(obj)
+    owned = []
+    screenplays = current_user.screenplays
+    for screenplay in sorted(screenplays, key=lambda obj: obj.last_updated, reverse=True):
+        if screenplay.is_hard_deleted:
+            continue
+        resource_id = screenplay.resource_id
+        obj = {
+            'resource_id': resource_id,
+            'title': screenplay.title,
+            'last_updated': format_time(screenplay.last_updated),
+            'is_trashed': screenplay.is_trashed,
+            'shared_with': Screenplay.get_all_collaborators(resource_id),
+            'new_notes': unread_notes.get(resource_id, 0),
+            'folder': screenplay.get_folder()
+        }
+        owned.append(obj)
 
     folders = []
     folders_data = Folder.query.filter_by(user=user).first()
