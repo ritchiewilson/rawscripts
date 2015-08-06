@@ -72,6 +72,10 @@ class Screenplay(db.Model):
                                  export='[[],[]]', tag='', autosave=False,
                                  timestamp=datetime.utcnow())
         db.session.add(script_data)
+        owner = User.get_by_email(user)
+        new_screenplay = Screenplay(resource_id=resource_id, owner=owner,
+                                    title=title)
+        db.session.add(new_screenplay)
         db.session.commit()
         return screenplay
 
@@ -107,6 +111,9 @@ class Screenplay(db.Model):
                                    permission='owner',
                                    folder='?none?')
         db.session.add(user_script)
+        owner = User.get_by_email(user)
+        new_screenplay = Screenplay(resource_id=new_resource_id, owner=owner,
+                                    title=new_title)
         db.session.commit()
         return user_script
 
