@@ -23,6 +23,7 @@ from flask import Flask, render_template, send_from_directory, request, redirect
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_user import UserManager, SQLAlchemyAdapter, current_user
+from flask.ext.user.signals import user_registered
 from flask_utils import length_password_validator
 from flask.ext.assets import Environment, Bundle
 
@@ -67,6 +68,10 @@ import spellcheck
 @app.context_processor
 def inject_config():
     return dict(MODE='PRO', ANALYTICS_ID=app.config['ANALYTICS_ID'])
+
+@user_registered.connect_via(app)
+def _after_registration_hook(sender, user, **extra):
+    user.link_shared_screenplays()
 
 @app.route('/')
 def welcome():

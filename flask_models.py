@@ -49,7 +49,8 @@ class Screenplay(db.Model):
     collaborators = db.relationship('User', secondary=collaborators,
                                     backref='read_only_screenplays')
     unregistered_collaborators = db.relationship('UnregisteredCollaborator',
-                                                 cascade='delete,delete-orphan')
+                                                 cascade='delete,delete-orphan',
+                                                 backref='screenplay')
 
     __table_args__= (db.Index('ix_screenplays_resource_id_updated',
                               'resource_id', db.desc('last_updated')),
@@ -193,6 +194,7 @@ class Screenplay(db.Model):
                 else:
                     user = UnregisteredCollaborator(email=email)
                     screenplay.unregistered_collaborators.append(user)
+                    db.session.add(user)
         db.session.commit()
         return new_collaborators
 
@@ -366,6 +368,9 @@ class Screenplay(db.Model):
         for row in all_users:
             if row.permission in ['owner', 'ownerDeleted']:
                 owner_row = row
+            if row.permission == 'hardDelete':
+                Screenplay.delete_all(resource_id)
+                return
         if owner_row is None:
             raise Exception("Could not find owner row for", resource_id)
         owners = User.query.filter(User.email.ilike(owner_row.user)).all()
@@ -384,6 +389,7 @@ class Screenplay(db.Model):
                           order_by(db.asc('version')).first()
         screenplay.created_at = oldest_save.timestamp
         screenplay.last_updated = owner_row.last_updated
+        db.session.add(screenplay)
 
         for row in all_users:
             if row is owner_row:
@@ -394,6 +400,7 @@ class Screenplay(db.Model):
             else:
                 collaborator = UnregisteredCollaborator(email=row.user)
                 screenplay.unregistered_collaborators.append(collaborator)
+                db.session.add(collaborator)
         db.session.commit()
 
 
@@ -425,6 +432,13 @@ class User(db.Model, UserMixin):
     @staticmethod
     def get_by_email(email):
         return User.query.filter(User.email.ilike(email)).first()
+
+    def link_shared_screenplays(self):
+        rows = UnregisteredCollaborator.get_all_by_email(self.email)
+        for row in rows:
+            row.screenplay.collaborators.append(self)
+            db.session.delete(row)
+        db.session.commit()
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)
@@ -1016,3 +1030,8 @@ class UnregisteredCollaborator(db.Model):
     email = db.Column(db.String, nullable=False)
     screenplay_id = db.Column(db.Integer, db.ForeignKey('screenplays.id'),
                               nullable=False)
+
+    @staticmethod
+    def get_all_by_email(email):
+        return UnregisteredCollaborator.query. \
+                   filter(UnregisteredCollaborator.email.ilike(email)).all()
