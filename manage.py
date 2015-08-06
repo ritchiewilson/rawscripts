@@ -142,7 +142,10 @@ def expunge_hard_deletes():
 def migrate_from_UsersScripts():
     resource_ids = get_resource_ids()
     for resource_id in resource_ids:
-        Screenplay.migrate_from_UsersScripts(resource_id)
+        try:
+            Screenplay.migrate_from_UsersScripts(resource_id)
+        except:
+            print 'failing for', resource_id
 
 if __name__ == "__main__":
     manager.run()
