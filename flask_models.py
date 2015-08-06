@@ -115,6 +115,7 @@ class Screenplay(db.Model):
         owner = User.get_by_email(user)
         new_screenplay = Screenplay(resource_id=new_resource_id, owner=owner,
                                     title=new_title)
+        db.session.add(new_screenplay)
         db.session.commit()
         return user_script
 
