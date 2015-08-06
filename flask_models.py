@@ -381,7 +381,7 @@ class Screenplay(db.Model):
         owner = owners[0]
 
         screenplay = Screenplay(resource_id=resource_id, owner=owner,
-                                title=owner_row.title)
+                                title=owner_row.title[:254])
         screenplay.is_trashed = (owner_row.permission == 'ownerDeleted')
         screenplay.is_hard_deleted = (owner_row.permission == 'hardDelete')
 
