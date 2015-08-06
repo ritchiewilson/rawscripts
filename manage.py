@@ -141,18 +141,11 @@ def expunge_hard_deletes():
 @manager.command
 def migrate_from_UsersScripts():
     resource_ids = get_resource_ids()
-    failures = 0
     for resource_id in resource_ids:
-        if resource_id[0] < 'Y':
-            continue
         try:
             Screenplay.migrate_from_UsersScripts(resource_id)
         except Exception as e:
-            print e
             print 'failing for', resource_id
-            failures += 1
-            if failures > 30:
-                raise Exception('Failed out')
 
 if __name__ == "__main__":
     manager.run()
