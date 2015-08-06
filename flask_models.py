@@ -48,11 +48,16 @@ class Screenplay(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     collaborators = db.relationship('User', secondary=collaborators,
                                     backref='read_only_screenplays')
-    unregistered_collaborators = db.relationship('UnregisteredCollaborator')
+    unregistered_collaborators = db.relationship('UnregisteredCollaborator',
+                                                 cascade='delete,delete-orphan')
 
     __table_args__= (db.Index('ix_screenplays_resource_id_updated',
                               'resource_id', db.desc('last_updated')),
                      db.Index('fk_screenplays_owner_id', 'owner_id'))
+
+    @staticmethod
+    def get_by_resource_id(resource_id):
+        return Screenplay.query.filter_by(resource_id=resource_id).first()
 
     @staticmethod
     def create(title, user, data=None):
@@ -72,12 +77,15 @@ class Screenplay(db.Model):
 
     @staticmethod
     def get_title(resource_id):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            return screenplay.title
         return UsersScripts.get_title(resource_id)
 
     @staticmethod
     def duplicate(resource_id, version, user):
         data = ScriptData.get_content_for_version(resource_id, version)
-        title = UsersScripts.get_title(resource_id)
+        title = Screenplay.get_title(resource_id)
         new_title = "Copy of " + title
         new_resource_id = Screenplay.create_unique_resource_id()
         new_script_data = ScriptData(resource_id=new_resource_id,
@@ -133,8 +141,6 @@ class Screenplay(db.Model):
 
     @staticmethod
     def export_to_file(resource_id, export_format, titlepage=False):
-        screenplay = UsersScripts.query. \
-                         filter_by(resource_id=resource_id).first()
         latest_version = ScriptData.get_latest_version(resource_id)
         if not latest_version:
             return None
@@ -150,7 +156,8 @@ class Screenplay(db.Model):
             content_type = 'application/pdf'
         if output is None:
             return None
-        ascii_title = unicodedata.normalize("NFKD", screenplay.title). \
+        title = Screenplay.get_title(resource_id)
+        ascii_title = unicodedata.normalize("NFKD", title). \
                           encode("ascii", "ignore")
         return output, ascii_title, content_type
 
@@ -158,8 +165,8 @@ class Screenplay(db.Model):
     def add_access(resource_id, collaborators):
         # uniquify list
         collaborators = set([c.lower() for c in collaborators if c != ''])
-        existing_rows = UsersScripts.get_all_by_resource_id(resource_id)
-        existing_collaborators = set([row.user.lower() for row in existing_rows])
+        existing_emails = Screenplay.get_all_collaborators(resource_id)
+        existing_collaborators = set([email.lower() for email in existing_emails])
         new_collaborators = list(collaborators - existing_collaborators)
 
         title = Screenplay.get_title(resource_id)
@@ -169,11 +176,32 @@ class Screenplay(db.Model):
             db.session.add(obj)
             notify = ShareNotify(user=collaborator, resource_id=resource_id)
             db.session.add(notify)
+
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            for email in new_collaborators:
+                user = User.get_by_email(email)
+                if user:
+                    screenplay.collaborators.append(user)
+                else:
+                    user = UnregisteredCollaborator(email=email)
+                    screenplay.unregistered_collaborators.append(user)
         db.session.commit()
         return new_collaborators
 
     @staticmethod
     def remove_access(resource_id, collaborator):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            user = User.get_by_email(collaborator)
+            if user:
+                screenplay.collaborators.remove(user)
+            else:
+                for c in screenplay.unregistered_collaborators:
+                    if c.email.lower() == collaborator:
+                        screenplay.unregistered_collaborators.remove(c)
+                        db.session.commit()
+                        break
         row = UsersScripts.get_by_resource_id(resource_id, user=collaborator)
         if not row or row.permission != 'collab':
             return False
@@ -210,7 +238,7 @@ class Screenplay(db.Model):
         for row in DuplicateScript.query.filter_by(new_script=resource_id).all():
             db.session.delete(row)
         models = [ResourceVersion, TitlePageData, ScriptData, Note, UnreadNote,
-                  ShareNotify, UsersScripts]
+                  ShareNotify, UsersScripts, Screenplay]
         for model in models:
             for row in model.query.filter_by(resource_id=resource_id).all():
                 db.session.delete(row)
@@ -235,12 +263,18 @@ class Screenplay(db.Model):
     def rename(resource_id, new_name):
         if new_name is None:
             return False
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            screenplay.title = new_name
         for row in UsersScripts.query.filter_by(resource_id=resource_id).all():
             row.title = new_name
         db.session.commit()
 
     @staticmethod
     def hard_delete(resource_id):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            screenplay.is_hard_deleted = True
         rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
         for row in rows:
             row.permission = 'hardDelete'
@@ -248,12 +282,20 @@ class Screenplay(db.Model):
 
     @staticmethod
     def move_to_trash(resource_id):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            screenplay.is_trashed = True
+            db.session.commit()
         switches = {'owner': 'ownerDeleted',
                     'collab': 'collabDeletedByOwner'}
         Screenplay.switch_deletion_permissions(resource_id, switches)
 
     @staticmethod
     def remove_from_trash(resource_id):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            screenplay.is_trashed = False
+            db.session.commit()
         switches = {'ownerDeleted': 'owner',
                     'collabDeletedByOwner': 'collab'}
         Screenplay.switch_deletion_permissions(resource_id, switches)
@@ -268,10 +310,18 @@ class Screenplay(db.Model):
 
     @staticmethod
     def get_all_collaborators(resource_id):
-        return UsersScripts.get_all_collaborators(resource_id)
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if not screenplay:
+            return UsersScripts.get_all_collaborators(resource_id)
+        emails = [user.email for user in screenplay.collaborators]
+        emails += [user.email for user in screenplay.unregistered_collaborators]
+        return emails
 
     @staticmethod
     def set_last_updated(resource_id, new_time):
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        if screenplay:
+            screenplay.last_updated = new_time
         rows = UsersScripts.query.filter_by(resource_id=resource_id).all()
         for row in rows:
             row.last_updated = new_time
@@ -309,6 +359,47 @@ class Screenplay(db.Model):
                 share_data[s.resource_id]['collabs'].append(s.user)
         return share_data
 
+    @staticmethod
+    def migrate_from_UsersScripts(resource_id):
+        exists = Screenplay.get_by_resource_id(resource_id)
+        if exists:
+            return
+
+        all_users = UsersScripts.get_all_by_resource_id(resource_id)
+        owner_row = None
+        for row in all_users:
+            if row.permission in ['owner', 'ownerDeleted']:
+                owner_row = row
+        if owner_row is None:
+            raise Exception("Could not find owner row for", resource_id)
+        owners = User.query.filter(User.email.ilike(owner_row.user)).all()
+        if not owners:
+            raise Exception("Could not find registerd owner for", resource_id)
+        if len(owners) > 1:
+            raise Exception("Found multiple registerd owners for", resource_id)
+        owner = owners[0]
+
+        screenplay = Screenplay(resource_id=resource_id, owner=owner,
+                                title=owner_row.title)
+        screenplay.is_trashed = (owner_row.permission == 'ownerDeleted')
+        screenplay.is_hard_deleted = (owner_row.permission == 'hardDelete')
+
+        oldest_save = ScriptData.query.filter_by(resource_id=resource_id). \
+                          order_by(db.asc('version')).first()
+        screenplay.created_at = oldest_save.timestamp
+        screenplay.last_updated = owner_row.last_updated
+
+        for row in all_users:
+            if row is owner_row:
+                continue
+            collaborator = User.get_by_email(row.user)
+            if collaborator:
+                screenplay.collaborators.append(collaborator)
+            else:
+                collaborator = UnregisteredCollaborator(email=row.user)
+                screenplay.unregistered_collaborators.append(collaborator)
+        db.session.commit()
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -334,6 +425,10 @@ class User(db.Model, UserMixin):
         for field in ['name', 'username']:
             kwargs[field] = kwargs.get(field, email)
         super(User, self).__init__(**kwargs)
+
+    @staticmethod
+    def get_by_email(email):
+        return User.query.filter(User.email.ilike(email)).first()
 
     def get_owned_screenplays(self):
         return UsersScripts.query.filter_by(user=self.email). \
