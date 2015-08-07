@@ -34,6 +34,12 @@ collaborators = db.Table('collaborators',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+folder_associations = db.Table('folder_associations',
+    db.Column('screenplay_id', db.Integer, db.ForeignKey('screenplays.id')),
+    db.Column('folder_id', db.Integer,
+              db.ForeignKey('folders.id'))
+)
+
 class Screenplay(db.Model):
     __tablename__ = 'screenplays'
 
@@ -51,6 +57,8 @@ class Screenplay(db.Model):
     unregistered_collaborators = db.relationship('UnregisteredCollaborator',
                                                  cascade='delete,delete-orphan',
                                                  backref='screenplay')
+    folders = db.relationship('Folder', secondary=folder_associations,
+                              backref='screenplays')
 
     __table_args__= (db.Index('ix_screenplays_resource_id_updated',
                               'resource_id', db.desc('last_updated')),
@@ -421,6 +429,7 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DateTime())
     appengine_user = db.relationship('AppengineUser', uselist=False, backref='user')
     screenplays = db.relationship('Screenplay', backref='owner')
+    folders = db.relationship('Folder', backref='owner')
 
     __table_args__= (db.Index('ix_user_username', 'username'),)
 
@@ -883,6 +892,11 @@ class Folder(db.Model):
     user = db.Column(db.String)
     data = db.Column(db.String)
     __key__ = db.Column(db.String)
+
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    name = db.Column(db.String(255))
+
+    __table_args__= (db.Index('fk_folders_owner_id', "owner_id"),)
 
     @staticmethod
     def get_by_user(user):
