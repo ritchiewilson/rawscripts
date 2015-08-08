@@ -351,6 +351,12 @@ class Screenplay(db.Model):
               filter_by(permission='owner', resource_id=resource_id).first()
         if row:
             row.folder = folder_id
+        screenplay = Screenplay.get_by_resource_id(resource_id)
+        for folder in screenplay.folders:
+            screenplay.folders.remove(folder)
+        if folder_id != '?none?':
+            new_folder = Folder.query.filter_by(id=int(folder_id)).first()
+            new_folder.screenplays.append(screenplay)
         db.session.commit()
 
     def get_folder(self):
@@ -896,11 +902,29 @@ class Folder(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     name = db.Column(db.String(255))
 
-    __table_args__= (db.Index('fk_folders_owner_id', "owner_id"),)
+    __table_args__= (db.Index('fk_folders_owner_id', 'owner_id'),)
 
     @staticmethod
     def get_by_user(user):
         return Folder.query.filter_by(user=user).first()
+
+    def migrate_folder(self):
+        if not self.user:
+            return False
+        owner = User.get_by_email(self.user)
+        if not owner:
+            return False
+        folders = json.loads(self.data)
+        for name, _id in folders:
+            folder = Folder(id=int(_id), owner=owner, name=name)
+            db.session.add(folder)
+            rows = UsersScripts.query.filter_by(folder=_id, permission='owner').all()
+            for row in rows:
+                screenplay = Screenplay.get_by_resource_id(row.resource_id)
+                if screenplay.owner is owner:
+                    folder.screenplays.append(screenplay)
+        db.session.commit()
+        return True
 
 class Blog(db.Model):
     __tablename__ = "blog"

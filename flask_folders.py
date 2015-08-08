@@ -38,6 +38,8 @@ def new_folder():
     J = json.loads(folder.data)
     J.append([folder_name, folder_id])
     folder.data = json.dumps(J)
+    folder = Folder(id=int(folder_id), owner=current_user, name=folder_name)
+    db.session.add(folder)
     db.session.commit()
     return Response('1', mimetype='text/plain')
 
@@ -67,6 +69,9 @@ def delete_folder():
     folders = json.loads(row.data)
     arr = [f for f in folders if f[1] != folder_id]
     row.data = json.dumps(arr)
+    folder = Folder.query.filter_by(id=int(folder_id), owner=current_user).first()
+    if folder:
+        db.session.delete(folder)
     db.session.commit()
     return Response('1', mimetype='text/plain')
 
@@ -84,5 +89,7 @@ def rename_folder():
         if folder[1] == folder_id:
             folder[0] = folder_name
     row.data = json.dumps(folders)
+    folder = Folder.query.filter_by(id=int(folder_id), owner=current_user).first()
+    folder.name = folder_name
     db.session.commit()
     return Response('1', mimetype='text/plain')
