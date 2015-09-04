@@ -347,10 +347,6 @@ class Screenplay(db.Model):
 
     @staticmethod
     def set_folder(resource_id, folder_id):
-        row = UsersScripts.query. \
-              filter_by(permission='owner', resource_id=resource_id).first()
-        if row:
-            row.folder = folder_id
         screenplay = Screenplay.get_by_resource_id(resource_id)
         for folder in screenplay.folders:
             screenplay.folders.remove(folder)
@@ -361,17 +357,6 @@ class Screenplay(db.Model):
 
     def get_folder(self):
         return str(self.folders[0].id) if self.folders else '?none?'
-        row = UsersScripts.query. \
-                  filter_by(resource_id=self.resource_id, permission='owner').first()
-        return row.folder if row else '?none?'
-
-    @staticmethod
-    def remove_all_from_folder(folder_id, user):
-        rows = UsersScripts.query.filter_by(user=user, permission='owner',
-                                            folder=folder_id).all()
-        for row in rows:
-            row.folder = '?none?'
-        db.session.commit()
 
     @staticmethod
     def migrate_from_UsersScripts(resource_id):
@@ -905,28 +890,6 @@ class Folder(db.Model):
 
     __table_args__= (db.Index('fk_folders_owner_id', 'owner_id'),)
 
-    @staticmethod
-    def get_by_user(user):
-        return Folder.query.filter_by(user=user).first()
-
-    def migrate_folder(self):
-        if not self.user:
-            return False
-        owner = User.get_by_email(self.user)
-        if not owner:
-            return False
-        folders = json.loads(self.data)
-        for name, _id in folders:
-            reduced_id = int(_id) / 100
-            folder = Folder(id=reduced_id, owner=owner, name=name)
-            db.session.add(folder)
-            rows = UsersScripts.query.filter_by(folder=_id, permission='owner').all()
-            for row in rows:
-                screenplay = Screenplay.get_by_resource_id(row.resource_id)
-                if screenplay.owner is owner:
-                    folder.screenplays.append(screenplay)
-        db.session.commit()
-        return True
 
 class Blog(db.Model):
     __tablename__ = "blog"

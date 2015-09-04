@@ -147,12 +147,5 @@ def migrate_from_UsersScripts():
         except Exception as e:
             print 'failing for', resource_id
 
-@manager.command
-def migrate_folders():
-    for folder in Folder.query.all():
-        success = folder.migrate_folder()
-        if not success:
-            print 'failing for', folder.user, folder.data, folder.name
-
 if __name__ == "__main__":
     manager.run()

@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-
 from flask import request, url_for, Response
 from flask_user import login_required, current_user
 
@@ -30,14 +28,6 @@ def new_folder():
     folder_id = request.json.get('folder_id', None)
     if folder_name is None or folder_id is None:
         return Response('0', mimetype='text/plain')
-    user = current_user.email
-    folder = Folder.get_by_user(user)
-    if folder is None:
-        folder = Folder(user=user, data='[]')
-        db.session.add(folder)
-    J = json.loads(folder.data)
-    J.append([folder_name, folder_id])
-    folder.data = json.dumps(J)
     folder = Folder(id=int(folder_id), owner=current_user, name=folder_name)
     db.session.add(folder)
     db.session.commit()
@@ -63,12 +53,6 @@ def delete_folder():
     folder_id = request.json.get('folder_id', None)
     if folder_id is None:
         return Response('0', mimetype='text/plain')
-    user = current_user.email
-    Screenplay.remove_all_from_folder(folder_id, user)
-    row = Folder.get_by_user(user)
-    folders = json.loads(row.data)
-    arr = [f for f in folders if f[1] != folder_id]
-    row.data = json.dumps(arr)
     folder = Folder.query.filter_by(id=int(folder_id), owner=current_user).first()
     if folder:
         db.session.delete(folder)
@@ -82,13 +66,6 @@ def rename_folder():
     folder_id = request.json.get('folder_id', None)
     if folder_name is None or folder_id is None:
         return Response('0', mimetype='text/plain')
-    user = current_user.email
-    row = Folder.get_by_user(user)
-    folders = json.loads(row.data)
-    for folder in folders:
-        if folder[1] == folder_id:
-            folder[0] = folder_name
-    row.data = json.dumps(folders)
     folder = Folder.query.filter_by(id=int(folder_id), owner=current_user).first()
     folder.name = folder_name
     db.session.commit()
