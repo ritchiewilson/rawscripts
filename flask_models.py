@@ -881,10 +881,6 @@ class Folder(db.Model):
     __tablename__ = "folders"
 
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String)
-    data = db.Column(db.String)
-    __key__ = db.Column(db.String)
-
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     name = db.Column(db.String(255))
 
