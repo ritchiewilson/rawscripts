@@ -917,7 +917,8 @@ class Folder(db.Model):
             return False
         folders = json.loads(self.data)
         for name, _id in folders:
-            folder = Folder(id=int(_id), owner=owner, name=name)
+            reduced_id = int(_id) / 100
+            folder = Folder(id=reduced_id, owner=owner, name=name)
             db.session.add(folder)
             rows = UsersScripts.query.filter_by(folder=_id, permission='owner').all()
             for row in rows:
