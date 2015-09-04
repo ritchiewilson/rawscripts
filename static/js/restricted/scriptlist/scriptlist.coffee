@@ -130,7 +130,7 @@ angular
             return false if !folderName?
             folderName = folderName.trim()
             return false if folderName == ""
-            id = String(Math.round(Math.random()*10000000000))
+            id = String(Math.round(Math.random()*100000000))
             $http.post("/newfolder", {folder_name: folderName, folder_id: id})
                 .success (data) ->
                     $scope.folders.push([folderName, id])
