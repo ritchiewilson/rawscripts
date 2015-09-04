@@ -21,7 +21,7 @@ from flask import render_template, request, jsonify, redirect, url_for, get_flas
 from flask_user import login_required, current_user
 
 from rawscripts import db, app
-from flask_models import Folder, UnreadNote, ShareNotify, Screenplay
+from flask_models import UnreadNote, ShareNotify, Screenplay
 
 
 @app.route('/scriptlist')
@@ -94,9 +94,6 @@ def list():
         }
         owned.append(obj)
 
-    folders = []
-    folders_data = Folder.query.filter_by(user=user).first()
-    if folders_data:
-        folders = json.loads(folders_data.data)
+    folders = [[f.name, str(f.id)] for f in current_user.folders]
     output = [owned, shared, folders]
     return json.dumps(output)

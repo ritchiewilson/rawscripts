@@ -360,6 +360,7 @@ class Screenplay(db.Model):
         db.session.commit()
 
     def get_folder(self):
+        return str(self.folders[0].id) if self.folders else '?none?'
         row = UsersScripts.query. \
                   filter_by(resource_id=self.resource_id, permission='owner').first()
         return row.folder if row else '?none?'
