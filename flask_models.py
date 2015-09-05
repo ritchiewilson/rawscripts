@@ -718,21 +718,6 @@ class VersionTag(db.Model):
     __table_args__= (db.Index('fk_version_tags_resource_version_id', "resource_version_id"),)
 
 
-class UsersScripts(db.Model):
-    __tablename__ = "users_scripts"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String)
-    resource_id = db.Column(db.String)
-    title = db.Column(db.String)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    permission = db.Column(db.String)
-    folder = db.Column(db.String, default='?none?')
-
-    __table_args__= (db.Index('ix_users_scripts_resource_id_updated',
-                           'resource_id', db.desc('last_updated')),)
-
-
 class DuplicateScript(db.Model):
     __tablename__ = "duplicate_scripts"
 
