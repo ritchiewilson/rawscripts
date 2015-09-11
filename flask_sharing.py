@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from flask import request, Response, url_for
+from flask import request, Response, url_for, jsonify
 from flask_mail import Message
 from flask_user import login_required, current_user
 
@@ -63,9 +63,14 @@ def share_screenplay():
 
 @app.route('/removeaccess', methods=['POST'])
 @login_required
-@resource_access()
+@resource_access(allow_collab=True)
 def remove_access_to_screenplay():
     resource_id = request.json['resource_id']
     collaborator = request.json['removePerson'].lower()
+    screenplay = Screenplay.get_by_resource_id(resource_id)
+    if not current_user.owns_screenplay(screenplay):
+        if not current_user.is_collaborator_on_screenplay(screenplay):
+            return Response(collaborator, mimetype='text/plain')
+        collaborator = current_user.email.lower()
     Screenplay.remove_access(resource_id, collaborator)
-    return Response(collaborator, mimetype='text/plain')
+    return jsonify(collaborator=collaborator, resource_id=resource_id)

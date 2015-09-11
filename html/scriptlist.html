@@ -38,6 +38,7 @@
         <div ng-switch="currentFolder">
 		  <div id="shared_script_buttons" class="buttons_block" ng-switch-when="shared">
 			<input type="button" ng-click="exportModal()" value="Export" />
+			<input type="button" ng-click="unfollowScreenplays()" value="Unfollow Screenplays" />
 		  </div>
 		  <div id="trash_script_buttons" class="buttons_block" ng-switch-when="trash">
 			<input type="button" value="Undelete" ng-click="trashCheckedScreenplays(false)" />

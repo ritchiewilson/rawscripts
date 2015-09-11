@@ -217,7 +217,6 @@ class Screenplay(db.Model):
         if resource_id == 'Demo':
             return 'owner'
         screenplay = Screenplay.get_by_resource_id(resource_id)
-        print screenplay, resource_id, user, screenplay.owner.email
         if screenplay.owner.email.lower() == user.lower():
             return 'ownerDeleted' if screenplay.is_trashed else 'owner'
         # dumb looping is maybe best current way to handle case sensitivity
@@ -357,6 +356,12 @@ class User(db.Model, UserMixin):
             row.screenplay.collaborators.append(self)
             db.session.delete(row)
         db.session.commit()
+
+    def owns_screenplay(self, screenplay):
+        return screenplay.owner is self
+
+    def is_collaborator_on_screenplay(self, screenplay):
+        return self in screenplay.collaborators
 
     def __repr__(self):
        return "<User(name='%s')>" % (self.name)

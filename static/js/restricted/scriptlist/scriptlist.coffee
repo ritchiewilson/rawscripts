@@ -315,3 +315,17 @@ angular
                         if "@" in c
                             $scope.checkedScreenplay.shared_with.push c
                     scriptlist.newCollaborators = ""
+
+        $scope.unfollowScreenplays = ->
+            if not confirm("Are you sure you want to stop following these screenplays?")
+                return false
+            selected_screenplays = $scope.getCheckedScreenplays()
+            for s in selected_screenplays
+                s.is_processing = true
+                params =
+                    resource_id: s.resource_id
+                    removePerson: "self"
+                $http.post("/removeaccess", params)
+                    .success (data) ->
+                        resource_id = data.resource_id
+                        $scope.sharedWithMe = (s for s in $scope.sharedWithMe when s.resource_id != resource_id)
