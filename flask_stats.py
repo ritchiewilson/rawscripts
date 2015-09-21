@@ -51,7 +51,8 @@ class StatsView(AdminIndexView):
 class MyUsersView(ModelView):
     can_create = False
     column_searchable_list= ('email',)
-    form_excluded_columns = ('reset_password_token', 'password', 'appengine_user')
+    form_excluded_columns = ('reset_password_token', 'password', 'appengine_user',
+                             'folders', 'screenplays', 'read_only_screenplays')
 
     def __init__(self, session, **kwargs):
         super(MyUsersView, self).__init__(User, session, **kwargs)
