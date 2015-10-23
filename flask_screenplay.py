@@ -46,7 +46,6 @@ def email_screenplay():
     raw_recipients = request.form.get('recipients', None)
     if raw_recipients is None:
         raw_recipients = request.json.get('recipients', None)
-    print request.json
     recipients = raw_recipients.split(',')
 
     # Build email body and html
