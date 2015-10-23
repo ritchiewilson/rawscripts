@@ -1,34 +1,8 @@
 #!/bin/bash
 
-E_BADARGS=65
 
-if [ ! -n "$1" ]
-then
-  echo "usage: compile-js <page-to-compile>
+PAGE="editor"
 
-for Example:
-	./compile-js editor"
-  exit $E_BADARGS
-fi
-
-args=("$@")
-PAGE=${args[0]}
-
-# make sure there's a good argument here
-
-if [ "$PAGE" = "editor" ]
-then
-  echo "Compiling editor files..."
-elif [ "$PAGE" = "titlepage" ]
-then
-  echo "Compiling titlepage files..."
-else
-  echo "
-************ERROR: No such page $PAGE.*************
-Choose from 'editor' or 'titlepage'.
-***************************************************"
-  exit $E_BADARGS
-fi
 
 #Get the root directory of the project
 DIR="$( cd "$( dirname "$0" )" && pwd )"
