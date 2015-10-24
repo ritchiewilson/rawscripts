@@ -816,7 +816,6 @@ function leftArrow(e){
 
     if (!e.shiftKey)
         collapseRange();
-
 }
 
 /**
@@ -827,31 +826,30 @@ function leftArrow(e){
  * associated data
  */
 function rightArrow(e){
-	if(typeToScript){
-		if(pos.row!=anch.row || pos.col!=anch.col){
-			if(!e.shiftKey){
-				switchPosAndAnch();
-				anch.row=pos.row;
-				anch.col=pos.col;
-				return;
-			}
-		}
-		var change=false;
-		if(pos.col==lines[pos.row].text.length && pos.row==lines.length-1)return;
-		if(pos.col==lines[pos.row].text.length){
-			pos.row++;
-			pos.col=0;
-			change=true;
-		}
-		else pos.col = pos.col+1;
-		
-		if(!e.shiftKey){
-			anch.col=pos.col;
-			anch.row=pos.row;
-		}
-		var c =goog.dom.getElement('suggestBox');
-		if(change && c!=null)c.parentNode.removeChild(c);
-	}
+    if (!typeToScript)
+        return;
+
+    if (rangeExists() && !e.shiftKey){
+        switchPosAndAnch();
+        collapseRange();
+        return;
+    }
+
+    if (pos.col == lines[pos.row].text.length && pos.row==lines.length - 1)
+        return;
+
+    if (pos.col == lines[pos.row].text.length){
+        pos.row++;
+        pos.col = 0;
+        var c = goog.dom.getElement('suggestBox');
+        if (c != null)
+            c.parentNode.removeChild(c);
+    }
+    else
+        pos.col = pos.col+1;
+
+    if (!e.shiftKey)
+        collapseRange();
 }
 
 /**
