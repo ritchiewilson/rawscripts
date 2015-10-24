@@ -700,7 +700,7 @@ function upArrow(e){
             pos.row--;
             var newCol = 0;
             var wraps = linesNLB[pos.row];
-            if (wraps[wraps.length - 1].length == 0)
+            if (wraps.length > 1 && wraps[wraps.length - 1].length == 0)
                 wraps = wraps.slice(0, -1);
             for (i in wraps.slice(0, -1))
                 newCol += wraps[i].length + 1;
@@ -738,70 +738,59 @@ function upArrow(e){
  * associated data
  */
 function downArrow(e){
-	if(typeToScript && goog.dom.getElement('suggestBox')==null){
-		if(pos.row!=anch.row || pos.col!=anch.col){
-			if(!e.shiftKey){
-				switchPosAndAnch();
-				anch.row=pos.row;
-				anch.col=pos.col;
-				return;
-			}
-		}
-		if(pos.row==lines.length-1 && pos.col==lines[pos.row].text.length)return;
-		
-		var wrapVars = WrapVariableArray[lines[pos.row].format];
-		if (lines[pos.row].text.length>wrapVars[0]){
-            var lineLengths=[];
-			for(i in linesNLB[pos.row]){
-				if(linesNLB[pos.row][i]!=""){
-					lineLengths.push(linesNLB[pos.row][i].length)
-				}
-			}
-			// use variable 'integ' to figure out 
-			// what line the cursor is on
-			integ=0;
-			var totalCharacters=lineLengths[0];
-			while(totalCharacters<pos.col){
-				integ++;
-				totalCharacters+=lineLengths[integ]+1;
-			}
-			//if this is the last line in a block of wrapped text
-			if(integ+1==lineLengths.length){
-				for(var newinteg=0; newinteg<lineLengths.length-1;newinteg++){
-					pos.col-=lineLengths[newinteg];
-				}
-				pos.col--;
-				pos.row++;
-				if(pos.row>lines.length-1){
-					pos.row--;
-					pos.col=lines[pos.row].text.length;
-				}
-				if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
-			}
-			// if this is some middle line in a block of wrapped text
-			else{
-				pos.col+=lineLengths[integ]+1;
-				if(pos.col>(totalCharacters+lineLengths[integ+1]+1))pos.col=totalCharacters+lineLengths[integ+1]+1;
-			}
-		}
-		else{
-			if(pos.row==lines.length-1){
-				pos.col=lines[pos.row].text.length;
-			}
-			else{
-				pos.row++;
-				if(pos.row>lines.length-1) pos.row=lines.length-1;
-				if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
-			}
-		}
-		if(!e.shiftKey){
-			anch.col=pos.col;
-			anch.row=pos.row;
-		}
-	}
-	else if(goog.dom.getElement('suggestBox')!=null){
-		googSuggestMenu.highlightNext();
-	}
+    if (goog.dom.getElement('suggestBox')!=null){
+        googSuggestMenu.highlightNext();
+        return;
+    }
+
+    if (!typeToScript){
+        return;
+    }
+
+    if(pos.row!=anch.row || pos.col!=anch.col){
+        if (!e.shiftKey){
+            switchPosAndAnch();
+            anch.row=pos.row;
+            anch.col=pos.col;
+            return;
+        }
+    }
+
+    var currentCol = pos.col;
+    var currentRowInWrappedText = 0;
+    var wraps = linesNLB[pos.row];
+    if (wraps.length > 1 && wraps[wraps.length - 1].length == 0)
+        wraps = wraps.slice(0, -1);
+    for (i in wraps){
+        if (currentCol <= wraps[i].length)
+            break;
+        currentRowInWrappedText++;
+        currentCol = currentCol - (wraps[i].length + 1);
+    }
+
+    // down should move to next line
+    if (currentRowInWrappedText >= wraps.length - 1){
+        if (pos.row == linesNLB.length - 1){
+            pos.col = lines[pos.row].text.length;
+        }
+        else {
+            pos.row++;
+            pos.col = Math.min(currentCol, linesNLB[pos.row][0].length);
+        }
+    }
+    // down should move within wrapped text
+    else {
+        var lengthOfCurrentWrappedLine = wraps[currentRowInWrappedText].length;
+        var lengthOfNextWrappedLine = wraps[currentRowInWrappedText + 1].length;
+        pos.col += lengthOfCurrentWrappedLine + 1;
+        if (currentCol > lengthOfNextWrappedLine)
+            pos.col -= (currentCol - lengthOfNextWrappedLine)
+    }
+
+    if (!e.shiftKey){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 
 /**
