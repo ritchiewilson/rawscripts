@@ -673,102 +673,61 @@ function tab(){
  * associated data
  */
 function upArrow(e){
-	if(typeToScript && goog.dom.getElement('suggestBox')==null){
-		if(pos.row!=anch.row || pos.col!=anch.col){
-			if(!e.shiftKey){
-				switchPosAndAnch();
-				pos.row=anch.row;
-				pos.col=anch.col;
-				return;
-			}
-		}
-		if (pos.row==0 && pos.col==0)return;
+    if (goog.dom.getElement('suggestBox')!=null){
+        googSuggestMenu.highlightPrevious();
+        return;
+    }
 
-		var wrapVars = WrapVariableArray[lines[pos.row].format];
-		// Only do calculations if 
-		// there is wrapped text
-		if(lines[pos.row].text.length>wrapVars[0]){
-			var lineLengths=[];
-			for(i in linesNLB[pos.row]){
-				lineLengths.push(linesNLB[pos.row][i].length)
-			}
-			// now we have the variable lineLengths
-			//this is an array holding all the wrapped line lengths
-			
-			//use variable 'integ' to figure out 
-			//what line the cursor is on
-			integ=0;
-			var totalCharacters=lineLengths[0];
-			while(totalCharacters<pos.col){
-				integ++;
-				totalCharacters+=lineLengths[integ]+1;
-			}
-			// totalCharacters now equals
-			// all character up to and including
-			// current line (integ) including spaces
-			if(pos.row==0 && integ==0){
-				pos.col=anch.col=0;
-				return;
-			}
-			// if this is the first line in a block of wrapped text
-			if(integ==0){
-				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
-				// If the previous line (the one we're jumping into)
-				// has only one line, don't run the calcs, just go to it
-				if(lines[pos.row-1].text.length<newWrapVars[0]){
-					pos.row--;
-					if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
-				}
-				else{
-					var lineLengths=[];
-					for(i in linesNLB[pos.row]){
-						lineLengths.push(linesNLB[pos.row][i].length)
-					}
-					pos.row--;
-					pos.col+=lines[pos.row].text.length-lineLengths[lineLengths.length-1];
-					if(pos.col>lines[pos.row].text.length)pos.col = lines[pos.row].text.length;
-				}
-			}
-			// if this is some middle line in a block of wrapped text
-			else{
-				pos.col-=lineLengths[integ-1]+1;
-				if(pos.col>(totalCharacters-lineLengths[integ]-1))pos.col=totalCharacters-lineLengths[integ]-1;
-			}
-		}
-		// if the current block does
-		// not have wrapped text
-		else{
-			if(pos.row==0){
-				pos.col=0;
-			}
-			else{
-				var newWrapVars = WrapVariableArray[lines[pos.row-1].format];
-				//If the previous line (the one we're jumping into)
-				//has only one line, don't run the calcs, just go to it
-				if(lines[pos.row-1].text.length<newWrapVars[0]){
-					pos.row--;
-					if(pos.col>lines[pos.row].text.length)pos.col=lines[pos.row].text.length;
-				}
-                //if the previous line has wrapped text
-				else{
-					var lineLengths=[];
-					for(i in linesNLB[pos.row-1]){
-						lineLengths.push(linesNLB[pos.row-1][i].length)
-					}
-					pos.row--;
-					pos.col+=lines[pos.row].text.length-lineLengths[lineLengths.length-1];
-					if(pos.col>lines[pos.row].text.length)pos.col = lines[pos.row].text.length;
-				}
-			}
-		}
-		if(!e.shiftKey){
-			anch.col=pos.col;
-			anch.row=pos.row;
-		}
-	}
-	else if(goog.dom.getElement('suggestBox')!=null){
-		googSuggestMenu.highlightPrevious();
-	}
+    if (!typeToScript){
+        return;
+    }
+
+    if (pos.row!=anch.row || pos.col!=anch.col){
+        if (!e.shiftKey){
+            switchPosAndAnch();
+            pos.row=anch.row;
+            pos.col=anch.col;
+            return;
+        }
+    }
+
+    // moving from first line of wrapped text up to prev row
+    if (pos.col <= linesNLB[pos.row][0].length){
+        if (pos.row == 0){
+            pos.col = 0;
+        }
+        else {
+            pos.row--;
+            var newCol = 0;
+            var wraps = linesNLB[pos.row];
+            if (wraps[wraps.length - 1].length == 0)
+                wraps = wraps.slice(0, -1);
+            for (i in wraps.slice(0, -1))
+                newCol += wraps[i].length + 1;
+            var lastWrappedLine = wraps[wraps.length - 1];
+            newCol += Math.min(lastWrappedLine.length, pos.col);
+            pos.col = newCol;
+        }
+    }
+    // moving up within wrapped text
+    else {
+        var currentCol = pos.col;
+        var currentRowInWrappedText = 0;
+        var wraps = linesNLB[pos.row];
+        for (i in wraps){
+            if (currentCol <= wraps[i].length)
+                break;
+            currentRowInWrappedText++;
+            currentCol = currentCol - (wraps[i].length + 1);
+        }
+        var prevWrapLength = wraps[currentRowInWrappedText - 1].length;
+        pos.col = pos.col - (Math.max(currentCol, prevWrapLength) + 1);
+    }
+
+    if (!e.shiftKey){
+        anch.col=pos.col;
+        anch.row=pos.row;
+    }
 }
 
 /**
