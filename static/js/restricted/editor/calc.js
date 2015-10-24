@@ -369,3 +369,13 @@ function calculate(){
     forceRepaint = false;
     return repaintNeeded;
 }
+
+
+function rangeExists(){
+    return (pos.row!=anch.row || pos.col!=anch.col);
+}
+
+function collapseRange(){
+    anch.col = pos.col;
+    anch.row = pos.row;
+}
