@@ -586,6 +586,7 @@ class ScriptData(db.Model):
             elif tag == "replace":
                 op.amount = (i2 - i1)
                 op.text = new_string[j1:j2]
+            db.session.add(op)
             rv.ops.append(op)
             application_index += 1
         ScriptData.save_tags(this_version, rv)
