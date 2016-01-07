@@ -186,7 +186,7 @@
 		<div id="font-medium" class="goog-menuitem goog-option">Font Size Medium</div>
 		<div id="font-large" class="goog-menuitem goog-option">Font Size Large</div>
 	</div>
-	<div class="topMenu" id="shareMenu">
+	<div class="topMenu" id="_shareMenu">
 		<div id='collaborators' class="goog-menuitem">Collaborators</div>
 		<div id='email' class="goog-menuitem"><div class="goog-menuitem-icon"><img src="images/email.gif" alt="Email Screenplay"></div>Email PDF</div>
 	</div>
@@ -309,9 +309,7 @@
 			<span>To be added: (comma seperated)</span><br>
 			<textarea rows='3' class="textbox" name='collaborator' id='collaborator'></textarea>
 			<br>
-			<input type="checkbox" name="email_notify_share" id="email_notify_share" onchange="emailNotifyShare(this)"><span> </span>Send email to new collaborators<br>
-			<input type="checkbox" name="email_notify_msg" id="email_notify_msg" onchange="emailNotifyMsg(this)"><span> </span>Add personal message to email<br>
-			<div class="textbox" contentEditable='true' name='share_message' id='share_message'></div>
+			<input type="checkbox" name="email_notify_share" id="email_notify_share"><span> </span>Send email to new collaborators<br>
 			<input id="shareS" type='button' onClick='shareScript()' value='Send Invitations' />
 			<input type="hidden" value="blank" id="shareResource_id" />
 		</div>

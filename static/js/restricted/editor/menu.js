@@ -40,7 +40,7 @@ function topMenuOver(e){
 		if(arr[i][1].isVisible())open=i;
 		if(v==arr[i][0]){
 			var t = arr[i][1];
-			var d = goog.dom.getElement(t.id_.replace("Menu",""));
+			var d = goog.dom.getElement(v);
 			d.style.backgroundColor='#6484df';
 	        d.style.color='white';
 		}
@@ -59,10 +59,16 @@ function topMenuOver(e){
  * object.
  */
 function topMenuOut(e){
+    var menus = {
+        'file': fMenu,
+        'edit': eMenu,
+        'view': vMenu,
+        'share': sMenu
+    }
 	var v = e.target.id;
-    if(goog.dom.getElement(v+'Menu').style.display=='none'){
-        goog.dom.getElement(v).style.backgroundColor='#A2BAE9';
-        goog.dom.getElement(v).style.color='black';
+    if(!menus[v].isVisible()){
+        e.target.style.backgroundColor='#A2BAE9';
+        e.target.style.color='black';
     }
 }
 

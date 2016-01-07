@@ -35,7 +35,11 @@ def share_screenplay():
     collaborators = collaborators_raw.split(',')
     new_collaborators = Screenplay.add_access(resource_id, collaborators)
 
-    if new_collaborators and request.json.get('sendEmail', '') == 'y':
+    send_email = request.form.get('sendEmail', None)
+    if not send_email:
+        send_email = request.json.get('sendEmail', None)
+
+    if new_collaborators and send_email == 'y':
         user = current_user.email
         subject = 'Rawscripts.com: ' + user + " has shared a screenplay with you."
         title = Screenplay.get_title(resource_id)
@@ -65,8 +69,11 @@ def share_screenplay():
 @login_required
 @resource_access(allow_collab=True)
 def remove_access_to_screenplay():
-    resource_id = request.json['resource_id']
-    collaborator = request.json['removePerson'].lower()
+    resource_id = get_resource_id_from_request()
+    collaborator = request.form.get('removePerson', None)
+    if not collaborator:
+        collaborator = request.json.get('removePerson', None)
+    collaborator = collaborator.lower()
     screenplay = Screenplay.get_by_resource_id(resource_id)
     if not current_user.owns_screenplay(screenplay):
         if not current_user.is_collaborator_on_screenplay(screenplay):

@@ -193,7 +193,7 @@ function init(){
 	goog.events.listen(vMenu, 'action', menuSelect)
 	
 	sMenu = new goog.ui.Menu();
-	sMenu.decorate(goog.dom.getElement('shareMenu'))
+	sMenu.decorate(goog.dom.getElement('_shareMenu'))
 	sMenu.setPosition(113, 64)
 	sMenu.setAllowAutoFocus(true);
 	sMenu.setVisible(false);

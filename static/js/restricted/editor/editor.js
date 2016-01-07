@@ -1107,9 +1107,6 @@ function sharePrompt(){
 	typeToScript=false;
     goog.dom.getElement("sharepopup").style.visibility="visible";
 	goog.dom.getElement('email_notify_share').checked=true;
-	goog.dom.getElement('email_notify_msg').checked = false;
-	goog.dom.getElement('email_notify_msg').disabled = false;
-	goog.dom.getElement('share_message').style.display='none';
 }
 function hideSharePrompt(){
 	if(EOV=='viewer')return;
@@ -1117,26 +1114,8 @@ function hideSharePrompt(){
     goog.dom.getElement("sharepopup").style.visibility="hidden";
     goog.dom.getElement("collaborator").value="";
 }
-function emailNotifyShare(e){
-	var el = goog.dom.getElement('email_notify_msg');
-	if (e.checked==true){
-		el.disabled=false;
-	}
-	else{
-		el.disabled=true;
-		goog.dom.getElement('share_message').style.display='none'
-		goog.dom.getElement('email_notify_msg').checked=false;
-	}
-}
-function emailNotifyMsg(e){
-	var el = goog.dom.getElement('share_message');
-	if (e.checked==true){
-		el.style.display='block'
-	}
-	else{
-		el.style.display='none'
-	}
-}
+
+
 function removeAccess(v){
 	if(EOV=='viewer')return;
     var c = confirm("Are you sure you want to remove access for this user?");
@@ -1144,7 +1123,7 @@ function removeAccess(v){
         var c = goog.dom.getElement(v);
         c.style.backgroundColor="#ccc";
 		goog.net.XhrIo.send('/removeaccess', function(d){
-			var id = d.target.getResponseText();
+			var id = v;
 	        goog.dom.removeNode(goog.dom.getElement(id))},
 			'POST',
 			"removePerson="+encodeURIComponent(v)+"&resource_id="+resource_id+"&autosave="+v
@@ -1169,15 +1148,9 @@ function shareScript(){
 	}
 	var collaborators = arr.join(',');
 	var sendEmail = (goog.dom.getElement('email_notify_share').checked==true ? 'y' : 'n');
-	var addMsg = (goog.dom.getElement('email_notify_msg').checked==true ? 'y' : 'n');
-	var msg = ((sendEmail=='y' && addMsg=='y') ? encodeURIComponent(goog.dom.getElement('share_message').innerHTML) : 'n');
 	goog.net.XhrIo.send('/share',
 		function(d){
 			goog.dom.getElement('email_notify_share').checked=true;
-			goog.dom.getElement('email_notify_msg').checked=false;
-			goog.dom.getElement('email_notify_msg').disabled=false;
-			goog.dom.getElement('share_message').innerHTML = "";
-			goog.dom.getElement('share_message').style.display='none';
 			var people = d.target.getResponseText().split(",");
 	        var c=goog.dom.getElement('hasAccess');
 	        for(i in people){
@@ -1192,9 +1165,10 @@ function shareScript(){
 	        }
 	        goog.dom.getElement('shareS').disabled = false;
 	        goog.dom.getElement('shareS').value = "Send Invitations";
+            goog.dom.getElement("collaborator").value="";
 		},
 		'POST',
-		'resource_id='+resource_id+'&collaborators='+encodeURIComponent(collaborators)+'&fromPage=editor&sendEmail='+sendEmail+'&addMsg='+addMsg+'&msg='+msg	
+		'resource_id='+resource_id+'&collaborators='+encodeURIComponent(collaborators)+'&sendEmail='+sendEmail
 	)
 	goog.dom.getElement('shareS').disabled = true;
 	goog.dom.getElement('shareS').value = "Sending Invites...";
