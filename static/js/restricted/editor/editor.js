@@ -198,10 +198,7 @@ function toolbarActions(e){
 function changeFormat(v){
 	// do nothing if this isn't and editor window
 	if(EOV=='viewer')return;
-	// remove character or scene suggest box
-	if(goog.dom.getElement('suggestBox')!=null){
-		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))
-	};
+    removeSuggestBox();
 	// this is a change, so set up save timer
     saveTimer();
 	// update the undoQue, flush redoQue

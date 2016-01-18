@@ -79,11 +79,7 @@ function mouseDown(e){
 function mouseUp(e){
     forceRepaint = true;
 	updateMouseDrag=false; // no longer draggin
-	// if there is a character or scene 
-	// suggestion box, remove it
-	if(goog.dom.getElement('suggestBox')!=null){
-		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
-	}
+    removeSuggestBox();
 	
 	mouseDownBool=false;
 	scrollBarBool=false;

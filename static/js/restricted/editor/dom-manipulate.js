@@ -125,10 +125,7 @@ function tabs(v){
  */
 function createSuggestBox(d){
 	if(EOV=='viewer')return;
-	// remove old box if applicable
-	if(goog.dom.getElement('suggestBox')!=null){
-		goog.dom.removeNode(goog.dom.getElement('suggestBox'));
-	}
+    removeSuggestBox();
 	// get correct list of characters or scenes (v)
 	// and the position of the left edge of the proposed
 	// suggest box
@@ -184,10 +181,10 @@ function createSuggestBox(d){
 	// If there is only one item in the suggest box
 	// and the user has typed it in full, remove the
 	// suggest box
-	if(goog.dom.getElement('suggestBox')!=null){
-		if (goog.dom.getElement('suggestBox').childNodes.length==1){
-			if(goog.dom.getElement('suggestBox').firstChild.value.toUpperCase()==lines[pos.row].text.toUpperCase())goog.dom.removeNode(goog.dom.getElement('suggestBox'))
-		}
+    var suggestBox = goog.dom.getElement('suggestBox');
+	if(suggestBox !=null && suggestBox.childNodes.length == 1){
+		if(suggestBox.firstChild.value.toUpperCase() == lines[pos.row].text.toUpperCase())
+            removeSuggestBox();
 	}
 	// Finally, if there is still a suggest box with
 	// options in it, decorate it as a menu with
@@ -207,7 +204,7 @@ function createSuggestBox(d){
 			lines[pos.row].text=txt;
 		    undoQue.push(['paste', pos.row, pos.col, lines[pos.row].text.substr(len)]);
 			pos.col=anch.col=lines[pos.row].text.length;
-			goog.dom.removeNode(goog.dom.getElement('suggestBox'))
+            removeSuggestBox();
 	    });
 	}
 }

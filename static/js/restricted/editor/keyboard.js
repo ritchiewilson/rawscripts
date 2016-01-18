@@ -235,10 +235,7 @@ function backspace(e){
 				// add to undoque
 				undoQue.push(['back',pos.row, pos.col,'line',elem]);
 				
-				
-				
-				// remove suggest, if it's there
-				if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+				removeSuggestBox();
 				
 				linesNLB.splice(pos.row+1,1)
 				getLines(pos.row);
@@ -273,10 +270,8 @@ function backspace(e){
 		}
 		else{
 			// This big ass 'else' is for deleting
-			// a range.
-			
-			// remove suggest box
-			if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+			// a range.			
+            removeSuggestBox();
 			
 			// It's easier to start by putting the focus after 
 			// the anchor, just so it's always the same operation
@@ -363,9 +358,7 @@ function deleteButton(){
 	if(typeToScript){
 	saveTimer();
 	redoQue=[];
-	
-	// remove suggest box if visible
-	if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+	removeSuggestBox();
 	
 	// keep variable to know if we need
 	// to calc in the end. assume not
@@ -525,7 +518,7 @@ function enter(){
 		var txt = googSuggestMenu.getHighlighted().getCaption();
 		lines[pos.row].text= txt;
         undoQue.push(['paste', pos.row, pos.col, lines[pos.row].text.substr(len)]);
-		goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'));
+        removeSuggestBox();
 		pos.col=anch.col=lines[pos.row].text.length;
 		var p = getLines(pos.row);
 		if(p)pagination();
@@ -609,8 +602,7 @@ function enter(){
 function tab(){
 	if(EOV=='viewer')return;
 	if(typeToScript){
-		// remove suggest box if exists
-		if(goog.dom.getElement('suggestBox')!=null){goog.dom.getElement('suggestBox').parentNode.removeChild(goog.dom.getElement('suggestBox'))};
+        removeSuggestBox();
 		saveTimer();
 		undoQue.push(['format',pos.row,pos.col,lines[pos.row].format, 'tab']);
 		redoQue=[];
@@ -806,10 +798,7 @@ function leftArrow(e){
     if (pos.col == 0){
         pos.row--;
         pos.col=lines[pos.row].text.length;
-
-        var c = goog.dom.getElement('suggestBox');
-        if (c != null)
-            c.parentNode.removeChild(c);
+        removeSuggestBox();
     }
     else
         pos.col--;
@@ -841,9 +830,7 @@ function rightArrow(e){
     if (pos.col == lines[pos.row].text.length){
         pos.row++;
         pos.col = 0;
-        var c = goog.dom.getElement('suggestBox');
-        if (c != null)
-            c.parentNode.removeChild(c);
+        removeSuggestBox();
     }
     else
         pos.col = pos.col+1;
@@ -865,3 +852,10 @@ function pageUp(){
 function pageDown(){
 	scroll(lineheight*72)
 };
+
+
+function removeSuggestBox(){
+    var c = goog.dom.getElement('suggestBox');
+    if (c != null)
+        c.parentNode.removeChild(c);
+}
