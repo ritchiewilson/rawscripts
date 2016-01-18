@@ -98,6 +98,7 @@ function drawRange(ctx, pageStartX){
 	    s.canvasY += 3;
 	    e.canvasY += 3;
         ctx.fillRect(s.canvasX, s.canvasY, e.canvasX - s.canvasX, blueheight);
+        return s.canvasY;
     }
 
     // get on canvas postions of start and end (s,e)
@@ -110,7 +111,17 @@ function drawRange(ctx, pageStartX){
         return;
 	}
 
-    for (var i = startRange.row; i <= endRange.row; i++){
+    // for really long ranges, avoid drawing stuff that is not visible
+    // anyways. Figure out roughly what page is visible, and start drawing from
+    // there, or start from startRange.row if that means less checking
+    var visiblePage = parseInt(vOffset / (lineheight * 72));
+    var startRow = 0;
+    if (visiblePage > 0)
+        startRow = pageBreaks[visiblePage - 1][0];
+    if (startRange.row > startRow)
+        startRow = startRange.row;
+    
+    for (var i = startRow; i <= endRange.row; i++){
         var startOfLine = 0;
         var endOfLine = 0;
         for (var j = 0; j < linesNLB[i].length; j++){
@@ -121,12 +132,13 @@ function drawRange(ctx, pageStartX){
 
             var isStartRow = (i == startRange.row);
             var isEndRow = (i == endRange.row);
+            var printedY = 0;
 
             if (isStartRow && startOfLine <= startRange.col && startRange.col <= endOfLine){
-                _drawRangeOnSameLine(i, startRange.col, endOfLine);
+                printedY = _drawRangeOnSameLine(i, startRange.col, endOfLine);
             }
             else if (isEndRow && startOfLine <= endRange.col && endRange.col <= endOfLine){
-                _drawRangeOnSameLine(i, startOfLine, endRange.col);
+                printedY = _drawRangeOnSameLine(i, startOfLine, endRange.col);
             }
             else if (isStartRow && startRange.col > endOfLine){
                 // do nothing
@@ -135,7 +147,10 @@ function drawRange(ctx, pageStartX){
                 // do nothing
             }
             else
-                _drawRangeOnSameLine(i, startOfLine, endOfLine);
+                printedY = _drawRangeOnSameLine(i, startOfLine, endOfLine);
+
+            if (printedY > editorHeight)
+                return;
             startOfLine = endOfLine + 1;
         }
     }
@@ -167,7 +182,6 @@ function drawNotes(ctx, pageStartX){
 			drawNote(p.canvasX, p.canvasY, ctx, notes[i]);
 		}
 	}
-		
 }
 
 /**
