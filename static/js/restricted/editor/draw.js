@@ -88,116 +88,56 @@ function drawRange(ctx, pageStartX){
 		var startRange = {row:pos.row, col:pos.col};
 		var endRange = {row:anch.row, col:anch.col};
 	}
-	
-	// get on canvas postions of start and end (s,e)
+
+	var blueheight = Math.round(lineheight * 0.9);
+	ctx.fillStyle='lightBlue';
+
+    function _drawRangeOnSameLine(r, c1, c2){
+        var s = canvasPosition(r, c1, pageStartX);
+        var e = canvasPosition(r, c2, pageStartX);
+	    s.canvasY += 3;
+	    e.canvasY += 3;
+        ctx.fillRect(s.canvasX, s.canvasY, e.canvasX - s.canvasX, blueheight);
+    }
+
+    // get on canvas postions of start and end (s,e)
 	var s = canvasPosition(startRange.row, startRange.col, pageStartX);
 	var e = canvasPosition(endRange.row, endRange.col, pageStartX);
-	s.canvasY+=3;
-	e.canvasY+=3;
-	var blueheight = Math.round(lineheight * 0.9);
-	
-	// Now compare stuff and draw blue boxen
-	ctx.fillStyle='lightBlue';
-	
+
 	// if this is only on one wrapped line
-	if(e.canvasY==s.canvasY){
-		var onlyBlueLine = s.canvasX;
-		ctx.fillRect(onlyBlueLine, s.canvasY,e.canvasX-s.canvasX, blueheight);
+	if(e.canvasY == s.canvasY){
+		_drawRangeOnSameLine(startRange.row, startRange.col, endRange.col);
+        return;
 	}
-	else{
-		// if the range doesn't fall on one bit of wrapped
-		// text, cycle through lines, and linesNLB to draw
-		// boxes in line by line.
-		var y = lineheight*9+3;
-		var count = 0;
-		var startLine = 0;
-		// figure out what page to start printing on
-		// i.e. only draw if it'll be visible on screen
-		var firstPrintedPage = Math.round(vOffset/(72*lineheight)-0.5);
-		if(firstPrintedPage!=0){
-			count=firstPrintedPage-1;
-			y=72*lineheight*(count)+10*lineheight;
-			startLine=pageBreaks[count][0];
-		}
-		for (var i=startLine; i<linesNLB.length; i++){
-			if(y-vOffset>editorHeight)break;
-			if(i>endRange.row)break;
-			var tc=0; // keep track of total characters passed through so far
-			for(var j=0; j<linesNLB[i].length; j++){
-				if(pageBreaks.length!=0 && pageBreaks[count]!=undefined && pageBreaks[count][0]==i && pageBreaks[count][2]==j){
-					y=72*lineheight*(count+1)+9*lineheight+3;
-					count++;
-					if(j!=0 && lines[i].format==3){
-						y+=lineheight;
-					}
-					if(count>=pageBreaks.length){
-						count=pageBreaks.length-2;
-					}
-				}
-				if(i==startRange.row && i!=endRange.row){
-					// for drawing range in a block that contains
-					// the start of the range, but not the end
-					if(tc>startRange.col){
-						if(lines[i].format==5){
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
-						}
-						else{
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
-						}
-					}
-					if(tc<=startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,blueheight);
-					}
-				}
-				else if(i==endRange.row && i!=startRange.row){
-					// for drawing range in a block that contains
-					// the end of the range, but not the start
-					if(tc+linesNLB[i][j].length<endRange.col){
-						if(lines[i].format==5){
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
-						}
-						else{
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth,blueheight);
-						}
-					}
-					if(tc<endRange.col && endRange.col<=(tc+linesNLB[i][j].length)){
-						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, blueheight)
-					}
-					
-				}
-				else if(i==startRange.row && i==endRange.row){
-					// for drawing range in a block that contains
-					// the both the start and end of the range
-					if(tc<startRange.col && startRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(s.canvasX, s.canvasY, (tc+linesNLB[i][j].length-startRange.col)*fontWidth,blueheight);
-					}
-					else if(tc<endRange.col && endRange.col<(tc+linesNLB[i][j].length)){
-						ctx.fillRect(e.canvasX-(endRange.col-tc)*fontWidth, e.canvasY, (endRange.col-tc)*fontWidth, blueheight)
-					}
-					else if(tc>startRange.col && tc<endRange.col){
-						if(lines[i].format==5){
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
-						}
-						else{
-							ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
-						}
-					}
-				}
-				else if(i>startRange.row){
-					// for drawing range in a block that contains
-					// neither the start or the end of the range
-					// i.e. the stuff int he middle.
-					if(lines[i].format==5){
-						ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX-(linesNLB[i][j].length*fontWidth), y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
-					}
-					else{
-						ctx.fillRect(textDistanceFromEdge[lines[i].format]*fontWidth+pageStartX, y-vOffset, linesNLB[i][j].length*fontWidth, blueheight);
-					}
-				}
-				y+=lineheight;
-				tc+=linesNLB[i][j].length+1;
-			}
-		}
+
+    for (var i = startRange.row; i <= endRange.row; i++){
+        var startOfLine = 0;
+        var endOfLine = 0;
+        for (var j = 0; j < linesNLB[i].length; j++){
+            var numNewCharacters = linesNLB[i][j].length;
+            if (numNewCharacters == 0)
+                continue;
+            endOfLine = startOfLine + numNewCharacters;
+
+            var isStartRow = (i == startRange.row);
+            var isEndRow = (i == endRange.row);
+
+            if (isStartRow && startOfLine <= startRange.col && startRange.col <= endOfLine){
+                _drawRangeOnSameLine(i, startRange.col, endOfLine);
+            }
+            else if (isEndRow && startOfLine <= endRange.col && endRange.col <= endOfLine){
+                _drawRangeOnSameLine(i, startOfLine, endRange.col);
+            }
+            else if (isStartRow && startRange.col > endOfLine){
+                // do nothing
+            }
+            else if (isEndRow && endRange.col < startOfLine){
+                // do nothing
+            }
+            else
+                _drawRangeOnSameLine(i, startOfLine, endOfLine);
+            startOfLine = endOfLine + 1;
+        }
     }
 }
 
