@@ -42,5 +42,5 @@ def export_screenplay():
     response = make_response(_file.getvalue())
     response.headers['Content-Type'] = content_type
     response.headers['Content-Disposition'] = \
-        'attachment; filename={}.{}'.format(title, export_format)
+        'attachment; filename="{}.{}"'.format(title, export_format)
     return response
