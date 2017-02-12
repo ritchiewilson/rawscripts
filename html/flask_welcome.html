@@ -6,12 +6,6 @@
     {% endfor %}
   {% endwith %}
   <div style="width:490px; float:left; margin-right:60px;">
-    <div class="alert alert-warning" role="alert">
-      <strong>Notice:</strong> On April 21st, Rawscripts changed its login
-      system.<br><a href="{{ url_for('user.forgot_password') }}"
-      class="alert-link">If you have an accout but need a password, click
-      here!</a>
-    </div>
  	<div id='login'>
       {% if not current_user.is_authenticated() %}
       {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
